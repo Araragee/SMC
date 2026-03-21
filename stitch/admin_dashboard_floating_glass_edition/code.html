@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sernan's Music Clinic | Liquid Glass Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #2a1100, #09090b);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .headline-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 69, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        .cosmic-orange-gradient {
+            background: linear-gradient(135deg, #FF4500 0%, #FF8C00 100%);
+        }
+        .glow-orange {
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#FF4500",
+                "primary-container": "#4a1c00",
+                "on-primary": "#ffffff",
+                "surface": "#09090b",
+                "surface-variant": "#27272a",
+                "outline": "#52525b"
+              },
+              fontFamily: {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Inter"]
+              },
+              borderRadius: {
+                "3xl": "24px"
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface text-white selection:bg-primary/30 antialiased">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 flex flex-col h-full p-4 z-[60] w-64 bg-zinc-900/80 backdrop-blur-2xl rounded-r-[24px] shadow-2xl shadow-orange-900/10 font-['Plus_Jakarta_Sans'] font-medium text-sm">
+<div class="px-4 mb-10 mt-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl cosmic-orange-gradient flex items-center justify-center text-white shadow-lg glow-orange">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+</div>
+<div>
+<h1 class="text-xl font-bold text-white leading-tight">Sernan's Music Clinic</h1>
+<p class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Premium Music Ed</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 bg-gradient-to-r from-orange-500/20 to-orange-600/10 text-orange-500 rounded-[24px] px-4 py-3 border-l-4 border-orange-500" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Students</span>
+</a>
+<a class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="piano">piano</span>
+<span>Instruments</span>
+</a>
+<a class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span>Messages</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/5 space-y-2">
+<button class="w-full cosmic-orange-gradient text-white font-bold py-4 px-4 rounded-3xl shadow-lg flex items-center justify-center gap-2 active:scale-95 duration-150 mb-4 glow-orange">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+            New Enrollment
+        </button>
+<a class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help Center</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar Component -->
+<header class="fixed top-4 left-[17rem] right-4 z-50 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl flex justify-between items-center px-8 py-3.5 shadow-2xl shadow-black/40 font-['Plus_Jakarta_Sans'] tracking-tight text-white">
+<div class="flex items-center gap-10">
+<div class="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-orange-400 to-orange-600">Sernan's Music Clinic</div>
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-orange-500 font-bold border-b-2 border-orange-500 pb-1" href="#">Overview</a>
+<a class="text-zinc-400 hover:text-white transition-colors" href="#">Schedules</a>
+<a class="text-zinc-400 hover:text-white transition-colors" href="#">Curriculum</a>
+<a class="text-zinc-400 hover:text-white transition-colors" href="#">Recitals</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden xl:block">
+<span class="absolute inset-y-0 left-3 flex items-center text-zinc-500">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+</span>
+<input class="bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 w-48 focus:ring-2 focus:ring-primary/50 transition-all text-xs text-white" placeholder="Search..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-zinc-400 hover:bg-white/5 rounded-full relative active:scale-95 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full glow-orange"></span>
+</button>
+<button class="p-2 text-zinc-400 hover:bg-white/5 rounded-full active:scale-95 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<div class="h-6 w-[1px] bg-white/10"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold leading-tight">Julian Maestri</p>
+<p class="text-[10px] text-zinc-500">Director</p>
+</div>
+<img alt="Instructor Profile" class="w-9 h-9 rounded-full object-cover border border-white/10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzAbEdP1OHPmqGxsYsVWHJOXRzs3QohU_dGbRCxLRd3aLYsTFnmDm3n3n8B18c1MIsnUdJ3MlJYNQAjWQTpzq7Gef9Fuv6v4kChtSVLah9rq1J7-5dMdS9ei9_3KKcFkWVk2q0ItS2oserge3CnLRMtLVaVD06Xm6d1bkgqsOKjCchuraM9aZTmTi9TvUzpaeyVpApb4DBAVRS8z5HrHTJx_32cojDeMn31IKHPay9qlpeBkrlSvFt1-KAmKIAJ5QGJcpwaEQwpjYR"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-28 px-8 pb-12 space-y-8">
+<!-- Bento Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="col-span-1 md:col-span-2 liquid-glass p-8 rounded-3xl flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Live Analytics</span>
+<h2 class="text-3xl font-black headline-font mt-2 tracking-tight">124 Active Sessions</h2>
+<p class="text-zinc-400 text-sm mt-1">Increasing rhythmic volume by +12% this month</p>
+</div>
+<div class="flex gap-2 mt-8">
+<span class="px-4 py-1.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-black rounded-full uppercase tracking-wider">Piano Masterclass</span>
+<span class="px-4 py-1.5 bg-zinc-800/50 border border-white/10 text-zinc-300 text-[10px] font-black rounded-full uppercase tracking-wider">Theory Exams</span>
+</div>
+</div>
+<div class="cosmic-orange-gradient p-8 rounded-3xl shadow-xl flex flex-col justify-between relative overflow-hidden glow-orange">
+<div class="absolute -right-6 -bottom-6 opacity-20">
+<span class="material-symbols-outlined text-[120px]" data-icon="music_note">music_note</span>
+</div>
+<div>
+<span class="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]">Retention Rate</span>
+<h2 class="text-5xl font-black headline-font mt-2 tracking-tighter">98%</h2>
+</div>
+<p class="text-xs text-white/80 font-medium">Exceeding national music academy benchmarks</p>
+</div>
+<div class="liquid-glass p-8 rounded-3xl flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">New Registrations</span>
+<h2 class="text-5xl font-black headline-font mt-2 text-white tracking-tighter">18</h2>
+</div>
+<div class="flex -space-x-3 mt-6">
+<img alt="Student" class="w-10 h-10 rounded-full border-2 border-zinc-900 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVDnSBUJHaLzhA33YVslPOt6wWxJ-MolyKnzgyjGFdPZDx_dia8LtzUMs6UQfnO5L7mnmaoBU3vlpOxhWMtQFdKPq6J7GWw5EqbfDhC-UU1noBJyHNrDiL779LTcN_HA0lUd1udPeuCQBv4k5PbvWKFuS2-ARGYDRLf20tDGQtwhEBXqOx6OI_jXrW99KKqmfVclskoso2PJ0-0QjfCFqNPaxfWQocMYSc6p0ktwp2zD2E7VlyyGQ1U10G0MNEUvzHWyhrEgtXw4jz"/>
+<img alt="Student" class="w-10 h-10 rounded-full border-2 border-zinc-900 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZXxnfP3evP7VhQ9ZWOkV5KQEz7tIk_k0Zema5FFnZ83rbr9oUCQre6bhbLmsV2Ew5k4j5p8umzXK_b_3sH4Ddy5aXniNGK3wycfSa4Kik5ZYxE7RfwOsWel_PLQtDyjf-LCIsydDw-W04oT0UmPsYfcSCR8rgoEttia-U_rOSPzgSDUP_4swnxPmySqS1n9sOnaohf0Cirxyk-xv3jnJ8EAY-jX-ennoUhsRVE-_5PeeJBSKE9Mc2KuhnnNqgSv39tZTEX-FODGlZ"/>
+<img alt="Student" class="w-10 h-10 rounded-full border-2 border-zinc-900 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC47ZipY6AsqZxsC1dq1YL7oB0hTibkJjlwBTNphlRbe97pPcXtwqkNrMwbHK2n2e1rA6Bg7C6GH7gjBib-Gu9BED4uy3y7skuoEoCYMVppSBSY064f0bIblBOA7Qn-wdBrLfiiEeiur3IQ1_RHEvfuEfm-aI8uowmV7hLuF0mAb3kLTXNgOJLe7tg2ILzIe6h2rcWZad_AOhs5c8hczBtolvIODO8mO8hT4FteOo38lAH1WoOmsiVvKFAJn6GrqRWV9zg3qJJrRSHz"/>
+<div class="w-10 h-10 rounded-full border-2 border-zinc-900 cosmic-orange-gradient text-white text-[10px] font-black flex items-center justify-center">+15</div>
+</div>
+</div>
+</section>
+<!-- Main Layout: Calendar + User Management -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Scheduler & Calendar -->
+<div class="lg:col-span-2 space-y-8">
+<section class="liquid-glass rounded-3xl p-8">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-2xl font-black headline-font tracking-tight">Music Schedule</h3>
+<p class="text-zinc-500 text-sm">Managing Monday, Oct 24th</p>
+</div>
+<div class="flex gap-2">
+<button class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Calendar List -->
+<div class="space-y-4">
+<div class="grid grid-cols-6 gap-4 py-2 border-b border-white/5">
+<div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1">Time</div>
+<div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-5">Sessions &amp; Instructors</div>
+</div>
+<!-- Entry 1 -->
+<div class="grid grid-cols-6 gap-4 group hover:bg-white/5 transition-all rounded-3xl p-2 -mx-2">
+<div class="col-span-1 flex flex-col justify-center">
+<span class="text-sm font-black headline-font">09:00</span>
+<span class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">AM</span>
+</div>
+<div class="col-span-5 glass-card border-l-4 border-primary p-5 rounded-[24px] flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/20">
+<span class="material-symbols-outlined" data-icon="piano">piano</span>
+</div>
+<div>
+<h4 class="text-sm font-bold">Advanced Piano Sonata</h4>
+<p class="text-xs text-zinc-400">Dr. Sarah Jenkins</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<span class="text-[10px] block font-black text-primary tracking-widest uppercase">ROOM 302</span>
+<span class="text-[10px] block text-zinc-500 font-bold">4 Students</span>
+</div>
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-zinc-500" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Entry 2 -->
+<div class="grid grid-cols-6 gap-4 group hover:bg-white/5 transition-all rounded-3xl p-2 -mx-2">
+<div class="col-span-1 flex flex-col justify-center">
+<span class="text-sm font-black headline-font">10:30</span>
+<span class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">AM</span>
+</div>
+<div class="col-span-5 glass-card border-l-4 border-orange-400 p-5 rounded-[24px] flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-orange-400/10 flex items-center justify-center text-orange-400 border border-orange-400/20">
+<span class="material-symbols-outlined" data-icon="music_note">music_note</span>
+</div>
+<div>
+<h4 class="text-sm font-bold">Vocal Harmony Workshop</h4>
+<p class="text-xs text-zinc-400">Marcus Vane</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<span class="text-[10px] block font-black text-orange-400 tracking-widest uppercase">HALL A</span>
+<span class="text-[10px] block text-zinc-500 font-bold">12 Students</span>
+</div>
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-zinc-500" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Entry 3 (Add Slot) -->
+<div class="grid grid-cols-6 gap-4 p-2 -mx-2">
+<div class="col-span-1 flex flex-col justify-center">
+<span class="text-sm font-black headline-font">12:00</span>
+<span class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">PM</span>
+</div>
+<div class="col-span-5 border-2 border-dashed border-white/10 rounded-[24px] p-4 flex items-center justify-center gap-2 text-zinc-500 hover:border-primary/50 hover:text-primary transition-all cursor-pointer group bg-white/[0.02]">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="text-sm font-bold uppercase tracking-widest">Assign New Session</span>
+</div>
+</div>
+</div>
+</section>
+<!-- User Management -->
+<section class="liquid-glass rounded-3xl p-8 overflow-hidden">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+<h3 class="text-2xl font-black headline-font tracking-tight">Faculty &amp; Staff</h3>
+<div class="flex items-center gap-3">
+<button class="px-5 py-2.5 bg-white/5 text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-white/10 rounded-2xl hover:bg-white/10 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                                Filter
+                            </button>
+<button class="px-5 py-2.5 cosmic-orange-gradient text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 glow-orange">
+<span class="material-symbols-outlined text-sm" data-icon="person_add">person_add</span>
+                                Add Member
+                            </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+<th class="pb-6 px-2">Member</th>
+<th class="pb-6 px-2">Department</th>
+<th class="pb-6 px-2">Status</th>
+<th class="pb-6 px-2">Sessions</th>
+<th class="pb-6 px-2 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="py-6 px-2">
+<div class="flex items-center gap-4">
+<img alt="Staff member" class="w-12 h-12 rounded-[18px] object-cover ring-1 ring-white/10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArhq0Jve6JccObU2jQWiUP75UoaX99OXbCMfDR_4c5Wujcjt9WTs3nhkXws358hNKl0SsDeTbLhEJe53gzeO00Zc1IchqwwW7enFBIET3z2iLGWWcGAANJbpq6yNs2kJRb1ogm_s4PBZRnowW6vIzqqh2vzCXnb8g70nuqjLZH36Rl5eqU3ubCOPN4ecsyEYXGS5WomNos44ap6AFLPALXba43V2vDqbVhjgu7rsBa6u7YZW26295Ipq2l7SWe9VDGfU3uyVFy_YDE"/>
+<div>
+<p class="text-sm font-black">Dr. Eleanor Rigby</p>
+<p class="text-xs text-zinc-500">Strings Dept</p>
+</div>
+</div>
+</td>
+<td class="py-6 px-2">
+<span class="text-xs font-medium text-zinc-300">Classical Cello</span>
+</td>
+<td class="py-6 px-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
+                                            Available
+                                        </span>
+</td>
+<td class="py-6 px-2">
+<span class="text-sm font-black headline-font">14</span>
+</td>
+<td class="py-6 px-2 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-2 text-zinc-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-zinc-500 hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="group hover:bg-white/[0.02] transition-colors">
+<td class="py-6 px-2">
+<div class="flex items-center gap-4">
+<img alt="Staff member" class="w-12 h-12 rounded-[18px] object-cover ring-1 ring-white/10" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD5YeorGxL8Q9ukQZsvyTU-mWdagTCJ6_p0RD0eDvXQdYKqB-vpES3hp_OtsqDbykezjImIoJXmPvOr8CO-YNCoTCawO6W2NA11EUanArL1i_Xp4ILuUQ_8wGFWPc_K1RvvDNWX_ZcLRims8evZvMqk8cFvEUhALhjmxe-BdjucqgMqNBwiUY8OVTfrsVDAx-fIjv-bwMReMlVBxQmDRLP21zfFYzX_P_6DkdetGSEPNdGxaZJioU4ZM_um-Jo-LDcUfWJpB5IlnU8"/>
+<div>
+<p class="text-sm font-black">Arthur Brown</p>
+<p class="text-xs text-zinc-500">Wind &amp; Brass</p>
+</div>
+</div>
+</td>
+<td class="py-6 px-2">
+<span class="text-xs font-medium text-zinc-300">Jazz Saxophone</span>
+</td>
+<td class="py-6 px-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20">
+<span class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></span>
+                                            In Session
+                                        </span>
+</td>
+<td class="py-6 px-2">
+<span class="text-sm font-black headline-font">22</span>
+</td>
+<td class="py-6 px-2 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-2 text-zinc-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-zinc-500 hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Right Column: Notifications & Quick Actions -->
+<div class="space-y-8">
+<!-- Notification Center -->
+<section class="liquid-glass rounded-3xl p-8">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-lg font-black headline-font tracking-tight">Alerts &amp; Updates</h3>
+<span class="text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">3 NEW</span>
+</div>
+<div class="space-y-4">
+<!-- Alert 1 -->
+<div class="glass-card p-5 rounded-[24px] border-l-4 border-primary">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="warning">warning</span>
+<div>
+<h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1">Room Conflict</h4>
+<p class="text-xs text-zinc-300 leading-relaxed">Room 302 double-booked for 2:00 PM today.</p>
+<button class="text-[10px] font-black text-primary mt-3 uppercase tracking-widest hover:underline transition-all">Resolve Now</button>
+</div>
+</div>
+</div>
+<!-- Alert 2 -->
+<div class="glass-card p-5 rounded-[24px] border-l-4 border-zinc-700">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-zinc-400 text-xl" data-icon="campaign">campaign</span>
+<div>
+<h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1">System Update</h4>
+<p class="text-xs text-zinc-300 leading-relaxed">Maintenance scheduled for midnight Saturday.</p>
+<p class="text-[10px] text-zinc-500 mt-2 font-bold uppercase">2 hours ago</p>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 py-4 text-[10px] font-black text-zinc-400 bg-white/5 border border-white/10 rounded-[20px] hover:bg-white/10 transition-all uppercase tracking-[0.2em]">View All Activity</button>
+</section>
+<!-- Quick Assignment Widget -->
+<section class="cosmic-orange-gradient rounded-3xl p-8 text-white shadow-xl glow-orange relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-xl font-black headline-font mb-6 tracking-tight">Quick Assign</h3>
+<div class="space-y-5">
+<div>
+<label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Teacher</label>
+<div class="bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-white/30 transition-all border border-white/10">
+<span class="text-xs font-bold">Select Faculty</span>
+<span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div>
+<label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Student Group</label>
+<div class="bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center justify-between cursor-pointer hover:bg-white/30 transition-all border border-white/10">
+<span class="text-xs font-bold">Select Level</span>
+<span class="material-symbols-outlined text-sm" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<button class="w-full bg-black/40 backdrop-blur-xl border border-white/10 text-white font-black py-4 rounded-[24px] shadow-lg mt-4 active:scale-95 transition-all duration-150 uppercase text-[10px] tracking-[0.2em]">Confirm Schedule</button>
+</div>
+</div>
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+</section>
+</div>
+</div>
+</div>
+</main>
+</body></html>
