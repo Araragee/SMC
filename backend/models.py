@@ -22,6 +22,8 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     role_id = Column(Integer, ForeignKey("roles.id"))
+    avatar_url = Column(String, nullable=True)
+    sessions_left = Column(Integer, default=0, nullable=True)
 
     role = relationship("Role", back_populates="users")
 
@@ -39,12 +41,48 @@ class Session(Base):
     student_id = Column(Integer, ForeignKey("users.id"))
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    proof_image_url = Column(String, nullable=True)
-    homework_assigned = Column(String, nullable=True)
+    status = Column(String, default="scheduled")
 
     teacher = relationship("User", foreign_keys=[teacher_id], back_populates="sessions_as_teacher")
     student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
 
+    homeworks = relationship("Homework", back_populates="session", cascade="all, delete-orphan")
+    proofs = relationship("SessionProof", back_populates="session", cascade="all, delete-orphan")
+
+
+class Enrollment(Base):
+    __tablename__ = "enrollments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("users.id"))
+    teacher_id = Column(Integer, ForeignKey("users.id"))
+    sessions_purchased = Column(Integer, default=0)
+    sessions_used = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    student = relationship("User", foreign_keys=[student_id])
+    teacher = relationship("User", foreign_keys=[teacher_id])
+
+class Homework(Base):
+    __tablename__ = "homework"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("sessions.id"))
+    description = Column(String)
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    session = relationship("Session", back_populates="homeworks")
+
+class SessionProof(Base):
+    __tablename__ = "session_proofs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("sessions.id"))
+    image_url = Column(String)
+    uploaded_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    session = relationship("Session", back_populates="proofs")
 
 class Notification(Base):
     __tablename__ = "notifications"

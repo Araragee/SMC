@@ -1,4 +1,4 @@
-import { User, Session, Schedule, Notification } from '../types';
+import type { User, Session, Schedule, Notification } from '../types';
 
 export const mockUsers: User[] = [
   {

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
-import { User, Role } from '../types';
-import { mockUsers } from '../mock';
+import axios from 'axios';
+import type { User, Role } from '../types';
+
+const API_URL = 'http://localhost:8000';
 
 interface AuthState {
   user: User | null;
@@ -22,22 +24,35 @@ export const useAuthStore = defineStore('auth', {
     currentUser: (state) => state.user,
   },
   actions: {
-    async login(email: string) {
+    async login(email: string, password = "password123") {
       this.isLoading = true;
       this.error = null;
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const formData = new URLSearchParams();
+        formData.append('username', email);
+        formData.append('password', password);
 
-        const user = mockUsers.find(u => u.email === email);
-        if (!user) {
-          throw new Error('User not found');
-        }
+        const response = await axios.post(`${API_URL}/login`, formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
 
-        this.user = user;
-        this.token = `mock-token-for-${user.id}`;
+        const data = response.data;
+        const user = data.user;
+
+        // Map backend user to frontend user type
+        this.user = {
+          id: String(user.id),
+          name: user.name,
+          email: user.email,
+          role: user.role?.name?.toLowerCase() as Role || 'student',
+          avatarUrl: user.avatar_url,
+          sessionsLeft: user.sessions_left
+        };
+        this.token = data.access_token;
       } catch (err: any) {
-        this.error = err.message || 'Login failed';
+        this.error = err.response?.data?.detail || err.message || 'Login failed';
       } finally {
         this.isLoading = false;
       }
