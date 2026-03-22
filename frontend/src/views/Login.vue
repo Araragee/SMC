@@ -22,23 +22,22 @@
         <div class="absolute -inset-1 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-50"></div>
         <div class="relative bg-surface-container-low/40 backdrop-blur-3xl p-10 rounded-xl inner-glow-top-left border border-white/5 space-y-8">
           <form class="space-y-6" @submit.prevent="handleLogin">
-            <div class="space-y-2">
-              <label class="block text-[10px] tracking-widest uppercase text-neutral-500 font-bold px-1">Identity / Role</label>
-              <div class="relative">
-                <select v-model="role" class="w-full h-16 bg-surface-container-highest/50 border-none rounded-lg pl-6 pr-6 text-on_surface focus:ring-1 focus:ring-primary/50 transition-all duration-300 appearance-none">
-                  <option value="admin">Admin</option>
-                  <option value="teacher">Teacher</option>
-                  <option value="student">Student</option>
-                </select>
-                <span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-neutral-500">expand_more</span>
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <label class="block text-[10px] tracking-widest uppercase text-neutral-500 font-bold px-1">Email</label>
+                <input v-model="email" type="email" required placeholder="admin@example.com" class="w-full h-16 bg-surface-container-highest/50 border-none rounded-lg pl-6 pr-6 text-on_surface focus:ring-1 focus:ring-primary/50 transition-all duration-300" />
+              </div>
+              <div class="space-y-2">
+                <label class="block text-[10px] tracking-widest uppercase text-neutral-500 font-bold px-1">Password</label>
+                <input v-model="password" type="password" required placeholder="••••••••" class="w-full h-16 bg-surface-container-highest/50 border-none rounded-lg pl-6 pr-6 text-on_surface focus:ring-1 focus:ring-primary/50 transition-all duration-300" />
               </div>
             </div>
-            <button class="group relative w-full h-16 bg-gradient-to-br from-primary to-tertiary_container rounded-lg font-bold text-on_primary_container uppercase tracking-wider overflow-hidden active:scale-[0.98] transition-all duration-300" type="submit">
-              <span class="relative z-10">Sign In</span>
+            <p v-if="authStore.error" class="text-error text-sm text-center text-red-400">{{ authStore.error }}</p>
+            <button :disabled="authStore.isLoading" class="group relative w-full h-16 bg-gradient-to-br from-primary to-tertiary_container rounded-lg font-bold text-on_primary_container uppercase tracking-wider overflow-hidden active:scale-[0.98] transition-all duration-300 disabled:opacity-50" type="submit">
+              <span class="relative z-10">{{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}</span>
               <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>
-          </form>
-        </div>
+          </form>        </div>
       </div>
     </div>
   </main>
@@ -47,13 +46,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
-const role = ref<'admin' | 'teacher' | 'student'>('admin')
+const authStore = useAuthStore()
+const email = ref('')
+const password = ref('')
 
-const handleLogin = () => {
-    // Basic mock navigation for Phase 1
-    router.push(`/${role.value}`)
+const handleLogin = async () => {
+    await authStore.login(email.value, password.value)
+    if (authStore.isAuthenticated && authStore.user) {
+        router.push(`/${authStore.user.role || 'student'}`)
+    }
 }
 </script>
 

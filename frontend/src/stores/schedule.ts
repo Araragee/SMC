@@ -111,12 +111,17 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async uploadImageProof(sessionId: string, imageUrl: string) {
+    async uploadImageProof(sessionId: string, file: File) {
         this.isLoading = true;
         this.error = null;
         try {
-            const response = await axios.post(`${API_URL}/session-proofs/?session_id=${sessionId}`, {
-              image_url: imageUrl
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await axios.post(`${API_URL}/session-proofs/?session_id=${sessionId}`, formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
             });
             const session = this.allSessions.find(s => s.id === sessionId);
             if (session) {

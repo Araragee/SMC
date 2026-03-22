@@ -4,6 +4,13 @@ import type { User, Role } from '../types';
 
 const API_URL = 'http://localhost:8000';
 
+const savedToken = localStorage.getItem('token');
+const savedUser = localStorage.getItem('user');
+
+if (savedToken) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+}
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -13,8 +20,8 @@ interface AuthState {
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
-    user: null,
-    token: null,
+    user: savedUser ? JSON.parse(savedUser) : null,
+    token: savedToken || null,
     isLoading: false,
     error: null,
   }),
@@ -41,16 +48,23 @@ export const useAuthStore = defineStore('auth', {
         const data = response.data;
         const user = data.user;
 
-        // Map backend user to frontend user type
+        // ... setup user ...
         this.user = {
           id: String(user.id),
           name: user.name,
           email: user.email,
-          role: user.role?.name?.toLowerCase() as Role || 'student',
+          role: typeof user.role === 'string' ? user.role.toLowerCase() as Role : (user.role?.name?.toLowerCase() || 'student') as Role,
           avatarUrl: user.avatar_url,
           sessionsLeft: user.sessions_left
         };
         this.token = data.access_token;
+        
+        if (this.token && this.user) {
+          localStorage.setItem('token', this.token);
+          localStorage.setItem('user', JSON.stringify(this.user));
+          axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+        }
+
       } catch (err: any) {
         this.error = err.response?.data?.detail || err.message || 'Login failed';
       } finally {
@@ -60,6 +74,9 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.user = null;
       this.token = null;
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      delete axios.defaults.headers.common['Authorization'];
     },
   },
 });
