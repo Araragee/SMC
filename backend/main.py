@@ -7,15 +7,20 @@ import os
 import passlib.hash
 import jwt
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import pathlib
+
+# Load .env from the backend directory
+load_dotenv(pathlib.Path(__file__).parent / ".env")
 
 from . import models, schemas
 from .database import engine, get_db, SessionLocal
 
 pwd_context = passlib.hash.bcrypt
 
-SECRET_KEY = "dummy-secret-key-for-music-school-phase-1"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-secret-key-change-me")
+ALGORITHM = os.environ.get("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 

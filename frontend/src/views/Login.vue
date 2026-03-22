@@ -32,7 +32,7 @@
                 <input v-model="password" type="password" required placeholder="••••••••" class="w-full h-16 bg-surface-container-highest/50 border-none rounded-lg pl-6 pr-6 text-on_surface focus:ring-1 focus:ring-primary/50 transition-all duration-300" />
               </div>
             </div>
-            <p v-if="authStore.error" class="text-error text-sm text-center text-red-400">{{ authStore.error }}</p>
+            <p v-if="authStore.error" class="text-red-400 text-sm text-center">{{ authStore.error }}</p>
             <button :disabled="authStore.isLoading" class="group relative w-full h-16 bg-gradient-to-br from-primary to-tertiary_container rounded-lg font-bold text-on_primary_container uppercase tracking-wider overflow-hidden active:scale-[0.98] transition-all duration-300 disabled:opacity-50" type="submit">
               <span class="relative z-10">{{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}</span>
               <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>

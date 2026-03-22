@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import type { Session, Schedule } from '../types';
+import { useToastStore } from './toast';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 interface ScheduleState {
   schedules: Schedule[];
@@ -112,6 +113,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
 
     async uploadImageProof(sessionId: string, file: File) {
+        const toast = useToastStore();
         this.isLoading = true;
         this.error = null;
         try {
@@ -119,16 +121,16 @@ export const useScheduleStore = defineStore('schedule', {
             formData.append('file', file);
 
             const response = await axios.post(`${API_URL}/session-proofs/?session_id=${sessionId}`, formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data'
-              }
+              headers: { 'Content-Type': 'multipart/form-data' }
             });
             const session = this.allSessions.find(s => s.id === sessionId);
             if (session) {
                 session.imageProofUrl = response.data.image_url;
             }
+            toast.success('Image uploaded!', 'Proof of session has been saved.');
         } catch (err: any) {
             this.error = err.message || 'Failed to upload image proof';
+            toast.error('Upload failed', this.error || undefined);
             console.error(err);
         } finally {
             this.isLoading = false;
