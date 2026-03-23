@@ -1,35 +1,38 @@
 <template>
   <div class="max-w-7xl mx-auto pb-28">
     <!-- Hero Header -->
-    <section class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+    <section class="flex items-start justify-between gap-8 mb-12">
       <div>
         <h1 class="text-5xl font-black tracking-tight text-white mb-3">
           Welcome back, <span class="text-orange-500">Maestro.</span>
         </h1>
-        <p class="text-zinc-400 text-lg font-medium">
+        <p class="text-zinc-400 text-lg font-medium mb-6">
           You have
           <span class="text-white font-bold">{{ todaySessions.length || 0 }} sessions</span>
           today. Performance index is at
           <span class="text-emerald-400 font-bold">98%</span>.
         </p>
-      </div>
-      <div
-        v-if="nextSession"
-        class="liquid-glass p-5 rounded-3xl flex items-center gap-5 border border-white/10"
-      >
         <div
-          class="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-500"
+          v-if="nextSession"
+          class="liquid-glass p-5 rounded-3xl inline-flex items-center gap-5 border border-white/10"
         >
-          <span
-            class="material-symbols-outlined"
-            style="font-variation-settings: 'FILL' 1"
-            >timer</span
+          <div
+            class="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-500"
           >
+            <span
+              class="material-symbols-outlined"
+              style="font-variation-settings: 'FILL' 1"
+              >timer</span
+            >
+          </div>
+          <div>
+            <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Next Up</p>
+            <p class="font-bold text-xl text-white">{{ formatTime(nextSession.startTime) }} • Session</p>
+          </div>
         </div>
-        <div>
-          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Next Up</p>
-          <p class="font-bold text-xl text-white">{{ formatTime(nextSession.startTime) }} • Session</p>
-        </div>
+      </div>
+      <div class="shrink-0">
+        <ProfileCard />
       </div>
     </section>
 
@@ -351,6 +354,7 @@ import { computed, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
+import ProfileCard from '../../components/ProfileCard.vue'
 
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()

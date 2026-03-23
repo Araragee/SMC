@@ -1,30 +1,33 @@
 <template>
   <div class="max-w-7xl mx-auto pb-28">
     <!-- Hero Welcome -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+    <div class="flex items-start justify-between gap-8 mb-12">
       <div>
         <h2 class="text-5xl font-black tracking-tighter text-white mb-3">
           Morning, {{ authStore.currentUser?.name?.split(' ')[0] || 'Student' }}.
         </h2>
-        <p class="text-zinc-400 font-medium">
+        <p class="text-zinc-400 font-medium mb-6">
           Your next recital rehearsal is in
           <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span>.
         </p>
+        <div class="flex gap-4">
+          <button
+            class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-3xl border border-white/10 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-lg">calendar_today</span>
+            Schedule
+          </button>
+          <button
+            class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
+            @click="showRequestModal = true"
+          >
+            <span class="material-symbols-outlined text-lg">add_circle</span>
+            Request Session
+          </button>
+        </div>
       </div>
-      <div class="flex gap-4">
-        <button
-          class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-3xl border border-white/10 active:scale-95 transition-all flex items-center gap-2"
-        >
-          <span class="material-symbols-outlined text-lg">calendar_today</span>
-          Schedule
-        </button>
-        <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
-          @click="showRequestModal = true"
-        >
-          <span class="material-symbols-outlined text-lg">add_circle</span>
-          Request Session
-        </button>
+      <div class="shrink-0">
+        <ProfileCard />
       </div>
     </div>
 
@@ -476,6 +479,7 @@ import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
+import ProfileCard from '../../components/ProfileCard.vue'
 import { useToastStore } from '../../stores/toast'
 import { useInteractionsStore } from '../../stores/interactions'
 

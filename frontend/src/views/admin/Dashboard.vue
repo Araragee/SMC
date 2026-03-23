@@ -1,6 +1,17 @@
 <template>
   <div class="max-w-7xl mx-auto pb-28 space-y-8">
 
+    <!-- Page Header -->
+    <div class="flex items-start justify-between gap-8">
+      <div>
+        <h1 class="text-5xl font-black tracking-tight text-white mb-2">Admin Dashboard</h1>
+        <p class="text-zinc-500 font-medium">Sernan's Music Clinic — Overview</p>
+      </div>
+      <div class="shrink-0">
+        <ProfileCard />
+      </div>
+    </div>
+
     <!-- Bento Stats Grid -->
     <section class="grid grid-cols-4 gap-6">
       <!-- Live Analytics (col-span-2) -->
@@ -521,6 +532,7 @@ import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
+import ProfileCard from '../../components/ProfileCard.vue'
 import { useNotificationStore } from '../../stores/notification'
 import { useToastStore } from '../../stores/toast'
 
