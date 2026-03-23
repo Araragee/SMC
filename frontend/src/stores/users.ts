@@ -46,8 +46,8 @@ export const useUsersStore = defineStore('users', {
     async fetchUsersByRole(role: Role) {
       this.isLoading = true;
       this.error = null;
-      // Let's capitalize the role since backend might expect 'Teacher', 'Student', 'Admin'
-      const roleName = role.charAt(0).toUpperCase() + role.slice(1);
+      // Backend stores roles as lowercase: 'teacher', 'student', 'admin'
+      const roleName = role.toLowerCase();
       try {
         const response = await axios.get(`${API_URL}/users/role/${roleName}`);
         const newUsers = response.data.map((user: any) => ({

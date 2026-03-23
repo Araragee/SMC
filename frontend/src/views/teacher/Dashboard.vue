@@ -113,63 +113,62 @@
         </div>
 
         <!-- Weekly Schedule -->
-        <div class="liquid-glass rounded-3xl p-8 border border-white/5 space-y-8">
+        <div class="liquid-glass rounded-3xl p-8 border border-white/5 space-y-6">
           <div class="flex justify-between items-center">
-            <h3 class="text-2xl font-black text-white flex items-center gap-3">
-              <span class="material-symbols-outlined text-orange-500 text-3xl"
-                >calendar_month</span
-              >
-              Weekly Schedule
-            </h3>
-            <div class="flex gap-2">
-              <button
-                class="p-2.5 bg-white/5 rounded-2xl hover:bg-white/10 text-white transition-all border border-white/10"
-              >
-                <span class="material-symbols-outlined">chevron_left</span>
-              </button>
-              <button
-                class="p-2.5 bg-white/5 rounded-2xl hover:bg-white/10 text-white transition-all border border-white/10"
-              >
-                <span class="material-symbols-outlined">chevron_right</span>
-              </button>
+            <div>
+              <h3 class="text-2xl font-black text-white flex items-center gap-3">
+                <span class="material-symbols-outlined text-orange-500 text-3xl">calendar_month</span>
+                Weekly Schedule
+              </h3>
+              <p v-if="pendingProposals > 0" class="text-amber-400 text-sm font-bold mt-1">
+                {{ pendingProposals }} student proposal{{ pendingProposals !== 1 ? 's' : '' }} await your review
+                <RouterLink to="/teacher/schedule" class="underline ml-1">Review →</RouterLink>
+              </p>
             </div>
           </div>
 
-          <div class="grid grid-cols-5 gap-4">
-            <div v-for="day in weekDays" :key="day.label" class="space-y-4">
-              <p class="text-center text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
-                {{ day.label }}
-              </p>
+          <div class="grid grid-cols-7 gap-3">
+            <div v-for="day in weekDays" :key="day.label" class="space-y-3">
+              <div class="text-center">
+                <p
+                  class="text-[10px] font-black uppercase tracking-[0.2em]"
+                  :class="day.isToday ? 'text-orange-500' : day.isWeekend ? 'text-zinc-600' : 'text-zinc-500'"
+                >{{ day.label }}</p>
+                <div
+                  class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black mx-auto mt-1"
+                  :class="day.isToday ? 'bg-gradient-to-br from-orange-500 to-orange-700 text-white' : 'text-zinc-500'"
+                >{{ day.dateNum }}</div>
+              </div>
               <!-- Has session -->
               <div
                 v-if="day.session"
-                class="h-28 bg-orange-500/10 border-l-4 border-orange-500 rounded-3xl p-4 relative group"
+                class="rounded-2xl p-3 border-l-2"
+                :class="day.session.status === 'scheduled' ? 'bg-orange-500/10 border-orange-500' :
+                        day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' :
+                        day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' :
+                        'bg-white/5 border-white/20'"
               >
-                <p class="text-[10px] font-black text-orange-500 mb-1">
-                  {{ formatTime(day.session.startTime) }}
-                </p>
-                <p class="text-sm font-bold text-white truncate">
-                  S#{{ day.session.studentId.slice(-4) }}
-                </p>
-                <p class="text-[10px] text-zinc-400 font-medium">Session</p>
-                <button
-                  class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-white text-black rounded-full p-1.5 transition-all shadow-xl"
-                >
-                  <span class="material-symbols-outlined text-xs">edit</span>
-                </button>
+                <p class="text-[10px] font-black text-orange-500 mb-1">{{ formatTime(day.session.startTime) }}</p>
+                <p class="text-xs font-bold text-white truncate">S#{{ day.session.studentId.slice(-4) }}</p>
+                <p
+                  class="text-[9px] font-bold mt-0.5"
+                  :class="day.session.status === 'pending_admin' ? 'text-blue-400' :
+                          day.session.status === 'pending_teacher' ? 'text-amber-400' : 'text-zinc-500'"
+                >{{ day.session.status === 'pending_admin' ? 'Pending Admin' : day.session.status === 'pending_teacher' ? 'Pending Review' : 'Confirmed' }}</p>
               </div>
               <!-- Empty slot -->
               <div
                 v-else
-                class="h-28 bg-black/40 border-2 border-dashed border-white/5 rounded-3xl flex items-center justify-center group cursor-pointer hover:bg-white/5 transition-all"
+                class="h-20 border border-dashed rounded-2xl flex items-center justify-center"
+                :class="day.isWeekend ? 'border-white/[0.03] bg-white/[0.01]' : 'border-white/5 bg-black/20'"
               >
-                <span
-                  class="material-symbols-outlined text-zinc-700 group-hover:text-orange-500 transition-colors"
-                  >add</span
-                >
+                <span class="material-symbols-outlined text-zinc-800 text-base">add</span>
               </div>
             </div>
           </div>
+          <RouterLink to="/teacher/schedule" class="block text-center text-xs text-zinc-600 hover:text-orange-500 transition-colors font-bold">
+            View Full Schedule →
+          </RouterLink>
         </div>
       </div>
 
@@ -410,9 +409,9 @@ const rosterEntries = computed(() => {
     })
 })
 
-// 5-day week grid (Mon–Fri of current week)
+// 7-day week grid (Mon–Sun of current week)
 const weekDays = computed(() => {
-  const days = ['MON', 'TUE', 'WED', 'THU', 'FRI']
+  const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
   const now = new Date()
   const dayOfWeek = now.getDay() || 7
   const monday = new Date(now)
@@ -422,14 +421,20 @@ const weekDays = computed(() => {
   return days.map((label, i) => {
     const date = new Date(monday)
     date.setDate(monday.getDate() + i)
+    const isToday = date.toDateString() === now.toDateString()
+    const isWeekend = i >= 5
     const session =
       mySessions.value.find((s) => {
         if (!s.startTime) return false
         return new Date(s.startTime).toDateString() === date.toDateString()
       }) ?? null
-    return { label, date, session }
+    return { label, date, dateNum: date.getDate(), session, isToday, isWeekend }
   })
 })
+
+const pendingProposals = computed(() =>
+  mySessions.value.filter(s => s.status === 'pending_teacher').length
+)
 
 const formatTime = (dt: string | undefined) => {
   if (!dt) return '—'

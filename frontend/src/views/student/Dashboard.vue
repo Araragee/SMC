@@ -11,12 +11,13 @@
           <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span>.
         </p>
         <div class="flex gap-4">
-          <button
+          <RouterLink
+            to="/student/schedule"
             class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-3xl border border-white/10 active:scale-95 transition-all flex items-center gap-2"
           >
             <span class="material-symbols-outlined text-lg">calendar_today</span>
             Schedule
-          </button>
+          </RouterLink>
           <button
             class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
             @click="showRequestModal = true"
@@ -99,9 +100,11 @@
               <div
                 class="flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-lg shrink-0"
                 :class="
-                  session.status === 'completed'
-                    ? 'bg-zinc-800 text-zinc-400'
-                    : 'bg-orange-500 text-white shadow-orange-900/30'
+                  session.status === 'completed'   ? 'bg-zinc-800 text-zinc-400' :
+                  session.status === 'pending_teacher' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' :
+                  session.status === 'pending_admin'   ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' :
+                  session.status === 'rejected'        ? 'bg-red-900 text-red-300' :
+                  'bg-orange-500 text-white shadow-orange-900/30'
                 "
               >
                 <span class="text-[10px] uppercase font-black">{{
@@ -112,15 +115,30 @@
 
               <!-- Info -->
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span
-                    class="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-[10px] font-bold rounded-full uppercase"
-                    >1-on-1 Session</span
+                    class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border"
+                    :class="
+                      session.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' :
+                      session.status === 'pending_admin'   ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
+                      session.status === 'rejected'        ? 'bg-red-500/20 border-red-500/30 text-red-400' :
+                      session.status === 'completed'       ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' :
+                      'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                    "
                   >
+                    {{
+                      session.status === 'pending_teacher' ? 'Awaiting Teacher' :
+                      session.status === 'pending_admin'   ? 'Awaiting Admin' :
+                      session.status === 'rejected'        ? 'Declined' :
+                      session.status === 'completed'       ? 'Completed' :
+                      'Confirmed'
+                    }}
+                  </span>
                   <span class="text-zinc-500 text-xs">{{ formatTime(session.startTime) }}</span>
                 </div>
                 <h4 class="font-bold text-lg text-white">Session #{{ session.id }}</h4>
                 <p class="text-zinc-500 text-sm">Teacher #{{ session.teacherId }}</p>
+                <p v-if="session.notes" class="text-zinc-600 text-xs mt-0.5 italic">{{ session.notes }}</p>
               </div>
 
               <!-- Right actions -->
@@ -559,13 +577,13 @@ async function submitRequest() {
   try {
     const start = new Date(requestForm.startTime)
     const end = new Date(start.getTime() + 60 * 60 * 1000)
-    await scheduleStore.bookSession({
+    await scheduleStore.proposeSessionAsStudent({
       teacherId: requestForm.teacherId,
       studentId: myId.value,
       startTime: start.toISOString(),
       endTime: end.toISOString(),
     })
-    toast.success('Session requested!', 'Your teacher will confirm shortly.')
+    toast.success('Session requested!', 'Your teacher will review and forward to admin for approval.')
     showRequestModal.value = false
     Object.assign(requestForm, { teacherId: '', startTime: '' })
   } catch {

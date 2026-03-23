@@ -67,6 +67,11 @@ def require_teacher(current_user: models.User = Depends(get_current_active_user)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Requires teacher or admin role")
     return current_user
 
+def require_student(current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role is None or current_user.role.name.lower() != "student":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Requires student role")
+    return current_user
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Music School API")
@@ -111,6 +116,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Helpers ---
+
+def format_dt(dt: datetime) -> str:
+    return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
+
+def notify_users(db, user_ids: list, message: str):
+    """Create notifications for a list of user IDs."""
+    for uid in user_ids:
+        if uid:
+            db.add(models.Notification(user_id=uid, message=message, is_read=False))
+    db.commit()
+
+def get_admin_ids(db) -> list:
+    """Return all admin user IDs."""
+    admin_role = db.query(models.Role).filter(models.Role.name == "admin").first()
+    if not admin_role:
+        return []
+    admins = db.query(models.User).filter(models.User.role_id == admin_role.id).all()
+    return [a.id for a in admins]
+
+def map_session(db_session: models.Session) -> dict:
+    session_dict = schemas.Session.model_validate(db_session).model_dump()
+    session_dict['proof_image_url'] = db_session.proofs[0].image_url if db_session.proofs else None
+    session_dict['homework_assigned'] = db_session.homeworks[0].description if db_session.homeworks else None
+    session_dict['homework_completed'] = db_session.homeworks[0].is_completed if db_session.homeworks else False
+    return session_dict
+
+# --- Root ---
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Music School API"}
@@ -127,7 +161,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
 
-    # Try verifying the hash. Also try the fake hash for backward compatibility with mock users if any
     is_valid_hash = False
     try:
         is_valid_hash = pwd_context.verify(form_data.password[:72], user.hashed_password)
@@ -152,7 +185,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Limit password length to avoid bcrypt ValueError and hash it
     hashed_password = pwd_context.hash(user.password[:72])
 
     db_user = models.User(
@@ -162,7 +194,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         role_id=user.role_id,
         avatar_url=user.avatar_url,
         sessions_left=user.sessions_left
-
     )
     db.add(db_user)
     db.commit()
@@ -212,27 +243,44 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-# Mapping utility
-def map_session(db_session: models.Session) -> dict:
-    session_dict = schemas.Session.model_validate(db_session).model_dump()
-    session_dict['proof_image_url'] = db_session.proofs[0].image_url if db_session.proofs else None
-    session_dict['homework_assigned'] = db_session.homeworks[0].description if db_session.homeworks else None
-    session_dict['homework_completed'] = db_session.homeworks[0].is_completed if db_session.homeworks else False
-    return session_dict
-
-# --- Sessions ---
+# --- Sessions (Admin direct) ---
 
 @app.post("/sessions/", response_model=schemas.Session)
-def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_teacher)):
+def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    """Admin creates a session directly — immediately scheduled."""
     student = db.query(models.User).filter(models.User.id == session.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == session.teacher_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
 
-    db_session = models.Session(**session.dict())
+    db_session = models.Session(
+        teacher_id=session.teacher_id,
+        student_id=session.student_id,
+        start_time=session.start_time,
+        end_time=session.end_time,
+        status="scheduled",
+        proposed_by=current_user.id,
+        notes=session.notes
+    )
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [db_session.teacher_id], f"📅 Admin has scheduled a session with {student.name} on {dt_str}.")
+    notify_users(db, [db_session.student_id], f"✅ A session has been scheduled for you on {dt_str} with {teacher.name}.")
+
     return map_session(db_session)
+
+@app.get("/sessions/pending", response_model=list[schemas.Session])
+def read_pending_sessions(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    """Admin: get all sessions awaiting approval."""
+    sessions = db.query(models.Session).filter(
+        models.Session.status.in_(["pending_teacher", "pending_admin"])
+    ).all()
+    return [map_session(s) for s in sessions]
 
 @app.get("/sessions/", response_model=list[schemas.Session])
 def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
@@ -247,12 +295,14 @@ def read_user_sessions(user_id: int, skip: int = 0, limit: int = 100, db: Sessio
     return [map_session(s) for s in sessions]
 
 @app.put("/sessions/{session_id}", response_model=schemas.Session)
-def update_session(session_id: int, session: schemas.SessionBase, db: Session = Depends(get_db), current_user: models.User = Depends(require_teacher)):
+def update_session(session_id: int, session: schemas.SessionEdit, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    """Admin edits a session."""
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    for key, value in session.dict(exclude_unset=True).items():
+    update_data = session.dict(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(db_session, key, value)
 
     db.commit()
@@ -260,7 +310,7 @@ def update_session(session_id: int, session: schemas.SessionBase, db: Session = 
     return map_session(db_session)
 
 @app.delete("/sessions/{session_id}")
-def delete_session(session_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_teacher)):
+def delete_session(session_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -269,6 +319,188 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
     db.commit()
     return {"message": "Session deleted successfully"}
 
+# --- Session Approval Workflow ---
+
+@app.post("/sessions/propose/student", response_model=schemas.Session)
+def propose_session_as_student(
+    proposal: schemas.SessionPropose,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student)
+):
+    """Student proposes a session → pending_teacher."""
+    teacher = db.query(models.User).filter(models.User.id == proposal.teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    end_time = proposal.end_time or (proposal.start_time + timedelta(hours=1))
+    db_session = models.Session(
+        teacher_id=proposal.teacher_id,
+        student_id=current_user.id,
+        start_time=proposal.start_time,
+        end_time=end_time,
+        status="pending_teacher",
+        proposed_by=current_user.id,
+        notes=proposal.notes
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [proposal.teacher_id],
+        f"📅 {current_user.name} has requested a session on {dt_str}. Please review and approve or decline.")
+    notify_users(db, get_admin_ids(db),
+        f"📋 Student {current_user.name} proposed a session with {teacher.name} on {dt_str}. Awaiting teacher review.")
+
+    return map_session(db_session)
+
+@app.post("/sessions/propose/teacher", response_model=schemas.Session)
+def propose_session_as_teacher(
+    proposal: schemas.SessionPropose,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher)
+):
+    """Teacher proposes a session → pending_admin."""
+    student = db.query(models.User).filter(models.User.id == proposal.student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    end_time = proposal.end_time or (proposal.start_time + timedelta(hours=1))
+    db_session = models.Session(
+        teacher_id=current_user.id,
+        student_id=proposal.student_id,
+        start_time=proposal.start_time,
+        end_time=end_time,
+        status="pending_admin",
+        proposed_by=current_user.id,
+        notes=proposal.notes
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [proposal.student_id],
+        f"📅 Your teacher {current_user.name} proposed a session on {dt_str}. It is awaiting admin approval.")
+    notify_users(db, get_admin_ids(db),
+        f"📋 Teacher {current_user.name} proposed a session with {student.name} on {dt_str}. Awaiting your approval.")
+
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/approve/teacher", response_model=schemas.Session)
+def approve_session_as_teacher(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher)
+):
+    """Teacher approves a student proposal → pending_admin."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_teacher":
+        raise HTTPException(status_code=409, detail="Session is not awaiting teacher approval")
+    if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="You can only approve sessions assigned to you")
+
+    db_session.status = "pending_admin"
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, get_admin_ids(db),
+        f"✅ {current_user.name} approved a session request from {db_session.student.name} on {dt_str}. Awaiting your final approval.")
+
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/reject/teacher", response_model=schemas.Session)
+def reject_session_as_teacher(
+    session_id: int,
+    approval: schemas.SessionApproval = schemas.SessionApproval(),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher)
+):
+    """Teacher rejects a student proposal → rejected."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_teacher":
+        raise HTTPException(status_code=409, detail="Session is not awaiting teacher approval")
+    if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="You can only reject sessions assigned to you")
+
+    db_session.status = "rejected"
+    if approval.notes:
+        db_session.notes = approval.notes
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    reason = f" Reason: {approval.notes}" if approval.notes else ""
+    notify_users(db, [db_session.student_id],
+        f"❌ Your session request on {dt_str} was declined by {current_user.name}.{reason}")
+
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/approve/admin", response_model=schemas.Session)
+def approve_session_as_admin(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    """Admin approves a session → scheduled."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_admin":
+        raise HTTPException(status_code=409, detail="Session is not awaiting admin approval")
+
+    db_session.status = "scheduled"
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [db_session.teacher_id],
+        f"✅ Session on {dt_str} with {db_session.student.name} has been approved and confirmed.")
+    notify_users(db, [db_session.student_id],
+        f"🎵 Great news! Your session on {dt_str} with {db_session.teacher.name} is confirmed.")
+
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/reject/admin", response_model=schemas.Session)
+def reject_session_as_admin(
+    session_id: int,
+    approval: schemas.SessionApproval = schemas.SessionApproval(),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    """Admin rejects a session → rejected."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status not in ["pending_admin", "pending_teacher"]:
+        raise HTTPException(status_code=409, detail="Session is not pending approval")
+
+    db_session.status = "rejected"
+    if approval.notes:
+        db_session.notes = approval.notes
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    reason = f" Reason: {approval.notes}" if approval.notes else ""
+
+    # Notify the proposer and relevant parties
+    notify_ids = set()
+    if db_session.proposed_by:
+        notify_ids.add(db_session.proposed_by)
+    notify_ids.add(db_session.teacher_id)
+    notify_ids.add(db_session.student_id)
+
+    for uid in notify_ids:
+        notify_users(db, [uid],
+            f"❌ The session proposal for {dt_str} was not approved by admin.{reason}")
+
+    return map_session(db_session)
 
 # --- Enrollments ---
 
@@ -314,8 +546,8 @@ def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(
 
 @app.post("/session-proofs/", response_model=schemas.SessionProof)
 def create_session_proof(
-    session_id: int, 
-    file: UploadFile = File(...), 
+    session_id: int,
+    file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
@@ -365,5 +597,30 @@ def create_notification(notification: schemas.NotificationCreate, db: Session = 
 
 @app.get("/notifications/user/{user_id}", response_model=list[schemas.Notification])
 def read_user_notifications(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    notifications = db.query(models.Notification).filter(models.Notification.user_id == user_id).offset(skip).limit(limit).all()
+    notifications = db.query(models.Notification).filter(
+        models.Notification.user_id == user_id
+    ).order_by(models.Notification.created_at.desc()).offset(skip).limit(limit).all()
     return notifications
+
+@app.patch("/notifications/{notification_id}/read", response_model=schemas.Notification)
+def mark_notification_read(notification_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    db_notif = db.query(models.Notification).filter(models.Notification.id == notification_id).first()
+    if not db_notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    if db_notif.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    db_notif.is_read = True
+    db.commit()
+    db.refresh(db_notif)
+    return db_notif
+
+@app.patch("/notifications/user/{user_id}/read-all")
+def mark_all_notifications_read(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.id != user_id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    db.query(models.Notification).filter(
+        models.Notification.user_id == user_id,
+        models.Notification.is_read == False
+    ).update({"is_read": True})
+    db.commit()
+    return {"message": "All notifications marked as read"}

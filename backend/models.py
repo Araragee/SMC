@@ -41,10 +41,14 @@ class Session(Base):
     student_id = Column(Integer, ForeignKey("users.id"))
     start_time = Column(DateTime)
     end_time = Column(DateTime)
+    # status: pending_teacher | pending_admin | scheduled | completed | cancelled | rejected
     status = Column(String, default="scheduled")
+    proposed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    notes = Column(String, nullable=True)
 
     teacher = relationship("User", foreign_keys=[teacher_id], back_populates="sessions_as_teacher")
     student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
+    proposer = relationship("User", foreign_keys=[proposed_by])
 
     homeworks = relationship("Homework", back_populates="session", cascade="all, delete-orphan")
     proofs = relationship("SessionProof", back_populates="session", cascade="all, delete-orphan")

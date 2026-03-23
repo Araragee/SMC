@@ -1,5 +1,13 @@
 export type Role = 'admin' | 'teacher' | 'student';
 
+export type SessionStatus =
+  | 'scheduled'
+  | 'completed'
+  | 'cancelled'
+  | 'pending_teacher'
+  | 'pending_admin'
+  | 'rejected';
+
 export interface User {
   id: string;
   name: string;
@@ -16,7 +24,9 @@ export interface Session {
   teacherId: string;
   startTime: string; // ISO 8601 format
   endTime: string; // ISO 8601 format
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: SessionStatus;
+  proposedBy?: string;
+  notes?: string;
   imageProofUrl?: string;
   homeworkAssigned?: string;
   homeworkCompleted?: boolean;

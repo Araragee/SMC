@@ -54,6 +54,7 @@ const navsByRole: Record<string, NavItem[]> = {
   ],
   teacher: [
     { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/teacher/schedule', icon: 'calendar_month', label: 'Schedule' },
     { path: '/teacher/students', icon: 'group', label: 'Students' },
     { path: '/teacher/instruments', icon: 'piano', label: 'Instruments' },
     { path: '/teacher/payments', icon: 'payments', label: 'Payments' },

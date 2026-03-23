@@ -59,9 +59,31 @@ class SessionBase(BaseModel):
     start_time: datetime
     end_time: datetime
     status: str = "scheduled"
+    proposed_by: Optional[int] = None
+    notes: Optional[str] = None
 
 class SessionCreate(SessionBase):
     pass
+
+# Used by teacher/student to propose a session
+class SessionPropose(BaseModel):
+    teacher_id: int
+    student_id: int
+    start_time: datetime
+    end_time: datetime
+    notes: Optional[str] = None
+
+# Used by admin to edit a session
+class SessionEdit(BaseModel):
+    teacher_id: Optional[int] = None
+    student_id: Optional[int] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    notes: Optional[str] = None
+
+# Used for approve/reject actions with optional reason
+class SessionApproval(BaseModel):
+    notes: Optional[str] = None
 
 class Session(SessionBase):
     id: int

@@ -13,7 +13,7 @@
     </div>
 
     <!-- Bento Stats Grid -->
-    <section class="grid grid-cols-4 gap-6">
+    <section class="grid grid-cols-5 gap-6">
       <!-- Live Analytics (col-span-2) -->
       <div class="col-span-2 liquid-glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div>
@@ -93,6 +93,25 @@
           </div>
         </div>
       </div>
+
+      <!-- Pending Approvals -->
+      <RouterLink
+        to="/admin/schedule"
+        class="liquid-glass p-8 rounded-3xl border border-amber-500/20 flex flex-col justify-between hover:bg-amber-500/5 transition-all group"
+      >
+        <div>
+          <span class="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Pending Approvals</span>
+          <div v-if="scheduleStore.isLoading" class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2" />
+          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter"
+            :class="scheduleStore.pendingSessions.length > 0 ? 'text-amber-400' : 'text-white'"
+          >
+            {{ scheduleStore.pendingSessions.length }}
+          </h2>
+        </div>
+        <p class="text-zinc-600 text-xs font-bold group-hover:text-amber-500 transition-colors mt-6">
+          Review →
+        </p>
+      </RouterLink>
     </section>
 
     <!-- Main Layout -->
@@ -551,6 +570,7 @@ const form = reactive({ teacherId: '', studentId: '', startTime: '' })
 onMounted(async () => {
   await Promise.all([
     scheduleStore.fetchAllSessions(),
+    scheduleStore.fetchPendingSessions(),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
   ])
