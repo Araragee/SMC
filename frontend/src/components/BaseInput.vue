@@ -20,10 +20,10 @@
         :placeholder="placeholder"
         :required="required"
         :disabled="disabled"
+        :class="computedClasses"
         @input="updateValue"
         @blur="$emit('blur', $event)"
         @focus="$emit('focus', $event)"
-        :class="computedClasses"
       />
 
       <!-- Right slot for things like password visibility toggle -->

@@ -1,59 +1,51 @@
 <template>
-  <aside
-    class="fixed left-0 top-0 flex flex-col h-full p-4 z-40 w-64 bg-zinc-900/80 backdrop-blur-2xl rounded-r-[24px] shadow-2xl shadow-orange-900/10 font-['Plus_Jakarta_Sans'] font-medium text-sm"
-    role="navigation"
-    aria-label="Teacher navigation"
-  >
-    <div class="px-4 mb-10 mt-2">
-      <div class="flex items-center gap-3">
-        <div
-          class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_20px_rgba(255,69,0,0.4)]"
-          aria-hidden="true"
-        >
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">music_note</span>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold text-white leading-tight tracking-tight">Teacher Hub</h1>
-          <p class="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Faculty</p>
-        </div>
+  <aside class="w-64 flex flex-col pt-8 pb-8 px-0 border-r border-white/5 bg-[#0e0e0e] shrink-0 sticky top-0 h-screen text-white">
+    <div class="px-8 mb-12 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40">
+        <span class="material-symbols-outlined text-white" aria-hidden="true" style="font-variation-settings:'FILL' 1">music_note</span>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold leading-tight">Sernan's Music<br/>Clinic</h1>
+        <p class="text-[8px] uppercase tracking-[0.2em] text-zinc-500 font-bold mt-1">Premium Education</p>
       </div>
     </div>
-
-    <nav class="flex-1 space-y-2" aria-label="Teacher menu">
-      <router-link
-        to="/teacher"
-        class="flex items-center gap-3 bg-gradient-to-r from-orange-500/20 to-orange-600/10 text-orange-500 rounded-[24px] px-4 py-3 border-l-4 border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-        aria-current="page"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
-        <span>Dashboard</span>
+    
+    <nav class="flex-1 space-y-2 px-4">
+      <router-link to="/teacher" class="flex items-center gap-3 rounded-full px-5 py-3 transition-colors" active-class="bg-white/5 text-orange-500 shadow-inner" exact-active-class="bg-white/5 text-orange-500 shadow-inner" :class="{ 'text-zinc-400 hover:bg-white/5 hover:text-white': $route.path !== '/teacher' }">
+        <span class="material-symbols-outlined text-xl" :style="$route.path === '/teacher' ? 'font-variation-settings:\'FILL\' 1' : ''">dashboard</span>
+        <span class="text-sm font-bold">Dashboard</span>
       </router-link>
-      <a
-        href="#"
-        class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500/50"
-        aria-label="View my student roster"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">group</span>
-        <span>My Roster</span>
-      </a>
+      <router-link to="/teacher/students" class="flex items-center gap-3 hover:bg-white/5 rounded-full px-5 py-3 text-zinc-400 hover:text-white transition-colors" active-class="bg-white/5 text-orange-500 shadow-inner">
+        <span class="material-symbols-outlined text-xl">group</span>
+        <span class="text-sm font-medium">Students</span>
+      </router-link>
+      <router-link to="/teacher/instruments" class="flex items-center gap-3 hover:bg-white/5 rounded-full px-5 py-3 text-zinc-400 hover:text-white transition-colors" active-class="bg-white/5 text-orange-500 shadow-inner">
+        <span class="material-symbols-outlined text-xl">piano</span>
+        <span class="text-sm font-medium">Instruments</span>
+      </router-link>
+      <router-link to="/teacher/payments" class="flex items-center gap-3 hover:bg-white/5 rounded-full px-5 py-3 text-zinc-400 hover:text-white transition-colors" active-class="bg-white/5 text-orange-500 shadow-inner">
+        <span class="material-symbols-outlined text-xl">payments</span>
+        <span class="text-sm font-medium">Payments</span>
+      </router-link>
+      <router-link to="/teacher/messages" class="flex items-center gap-3 hover:bg-white/5 rounded-full px-5 py-3 text-zinc-400 hover:text-white transition-colors" active-class="bg-white/5 text-orange-500 shadow-inner">
+        <span class="material-symbols-outlined text-xl">chat</span>
+        <span class="text-sm font-medium">Messages</span>
+      </router-link>
     </nav>
-
-    <div class="mt-auto space-y-4">
-      <button
-        class="w-full py-3.5 px-4 bg-primary text-white rounded-[24px] font-bold shadow-[0_8px_20px_rgba(255,69,0,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-        aria-label="Create a new session schedule"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">add</span>
-        <span>New Schedule</span>
+    
+    <div class="px-6 mt-auto space-y-6">
+      <button class="w-full bg-gradient-to-r from-[#ff6b35] to-[#f94d00] text-white rounded-full py-3.5 px-4 font-bold text-sm shadow-[0_4px_24px_rgba(255,107,53,0.4)] flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
+        <span class="material-symbols-outlined text-[20px]">add</span>
+        New Enrollment
       </button>
-      <div class="pt-4 border-t border-white/5 space-y-1">
-        <button
-          @click="logout"
-          class="flex items-center gap-3 text-zinc-400 px-4 py-2 hover:bg-red-500/10 hover:text-red-400 rounded-[24px] transition-all w-full text-left focus:outline-none focus:ring-2 focus:ring-red-500/30"
-          aria-label="Sign out of your account"
-        >
-          <span class="material-symbols-outlined text-lg" aria-hidden="true">logout</span>
-          <span>Sign Out</span>
+      <div class="space-y-4 pt-6 border-t border-white/5">
+        <a href="#" class="flex items-center gap-3 text-zinc-400 hover:text-white text-sm transition-colors">
+          <span class="material-symbols-outlined text-xl">help</span>
+          Help Center
+        </a>
+        <button class="flex items-center gap-3 text-zinc-400 hover:text-red-400 text-sm transition-colors w-full text-left" @click="logout">
+          <span class="material-symbols-outlined text-xl">logout</span>
+          Sign Out
         </button>
       </div>
     </div>

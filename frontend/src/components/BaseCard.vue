@@ -27,19 +27,9 @@ const props = withDefaults(defineProps<Props>(), {
 const computedClasses = computed(() => {
   const baseClass = 'relative rounded-[24px] overflow-hidden transition-all duration-300';
 
-  let surfaceClass = '';
-
-  // "Use surface-variant with backdrop-filter: blur(24px). Elements behind the card should be visible but diffused"
-  if (props.variant === 'overlay') {
-    surfaceClass = 'bg-surface-variant/40 backdrop-blur-[24px]';
-  } else {
-    // "Place a surface_container_highest card inside a surface_container_low parent."
-    if (props.elevation === 'highest') {
-        surfaceClass = 'bg-surface-container-highest';
-    } else {
-        surfaceClass = 'bg-surface-container-low';
-    }
-  }
+  const surfaceClass = props.variant === 'overlay'
+    ? 'bg-surface-variant/40 backdrop-blur-[24px]'
+    : (props.elevation === 'highest' ? 'bg-surface-container-highest' : 'bg-surface-container-low');
 
   // "Liquid Glows: For floating elements, use a primary tinted shadow. Instead of #000000, use on_primary_container (#460f00) at 10% opacity with a 64px blur."
   const interactiveClass = props.variant === 'interactive'

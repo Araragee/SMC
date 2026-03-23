@@ -24,9 +24,9 @@
             <p v-if="toast.message" class="text-xs text-white/70 mt-0.5 leading-snug">{{ toast.message }}</p>
           </div>
           <button
-            @click="toastStore.remove(toast.id)"
             class="text-white/40 hover:text-white/80 transition-colors shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
             :aria-label="`Dismiss notification: ${toast.title}`"
+            @click="toastStore.remove(toast.id)"
           >
             <span class="material-symbols-outlined text-sm" aria-hidden="true">close</span>
           </button>

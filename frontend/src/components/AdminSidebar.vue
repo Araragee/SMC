@@ -1,60 +1,53 @@
 <template>
-  <aside
-    class="fixed left-0 top-0 flex flex-col h-full p-4 z-[60] w-64 bg-zinc-900/80 backdrop-blur-2xl rounded-r-[24px] shadow-2xl shadow-orange-900/10 font-['Plus_Jakarta_Sans'] font-medium text-sm"
-    role="navigation"
-    aria-label="Admin navigation"
-  >
-    <div class="px-4 mb-10 mt-2">
-      <div class="flex items-center gap-3">
-        <div
-          class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30"
-          aria-hidden="true"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">school</span>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold text-white leading-tight">Sernan's Music</h1>
-          <p class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Admin Panel</p>
-        </div>
+  <aside class="fixed left-0 top-0 w-64 flex flex-col p-4 gap-8 bg-surface-container-low/40 backdrop-blur-3xl rounded-3xl m-4 h-[calc(100vh-2rem)] z-50 inner-glow-white-10 shadow-2xl transition-all duration-300">
+    <div class="flex items-center gap-3 px-2">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40">
+        <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">music_note</span>
+      </div>
+      <div>
+        <h2 class="text-orange-500 font-black tracking-tight leading-none text-lg">Music Clinic</h2>
+        <p class="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] mt-1 font-bold">Admin Portal</p>
       </div>
     </div>
-
-    <nav class="flex-1 space-y-2" aria-label="Main menu">
+    
+    <nav class="flex flex-col gap-2">
       <router-link
         to="/admin"
-        class="flex items-center gap-3 bg-gradient-to-r from-orange-500/20 to-orange-600/10 text-orange-500 rounded-[24px] px-4 py-3 border-l-4 border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+        class="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl shadow-lg shadow-orange-900/20 font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1"
         aria-current="page"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
         <span>Dashboard</span>
       </router-link>
-      <a
-        href="#"
-        class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500/50"
-        aria-label="Manage users"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">group</span>
+      <a href="#" class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-highest/50 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1">
+        <span class="material-symbols-outlined">group</span>
         <span>Users</span>
       </a>
-      <a
-        href="#"
-        class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-zinc-800/50 rounded-[24px] transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500/50"
-        aria-label="View global schedule"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+      <a href="#" class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-highest/50 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1">
+        <span class="material-symbols-outlined">calendar_month</span>
         <span>Global Schedule</span>
       </a>
     </nav>
-
-    <div class="mt-auto pt-6 border-t border-white/5 space-y-2">
+    
+    <div class="mt-auto space-y-4">
       <button
-        @click="logout"
-        class="flex items-center gap-3 text-zinc-400 px-4 py-3 hover:translate-x-1 hover:bg-red-500/10 hover:text-red-400 rounded-[24px] transition-all w-full text-left focus:outline-none focus:ring-2 focus:ring-red-500/30"
+        class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-red-400 hover:bg-red-500/10 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1 w-full text-left"
         aria-label="Sign out of your account"
+        @click="logout"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+        <span class="material-symbols-outlined">logout</span>
         <span>Sign Out</span>
       </button>
+
+      <div class="p-4 bg-surface-container-highest/30 rounded-2xl flex items-center gap-3 border border-white/5">
+        <div class="w-10 h-10 rounded-full border-2 border-orange-500/30 bg-surface-container-highest flex items-center justify-center text-white font-bold text-sm shrink-0">
+          {{ authStore.currentUser?.name?.charAt(0) || 'A' }}
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-bold text-on-surface truncate">{{ authStore.currentUser?.name || 'Admin' }}</p>
+          <p class="text-[10px] text-on-surface-variant truncate">Director</p>
+        </div>
+      </div>
     </div>
   </aside>
 </template>

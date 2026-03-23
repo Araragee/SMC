@@ -1,69 +1,87 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { useToastStore } from '../stores/toast'
+import Login from '../views/Login.vue'
+import PlaceholderView from '../components/PlaceholderView.vue'
 
-// AuthLayout is small — eagerly load it. Everything else is lazy-loaded for code splitting.
-import AuthLayout from '../layouts/AuthLayout.vue'
-import AdminLayout from '../layouts/AdminLayout.vue'
-import TeacherLayout from '../layouts/TeacherLayout.vue'
-import StudentLayout from '../layouts/StudentLayout.vue'
+// Role-based layouts
+const AdminLayout = () => import('../layouts/AdminLayout.vue')
+const StudentLayout = () => import('../layouts/StudentLayout.vue')
+const TeacherLayout = () => import('../layouts/TeacherLayout.vue')
 
-// Views are lazy-loaded so Vite can code-split each dashboard into its own chunk.
-// NOTE: Layouts must NOT be lazy-loaded — Vue's <component :is="layout"> cannot
-// resolve a raw Promise. Only use () => import() for route view components.
-
-const routes: Array<RouteRecordRaw> = [
-  {
-    path: '/',
-    name: 'Login',
-    component: () => import('../views/Login.vue'),
-    meta: { layout: AuthLayout },
-  },
-  {
-    path: '/admin',
-    name: 'AdminDashboard',
-    component: () => import('../views/admin/Dashboard.vue'),
-    meta: { layout: AdminLayout, requiresAuth: true, roles: ['admin'], transition: 'slide-up' },
-  },
-  {
-    path: '/teacher',
-    name: 'TeacherDashboard',
-    component: () => import('../views/teacher/Dashboard.vue'),
-    meta: { layout: TeacherLayout, requiresAuth: true, roles: ['teacher', 'admin'], transition: 'slide-up' },
-  },
-  {
-    path: '/student',
-    name: 'StudentDashboard',
-    component: () => import('../views/student/Dashboard.vue'),
-    meta: { layout: StudentLayout, requiresAuth: true, roles: ['student', 'teacher', 'admin'], transition: 'slide-up' },
-  },
-  // Catch-all fallback
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/',
-  },
-]
+// Dashboards
+const AdminDashboard = () => import('../views/admin/Dashboard.vue')
+const StudentDashboard = () => import('../views/student/Dashboard.vue')
+const TeacherDashboard = () => import('../views/teacher/Dashboard.vue')
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes: [
+    {
+      path: '/login',
+      component: () => import('../layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'login',
+          component: Login,
+          meta: { requiresAuth: false }
+        }
+      ]
+    },
+    // Admin Routes
+    {
+      path: '/admin',
+      component: AdminLayout,
+      meta: { requiresAuth: true, roles: ['admin'] },
+      children: [
+        { path: '', name: 'admin-dashboard', component: AdminDashboard },
+        { path: ':module', component: PlaceholderView }
+      ]
+    },
+    // Teacher Routes
+    {
+      path: '/teacher',
+      component: TeacherLayout,
+      meta: { requiresAuth: true, roles: ['teacher'] },
+      children: [
+        { path: '', name: 'teacher-dashboard', component: TeacherDashboard },
+        { path: ':module', component: PlaceholderView }
+      ]
+    },
+    // Student Routes
+    {
+      path: '/student',
+      component: StudentLayout,
+      meta: { requiresAuth: true, roles: ['student'] },
+      children: [
+        { path: '', name: 'student-dashboard', component: StudentDashboard },
+        { path: ':module', component: PlaceholderView }
+      ]
+    },
+    // General redirection
+    {
+      path: '/',
+      redirect: () => {
+        const auth = useAuthStore()
+        if (!auth.isAuthenticated) return '/login'
+        return `/${auth.userRole}`
+      }
+    }
+  ]
 })
 
-router.beforeEach((to, _from, next) => {
-  const authStore = useAuthStore()
-
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/')
-  } else if (to.meta.requiresAuth && to.meta.roles) {
-    const roles = to.meta.roles as string[]
-    if (authStore.userRole && !roles.includes(authStore.userRole.toLowerCase())) {
-      useToastStore().warning('Access denied', 'You do not have permission to view that page.')
-      next(`/${authStore.userRole.toLowerCase()}`)
-    } else {
-      next()
-    }
-  } else if (to.name === 'Login' && authStore.isAuthenticated) {
-    next(`/${authStore.userRole?.toLowerCase() || 'student'}`)
+router.beforeEach(async (to, _from, next) => {
+  const auth = useAuthStore()
+  
+  // Guard for protected routes
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    next('/login')
+  } else if (to.meta.roles && auth.userRole && !to.meta.roles.includes(auth.userRole)) {
+    // Role mismatch - send back to their own dashboard
+    next(`/${auth.userRole}`)
+  } else if (to.path === '/login' && auth.isAuthenticated) {
+    // Already logged in - send to dashboard
+    next(`/${auth.userRole}`)
   } else {
     next()
   }

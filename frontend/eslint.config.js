@@ -9,7 +9,43 @@ export default [
   ...pluginVue.configs['flat/recommended'],
   prettier,
   {
-    files: ['**/*.ts', '**/*.vue'],
+    languageOptions: {
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        MouseEvent: 'readonly',
+        FocusEvent: 'readonly',
+        Event: 'readonly',
+        HTMLInputElement: 'readonly',
+        navigator: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        URLSearchParams: 'readonly',
+        File: 'readonly',
+        FormData: 'readonly',
+        crypto: 'readonly',
+        fetch: 'readonly',
+        Headers: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        // Node globals
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        import: 'readonly',
+      },
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+    },
+  },
+  {
+    files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -20,6 +56,23 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
     },
+  },
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: pluginVue.parser,
+      parserOptions: {
+        parser: tsParser,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        extraFileExtensions: ['.vue'],
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+  },
+  {
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off',
@@ -28,6 +81,7 @@ export default [
       'vue/multi-word-component-names': 'off',
       'vue/require-default-prop': 'off',
       'vue/block-lang': 'off',
+      'no-undef': 'error',
     },
   },
   {
