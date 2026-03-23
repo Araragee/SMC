@@ -168,7 +168,7 @@
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
                 <p class="text-2xl font-black text-white">{{ mySessions.filter(s => s.status === 'completed').length }}</p>
-                <p class="text-[10px] text-zinc-500 font-semibold">of {{ authStore.currentUser?.sessionsLeft || 10 }}</p>
+                <p class="text-[10px] text-zinc-500 font-semibold">of {{ interactionsStore.enrollments[0]?.sessionsPurchased || 10 }}</p>
               </div>
             </div>
             <div class="text-center">
@@ -290,11 +290,13 @@ import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
 import { useToastStore } from '../../stores/toast'
+import { useInteractionsStore } from '../../stores/interactions'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const toast = useToastStore()
+const interactionsStore = useInteractionsStore()
 
 const showRequestModal = ref(false)
 const requestForm = reactive({ teacherId: '', startTime: '' })
@@ -304,6 +306,7 @@ onMounted(async () => {
     await Promise.all([
       scheduleStore.fetchUserSessions(authStore.currentUser.id),
       usersStore.fetchUsersByRole('teacher'),
+      interactionsStore.fetchStudentEnrollments(authStore.currentUser.id),
     ])
   }
 })
@@ -334,7 +337,7 @@ const pendingHomework = computed(() =>
 )
 
 const sessionProgress = computed(() => {
-  const totalSessions = authStore.currentUser?.sessionsLeft || 10
+  const totalSessions = interactionsStore.enrollments[0]?.sessionsPurchased || 10
   const used = mySessions.value.filter(s => s.status === 'completed').length
   return Math.min((used / totalSessions) * 100, 100)
 })
@@ -374,14 +377,14 @@ async function submitRequest() {
 }
 
 async function markHomeworkDone(sessionId: string) {
-  await scheduleStore.completeHomework(sessionId)
+  await interactionsStore.completeHomework(sessionId)
   toast.success('Homework submitted!', 'Great work — keep it up.')
 }
 
 async function handleProofUpload(sessionId: string, event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
-  await scheduleStore.uploadImageProof(sessionId, input.files[0])
+  await interactionsStore.uploadImageProof(sessionId, input.files[0])
 }
 
 async function handleGenericProofUpload(event: Event) {

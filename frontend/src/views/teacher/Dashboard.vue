@@ -263,12 +263,14 @@ import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
 import { useToastStore } from '../../stores/toast'
+import { useInteractionsStore } from '../../stores/interactions'
 import axios from 'axios'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const toast = useToastStore()
+const interactionsStore = useInteractionsStore()
 
 const showScheduleModal = ref(false)
 const practiceNotes = ref('')
@@ -356,7 +358,7 @@ async function submitSchedule() {
       endTime: end.toISOString(),
     })
     if (schedForm.homework && session) {
-      await scheduleStore.assignHomework(session.id, schedForm.homework)
+      await interactionsStore.assignHomework(session.id, schedForm.homework)
     }
     toast.success('Session scheduled!', 'Your student has been notified.')
     showScheduleModal.value = false
@@ -387,7 +389,7 @@ async function completeSession(sessionId: string) {
 async function handleProofUpload(sessionId: string, event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
-  await scheduleStore.uploadImageProof(sessionId, input.files[0])
+  await interactionsStore.uploadImageProof(sessionId, input.files[0])
 }
 </script>
 
