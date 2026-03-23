@@ -17,6 +17,7 @@ class Role(RoleBase):
 class NotificationBase(BaseModel):
     message: str
     is_read: bool = False
+    link: Optional[str] = None
 
 class NotificationCreate(NotificationBase):
     user_id: int
@@ -24,6 +25,7 @@ class NotificationCreate(NotificationBase):
 class Notification(NotificationBase):
     id: int
     user_id: int
+    link: Optional[str] = None
     created_at: datetime
     model_config = {"from_attributes": True}
 

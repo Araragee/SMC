@@ -45,6 +45,7 @@ export interface Notification {
   message: string;
   type: 'info' | 'warning' | 'success' | 'error';
   isRead: boolean;
+  link?: string;
   createdAt: string; // ISO 8601 format
 }
 

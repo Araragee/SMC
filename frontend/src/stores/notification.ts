@@ -45,6 +45,7 @@ export const useNotificationStore = defineStore('notification', {
           userId: String(n.user_id),
           title: 'Notification',
           message: n.message,
+          link: n.link,
           type: 'info' as const,
           isRead: n.is_read,
           createdAt: n.created_at,
@@ -86,12 +87,14 @@ export const useNotificationStore = defineStore('notification', {
           const response = await axios.post(`${API_URL}/notifications/`, {
             message: notificationData.message,
             user_id: parseInt(notificationData.userId),
+            link: notificationData.link,
           });
           const newNotification: Notification = {
             id: String(response.data.id),
             userId: String(response.data.user_id),
             title: notificationData.title,
             message: response.data.message,
+            link: response.data.link,
             type: notificationData.type,
             isRead: response.data.is_read,
             createdAt: response.data.created_at,

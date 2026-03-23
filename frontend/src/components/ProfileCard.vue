@@ -24,6 +24,7 @@
       </div>
       <!-- Notification Bell -->
       <button
+        @click="isNotificationsOpen = true"
         class="relative shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-all"
         title="Notifications"
       >
@@ -46,17 +47,41 @@
       Sign Out
     </button>
   </aside>
+
+  <!-- Notifications Modal -->
+  <NotificationsModal
+    :is-open="isNotificationsOpen"
+    :notifications="notifStore.notifications"
+    @close="isNotificationsOpen = false"
+    @select="openNotificationDetail"
+  />
+
+  <!-- Notification Detail Modal -->
+  <NotificationDetailModal
+    :notification="selectedNotification"
+    @close="selectedNotification = null"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
+import type { Notification } from '../types'
+import NotificationsModal from './NotificationsModal.vue'
+import NotificationDetailModal from './NotificationDetailModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
+
+const isNotificationsOpen = ref(false)
+const selectedNotification = ref<Notification | null>(null)
+
+function openNotificationDetail(notification: Notification) {
+  selectedNotification.value = notification
+}
 
 const roleLabel = computed(() => {
   const labels: Record<string, string> = {
