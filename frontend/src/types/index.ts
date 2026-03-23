@@ -37,3 +37,13 @@ export interface Notification {
   isRead: boolean;
   createdAt: string; // ISO 8601 format
 }
+
+export interface Enrollment {
+  id: string;
+  studentId: string;
+  teacherId: string;
+  sessionsPurchased: number;
+  sessionsUsed: number;
+  sessionsLeft: number;
+  createdAt: string;
+}
