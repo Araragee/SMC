@@ -1,425 +1,360 @@
 <template>
-  <div class="flex-1 w-full min-h-screen pt-6 pb-20 relative flex">
-    <!-- Content Columns -->
-    <div class="w-full max-w-[1400px] mx-auto mt-28 flex gap-8">
-      <!-- Left Section (Welcome, Roster, Stats) -->
-      <div class="flex-1 space-y-8 max-w-[700px]">
-        <!-- Header Intro -->
-        <div class="flex items-end justify-between">
-          <div>
-            <h2 class="text-5xl font-black tracking-tight mb-2">
-              Welcome back, <span class="text-[#f94d00]">Maestro.</span>
-            </h2>
-            <p class="text-zinc-400 text-base">
-              You have
-              <span class="font-bold text-white">{{ todaySessions.length || 4 }} sessions</span>
-              today. Performance index is at <span class="text-emerald-500 font-bold">98%</span>.
-            </p>
-          </div>
-          <!-- Next Up Pill -->
-          <div
-            v-if="nextSession"
-            class="flex items-center gap-4 bg-[#1a1a1a]/80 border border-white/5 rounded-full pl-2 pr-6 py-2 shadow-2xl"
-          >
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shrink-0"
-            >
-              <span
-                class="material-symbols-outlined text-white text-sm"
-                style="font-variation-settings: 'FILL' 1"
-                >schedule</span
-              >
-            </div>
-            <div>
-              <p class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Next Up</p>
-              <p class="text-sm font-black text-white">
-                {{ formatTime(nextSession.startTime) }} • Drum Session
-              </p>
-            </div>
-          </div>
-          <div
-            v-else
-            class="flex items-center gap-4 bg-[#1a1a1a]/80 border border-white/5 rounded-full pl-2 pr-6 py-2 shadow-2xl"
-          >
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shrink-0"
-            >
-              <span
-                class="material-symbols-outlined text-white text-sm"
-                style="font-variation-settings: 'FILL' 1"
-                >schedule</span
-              >
-            </div>
-            <div>
-              <p class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Next Up</p>
-              <p class="text-sm font-black text-white">14:00 • Rock Drums</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Student Roster -->
+  <div class="max-w-7xl mx-auto pb-28">
+    <!-- Hero Header -->
+    <section class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+      <div>
+        <h1 class="text-5xl font-black tracking-tight text-white mb-3">
+          Welcome back, <span class="text-orange-500">Maestro.</span>
+        </h1>
+        <p class="text-zinc-400 text-lg font-medium">
+          You have
+          <span class="text-white font-bold">{{ todaySessions.length || 0 }} sessions</span>
+          today. Performance index is at
+          <span class="text-emerald-400 font-bold">98%</span>.
+        </p>
+      </div>
+      <div
+        v-if="nextSession"
+        class="liquid-glass p-5 rounded-3xl flex items-center gap-5 border border-white/10"
+      >
         <div
-          class="bg-[#1a1919]/60 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 pb-10 shadow-2xl shadow-black/50 relative overflow-hidden"
+          class="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-500"
         >
-          <div class="flex items-center justify-between mb-8 z-10 relative">
-            <div class="flex items-center gap-3">
+          <span
+            class="material-symbols-outlined"
+            style="font-variation-settings: 'FILL' 1"
+            >timer</span
+          >
+        </div>
+        <div>
+          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Next Up</p>
+          <p class="font-bold text-xl text-white">{{ formatTime(nextSession.startTime) }} • Session</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-12 gap-8">
+      <!-- Left Column: Roster & Schedule -->
+      <div class="col-span-8 space-y-8">
+        <!-- Student Roster -->
+        <div class="liquid-glass rounded-3xl p-8 border border-white/5 space-y-6">
+          <div class="flex justify-between items-center">
+            <h3 class="text-2xl font-black text-white flex items-center gap-3">
               <span
-                class="material-symbols-outlined text-[#ff6b35] text-[28px]"
+                class="material-symbols-outlined text-orange-500 text-3xl"
                 style="font-variation-settings: 'FILL' 1"
-                >group</span
+                >diversity_3</span
               >
-              <h3 class="text-2xl font-bold text-white">Student Roster</h3>
-            </div>
+              Student Roster
+            </h3>
             <button
-              class="text-[#ff6b35] text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
+              class="text-orange-500 font-bold text-sm hover:underline tracking-wide uppercase"
             >
               View All Roster
             </button>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 relative z-10">
-            <div
-              class="bg-[#111111]/80 rounded-[1.5rem] p-5 flex items-center gap-4 border border-white/5 hover:border-white/10 transition-all cursor-pointer group shadow-xl"
-            >
-              <img
-                src="https://i.pravatar.cc/150?img=47"
-                alt="Elena Rodriguez"
-                class="w-14 h-14 rounded-full border-2 border-orange-500 shrink-0 object-cover"
-              />
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-white text-base truncate">Elena<br />Rodriguez</h4>
-                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">
-                  Piano • Level 7
-                </p>
-                <div class="flex items-center gap-2 mt-2">
-                  <span
-                    class="text-[10px] font-bold bg-[#1e1e1e] text-zinc-300 px-2.5 py-1 rounded-full border border-white/5"
-                    >MON 4PM</span
-                  >
-                  <span
-                    class="text-[9px] font-bold text-[#f94d00] uppercase border border-[#f94d00]/30 rounded-full px-2 py-1 bg-[#f94d00]/10"
-                    >Progress: High</span
-                  >
-                </div>
-              </div>
-              <span
-                class="material-symbols-outlined text-zinc-600 group-hover:text-white transition-colors"
-                >chevron_right</span
-              >
-            </div>
-
-            <div
-              class="bg-[#111111]/80 rounded-[1.5rem] p-5 flex items-center gap-4 border border-white/5 hover:border-white/10 transition-all cursor-pointer group shadow-xl"
-            >
-              <img
-                src="https://i.pravatar.cc/150?img=11"
-                alt="Julian Chen"
-                class="w-14 h-14 rounded-full border-2 border-[#1a1a1a] shadow-[0_0_0_2px_#3b82f6] shrink-0 object-cover"
-              />
-              <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-white text-base truncate">Julian Chen</h4>
-                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">
-                  Drums • Advanced
-                </p>
-                <div class="flex items-center gap-2 mt-2">
-                  <span
-                    class="text-[10px] font-bold bg-[#1e1e1e] text-zinc-300 px-2.5 py-1 rounded-full border border-white/5"
-                    >TUE 2PM</span
-                  >
-                  <span
-                    class="text-[9px] font-bold text-zinc-400 uppercase border border-zinc-700 rounded-full px-2 py-1 bg-zinc-800"
-                    >Practice: Mid</span
-                  >
-                </div>
-              </div>
-              <span
-                class="material-symbols-outlined text-zinc-600 group-hover:text-white transition-colors"
-                >chevron_right</span
-              >
-            </div>
+          <!-- Loading -->
+          <div v-if="usersStore.isLoading" class="grid grid-cols-2 gap-5">
+            <div v-for="i in 2" :key="i" class="h-28 rounded-3xl bg-white/5 animate-pulse" />
           </div>
 
-          <button
-            class="mt-6 w-1/2 border-2 border-dashed border-white/10 rounded-[1.5rem] p-6 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-white/20 transition-all text-zinc-500 mx-auto"
-          >
-            <span
-              class="material-symbols-outlined text-3xl"
-              style="font-variation-settings: 'FILL' 1"
-              >person_add</span
+          <div v-else class="grid grid-cols-2 gap-5">
+            <!-- Real roster from sessions -->
+            <div
+              v-for="entry in rosterEntries"
+              :key="entry.studentId"
+              class="bg-black/40 backdrop-blur-xl border border-white/5 p-5 rounded-3xl flex items-center gap-4 hover:border-orange-500/40 transition-all group cursor-pointer"
             >
-            <span class="text-[10px] font-bold uppercase tracking-widest">Enroll New</span>
-          </button>
+              <div
+                class="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-white/10 group-hover:scale-105 transition-transform bg-surface-container-highest flex items-center justify-center shrink-0"
+              >
+                <span class="text-2xl font-black text-white">{{
+                  entry.name.charAt(0).toUpperCase()
+                }}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-white text-lg truncate">{{ entry.name }}</h4>
+                <p class="text-xs text-zinc-500 font-medium mb-2 uppercase tracking-tighter">
+                  {{ formatTime(entry.startTime) }}
+                </p>
+                <div class="flex gap-2 flex-wrap">
+                  <span
+                    class="px-2.5 py-1 bg-orange-500/10 text-orange-400 text-[9px] font-bold rounded-full border border-orange-500/20 uppercase"
+                    >{{ entry.status }}</span
+                  >
+                </div>
+              </div>
+              <span
+                class="material-symbols-outlined text-zinc-600 group-hover:text-orange-500 transition-colors"
+                >chevron_right</span
+              >
+            </div>
+
+            <!-- Enroll New -->
+            <div
+              class="bg-black/40 backdrop-blur-xl p-5 rounded-3xl flex items-center justify-center border-2 border-dashed border-white/10 hover:border-orange-500/50 hover:bg-white/5 transition-all group cursor-pointer"
+            >
+              <div class="text-center">
+                <span
+                  class="material-symbols-outlined text-zinc-600 group-hover:text-orange-500 text-3xl mb-1 block"
+                  >person_add</span
+                >
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                  Enroll New
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Weekly Schedule Card -->
-        <div
-          class="bg-[#1a1919]/60 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 shadow-2xl relative"
-        >
-          <div class="flex items-center justify-between mb-8">
-            <div class="flex items-center gap-3">
-              <span
-                class="material-symbols-outlined text-[#ff6b35] text-[28px]"
-                style="font-variation-settings: 'FILL' 1"
-                >event</span
+        <!-- Weekly Schedule -->
+        <div class="liquid-glass rounded-3xl p-8 border border-white/5 space-y-8">
+          <div class="flex justify-between items-center">
+            <h3 class="text-2xl font-black text-white flex items-center gap-3">
+              <span class="material-symbols-outlined text-orange-500 text-3xl"
+                >calendar_month</span
               >
-              <h3 class="text-2xl font-bold text-white">Weekly Schedule</h3>
-            </div>
+              Weekly Schedule
+            </h3>
             <div class="flex gap-2">
               <button
-                class="w-10 h-10 rounded-full bg-[#2a2a2a] text-zinc-400 flex items-center justify-center hover:text-white hover:bg-[#333] transition-all"
+                class="p-2.5 bg-white/5 rounded-2xl hover:bg-white/10 text-white transition-all border border-white/10"
               >
-                <span class="material-symbols-outlined text-sm">chevron_left</span>
+                <span class="material-symbols-outlined">chevron_left</span>
               </button>
               <button
-                class="w-10 h-10 rounded-full bg-[#2a2a2a] text-zinc-400 flex items-center justify-center hover:text-white hover:bg-[#333] transition-all"
+                class="p-2.5 bg-white/5 rounded-2xl hover:bg-white/10 text-white transition-all border border-white/10"
               >
-                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                <span class="material-symbols-outlined">chevron_right</span>
               </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-5 gap-3">
-            <!-- Monday -->
-            <div class="flex flex-col gap-3">
-              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em] text-center">
-                Mon
+          <div class="grid grid-cols-5 gap-4">
+            <div v-for="day in weekDays" :key="day.label" class="space-y-4">
+              <p class="text-center text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                {{ day.label }}
               </p>
+              <!-- Has session -->
               <div
-                class="bg-transparent border border-[#ff6b35] rounded-[1.5rem] p-4 text-center cursor-pointer shadow-[inset_0_0_20px_rgba(255,107,53,0.1)]"
+                v-if="day.session"
+                class="h-28 bg-orange-500/10 border-l-4 border-orange-500 rounded-3xl p-4 relative group"
               >
-                <p class="text-xs text-[#ff6b35] font-black">16:00</p>
-                <p class="text-sm font-bold text-white mt-1">Elena R.</p>
-                <p class="text-[10px] text-zinc-500">Piano II</p>
+                <p class="text-[10px] font-black text-orange-500 mb-1">
+                  {{ formatTime(day.session.startTime) }}
+                </p>
+                <p class="text-sm font-bold text-white truncate">
+                  S#{{ day.session.studentId.slice(-4) }}
+                </p>
+                <p class="text-[10px] text-zinc-400 font-medium">Session</p>
+                <button
+                  class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-white text-black rounded-full p-1.5 transition-all shadow-xl"
+                >
+                  <span class="material-symbols-outlined text-xs">edit</span>
+                </button>
               </div>
-            </div>
-            <!-- Tuesday -->
-            <div class="flex flex-col gap-3">
-              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em] text-center">
-                Tue
-              </p>
+              <!-- Empty slot -->
               <div
-                class="bg-transparent border border-orange-400 rounded-[1.5rem] p-4 text-center cursor-pointer shadow-[inset_0_0_20px_rgba(249,115,22,0.1)]"
+                v-else
+                class="h-28 bg-black/40 border-2 border-dashed border-white/5 rounded-3xl flex items-center justify-center group cursor-pointer hover:bg-white/5 transition-all"
               >
-                <p class="text-xs text-orange-400 font-black">14:00</p>
-                <p class="text-sm font-bold text-white mt-1">Julian C.</p>
-                <p class="text-[10px] text-zinc-500">Rock Drums</p>
+                <span
+                  class="material-symbols-outlined text-zinc-700 group-hover:text-orange-500 transition-colors"
+                  >add</span
+                >
               </div>
-            </div>
-            <!-- Wednesday -->
-            <div class="flex flex-col gap-3">
-              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em] text-center">
-                Wed
-              </p>
-              <div
-                class="bg-[#111111] border border-dashed border-white/5 rounded-[1.5rem] h-full min-h-[100px] flex items-center justify-center cursor-pointer hover:bg-white/5 transition-colors"
-              >
-                <span class="material-symbols-outlined text-zinc-600">add</span>
-              </div>
-            </div>
-            <!-- Thursday -->
-            <div class="flex flex-col gap-3">
-              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em] text-center">
-                Thu
-              </p>
-              <div
-                class="bg-[#1e1e1e] border border-white/5 rounded-[1.5rem] p-4 text-center cursor-pointer hover:bg-[#262626] transition-colors"
-              >
-                <p class="text-xs text-zinc-400 font-bold">17:00</p>
-                <p class="text-sm font-bold text-white mt-1">Sarah M.</p>
-                <p class="text-[10px] text-zinc-500">Vocals</p>
-              </div>
-            </div>
-            <!-- Friday -->
-            <div class="flex flex-col gap-3">
-              <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.2em] text-center">
-                Fri
-              </p>
-              <div
-                class="bg-[#111111] border border-dashed border-white/5 rounded-[1.5rem] h-full flex items-center justify-center cursor-pointer hover:bg-white/5 transition-colors"
-              >
-                <span class="material-symbols-outlined text-zinc-600">add</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom Row: 3 KPI Cards -->
-        <div class="grid grid-cols-3 gap-6">
-          <div
-            class="bg-[#1a1919]/60 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 shadow-2xl flex items-center gap-4"
-          >
-            <div
-              class="w-16 h-16 rounded-2xl bg-[#f94d00] flex items-center justify-center text-white text-3xl font-black"
-            >
-              12
-            </div>
-            <div>
-              <p class="text-base font-bold text-white">Active Roster</p>
-              <p class="text-[11px] text-zinc-500 leading-tight mt-1">
-                Enrolled for Summer<br />Term
-              </p>
-            </div>
-          </div>
-          <div
-            class="bg-[#1a1919]/60 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 shadow-2xl flex items-center gap-4"
-          >
-            <div
-              class="w-16 h-16 rounded-2xl bg-[#71401b] flex items-center justify-center text-[#ff6b35]"
-            >
-              <span
-                class="material-symbols-outlined text-3xl"
-                style="font-variation-settings: 'FILL' 1"
-                >star</span
-              >
-            </div>
-            <div>
-              <p class="text-base font-bold text-white">Rating: 4.98</p>
-              <p class="text-[11px] text-zinc-500 leading-tight mt-1">Based on 142<br />reviews</p>
-            </div>
-          </div>
-          <div
-            class="bg-[#1a1919]/60 backdrop-blur-xl border border-white/5 rounded-[2rem] p-6 shadow-2xl flex items-center gap-4"
-          >
-            <div
-              class="w-16 h-16 rounded-2xl bg-[#0b3323] flex items-center justify-center text-emerald-400"
-            >
-              <span
-                class="material-symbols-outlined text-3xl"
-                style="font-variation-settings: 'FILL' 1"
-                >leaderboard</span
-              >
-            </div>
-            <div>
-              <p class="text-base font-bold text-white">Growth Hub</p>
-              <p class="text-[11px] text-zinc-500 leading-tight mt-1">
-                +15% Month-over-<br />Month
-              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Section (Live Session Highlight Card) -->
-      <div class="w-[380px] shrink-0">
+      <!-- Right Column: Live Session Card -->
+      <div class="col-span-4">
         <div
-          class="bg-[#111111] overflow-hidden rounded-[2.5rem] border border-white/5 shadow-2xl flex flex-col h-[850px] relative"
+          class="liquid-glass rounded-3xl overflow-hidden border border-white/10 shadow-2xl sticky top-8 flex flex-col"
         >
-          <!-- Distinct Top Gradient Block -->
-          <div class="bg-gradient-to-br from-[#ff6b35] to-[#d43700] p-8 pt-10 relative">
-            <div class="flex justify-between items-start mb-6">
+          <!-- Orange header -->
+          <div
+            class="p-8 bg-gradient-to-br from-orange-500 to-orange-700 relative overflow-hidden"
+          >
+            <div
+              class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"
+            ></div>
+            <div class="flex justify-between items-start mb-6 relative z-10">
               <span
-                class="text-[9px] uppercase tracking-[0.2em] font-bold border border-white/30 rounded-full px-3 py-1 text-white"
+                class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[9px] font-black tracking-widest uppercase border border-white/30 text-white"
                 >Live Session</span
               >
-              <button class="text-white hover:text-white/80 active:scale-95 transition-all">
+              <button class="text-white/80 hover:text-white">
                 <span class="material-symbols-outlined">more_horiz</span>
               </button>
             </div>
-            <h3 class="text-[28px] font-black text-white leading-tight mb-2 tracking-tight">
-              Julian Chen:<br />Advanced Rock<br />Drumming
-            </h3>
-            <p class="text-xs font-bold text-white/80 tracking-widest uppercase">
-              ID: #4429 • Room 104 • 14:00
-            </p>
+            <div v-if="nextSession" class="relative z-10">
+              <h3 class="text-2xl font-black text-white leading-tight">
+                Session #{{ nextSession.id }}
+              </h3>
+              <p
+                class="text-white/70 text-[11px] mt-2 font-bold uppercase tracking-widest"
+              >
+                {{ formatTime(nextSession.startTime) }} • Student #{{ nextSession.studentId }}
+              </p>
+            </div>
+            <div v-else class="relative z-10">
+              <h3 class="text-2xl font-black text-white leading-tight">No Active Session</h3>
+              <p class="text-white/70 text-[11px] mt-2 font-bold uppercase tracking-widest">
+                Sessions will appear here
+              </p>
+            </div>
           </div>
 
-          <!-- Darker Body -->
-          <div class="p-8 pt-6 flex flex-col flex-1 bg-[#151515]">
-            <div class="mb-10">
-              <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-4">
-                Visual Evidence
-              </p>
-              <div
-                class="border-2 border-dashed border-white/10 rounded-[2rem] h-32 flex flex-col items-center justify-center cursor-pointer hover:border-[#ff6b35]/50 transition-colors bg-[#0e0e0e]/50"
+          <!-- Body -->
+          <div class="p-8 space-y-8 flex-1">
+            <!-- Proof Upload -->
+            <div class="space-y-4">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+                >Visual Evidence</label
               >
-                <div
-                  class="w-12 h-12 rounded-full bg-[#3d180b] flex items-center justify-center mb-2"
-                >
-                  <span
-                    class="material-symbols-outlined text-[#ff6b35]"
-                    style="font-variation-settings: 'FILL' 1"
-                    >photo_camera</span
+              <div
+                class="aspect-video bg-black/40 rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 hover:border-orange-500/50 transition-all group overflow-hidden relative"
+              >
+                <div class="text-center group-hover:scale-105 transition-transform">
+                  <div
+                    class="w-14 h-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3"
                   >
-                </div>
-                <span class="text-xs font-bold text-white">Take Photo or Upload</span>
-              </div>
-            </div>
-
-            <div>
-              <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-4">
-                Next Week's Practice Goals
-              </p>
-              <div
-                class="bg-[#0e0e0e]/80 rounded-[2rem] p-6 h-32 border border-white/5 flex items-start"
-              >
-                <p class="text-sm text-zinc-500 w-full outline-none">
-                  E.g. Focus on paradiddle transitions at 120bpm...
-                </p>
-              </div>
-            </div>
-
-            <div class="mt-8 mb-auto">
-              <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-4">
-                Shared Resources
-              </p>
-              <div
-                class="bg-[#0e0e0e]/80 rounded-2xl p-4 flex items-center gap-4 border border-white/5 hover:border-white/10 transition-colors py-3"
-              >
-                <div
-                  class="w-10 h-10 rounded-xl bg-[#2b1406] flex items-center justify-center shrink-0"
-                >
-                  <span
-                    class="material-symbols-outlined text-[#ff6b35]"
-                    style="font-variation-settings: 'FILL' 1"
-                    >music_note</span
-                  >
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold text-white truncate">Drum_Fills_Intermediate.pdf</p>
-                  <p class="text-[9px] text-zinc-500 uppercase tracking-widest mt-0.5">
-                    1.2 MB • Sheet Music
+                    <span
+                      class="material-symbols-outlined text-3xl text-orange-500"
+                      style="font-variation-settings: 'FILL' 1"
+                      >add_a_photo</span
+                    >
+                  </div>
+                  <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wide">
+                    Take Photo or Upload
                   </p>
                 </div>
-                <span
-                  class="material-symbols-outlined text-zinc-500 hover:text-white cursor-pointer transition-colors text-sm"
-                  >close</span
-                >
+                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Upload session proof" />
               </div>
             </div>
 
+            <!-- Practice Goals -->
+            <div class="space-y-4">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+                >Next Week's Practice Goals</label
+              >
+              <textarea
+                class="w-full h-32 bg-black/40 border border-white/5 rounded-3xl focus:ring-2 focus:ring-orange-500/40 text-sm p-5 text-white placeholder-zinc-600 resize-none transition-all"
+                placeholder="E.g. Focus on paradiddle transitions at 120bpm..."
+              ></textarea>
+            </div>
+
+            <!-- Shared Resources -->
+            <div class="space-y-4">
+              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+                >Shared Resources</label
+              >
+              <div class="space-y-3">
+                <div
+                  class="bg-black/40 p-4 rounded-2xl flex items-center justify-between border border-white/5"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500"
+                    >
+                      <span class="material-symbols-outlined text-lg">music_note</span>
+                    </div>
+                    <div>
+                      <p class="text-xs font-bold text-white">Drum_Fills_Intermediate.pdf</p>
+                      <p class="text-[9px] text-zinc-500 uppercase">1.2 MB • Sheet Music</p>
+                    </div>
+                  </div>
+                  <button class="text-zinc-500 hover:text-red-400 transition-colors">
+                    <span class="material-symbols-outlined text-lg">close</span>
+                  </button>
+                </div>
+                <button
+                  class="w-full py-3 bg-white/5 rounded-2xl text-[10px] font-black text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
+                >
+                  <span class="material-symbols-outlined text-lg">attach_file</span>
+                  Attach Media
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-8 border-t border-white/5 bg-black/20">
             <button
-              class="w-full bg-gradient-to-r from-[#ff3800] to-[#ff5d00] text-white rounded-full py-5 text-sm font-black tracking-widest shadow-[0_4px_30px_rgba(255,56,0,0.5)] mt-4 hover:scale-[1.02] active:scale-95 transition-all"
+              class="w-full py-5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-3xl font-black text-lg shadow-[0_15px_40px_rgba(249,115,22,0.3)] hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-tighter"
             >
-              COMPLETE SESSION
+              Complete Session
             </button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Footer Stats -->
+    <section class="grid grid-cols-3 gap-8 mt-8">
+      <div
+        class="liquid-glass p-8 rounded-3xl border border-white/10 flex items-center gap-8 group hover:bg-white/5 transition-all"
+      >
+        <div
+          class="w-20 h-20 rounded-3xl bg-orange-500 text-white flex items-center justify-center text-4xl font-black shadow-2xl group-hover:scale-110 transition-transform"
+        >
+          {{ mySessions.length }}
+        </div>
+        <div>
+          <h4 class="font-black text-xl text-white">Active Roster</h4>
+          <p class="text-sm text-zinc-500">Enrolled for Summer Term</p>
+        </div>
+      </div>
+      <div
+        class="liquid-glass p-8 rounded-3xl border border-white/10 flex items-center gap-8 group hover:bg-white/5 transition-all"
+      >
+        <div
+          class="w-20 h-20 rounded-3xl bg-orange-500/20 text-orange-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
+        >
+          <span
+            class="material-symbols-outlined text-4xl"
+            style="font-variation-settings: 'FILL' 1"
+            >star</span
+          >
+        </div>
+        <div>
+          <h4 class="font-black text-xl text-white">Rating: 4.98</h4>
+          <p class="text-sm text-zinc-500">Based on 142 reviews</p>
+        </div>
+      </div>
+      <div
+        class="liquid-glass p-8 rounded-3xl border border-white/10 flex items-center gap-8 group hover:bg-white/5 transition-all"
+      >
+        <div
+          class="w-20 h-20 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
+        >
+          <span
+            class="material-symbols-outlined text-4xl"
+            style="font-variation-settings: 'FILL' 1"
+            >analytics</span
+          >
+        </div>
+        <div>
+          <h4 class="font-black text-xl text-white">Growth Hub</h4>
+          <p class="text-sm text-zinc-500">+15% Month-over-Month</p>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useToastStore } from '../../stores/toast'
-import { useInteractionsStore } from '../../stores/interactions'
-import axios from 'axios'
 
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
-const authStore = useAuthStore()
-const toast = useToastStore()
-const interactionsStore = useInteractionsStore()
-
-const showScheduleModal = ref(false)
-const practiceNotes = ref('')
-
-const schedForm = reactive({ studentId: '', startTime: '', homework: '' })
 
 onMounted(async () => {
   if (authStore.currentUser?.id) {
@@ -451,8 +386,8 @@ const nextSession = computed(
     null
 )
 
-// Build unique student-session pairs for the roster
-const myStudents = computed(() => {
+// Build unique student entries for the roster
+const rosterEntries = computed(() => {
   const seen = new Set<string>()
   return mySessions.value
     .filter((s) => {
@@ -463,7 +398,6 @@ const myStudents = computed(() => {
     .map((s) => {
       const user = usersStore.users.find((u) => u.id === s.studentId)
       return {
-        sessionId: s.id,
         studentId: s.studentId,
         name: user?.name ?? `Student #${s.studentId}`,
         startTime: s.startTime,
@@ -471,8 +405,6 @@ const myStudents = computed(() => {
       }
     })
 })
-
-const allStudents = computed(() => usersStore.getUsersByRole('student'))
 
 // 5-day week grid (Mon–Fri of current week)
 const weekDays = computed(() => {
@@ -486,12 +418,12 @@ const weekDays = computed(() => {
   return days.map((label, i) => {
     const date = new Date(monday)
     date.setDate(monday.getDate() + i)
-    const session = mySessions.value.find((s) => {
-      if (!s.startTime) return false
-      const d = new Date(s.startTime)
-      return d.toDateString() === date.toDateString()
-    })
-    return { label, date, session: session ?? null }
+    const session =
+      mySessions.value.find((s) => {
+        if (!s.startTime) return false
+        return new Date(s.startTime).toDateString() === date.toDateString()
+      }) ?? null
+    return { label, date, session }
   })
 })
 
@@ -502,59 +434,5 @@ const formatTime = (dt: string | undefined) => {
     minute: '2-digit',
     hour12: false,
   })
-}
-const formatDay = (dt: string | undefined) => {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleDateString('en-US', {
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-async function submitSchedule() {
-  if (!schedForm.studentId || !schedForm.startTime) return
-  try {
-    const start = new Date(schedForm.startTime)
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
-    const session = await scheduleStore.bookSession({
-      teacherId: myId.value,
-      studentId: schedForm.studentId,
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
-    })
-    if (schedForm.homework && session) {
-      await interactionsStore.assignHomework(session.id, schedForm.homework)
-    }
-    toast.success('Session scheduled!', 'Your student has been notified.')
-    showScheduleModal.value = false
-    Object.assign(schedForm, { studentId: '', startTime: '', homework: '' })
-  } catch {
-    toast.error('Scheduling failed', 'Please check the details and try again.')
-  }
-}
-
-async function completeSession(sessionId: string) {
-  try {
-    const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-    await axios.put(`${API_URL}/sessions/${sessionId}`, {
-      status: 'completed',
-      teacher_id: parseInt(myId.value),
-      student_id: parseInt(mySessions.value.find((s) => s.id === sessionId)?.studentId ?? '0'),
-      start_time: mySessions.value.find((s) => s.id === sessionId)?.startTime,
-      end_time: mySessions.value.find((s) => s.id === sessionId)?.endTime,
-    })
-    const s = scheduleStore.allSessions.find((x) => x.id === sessionId)
-    if (s) s.status = 'completed'
-    toast.success('Session complete!', 'Well done, Maestro.')
-  } catch {
-    toast.error('Could not complete session', 'Please try again.')
-  }
-}
-
-async function handleProofUpload(sessionId: string, event: Event) {
-  const input = event.target as HTMLInputElement
-  if (!input.files?.[0]) return
-  await interactionsStore.uploadImageProof(sessionId, input.files[0])
 }
 </script>

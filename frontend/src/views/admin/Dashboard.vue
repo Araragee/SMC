@@ -1,256 +1,511 @@
 <template>
-  <div class="flex gap-4 overflow-x-auto h-[calc(100vh-2rem)] items-stretch snap-x snap-mandatory hide-scrollbar">
-    
-    <!-- COLUMN 1: Active Sessions -->
-    <div class="w-48 xl:w-64 shrink-0 snap-start glass-panel bg-surface-container-low/60 rounded-[32px] p-6 xl:p-8 flex flex-col justify-start border border-white/5 hover:border-white/10 transition-colors shadow-2xl relative inner-glow-top-left overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
-      <p class="text-[9px] xl:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4 relative z-10">Active Sessions</p>
-      <div v-if="scheduleStore.isLoading" class="h-12 w-24 rounded bg-surface-container-highest animate-pulse relative z-10" />
-      <p v-else class="text-5xl font-black text-white tracking-tighter relative z-10">{{ stats.totalSessions }}</p>
-      <p class="text-xs text-emerald-400 mt-2 font-medium relative z-10 flex items-center gap-1">
-        <span class="material-symbols-outlined text-[10px] xl:text-xs">arrow_upward</span>
-        {{ stats.scheduledSessions }} scheduled
-      </p>
-    </div>
+  <div class="max-w-7xl mx-auto pb-28 space-y-8">
 
-    <!-- COLUMN 2: Retention Rate (Orange) -->
-    <div class="w-48 xl:w-64 shrink-0 snap-start bg-gradient-to-br from-orange-500 to-orange-700 rounded-[32px] p-6 xl:p-8 flex flex-col justify-start shadow-xl shadow-orange-900/30 relative inner-glow-top-left overflow-hidden group">
-      <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-      <p class="text-[9px] xl:text-[10px] font-bold text-orange-200/80 uppercase tracking-[0.2em] mb-4 relative z-10">Retention Rate</p>
-      <div v-if="scheduleStore.isLoading" class="h-12 w-20 rounded bg-orange-800/50 animate-pulse relative z-10" />
-      <p v-else class="text-5xl font-black text-white tracking-tighter relative z-10">{{ stats.completionRate }}%</p>
-      <p class="text-[9px] xl:text-[10px] text-orange-200/90 mt-2 leading-relaxed font-medium relative z-10">
-        Based on<br/>completed<br/>sessions
-      </p>
-    </div>
-
-    <!-- COLUMN 3: Faculty Members -->
-    <div class="w-48 xl:w-64 shrink-0 snap-start glass-panel bg-surface-container-low/60 rounded-[32px] p-6 xl:p-8 flex flex-col justify-start border border-white/5 hover:border-white/10 transition-colors shadow-2xl relative inner-glow-top-left overflow-hidden">
-      <p class="text-[9px] xl:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4 relative z-10">Faculty Members</p>
-      <div v-if="usersStore.isLoading" class="h-12 w-16 rounded bg-surface-container-highest animate-pulse relative z-10" />
-      <p v-else class="text-5xl font-black text-white tracking-tighter relative z-10">{{ teachers.length }}</p>
-    </div>
-
-    <!-- COLUMN 4: New Registrations -->
-    <div class="w-48 xl:w-64 shrink-0 snap-start glass-panel bg-surface-container-low/60 rounded-[32px] p-6 xl:p-8 flex flex-col justify-start border border-white/5 hover:border-white/10 transition-colors shadow-2xl relative inner-glow-top-left overflow-hidden">
-      <p class="text-[9px] xl:text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4 relative z-10">New Registrations</p>
-      <div v-if="usersStore.isLoading" class="h-12 w-16 rounded bg-surface-container-highest animate-pulse relative z-10" />
-      <p v-else class="text-5xl font-black text-white tracking-tighter relative z-10">{{ students.length }}</p>
-      <p class="text-[9px] xl:text-[10px] text-blue-400 mt-2 font-medium leading-relaxed relative z-10">
-        Active student<br/>enrolments
-      </p>
-    </div>
-
-    <!-- COLUMN 5: Music Schedule -->
-    <div class="w-80 xl:w-96 shrink-0 snap-start glass-panel bg-surface-container-low/60 rounded-[32px] p-5 xl:p-6 flex flex-col border border-white/5 hover:border-white/10 transition-colors shadow-2xl relative inner-glow-top-left overflow-hidden">
-      <div class="flex items-center justify-between mx-1 xl:mx-2 mt-2 mb-6 xl:mb-8">
+    <!-- Bento Stats Grid -->
+    <section class="grid grid-cols-4 gap-6">
+      <!-- Live Analytics (col-span-2) -->
+      <div class="col-span-2 liquid-glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div>
-          <h3 class="font-black text-white text-base xl:text-lg tracking-tight">Music Schedule</h3>
-          <p class="text-[9px] xl:text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Managing for today</p>
+          <span class="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]"
+            >Live Analytics</span
+          >
+          <div v-if="scheduleStore.isLoading" class="h-10 w-48 rounded bg-white/5 animate-pulse mt-2" />
+          <h2 v-else class="text-3xl font-black mt-2 tracking-tight text-white">
+            {{ stats.totalSessions }} Active Sessions
+          </h2>
+          <p class="text-zinc-400 text-sm mt-1">
+            {{ stats.scheduledSessions }} scheduled today
+          </p>
         </div>
-        <button class="flex items-center gap-1.5 px-3 py-2 xl:px-4 xl:py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white rounded-xl text-[10px] xl:text-xs font-bold transition-all active:scale-95 shadow-lg shadow-orange-900/30 group" @click="showAddSessionModal = true">
-          <span class="material-symbols-outlined text-[12px] xl:text-[14px] group-hover:rotate-90 transition-transform">add_circle</span>
-          Assign New
-        </button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto pr-1 xl:pr-2 no-scrollbar space-y-2">
-        <!-- Loading -->
-        <div v-if="scheduleStore.isLoading" class="space-y-3">
-          <div v-for="i in 3" :key="i" class="h-14 xl:h-16 rounded-2xl bg-white/5 animate-pulse" />
-        </div>
-        
-        <!-- Empty -->
-        <div v-else-if="scheduleStore.allSessions.length === 0" class="flex flex-col items-center justify-center h-full text-center p-6 mt-10">
-          <div class="w-14 h-14 xl:w-16 xl:h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-            <span class="material-symbols-outlined text-2xl xl:text-3xl text-zinc-600">event_busy</span>
-          </div>
-          <p class="font-bold text-white text-sm mb-1">No sessions scheduled</p>
-          <p class="text-[10px] xl:text-xs text-zinc-500 max-w-[180px] xl:max-w-[200px]">Use "Assign New" to create your first session.</p>
-        </div>
-
-        <!-- Session rows -->
-        <div v-for="session in scheduleStore.allSessions.slice(0, 8)" v-else :key="session.id" class="flex items-center gap-3 xl:gap-4 p-2.5 xl:p-3 rounded-2xl hover:bg-white/5 transition-colors group cursor-pointer border border-transparent hover:border-white/10">
-          <div class="w-12 xl:w-14 shrink-0 text-center">
-            <p class="text-xs xl:text-sm font-black text-white tabular-nums">{{ formatTime(session.startTime) }}</p>
-            <p class="text-[8px] xl:text-[9px] font-bold text-orange-500 uppercase tracking-widest">{{ formatAmPm(session.startTime) }}</p>
-          </div>
-          <div class="w-8 h-8 rounded-full bg-surface-container-highest flex flex-col items-center justify-center shrink-0 border border-white/5 shadow-inner">
-            <span class="material-symbols-outlined text-[14px] text-zinc-400">music_note</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-[11px] xl:text-xs font-bold text-white truncate">Session #{{ session.id }}</p>
-            <p class="text-[9px] xl:text-[10px] text-zinc-500 truncate mt-0.5">T:{{ session.teacherId }} • S:{{ session.studentId }}</p>
-          </div>
-          <span class="text-[8px] xl:text-[9px] px-2 py-1 rounded-full font-bold uppercase tracking-wider shrink-0" :class="statusClass(session.status)">{{ session.status }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- COLUMN 6: Alerts & Quick Assign Stack -->
-    <div class="w-64 xl:w-72 shrink-0 snap-start flex flex-col gap-4">
-      <!-- Alerts -->
-      <div class="flex-1 glass-panel bg-surface-container-low/60 rounded-[32px] p-5 xl:p-6 border border-white/5 shadow-2xl relative inner-glow-top-left flex flex-col overflow-hidden">
-        <div class="flex items-center justify-between mb-4 xl:mb-6 mx-1">
-          <h3 class="font-black text-white text-[14px] xl:text-[15px] tracking-tight leading-loose">Alerts & Updates</h3>
-          <span class="text-[8px] xl:text-[9px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold tracking-widest flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-            {{ notifStore.notifications.length || 0 }} NEW
-          </span>
-        </div>
-        <div class="space-y-3 flex-1 overflow-y-auto no-scrollbar pr-1">
-          <div class="bg-gradient-to-br from-orange-500/10 to-orange-900/10 border border-orange-500/20 rounded-2xl p-3 xl:p-4 relative overflow-hidden group hover:border-orange-500/40 transition-colors">
-            <div class="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div class="flex items-start gap-2 xl:gap-3 relative z-10">
-              <span class="material-symbols-outlined text-orange-400 text-base xl:text-lg">warning</span>
-              <div>
-                <p class="text-[8px] xl:text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">Session Alert</p>
-                <p class="text-[11px] xl:text-xs text-white font-bold leading-snug">{{ stats.scheduledSessions }} sessions running today</p>
-                <p class="text-[9px] xl:text-[10px] text-zinc-500 mt-1">{{ stats.completedSessions }} completed this week</p>
-              </div>
-            </div>
-          </div>
-          <div class="bg-surface-container-highest/30 border border-white/5 rounded-2xl p-3 xl:p-4 hover:border-white/10 transition-colors">
-            <div class="flex items-start gap-2 xl:gap-3">
-              <span class="material-symbols-outlined text-zinc-400 text-base xl:text-lg">campaign</span>
-              <div>
-                <p class="text-[8px] xl:text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">System</p>
-                <p class="text-[11px] xl:text-xs text-white font-bold leading-snug">{{ teachers.length }} active faculty members</p>
-                <p class="text-[9px] xl:text-[10px] text-zinc-500 mt-1">{{ students.length }} enrolled students</p>
-              </div>
-            </div>
-          </div>
+        <div class="flex gap-2 mt-8">
+          <span
+            class="px-4 py-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black rounded-full uppercase tracking-wider"
+            >Piano Masterclass</span
+          >
+          <span
+            class="px-4 py-1.5 bg-white/5 border border-white/10 text-zinc-300 text-[10px] font-black rounded-full uppercase tracking-wider"
+            >Theory Exams</span
+          >
         </div>
       </div>
 
-      <!-- Quick Assign -->
-      <div class="h-60 xl:h-64 bg-gradient-to-br from-orange-500 to-orange-700 rounded-[32px] p-5 xl:p-6 shadow-xl shadow-orange-900/30 relative inner-glow-top-left flex flex-col justify-between group overflow-hidden">
-        <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
-        <h3 class="font-black text-white text-[14px] xl:text-[15px] tracking-tight relative z-10">Quick Assign</h3>
-        <div class="space-y-2 xl:space-y-3 relative z-10">
-          <div>
-            <p class="text-[8px] xl:text-[9px] text-orange-200/90 uppercase tracking-[0.2em] font-bold mb-1 ml-1 xl:mb-1.5">Teacher</p>
-            <select v-model="quickTeacherId" class="w-full rounded-xl xl:rounded-2xl bg-black/20 text-white font-medium border border-white/10 px-3 py-2 xl:px-4 xl:py-3 text-[11px] xl:text-xs focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-black/30 transition-colors appearance-none cursor-pointer">
-              <option value="" class="text-zinc-900">Select Faculty ▾</option>
-              <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">{{ t.name }}</option>
-            </select>
-          </div>
-          <div>
-            <p class="text-[8px] xl:text-[9px] text-orange-200/90 uppercase tracking-[0.2em] font-bold mb-1 ml-1 xl:mb-1.5">Student</p>
-            <select v-model="quickStudentId" class="w-full rounded-xl xl:rounded-2xl bg-black/20 text-white font-medium border border-white/10 px-3 py-2 xl:px-4 xl:py-3 text-[11px] xl:text-xs focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-black/30 transition-colors appearance-none cursor-pointer">
-              <option value="" class="text-zinc-900">Select Student ▾</option>
-              <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">{{ s.name }}</option>
-            </select>
-          </div>
+      <!-- Retention Rate (orange gradient) -->
+      <div
+        class="bg-gradient-to-br from-orange-500 to-orange-700 p-8 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
+      >
+        <div class="absolute -right-6 -bottom-6 opacity-20">
+          <span
+            class="material-symbols-outlined text-[120px]"
+            style="font-variation-settings: 'FILL' 1"
+            >music_note</span
+          >
         </div>
-        <button :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning" class="w-full py-2.5 xl:py-3.5 bg-white text-orange-600 rounded-xl xl:rounded-2xl font-black text-[9px] xl:text-[10px] hover:bg-orange-50 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest shadow-xl relative z-10" @click="confirmQuickAssign">
-          {{ isQuickAssigning ? 'Scheduling...' : 'Confirm' }}
-        </button>
+        <div class="relative z-10">
+          <span class="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]"
+            >Retention Rate</span
+          >
+          <div v-if="scheduleStore.isLoading" class="h-14 w-20 rounded bg-white/20 animate-pulse mt-2" />
+          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
+            {{ stats.completionRate }}%
+          </h2>
+        </div>
+        <p class="text-xs text-white/80 font-medium relative z-10">
+          Exceeding national music academy benchmarks
+        </p>
       </div>
-    </div>
 
-    <!-- COLUMN 7: Faculty & Staff -->
-    <div class="w-72 xl:w-80 shrink-0 snap-start glass-panel bg-surface-container-low/60 rounded-[32px] p-5 xl:p-6 flex flex-col border border-white/5 hover:border-white/10 transition-colors shadow-2xl relative inner-glow-top-left overflow-hidden">
-      <div class="flex items-center justify-between mx-1 xl:mx-2 mt-2 mb-6 xl:mb-8">
+      <!-- New Registrations -->
+      <div class="liquid-glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div>
-          <h3 class="font-black text-white text-base xl:text-lg tracking-tight leading-tight">Faculty & Staff</h3>
+          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]"
+            >New Registrations</span
+          >
+          <div v-if="usersStore.isLoading" class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2" />
+          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
+            {{ students.length }}
+          </h2>
         </div>
-        <div class="flex items-center gap-1.5">
-          <button class="flex items-center gap-1.5 px-3 py-2 xl:px-4 xl:py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] xl:text-xs uppercase tracking-wider font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-md" @click="showAddSessionModal = true">
-            <span class="material-symbols-outlined text-[12px] xl:text-[14px]">person_add</span>
-            Add
-          </button>
+        <div class="flex -space-x-3 mt-6">
+          <div
+            v-for="(s, i) in students.slice(0, 3)"
+            :key="s.id"
+            class="w-10 h-10 rounded-full border-2 border-zinc-900 bg-surface-container-highest flex items-center justify-center text-white font-black text-xs"
+            :style="{ zIndex: 3 - i }"
+          >
+            {{ s.name.charAt(0) }}
+          </div>
+          <div
+            v-if="students.length > 3"
+            class="w-10 h-10 rounded-full border-2 border-zinc-900 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black flex items-center justify-center"
+          >
+            +{{ students.length - 3 }}
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="flex-1 overflow-y-auto pr-1 xl:pr-2 no-scrollbar space-y-2">
-        <!-- Loading -->
-        <div v-if="usersStore.isLoading" class="space-y-3">
-          <div v-for="i in 3" :key="i" class="h-14 xl:h-16 rounded-2xl bg-white/5 animate-pulse" />
-        </div>
+    <!-- Main Layout -->
+    <div class="grid grid-cols-3 gap-8">
+      <!-- Left: Schedule + Faculty -->
+      <div class="col-span-2 space-y-8">
 
-        <!-- Empty -->
-        <div v-else-if="teachers.length === 0" class="flex flex-col items-center justify-center h-full text-center p-6 mt-10">
-          <div class="w-14 h-14 xl:w-16 xl:h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-            <span class="material-symbols-outlined text-2xl xl:text-3xl text-zinc-600">group_off</span>
-          </div>
-          <p class="text-xs xl:text-sm font-bold text-white mb-1">No faculty members yet</p>
-        </div>
-
-        <!-- Faculty List (No table, just styled list items) -->
-        <div v-for="teacher in teachers" v-else :key="teacher.id" class="p-2.5 xl:p-3 rounded-2xl bg-surface-container-highest/20 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all cursor-pointer group flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 xl:w-10 xl:h-10 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-800 flex items-center justify-center text-white font-black text-[11px] xl:text-sm border border-zinc-600 shadow-md transform group-hover:rotate-6 transition-transform">
-              {{ teacher.name.charAt(0) }}
-            </div>
+        <!-- Music Schedule -->
+        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+          <div class="flex items-center justify-between mb-8">
             <div>
-              <p class="font-bold text-white text-[11px] xl:text-xs">{{ teacher.name }}</p>
-              <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
-                <p class="text-[8px] xl:text-[9px] text-zinc-500 font-semibold uppercase tracking-widest">Available</p>
+              <h3 class="text-2xl font-black tracking-tight text-white">Music Schedule</h3>
+              <p class="text-zinc-500 text-sm">Managing for today</p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+              >
+                <span class="material-symbols-outlined text-sm">chevron_left</span>
+              </button>
+              <button
+                class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+              >
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Column headers -->
+          <div class="grid grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4">
+            <div
+              class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1"
+            >
+              Time
+            </div>
+            <div
+              class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-5"
+            >
+              Sessions &amp; Instructors
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="scheduleStore.isLoading" class="space-y-4">
+            <div v-for="i in 3" :key="i" class="h-20 rounded-3xl bg-white/5 animate-pulse" />
+          </div>
+
+          <!-- Empty -->
+          <div
+            v-else-if="scheduleStore.allSessions.length === 0"
+            class="py-10 flex flex-col items-center text-center"
+          >
+            <span class="material-symbols-outlined text-4xl text-zinc-700 mb-3">event_busy</span>
+            <p class="font-bold text-white text-sm mb-1">No sessions scheduled</p>
+            <p class="text-xs text-zinc-500">Use "Assign New" to create your first session.</p>
+          </div>
+
+          <!-- Session rows -->
+          <div v-else class="space-y-2">
+            <div
+              v-for="session in scheduleStore.allSessions.slice(0, 5)"
+              :key="session.id"
+              class="grid grid-cols-6 gap-4 group hover:bg-white/5 transition-all rounded-3xl p-2 -mx-2"
+            >
+              <div class="col-span-1 flex flex-col justify-center">
+                <span class="text-sm font-black">{{ formatTime(session.startTime) }}</span>
+                <span class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{{
+                  formatAmPm(session.startTime)
+                }}</span>
+              </div>
+              <div
+                class="col-span-5 bg-white/5 border-l-4 p-5 rounded-3xl flex items-center justify-between"
+                :class="borderColor(session.status)"
+              >
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border"
+                    :class="iconClass(session.status)"
+                  >
+                    <span class="material-symbols-outlined">music_note</span>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-white">Session #{{ session.id }}</h4>
+                    <p class="text-xs text-zinc-400">
+                      T:{{ session.teacherId }} • S:{{ session.studentId }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span
+                    class="text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider"
+                    :class="statusClass(session.status)"
+                    >{{ session.status }}</span
+                  >
+                  <button
+                    class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-white"
+                  >
+                    <span class="material-symbols-outlined">more_vert</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add slot -->
+            <div class="grid grid-cols-6 gap-4 p-2 -mx-2">
+              <div class="col-span-1"></div>
+              <button
+                class="col-span-5 border-2 border-dashed border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-zinc-500 hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-white/[0.02] uppercase tracking-widest text-sm font-bold"
+                @click="showAddSessionModal = true"
+              >
+                <span class="material-symbols-outlined">add_circle</span>
+                Assign New Session
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Faculty & Staff -->
+        <section class="liquid-glass rounded-3xl p-8 border border-white/5 overflow-hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+            <h3 class="text-2xl font-black tracking-tight text-white">Faculty &amp; Staff</h3>
+            <div class="flex items-center gap-3">
+              <button
+                class="px-5 py-2.5 bg-white/5 text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-white/10 rounded-2xl hover:bg-white/10 transition-colors flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-sm">filter_list</span>
+                Filter
+              </button>
+              <button
+                class="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
+                @click="showAddSessionModal = true"
+              >
+                <span class="material-symbols-outlined text-sm">person_add</span>
+                Add Member
+              </button>
+            </div>
+          </div>
+
+          <div v-if="usersStore.isLoading" class="space-y-4">
+            <div v-for="i in 3" :key="i" class="h-16 rounded-2xl bg-white/5 animate-pulse" />
+          </div>
+
+          <div v-else-if="teachers.length === 0" class="py-10 text-center">
+            <span class="material-symbols-outlined text-4xl text-zinc-700 mb-2 block">group_off</span>
+            <p class="text-sm font-bold text-white mb-1">No faculty members yet</p>
+          </div>
+
+          <div v-else class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                  <th class="pb-6 px-2">Member</th>
+                  <th class="pb-6 px-2">Department</th>
+                  <th class="pb-6 px-2">Status</th>
+                  <th class="pb-6 px-2">Sessions</th>
+                  <th class="pb-6 px-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                <tr
+                  v-for="teacher in teachers"
+                  :key="teacher.id"
+                  class="group hover:bg-white/[0.02] transition-colors"
+                >
+                  <td class="py-6 px-2">
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="w-12 h-12 rounded-[18px] bg-surface-container-highest border border-white/10 flex items-center justify-center text-white font-black text-lg"
+                      >
+                        {{ teacher.name.charAt(0) }}
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-white">{{ teacher.name }}</p>
+                        <p class="text-xs text-zinc-500">{{ teacher.email }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-6 px-2">
+                    <span class="text-xs font-medium text-zinc-300">Music Faculty</span>
+                  </td>
+                  <td class="py-6 px-2">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.5)]"
+                      ></span>
+                      Available
+                    </span>
+                  </td>
+                  <td class="py-6 px-2">
+                    <span class="text-sm font-black text-white">
+                      {{
+                        scheduleStore.allSessions.filter((s) => s.teacherId === teacher.id).length
+                      }}
+                    </span>
+                  </td>
+                  <td class="py-6 px-2 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <button class="p-2 text-zinc-500 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                      </button>
+                      <button class="p-2 text-zinc-500 hover:text-red-400 transition-colors">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: Alerts + Quick Assign -->
+      <div class="space-y-8">
+        <!-- Alerts & Updates -->
+        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-lg font-black tracking-tight text-white">Alerts &amp; Updates</h3>
+            <span
+              class="text-[10px] font-black text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+              {{ notifStore.notifications.length || 0 }} NEW
+            </span>
+          </div>
+          <div class="space-y-4">
+            <div
+              class="bg-white/5 p-5 rounded-3xl border-l-4 border-orange-500 hover:bg-white/10 transition-colors"
+            >
+              <div class="flex gap-4">
+                <span class="material-symbols-outlined text-orange-500 text-xl">warning</span>
+                <div>
+                  <h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-orange-400">
+                    Session Alert
+                  </h4>
+                  <p class="text-xs text-zinc-300 leading-relaxed">
+                    {{ stats.scheduledSessions }} sessions running today
+                  </p>
+                  <button
+                    class="text-[10px] font-black text-orange-500 mt-3 uppercase tracking-widest hover:underline transition-all"
+                  >
+                    Resolve Now
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white/5 p-5 rounded-3xl border-l-4 border-zinc-700 hover:bg-white/10 transition-colors"
+            >
+              <div class="flex gap-4">
+                <span class="material-symbols-outlined text-zinc-400 text-xl">campaign</span>
+                <div>
+                  <h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-zinc-500">
+                    System
+                  </h4>
+                  <p class="text-xs text-zinc-300 leading-relaxed">
+                    {{ teachers.length }} active faculty • {{ students.length }} enrolled students
+                  </p>
+                  <p class="text-[10px] text-zinc-500 mt-2 font-bold uppercase">Just now</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+          <button
+            class="w-full mt-8 py-4 text-[10px] font-black text-zinc-400 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all uppercase tracking-[0.2em]"
+          >
+            View All Activity
+          </button>
+        </section>
+
+        <!-- Quick Assign -->
+        <section
+          class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
+        >
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+          <div class="relative z-10">
+            <h3 class="text-xl font-black mb-6 tracking-tight">Quick Assign</h3>
+            <div class="space-y-5">
+              <div>
+                <label
+                  class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                  >Teacher</label
+                >
+                <select
+                  v-model="quickTeacherId"
+                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                >
+                  <option value="" class="text-zinc-900">Select Faculty</option>
+                  <option
+                    v-for="t in teachers"
+                    :key="t.id"
+                    :value="t.id"
+                    class="text-zinc-900"
+                  >
+                    {{ t.name }}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label
+                  class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                  >Student</label
+                >
+                <select
+                  v-model="quickStudentId"
+                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                >
+                  <option value="" class="text-zinc-900">Select Student</option>
+                  <option
+                    v-for="s in students"
+                    :key="s.id"
+                    :value="s.id"
+                    class="text-zinc-900"
+                  >
+                    {{ s.name }}
+                  </option>
+                </select>
+              </div>
+              <button
+                :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
+                class="w-full bg-black/40 backdrop-blur-xl border border-white/10 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all duration-150 uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="confirmQuickAssign"
+              >
+                {{ isQuickAssigning ? 'Scheduling...' : 'Confirm Schedule' }}
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
-    
-    <!-- Right padding buffer to allow overscroll padding visually -->
-    <div class="w-4 shrink-0 h-full"></div>
   </div>
 
   <!-- Add Session Modal -->
-  <Teleport to="body">    <Transition name="modal">
+  <Teleport to="body">
+    <Transition name="modal">
       <div
-v-if="showAddSessionModal"
+        v-if="showAddSessionModal"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        role="dialog" aria-modal="true" aria-labelledby="assign-modal-title"
-        @click.self="showAddSessionModal = false">
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="showAddSessionModal = false" />
-        <div class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl">
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="assign-modal-title"
+        @click.self="showAddSessionModal = false"
+      >
+        <div
+          class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          @click="showAddSessionModal = false"
+        />
+        <div
+          class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl"
+        >
           <div class="flex items-center justify-between mb-6">
-            <h3 id="assign-modal-title" class="text-xl font-black text-white">Assign New Session</h3>
+            <h3 id="assign-modal-title" class="text-xl font-black text-white">
+              Assign New Session
+            </h3>
             <button
-class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
+              class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
               aria-label="Close modal"
-              @click="showAddSessionModal = false">
-              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+              @click="showAddSessionModal = false"
+            >
+              <span class="material-symbols-outlined">close</span>
             </button>
           </div>
           <form class="space-y-4" @submit.prevent="createAdminSession">
             <div>
-              <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block" for="modal-teacher">Teacher</label>
+              <label
+                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block"
+                for="modal-teacher"
+                >Teacher</label
+              >
               <select
-id="modal-teacher" v-model="form.teacherId" required
-                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                id="modal-teacher"
+                v-model="form.teacherId"
+                required
+                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+              >
                 <option value="">Select a teacher...</option>
                 <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block" for="modal-student">Student</label>
+              <label
+                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block"
+                for="modal-student"
+                >Student</label
+              >
               <select
-id="modal-student" v-model="form.studentId" required
-                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                id="modal-student"
+                v-model="form.studentId"
+                required
+                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+              >
                 <option value="">Select a student...</option>
                 <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block" for="modal-date">Date &amp; Time</label>
+              <label
+                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block"
+                for="modal-date"
+                >Date &amp; Time</label
+              >
               <input
-id="modal-date" v-model="form.startTime" type="datetime-local" required
-                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+                id="modal-date"
+                v-model="form.startTime"
+                type="datetime-local"
+                required
+                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+              />
             </div>
             <div class="flex gap-3 pt-2">
               <button
-type="button" class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500/50"
-                @click="showAddSessionModal = false">
+                type="button"
+                class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all"
+                @click="showAddSessionModal = false"
+              >
                 Cancel
               </button>
               <button
-type="submit" :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                type="submit"
+                :disabled="scheduleStore.isLoading"
+                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
+              >
                 {{ scheduleStore.isLoading ? 'Scheduling...' : 'Confirm Session' }}
               </button>
             </div>
@@ -279,7 +534,6 @@ const showAddSessionModal = ref(false)
 const quickTeacherId = ref('')
 const quickStudentId = ref('')
 const isQuickAssigning = ref(false)
-
 const form = reactive({ teacherId: '', studentId: '', startTime: '' })
 
 onMounted(async () => {
@@ -298,11 +552,11 @@ const students = computed(() => usersStore.getUsersByRole('student'))
 
 const stats = computed(() => {
   const sessions = scheduleStore.allSessions
-  const completed = sessions.filter(s => s.status === 'completed').length
+  const completed = sessions.filter((s) => s.status === 'completed').length
   const rate = sessions.length ? Math.round((completed / sessions.length) * 100) : 0
   return {
     totalSessions: sessions.length,
-    scheduledSessions: sessions.filter(s => s.status === 'scheduled').length,
+    scheduledSessions: sessions.filter((s) => s.status === 'scheduled').length,
     completedSessions: completed,
     completionRate: rate,
   }
@@ -310,7 +564,11 @@ const stats = computed(() => {
 
 const formatTime = (dt: string | undefined) => {
   if (!dt) return '—'
-  return new Date(dt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return new Date(dt).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 const formatAmPm = (dt: string | undefined) => {
   if (!dt) return ''
@@ -322,6 +580,20 @@ const statusClass = (status: string) => ({
   'bg-blue-500/20 text-blue-400': status === 'scheduled',
   'bg-amber-500/20 text-amber-400': status === 'ongoing',
   'bg-red-500/20 text-red-400': status === 'cancelled',
+})
+
+const borderColor = (status: string) => ({
+  'border-l-emerald-500': status === 'completed',
+  'border-l-orange-500': status === 'scheduled',
+  'border-l-amber-500': status === 'ongoing',
+  'border-l-red-500': status === 'cancelled',
+})
+
+const iconClass = (status: string) => ({
+  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
+  'bg-orange-500/10 text-orange-400 border-orange-500/20': status === 'scheduled',
+  'bg-amber-500/10 text-amber-400 border-amber-500/20': status === 'ongoing',
+  'bg-red-500/10 text-red-400 border-red-500/20': status === 'cancelled',
 })
 
 async function createAdminSession() {
@@ -368,29 +640,12 @@ async function confirmQuickAssign() {
 </script>
 
 <style scoped>
-/* Hide scrollbar for Chrome, Safari and Opera */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
 }
-/* Hide scrollbar for IE, Edge and Firefox */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
 }
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.inner-glow-top-left {
-  box-shadow: inset 1px 1px 0px 0px rgba(255, 255, 255, 0.15);
-}
-
-.modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-.modal-enter-active .relative, .modal-leave-active .relative { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.modal-enter-from .relative { transform: scale(0.95) translateY(10px); }
-.modal-leave-to .relative { transform: scale(0.95); }
 </style>

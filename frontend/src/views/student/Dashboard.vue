@@ -1,389 +1,386 @@
 <template>
-  <div class="flex-1 w-full min-h-screen pt-6 pb-20 relative flex">
-    <!-- Header -->
-    <div class="flex-1 w-full">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-[0.2em] text-orange-500 mb-1">
-            Student Portal
-          </p>
-          <h2 class="text-4xl font-black text-white tracking-tight">My Schedule</h2>
-          <p class="text-zinc-500 mt-1 text-sm">
-            Your next recital rehearsal is in
-            <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span
-            >.
-          </p>
-        </div>
+  <div class="max-w-7xl mx-auto pb-28">
+    <!-- Hero Welcome -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+      <div>
+        <h2 class="text-5xl font-black tracking-tighter text-white mb-3">
+          Morning, {{ authStore.currentUser?.name?.split(' ')[0] || 'Student' }}.
+        </h2>
+        <p class="text-zinc-400 font-medium">
+          Your next recital rehearsal is in
+          <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span>.
+        </p>
+      </div>
+      <div class="flex gap-4">
         <button
-          class="flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white rounded-2xl font-black text-sm transition-all active:scale-95 shadow-lg shadow-orange-900/30 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-          aria-label="Request a new session"
+          class="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-3xl border border-white/10 active:scale-95 transition-all flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-lg">calendar_today</span>
+          Schedule
+        </button>
+        <button
+          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
           @click="showRequestModal = true"
         >
-          <span class="material-symbols-outlined text-sm" aria-hidden="true">add</span>
+          <span class="material-symbols-outlined text-lg">add_circle</span>
           Request Session
         </button>
       </div>
+    </div>
 
-      <div class="grid grid-cols-3 gap-4">
-        <!-- Left: Sessions list -->
-        <div class="col-span-2 space-y-4">
-          <!-- Upcoming Sessions -->
-          <div
-            class="glass-panel bg-surface-container-low/60 border border-white/5 shadow-2xl rounded-3xl overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-white/5 flex items-center gap-2">
+    <!-- Main Grid -->
+    <div class="grid grid-cols-12 gap-8">
+      <!-- Left Column -->
+      <div class="col-span-8 space-y-8">
+        <!-- My Sessions -->
+        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-bold text-white flex items-center gap-3">
               <span
-                class="material-symbols-outlined text-orange-400"
-                style="font-variation-settings: 'FILL' 1"
-                aria-hidden="true"
-                >calendar_month</span
-              >
-              <h3 class="font-black text-white">My Sessions</h3>
-            </div>
-
-            <!-- Loading -->
-            <div v-if="scheduleStore.isLoading" class="p-6 space-y-3">
-              <div
-                v-for="i in 3"
-                :key="i"
-                class="h-20 rounded-xl bg-surface-container-highest animate-pulse"
-              />
-            </div>
-
-            <!-- Empty -->
-            <div
-              v-else-if="mySessions.length === 0"
-              class="p-12 flex flex-col items-center text-center"
-            >
-              <span
-                class="material-symbols-outlined text-5xl text-zinc-700 mb-3"
-                style="font-variation-settings: 'FILL' 1"
-                aria-hidden="true"
-                >music_off</span
-              >
-              <p class="font-semibold text-zinc-400">No sessions yet</p>
-              <p class="text-sm text-zinc-600 mt-1">
-                Request a session with your teacher to get started!
-              </p>
-              <button
-                class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white rounded-xl font-bold text-sm transition-all active:scale-95"
-                @click="showRequestModal = true"
-              >
-                Request a Session
-              </button>
-            </div>
-
-            <!-- Session rows -->
-            <div v-else class="divide-y divide-zinc-800/50">
-              <div
-                v-for="session in mySessions"
-                :key="session.id"
-                class="flex items-center gap-4 px-6 py-4 hover:bg-surface-container-highest/20 transition-colors"
-              >
-                <!-- Date badge -->
-                <div class="w-14 shrink-0 text-center">
-                  <div
-                    class="w-12 h-12 rounded-xl mx-auto flex flex-col items-center justify-center"
-                    :class="
-                      session.status === 'completed'
-                        ? 'bg-surface-container-highest'
-                        : 'bg-orange-600'
-                    "
-                  >
-                    <p
-                      class="text-[10px] font-bold uppercase"
-                      :class="session.status === 'completed' ? 'text-zinc-500' : 'text-orange-200'"
-                    >
-                      {{ formatMonth(session.startTime) }}
-                    </p>
-                    <p
-                      class="text-lg font-black leading-none"
-                      :class="session.status === 'completed' ? 'text-zinc-400' : 'text-white'"
-                    >
-                      {{ formatDay(session.startTime) }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Session info -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 mb-0.5">
-                    <span
-                      class="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-500/20 text-blue-400 uppercase tracking-wider"
-                    >
-                      1-on-1 Session
-                    </span>
-                    <span class="text-xs text-zinc-500">{{ formatTime(session.startTime) }}</span>
-                  </div>
-                  <p class="text-sm font-bold text-white">Session #{{ session.id }}</p>
-                  <p class="text-xs text-zinc-500 mt-0.5">Teacher #{{ session.teacherId }}</p>
-                </div>
-
-                <!-- Right actions -->
-                <div class="flex items-center gap-2 shrink-0">
-                  <!-- Homework badge -->
-                  <span
-                    v-if="session.homeworkAssigned && !session.homeworkCompleted"
-                    class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 font-semibold"
-                  >
-                    HW Pending
-                  </span>
-                  <span
-                    v-else-if="session.homeworkCompleted"
-                    class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold"
-                  >
-                    HW Done ✓
-                  </span>
-
-                  <!-- Upload proof -->
-                  <label
-                    v-if="session.status !== 'cancelled'"
-                    class="cursor-pointer text-xs px-3 py-1.5 rounded-lg border transition-all focus-within:ring-2 focus-within:ring-orange-500/50"
-                    :class="
-                      session.imageProofUrl
-                        ? 'border-emerald-500/40 text-emerald-400'
-                        : 'border-white/10 text-zinc-500 hover:border-orange-500/50 hover:text-orange-400'
-                    "
-                  >
-                    <span
-                      class="material-symbols-outlined text-xs mr-1 align-middle"
-                      aria-hidden="true"
-                    >
-                      {{ session.imageProofUrl ? 'check_circle' : 'upload' }}
-                    </span>
-                    {{ session.imageProofUrl ? 'Proof ✓' : 'Upload Proof' }}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      class="hidden"
-                      :aria-label="`Upload session proof for session ${session.id}`"
-                      @change="handleProofUpload(session.id, $event)"
-                    />
-                  </label>
-
-                  <!-- Arrow -->
-                  <button
-                    class="text-zinc-700 hover:text-white transition-colors"
-                    aria-label="View session details"
-                  >
-                    <span class="material-symbols-outlined text-lg" aria-hidden="true"
-                      >chevron_right</span
-                    >
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Session Proofs & Homework -->
-          <div
-            class="glass-panel bg-surface-container-low/60 border border-white/5 shadow-2xl rounded-3xl overflow-hidden"
-          >
-            <div class="px-6 py-4 border-b border-white/5 flex items-center gap-2">
-              <span
-                class="material-symbols-outlined text-orange-400"
-                style="font-variation-settings: 'FILL' 1"
-                aria-hidden="true"
-                >cloud_upload</span
-              >
-              <h3 class="font-black text-white">Session Proofs &amp; Homework</h3>
-            </div>
-            <div class="p-4 grid grid-cols-2 gap-3">
-              <!-- Upload area -->
-              <label
-                class="border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-orange-500/50 transition-colors text-center group"
+                class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
               >
                 <span
-                  class="material-symbols-outlined text-3xl text-zinc-600 group-hover:text-orange-500 transition-colors"
+                  class="material-symbols-outlined"
                   style="font-variation-settings: 'FILL' 1"
-                  aria-hidden="true"
-                  >photo_camera_add</span
+                  >event_note</span
                 >
-                <p class="text-sm font-bold text-zinc-400 group-hover:text-white transition-colors">
-                  Upload Session Photo
-                </p>
-                <p class="text-xs text-zinc-600">Verification for completed credits</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  aria-label="Upload session photo proof"
-                  @change="handleGenericProofUpload"
-                />
-              </label>
-
-              <!-- Pending homework -->
-              <div
-                v-if="pendingHomework"
-                class="bg-surface-container-highest/50 border border-white/10 rounded-xl p-4"
+              </span>
+              My Sessions
+            </h3>
+            <div class="flex gap-2">
+              <button
+                class="p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-colors"
               >
-                <div class="flex items-start gap-3">
-                  <span
-                    class="material-symbols-outlined text-orange-400 mt-0.5"
-                    style="font-variation-settings: 'FILL' 1"
-                    aria-hidden="true"
-                    >assignment</span
-                  >
-                  <div>
-                    <p class="text-sm font-bold text-white">
-                      {{ pendingHomework.homeworkAssigned }}
-                    </p>
-                    <p class="text-xs text-zinc-500 mt-1">Due for next session</p>
-                    <button
-                      class="mt-2 text-xs text-orange-500 hover:text-orange-400 font-bold flex items-center gap-1 transition-colors focus:outline-none focus:underline"
-                      @click="markHomeworkDone(pendingHomework.id)"
-                    >
-                      Submit Work
-                      <span class="material-symbols-outlined text-xs" aria-hidden="true"
-                        >north_east</span
-                      >
-                    </button>
-                  </div>
-                </div>
+                <span class="material-symbols-outlined text-sm">chevron_left</span>
+              </button>
+              <button
+                class="p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-colors"
+              >
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="scheduleStore.isLoading" class="space-y-4">
+            <div v-for="i in 3" :key="i" class="h-24 rounded-3xl bg-white/5 animate-pulse" />
+          </div>
+
+          <!-- Empty -->
+          <div v-else-if="mySessions.length === 0" class="py-12 flex flex-col items-center text-center">
+            <span
+              class="material-symbols-outlined text-5xl text-zinc-700 mb-3"
+              style="font-variation-settings: 'FILL' 1"
+              >music_off</span
+            >
+            <p class="font-semibold text-zinc-400">No sessions yet</p>
+            <p class="text-sm text-zinc-600 mt-1">
+              Request a session with your teacher to get started!
+            </p>
+            <button
+              class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
+              @click="showRequestModal = true"
+            >
+              Request a Session
+            </button>
+          </div>
+
+          <!-- Session list -->
+          <div v-else class="space-y-4">
+            <div
+              v-for="session in mySessions"
+              :key="session.id"
+              class="bg-white/5 border border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
+            >
+              <!-- Date badge -->
+              <div
+                class="flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-lg shrink-0"
+                :class="
+                  session.status === 'completed'
+                    ? 'bg-zinc-800 text-zinc-400'
+                    : 'bg-orange-500 text-white shadow-orange-900/30'
+                "
+              >
+                <span class="text-[10px] uppercase font-black">{{
+                  formatMonth(session.startTime)
+                }}</span>
+                <span class="text-2xl font-black">{{ formatDay(session.startTime) }}</span>
               </div>
 
-              <div
-                v-else
-                class="bg-surface-container-highest/30 border border-dashed border-white/10 rounded-xl p-4 flex items-center justify-center"
-              >
-                <p class="text-sm text-zinc-600">No homework pending ✓</p>
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span
+                    class="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-[10px] font-bold rounded-full uppercase"
+                    >1-on-1 Session</span
+                  >
+                  <span class="text-zinc-500 text-xs">{{ formatTime(session.startTime) }}</span>
+                </div>
+                <h4 class="font-bold text-lg text-white">Session #{{ session.id }}</h4>
+                <p class="text-zinc-500 text-sm">Teacher #{{ session.teacherId }}</p>
+              </div>
+
+              <!-- Right actions -->
+              <div class="flex items-center gap-3 shrink-0">
+                <span
+                  v-if="session.homeworkAssigned && !session.homeworkCompleted"
+                  class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 font-semibold"
+                  >HW Pending</span
+                >
+                <span
+                  v-else-if="session.homeworkCompleted"
+                  class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold"
+                  >HW Done ✓</span
+                >
+                <label
+                  v-if="session.status !== 'cancelled'"
+                  class="cursor-pointer text-xs px-3 py-1.5 rounded-xl border transition-all focus-within:ring-2 focus-within:ring-orange-500/50"
+                  :class="
+                    session.imageProofUrl
+                      ? 'border-emerald-500/40 text-emerald-400'
+                      : 'border-white/10 text-zinc-500 hover:border-orange-500/50 hover:text-orange-400'
+                  "
+                >
+                  <span class="material-symbols-outlined text-xs mr-1 align-middle">{{
+                    session.imageProofUrl ? 'check_circle' : 'upload'
+                  }}</span>
+                  {{ session.imageProofUrl ? 'Proof ✓' : 'Upload Proof' }}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    :aria-label="`Upload proof for session ${session.id}`"
+                    @change="handleProofUpload(session.id, $event)"
+                  />
+                </label>
+                <span
+                  class="material-symbols-outlined text-zinc-600 group-hover:text-orange-500 transition-colors"
+                  >arrow_forward</span
+                >
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Right column: Sessions meter + Notice board -->
-        <div class="space-y-4">
-          <!-- Sessions used meter -->
-          <div
-            class="glass-panel bg-surface-container-low/60 border border-white/5 shadow-2xl rounded-3xl p-5"
-          >
-            <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">
-              Sessions Used
-            </p>
-            <!-- Circular progress -->
-            <div class="relative flex items-center justify-center mb-4">
-              <svg class="w-32 h-32 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#27272a" stroke-width="8" />
+        <!-- Session Proofs & Homework -->
+        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+          <h3 class="text-xl font-bold text-white flex items-center gap-3 mb-8">
+            <span
+              class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
+            >
+              <span
+                class="material-symbols-outlined"
+                style="font-variation-settings: 'FILL' 1"
+                >cloud_upload</span
+              >
+            </span>
+            Session Proofs &amp; Homework
+          </h3>
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Upload area -->
+            <label
+              class="border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-8 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group"
+            >
+              <div
+                class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+              >
+                <span
+                  class="material-symbols-outlined text-3xl"
+                  style="font-variation-settings: 'FILL' 1"
+                  >add_a_photo</span
+                >
+              </div>
+              <p class="font-bold text-white">Upload Session Photo</p>
+              <p class="text-xs text-zinc-500 mt-2">Verification for completed credits</p>
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                aria-label="Upload session photo proof"
+                @change="handleGenericProofUpload"
+              />
+            </label>
+
+            <!-- Pending homework -->
+            <div
+              v-if="pendingHomework"
+              class="bg-white/5 border border-white/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-white/10 transition-all"
+            >
+              <div
+                class="w-12 h-12 bg-zinc-800 text-zinc-400 rounded-2xl flex items-center justify-center shrink-0"
+              >
+                <span
+                  class="material-symbols-outlined"
+                  style="font-variation-settings: 'FILL' 1"
+                  >description</span
+                >
+              </div>
+              <div>
+                <p class="font-bold text-sm text-white">{{ pendingHomework.homeworkAssigned }}</p>
+                <p class="text-xs text-zinc-500 mt-0.5">Due for next session</p>
+                <button
+                  class="mt-2 text-orange-500 font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
+                  @click="markHomeworkDone(pendingHomework.id)"
+                >
+                  Submit Work
+                  <span class="material-symbols-outlined text-xs">north_east</span>
+                </button>
+              </div>
+            </div>
+            <div
+              v-else
+              class="bg-white/5 border border-dashed border-white/10 rounded-3xl p-6 flex items-center justify-center"
+            >
+              <p class="text-sm text-zinc-600">No homework pending ✓</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right Column -->
+      <div class="col-span-4 space-y-8">
+        <!-- Enrollment Status -->
+        <section
+          class="liquid-glass rounded-3xl p-8 border border-white/5 relative overflow-hidden group"
+        >
+          <div class="relative z-10">
+            <h3 class="text-xl font-bold text-white mb-8">Enrollment Status</h3>
+            <div class="flex items-center justify-center mb-10 relative">
+              <svg
+                class="w-48 h-48 -rotate-90 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]"
+                viewBox="0 0 192 192"
+                aria-hidden="true"
+              >
                 <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
+                  cx="96"
+                  cy="96"
+                  r="84"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.05)"
+                  stroke-width="10"
+                />
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="84"
                   fill="none"
                   stroke="#f97316"
-                  stroke-width="8"
-                  :stroke-dasharray="`${(sessionProgress * 251.2) / 100} 251.2`"
+                  stroke-width="10"
                   stroke-linecap="round"
+                  :stroke-dasharray="`${(sessionProgress * 527.8) / 100} 527.8`"
                   style="transition: stroke-dasharray 0.8s ease"
                 />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <p class="text-2xl font-black text-white">
-                  {{ mySessions.filter((s) => s.status === 'completed').length }}
-                </p>
-                <p class="text-[10px] text-zinc-500 font-semibold">
-                  of {{ authStore.currentUser?.sessionsLeft || 10 }}
-                </p>
+                <span class="text-4xl font-black text-white">
+                  {{ mySessions.filter((s) => s.status === 'completed').length }} /
+                  {{ authStore.currentUser?.sessionsLeft || 10 }}
+                </span>
+                <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1"
+                  >Sessions Used</span
+                >
               </div>
             </div>
-            <div class="text-center">
-              <span
-                class="text-xs px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold"
+            <div class="space-y-4 mb-8">
+              <div
+                class="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5"
               >
-                Term B - Intensive
-              </span>
-              <div class="mt-3 flex justify-between text-xs text-zinc-500">
-                <span>Valid Until</span>
-                <span class="text-zinc-300 font-semibold">Dec 15, 2026</span>
+                <span class="text-xs text-zinc-400">Package</span>
+                <span class="text-xs font-bold text-white">Term B - Intensive</span>
+              </div>
+              <div
+                class="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5"
+              >
+                <span class="text-xs text-zinc-400">Valid Until</span>
+                <span class="text-xs font-bold text-white">Dec 15, 2026</span>
               </div>
             </div>
             <button
-              class="w-full mt-4 py-2.5 rounded-xl border border-white/10 text-zinc-400 hover:text-white hover:border-zinc-600 text-xs font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500/50"
+              class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-3xl border border-white/10 transition-all active:scale-95"
             >
               Manage Subscription
             </button>
           </div>
-
-          <!-- Stats -->
-          <div class="grid grid-cols-2 gap-3">
-            <div
-              class="glass-panel bg-surface-container-low/60 border border-white/5 shadow-2xl rounded-3xl p-4 text-center"
-            >
-              <p class="text-3xl font-black text-orange-500">{{ mySessions.length * 60 }}</p>
-              <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mt-1">
-                Practice
-              </p>
-              <p class="text-[10px] text-zinc-600">Hours</p>
-            </div>
-            <div
-              class="glass-panel bg-surface-container-low/60 border border-white/5 shadow-2xl rounded-3xl p-4 text-center"
-            >
-              <p class="text-3xl font-black text-emerald-400">A+</p>
-              <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mt-1">
-                Avg Grade
-              </p>
-              <p class="text-[10px] text-zinc-600">This term</p>
-            </div>
-          </div>
-
-          <!-- Notice Board -->
           <div
-            class="glass-panel bg-surface-container-low/60 border border-white/5 shadow-2xl rounded-3xl overflow-hidden"
-          >
-            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span
-                  class="material-symbols-outlined text-orange-400 text-base"
-                  style="font-variation-settings: 'FILL' 1"
-                  aria-hidden="true"
-                  >campaign</span
-                >
-                <h3 class="font-black text-white text-sm">Notice Board</h3>
-              </div>
-              <button
-                class="text-zinc-600 hover:text-white transition-colors"
-                aria-label="More notice board options"
+            class="absolute -right-20 -bottom-20 w-48 h-48 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all duration-700"
+          ></div>
+        </section>
+
+        <!-- Notice Board -->
+        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-bold text-white flex items-center gap-3">
+              <span
+                class="material-symbols-outlined text-orange-500"
+                style="font-variation-settings: 'FILL' 1"
+                >campaign</span
               >
-                <span class="material-symbols-outlined text-base" aria-hidden="true"
-                  >more_horiz</span
-                >
-              </button>
-            </div>
-            <div class="p-4 space-y-3">
-              <div class="bg-orange-600 rounded-xl p-3">
+              Notice Board
+            </h3>
+            <button class="text-zinc-500 hover:text-white transition-colors" aria-label="More options">
+              <span class="material-symbols-outlined">more_horiz</span>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div
+              class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-6 text-white relative overflow-hidden group/promo cursor-pointer"
+            >
+              <div class="relative z-10">
                 <span
-                  class="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-bold uppercase tracking-wider"
+                  class="inline-block px-2 py-1 bg-white/20 backdrop-blur-lg rounded-lg text-[9px] font-black uppercase tracking-widest mb-3"
                   >Limited Offer</span
                 >
-                <p class="text-sm font-black text-white mt-2">Summer Masterclass Series</p>
-                <p class="text-xs text-orange-200/80 mt-1">
+                <h4 class="font-bold text-lg leading-tight mb-2">Summer Masterclass Series</h4>
+                <p class="text-xs text-white/80 mb-4 font-medium">
                   Get 20% off if you book before Friday evening.
                 </p>
                 <button
-                  class="mt-2 text-[10px] font-black bg-white text-orange-600 px-3 py-1 rounded-lg hover:bg-orange-50 transition-colors"
+                  class="bg-white text-orange-600 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all"
                 >
-                  LEARN MORE
+                  Learn More
                 </button>
               </div>
-              <div class="bg-surface-container-highest/50 rounded-xl p-3">
-                <div class="flex items-start gap-2">
-                  <span
-                    class="material-symbols-outlined text-zinc-500 text-base mt-0.5"
-                    style="font-variation-settings: 'FILL' 1"
-                    aria-hidden="true"
-                    >tips_and_updates</span
-                  >
-                  <div>
-                    <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">
-                      Academy Tip
-                    </p>
-                    <p class="text-xs text-zinc-300 mt-0.5 leading-relaxed">
-                      Don't forget to book Studio A for next week's exam recording session.
-                    </p>
-                  </div>
-                </div>
+              <span
+                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform duration-500"
+                style="font-variation-settings: 'FILL' 1"
+                >music_note</span
+              >
+            </div>
+            <div class="bg-white/5 border border-white/5 p-4 rounded-3xl flex items-start gap-4">
+              <div
+                class="w-10 h-10 bg-surface-container-highest rounded-2xl flex items-center justify-center shrink-0"
+              >
+                <span
+                  class="material-symbols-outlined text-orange-500 text-xl"
+                  style="font-variation-settings: 'FILL' 1"
+                  >lightbulb</span
+                >
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">
+                  Academy Tip
+                </p>
+                <p class="text-sm font-medium text-white/90 leading-snug">
+                  Don't forget to book Studio A for next week's exam recording session.
+                </p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="liquid-glass rounded-3xl p-6 text-center border border-white/5">
+            <p class="text-3xl font-black text-orange-500">{{ mySessions.length * 60 }}</p>
+            <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">
+              Practice Hours
+            </p>
+          </div>
+          <div class="liquid-glass rounded-3xl p-6 text-center border border-white/5">
+            <p class="text-3xl font-black text-white">A+</p>
+            <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">
+              Avg Grade
+            </p>
           </div>
         </div>
       </div>
@@ -417,7 +414,7 @@
               aria-label="Close modal"
               @click="showRequestModal = false"
             >
-              <span class="material-symbols-outlined" aria-hidden="true">close</span>
+              <span class="material-symbols-outlined">close</span>
             </button>
           </div>
           <form class="space-y-4" @submit.prevent="submitRequest">
@@ -454,7 +451,7 @@
             <div class="flex gap-3 pt-2">
               <button
                 type="button"
-                class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-zinc-500/50"
+                class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all"
                 @click="showRequestModal = false"
               >
                 Cancel
@@ -462,7 +459,7 @@
               <button
                 type="submit"
                 :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
               >
                 {{ scheduleStore.isLoading ? 'Submitting...' : 'Request Session' }}
               </button>
