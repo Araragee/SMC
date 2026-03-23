@@ -1,8 +1,7 @@
 <template>
-  <div class="max-w-7xl mx-auto pb-28 space-y-8">
-
+  <div class="max-w-5xl mx-auto pb-28 space-y-4">
     <!-- Header -->
-    <div class="flex items-start justify-between gap-8">
+    <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-5xl font-black tracking-tight text-white mb-2">My Schedule</h1>
         <p class="text-zinc-500 font-medium">
@@ -18,7 +17,6 @@
           <span class="material-symbols-outlined text-lg">add_circle</span>
           Propose Session
         </button>
-        <ProfileCard />
       </div>
     </div>
 
@@ -69,7 +67,7 @@
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-white/5">
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-black text-white flex items-center gap-3">
           <span class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
@@ -90,7 +88,7 @@
     </section>
 
     <!-- Upcoming Confirmed Sessions -->
-    <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-white/5">
       <h3 class="text-xl font-black text-white mb-6 flex items-center gap-3">
         <span class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
           <span class="material-symbols-outlined text-emerald-400" style="font-variation-settings: 'FILL' 1">event_available</span>
@@ -168,7 +166,6 @@ import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
 import { useNotificationStore } from '../../stores/notification'
 import { useToastStore } from '../../stores/toast'
-import ProfileCard from '../../components/ProfileCard.vue'
 import WeeklyCalendarGrid from '../../components/WeeklyCalendarGrid.vue'
 import SessionDetailModal from '../../components/SessionDetailModal.vue'
 import ProposeSessionModal from '../../components/ProposeSessionModal.vue'

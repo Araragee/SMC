@@ -201,12 +201,20 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 @app.put("/users/{user_id}", response_model=schemas.User)
-def update_user(user_id: int, user: schemas.UserBase, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    # Authorization: User can update themselves, or Admin can update anyone
+    if current_user.id != user_id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to update this user")
+
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    for key, value in user.dict(exclude_unset=True).items():
+    update_data = user.dict(exclude_unset=True)
+    if "password" in update_data:
+        update_data["hashed_password"] = pwd_context.hash(update_data.pop("password"))
+
+    for key, value in update_data.items():
         setattr(db_user, key, value)
 
     db.commit()

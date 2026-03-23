@@ -1,7 +1,7 @@
 <template>
-  <div class="max-w-7xl mx-auto pb-28">
+  <div class="max-w-5xl mx-auto pb-28">
     <!-- Hero Welcome -->
-    <div class="flex items-start justify-between gap-8 mb-12">
+    <div class="flex items-start justify-between gap-4 mb-6">
       <div>
         <h2 class="text-5xl font-black tracking-tighter text-white mb-3">
           Morning, {{ authStore.currentUser?.name?.split(' ')[0] || 'Student' }}.
@@ -27,17 +27,14 @@
           </button>
         </div>
       </div>
-      <div class="shrink-0">
-        <ProfileCard />
-      </div>
     </div>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-12 gap-8">
+    <div class="grid grid-cols-12 gap-4">
       <!-- Left Column -->
-      <div class="col-span-8 space-y-8">
+      <div class="col-span-8 space-y-4">
         <!-- My Sessions -->
-        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-bold text-white flex items-center gap-3">
               <span
@@ -184,7 +181,7 @@
         </section>
 
         <!-- Session Proofs & Homework -->
-        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <h3 class="text-xl font-bold text-white flex items-center gap-3 mb-8">
             <span
               class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
@@ -200,7 +197,7 @@
           <div class="grid grid-cols-2 gap-6">
             <!-- Upload area -->
             <label
-              class="border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-8 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group"
+              class="border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group"
             >
               <div
                 class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
@@ -259,10 +256,10 @@
       </div>
 
       <!-- Right Column -->
-      <div class="col-span-4 space-y-8">
+      <div class="col-span-4 space-y-4">
         <!-- Enrollment Status -->
         <section
-          class="liquid-glass rounded-3xl p-8 border border-white/5 relative overflow-hidden group"
+          class="liquid-glass rounded-3xl p-4 border border-white/5 relative overflow-hidden group"
         >
           <div class="relative z-10">
             <h3 class="text-xl font-bold text-white mb-8">Enrollment Status</h3>
@@ -328,7 +325,7 @@
         </section>
 
         <!-- Notice Board -->
-        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-bold text-white flex items-center gap-3">
               <span
@@ -497,7 +494,6 @@ import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
-import ProfileCard from '../../components/ProfileCard.vue'
 import { useToastStore } from '../../stores/toast'
 import { useInteractionsStore } from '../../stores/interactions'
 

@@ -1,7 +1,7 @@
 <template>
-  <div class="max-w-7xl mx-auto pb-28">
+  <div class="max-w-5xl mx-auto pb-28">
     <!-- Hero Header -->
-    <section class="flex items-start justify-between gap-8 mb-12">
+    <section class="flex items-start justify-between gap-4 mb-6">
       <div>
         <h1 class="text-5xl font-black tracking-tight text-white mb-3">
           Welcome back, <span class="text-orange-500">Maestro.</span>
@@ -31,17 +31,14 @@
           </div>
         </div>
       </div>
-      <div class="shrink-0">
-        <ProfileCard />
-      </div>
     </section>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-12 gap-8">
+    <div class="grid grid-cols-12 gap-4">
       <!-- Left Column: Roster & Schedule -->
-      <div class="col-span-8 space-y-8">
+      <div class="col-span-8 space-y-4">
         <!-- Student Roster -->
-        <div class="liquid-glass rounded-3xl p-8 border border-white/5 space-y-6">
+        <div class="liquid-glass rounded-3xl p-4 border border-white/5 space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-2xl font-black text-white flex items-center gap-3">
               <span
@@ -113,7 +110,7 @@
         </div>
 
         <!-- Weekly Schedule -->
-        <div class="liquid-glass rounded-3xl p-8 border border-white/5 space-y-6">
+        <div class="liquid-glass rounded-3xl p-4 border border-white/5 space-y-3">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-2xl font-black text-white flex items-center gap-3">
@@ -175,11 +172,11 @@
       <!-- Right Column: Live Session Card -->
       <div class="col-span-4">
         <div
-          class="liquid-glass rounded-3xl overflow-hidden border border-white/10 shadow-2xl sticky top-8 flex flex-col"
+          class="liquid-glass rounded-3xl overflow-hidden border border-white/10 shadow-2xl sticky top-4 flex flex-col"
         >
           <!-- Orange header -->
           <div
-            class="p-8 bg-gradient-to-br from-orange-500 to-orange-700 relative overflow-hidden"
+            class="p-4 bg-gradient-to-br from-orange-500 to-orange-700 relative overflow-hidden"
           >
             <div
               class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"
@@ -212,7 +209,7 @@
           </div>
 
           <!-- Body -->
-          <div class="p-8 space-y-8 flex-1">
+          <div class="p-4 space-y-4 flex-1">
             <!-- Proof Upload -->
             <div class="space-y-4">
               <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
@@ -284,7 +281,7 @@
             </div>
           </div>
 
-          <div class="p-8 border-t border-white/5 bg-black/20">
+          <div class="p-4 border-t border-white/5 bg-black/20">
             <button
               class="w-full py-5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-3xl font-black text-lg shadow-[0_15px_40px_rgba(249,115,22,0.3)] hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-tighter"
             >
@@ -296,9 +293,9 @@
     </div>
 
     <!-- Footer Stats -->
-    <section class="grid grid-cols-3 gap-8 mt-8">
+    <section class="grid grid-cols-3 gap-4 mt-8">
       <div
-        class="liquid-glass p-8 rounded-3xl border border-white/10 flex items-center gap-8 group hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
       >
         <div
           class="w-20 h-20 rounded-3xl bg-orange-500 text-white flex items-center justify-center text-4xl font-black shadow-2xl group-hover:scale-110 transition-transform"
@@ -311,7 +308,7 @@
         </div>
       </div>
       <div
-        class="liquid-glass p-8 rounded-3xl border border-white/10 flex items-center gap-8 group hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
       >
         <div
           class="w-20 h-20 rounded-3xl bg-orange-500/20 text-orange-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
@@ -328,7 +325,7 @@
         </div>
       </div>
       <div
-        class="liquid-glass p-8 rounded-3xl border border-white/10 flex items-center gap-8 group hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
       >
         <div
           class="w-20 h-20 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
@@ -353,7 +350,6 @@ import { computed, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
-import ProfileCard from '../../components/ProfileCard.vue'
 
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()

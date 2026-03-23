@@ -127,6 +127,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserUpdate(BaseModel):
+    email: Optional[str] = None
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    password: Optional[str] = None
+
 class User(UserBase):
     id: int
     is_active: bool

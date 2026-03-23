@@ -84,5 +84,33 @@ export const useAuthStore = defineStore('auth', {
       delete axios.defaults.headers.common['Authorization']
       toast.info('Signed out', 'See you next time!')
     },
+
+    async updateProfile(payload: { name?: string; email?: string; avatar_url?: string; password?: string }) {
+      const toast = useToastStore()
+      if (!this.user?.id) return
+      
+      this.isLoading = true
+      try {
+        const response = await axios.put(`${API_URL}/users/${this.user.id}`, payload)
+        const updatedUser = response.data
+        
+        // Update local state
+        this.user = {
+          ...this.user,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          avatarUrl: updatedUser.avatar_url
+        }
+        localStorage.setItem('user', JSON.stringify(this.user))
+        toast.success('Profile updated', 'Your changes have been saved.')
+        return true
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.detail || 'Failed to update profile'
+        toast.error('Update failed', errorMsg)
+        return false
+      } finally {
+        this.isLoading = false
+      }
+    }
   },
 })

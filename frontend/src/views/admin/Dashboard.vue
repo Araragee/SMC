@@ -1,32 +1,31 @@
 <template>
-  <div class="max-w-7xl mx-auto pb-28 space-y-8">
-
+  <div class="max-w-[80vw] mx-auto pb-28 space-y-4">
     <!-- Page Header -->
-    <div class="flex items-start justify-between gap-8">
+    <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-5xl font-black tracking-tight text-white mb-2">Admin Dashboard</h1>
         <p class="text-zinc-500 font-medium">Sernan's Music Clinic — Overview</p>
-      </div>
-      <div class="shrink-0">
-        <ProfileCard />
       </div>
     </div>
 
     <!-- Bento Stats Grid -->
     <section class="grid grid-cols-5 gap-6">
       <!-- Live Analytics (col-span-2) -->
-      <div class="col-span-2 liquid-glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between">
+      <div
+        class="col-span-2 liquid-glass p-4 rounded-3xl border border-white/5 flex flex-col justify-between"
+      >
         <div>
           <span class="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]"
             >Live Analytics</span
           >
-          <div v-if="scheduleStore.isLoading" class="h-10 w-48 rounded bg-white/5 animate-pulse mt-2" />
+          <div
+            v-if="scheduleStore.isLoading"
+            class="h-10 w-48 rounded bg-white/5 animate-pulse mt-2"
+          />
           <h2 v-else class="text-3xl font-black mt-2 tracking-tight text-white">
             {{ stats.totalSessions }} Active Sessions
           </h2>
-          <p class="text-zinc-400 text-sm mt-1">
-            {{ stats.scheduledSessions }} scheduled today
-          </p>
+          <p class="text-zinc-400 text-sm mt-1">{{ stats.scheduledSessions }} scheduled today</p>
         </div>
         <div class="flex gap-2 mt-8">
           <span
@@ -42,7 +41,7 @@
 
       <!-- Retention Rate (orange gradient) -->
       <div
-        class="bg-gradient-to-br from-orange-500 to-orange-700 p-8 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
+        class="bg-gradient-to-br from-orange-500 to-orange-700 p-4 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
       >
         <div class="absolute -right-6 -bottom-6 opacity-20">
           <span
@@ -55,7 +54,10 @@
           <span class="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]"
             >Retention Rate</span
           >
-          <div v-if="scheduleStore.isLoading" class="h-14 w-20 rounded bg-white/20 animate-pulse mt-2" />
+          <div
+            v-if="scheduleStore.isLoading"
+            class="h-14 w-20 rounded bg-white/20 animate-pulse mt-2"
+          />
           <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
             {{ stats.completionRate }}%
           </h2>
@@ -66,12 +68,15 @@
       </div>
 
       <!-- New Registrations -->
-      <div class="liquid-glass p-8 rounded-3xl border border-white/5 flex flex-col justify-between">
+      <div class="liquid-glass p-4 rounded-3xl border border-white/5 flex flex-col justify-between">
         <div>
           <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]"
             >New Registrations</span
           >
-          <div v-if="usersStore.isLoading" class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2" />
+          <div
+            v-if="usersStore.isLoading"
+            class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2"
+          />
           <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
             {{ students.length }}
           </h2>
@@ -97,30 +102,38 @@
       <!-- Pending Approvals -->
       <RouterLink
         to="/admin/schedule"
-        class="liquid-glass p-8 rounded-3xl border border-amber-500/20 flex flex-col justify-between hover:bg-amber-500/5 transition-all group"
+        class="liquid-glass p-4 rounded-3xl border border-amber-500/20 flex flex-col justify-between hover:bg-amber-500/5 transition-all group"
       >
         <div>
-          <span class="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Pending Approvals</span>
-          <div v-if="scheduleStore.isLoading" class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2" />
-          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter"
+          <span class="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]"
+            >Pending Approvals</span
+          >
+          <div
+            v-if="scheduleStore.isLoading"
+            class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2"
+          />
+          <h2
+            v-else
+            class="text-5xl font-black mt-2 tracking-tighter"
             :class="scheduleStore.pendingSessions.length > 0 ? 'text-amber-400' : 'text-white'"
           >
             {{ scheduleStore.pendingSessions.length }}
           </h2>
         </div>
-        <p class="text-zinc-600 text-xs font-bold group-hover:text-amber-500 transition-colors mt-6">
+        <p
+          class="text-zinc-600 text-xs font-bold group-hover:text-amber-500 transition-colors mt-6"
+        >
           Review →
         </p>
       </RouterLink>
     </section>
 
     <!-- Main Layout -->
-    <div class="grid grid-cols-3 gap-8">
+    <div class="grid grid-cols-3 gap-4">
       <!-- Left: Schedule + Faculty -->
-      <div class="col-span-2 space-y-8">
-
+      <div class="col-span-2 space-y-4">
         <!-- Music Schedule -->
-        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <div class="flex items-center justify-between mb-8">
             <div>
               <h3 class="text-2xl font-black tracking-tight text-white">Music Schedule</h3>
@@ -142,14 +155,10 @@
 
           <!-- Column headers -->
           <div class="grid grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4">
-            <div
-              class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1"
-            >
+            <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1">
               Time
             </div>
-            <div
-              class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-5"
-            >
+            <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-5">
               Sessions &amp; Instructors
             </div>
           </div>
@@ -230,7 +239,7 @@
         </section>
 
         <!-- Faculty & Staff -->
-        <section class="liquid-glass rounded-3xl p-8 border border-white/5 overflow-hidden">
+        <section class="liquid-glass rounded-3xl p-4 border border-white/5 overflow-hidden">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
             <h3 class="text-2xl font-black tracking-tight text-white">Faculty &amp; Staff</h3>
             <div class="flex items-center gap-3">
@@ -255,7 +264,9 @@
           </div>
 
           <div v-else-if="teachers.length === 0" class="py-10 text-center">
-            <span class="material-symbols-outlined text-4xl text-zinc-700 mb-2 block">group_off</span>
+            <span class="material-symbols-outlined text-4xl text-zinc-700 mb-2 block"
+              >group_off</span
+            >
             <p class="text-sm font-bold text-white mb-1">No faculty members yet</p>
           </div>
 
@@ -327,9 +338,9 @@
       </div>
 
       <!-- Right: Alerts + Quick Assign -->
-      <div class="space-y-8">
+      <div class="space-y-4">
         <!-- Alerts & Updates -->
-        <section class="liquid-glass rounded-3xl p-8 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-lg font-black tracking-tight text-white">Alerts &amp; Updates</h3>
             <span
@@ -346,7 +357,9 @@
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-orange-500 text-xl">warning</span>
                 <div>
-                  <h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-orange-400">
+                  <h4
+                    class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-orange-400"
+                  >
                     Session Alert
                   </h4>
                   <p class="text-xs text-zinc-300 leading-relaxed">
@@ -386,7 +399,7 @@
 
         <!-- Quick Assign -->
         <section
-          class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-8 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
+          class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-4 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
         >
           <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
           <div class="relative z-10">
@@ -402,12 +415,7 @@
                   class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
                 >
                   <option value="" class="text-zinc-900">Select Faculty</option>
-                  <option
-                    v-for="t in teachers"
-                    :key="t.id"
-                    :value="t.id"
-                    class="text-zinc-900"
-                  >
+                  <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">
                     {{ t.name }}
                   </option>
                 </select>
@@ -422,12 +430,7 @@
                   class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
                 >
                   <option value="" class="text-zinc-900">Select Student</option>
-                  <option
-                    v-for="s in students"
-                    :key="s.id"
-                    :value="s.id"
-                    class="text-zinc-900"
-                  >
+                  <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">
                     {{ s.name }}
                   </option>
                 </select>
@@ -551,7 +554,6 @@ import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
-import ProfileCard from '../../components/ProfileCard.vue'
 import { useNotificationStore } from '../../stores/notification'
 import { useToastStore } from '../../stores/toast'
 
