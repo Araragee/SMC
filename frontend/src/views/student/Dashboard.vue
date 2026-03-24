@@ -22,6 +22,9 @@ const showProofViewer = ref(false)
 const stagedProofFile = ref<File | null>(null)
 const stagedProofUrl = ref<string | null>(null)
 
+const proofPreviewUrl = ref<string | null>(null)
+const proofPreviewFile = ref<File | null>(null)
+
 onMounted(async () => {
   if (authStore.currentUser?.id) {
     await Promise.all([
@@ -134,16 +137,26 @@ function closeSessionModal() {
   stagedProofUrl.value = null
 }
 
-async function handleGenericProofUpload(event: Event) {
+function handleGenericProofSelection(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.[0]) return
+  proofPreviewFile.value = input.files[0]
+  proofPreviewUrl.value = URL.createObjectURL(proofPreviewFile.value)
+}
+
+async function handleGenericProofUpload() {
   const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
   if (!firstScheduled) {
     toast.warning('No session to attach to', 'You need an active scheduled session.')
     return
   }
-  const input = event.target as HTMLInputElement
-  if (!input.files?.[0]) return
-  await interactionsStore.uploadImageProof(firstScheduled.id, input.files[0])
+  if (!proofPreviewFile.value) return
+
+  await interactionsStore.uploadImageProof(firstScheduled.id, proofPreviewFile.value)
   toast.success('Proof uploaded!', 'Your session proof has been saved.')
+
+  proofPreviewFile.value = null
+  proofPreviewUrl.value = null
 }
 </script>
 

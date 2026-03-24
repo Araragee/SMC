@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, watch, onMounted } from 'vue'
 
 export const useThemeStore = defineStore('theme', () => {
-  // Check local storage first, then default to system preference, 
+  // Check local storage first, then default to system preference,
   // but if nothing is set, we default to the legacy dark theme.
   const getInitialPreference = () => {
     const saved = localStorage.getItem('theme')

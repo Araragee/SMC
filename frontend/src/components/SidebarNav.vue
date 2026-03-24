@@ -100,7 +100,8 @@ const logout = () => {
   </Transition>
 
   <aside
-    class="fixed top-0 left-0 h-screen w-64 bg-surface-container-low/40 backdrop-blur-3xl border-r border-white/5 p-4 flex flex-col z-[100] transition-transform duration-300 lg:translate-x-0"
+    class="fixed top-0 left-0 h-screen w-64 bg-surface-container-low/40 backdrop-blur-3xl border-r border-white/5 p-4 flex flex-col z-[100] transition-transform duration-300
+           lg:w-full lg:sticky lg:top-6 lg:h-auto lg:rounded-[2rem] lg:border lg:border-white/10 lg:shadow-2xl lg:translate-x-0 lg:liquid-glass"
     :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
   >
     <!-- Logo Section -->
@@ -117,7 +118,7 @@ const logout = () => {
     <div class="h-px bg-white/5 my-4"></div>
 
     <!-- Nav Links -->
-    <nav class="flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden pt-2 scrollbar-hide">
+    <nav class="flex flex-col gap-2 flex-1 lg:flex-none lg:max-h-[50vh] overflow-y-auto overflow-x-hidden pt-2 scrollbar-hide">
       <router-link
         v-for="item in navItems"
         :key="item.path"
