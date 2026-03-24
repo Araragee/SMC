@@ -3,7 +3,7 @@ import ToastContainer from './components/ToastContainer.vue'
 </script>
 
 <template>
-  <div class="selection:bg-primary/30 antialiased font-sans text-white bg-[#0e0e0e] min-h-screen">
+  <div class="selection:bg-primary/30 antialiased font-sans min-h-screen text-zinc-900 bg-zinc-50 dark:text-white dark:bg-[#0e0e0e] transition-colors duration-300">
     <RouterView v-slot="{ Component, route: currentRoute }">
       <Transition :name="currentRoute.meta.transition as string || 'fade'" mode="out-in">
         <component :is="Component" :key="currentRoute.fullPath" />

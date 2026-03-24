@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, computed, ref, reactive } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
 import { useNotificationStore } from '../../stores/notification'
 import { useToastStore } from '../../stores/toast'
+import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
+import type { Session } from '../../types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -16,7 +18,6 @@ const showAddSessionModal = ref(false)
 const quickTeacherId = ref('')
 const quickStudentId = ref('')
 const isQuickAssigning = ref(false)
-const form = reactive({ teacherId: '', studentId: '', startTime: '' })
 
 onMounted(async () => {
   await Promise.all([
@@ -79,20 +80,17 @@ const iconClass = (status: string) => ({
   'bg-red-500/10 text-red-400 border-red-500/20': status === 'cancelled',
 })
 
-async function createAdminSession() {
-  if (!form.teacherId || !form.studentId || !form.startTime) return
+async function onProposeSubmit(session: Session) {
   try {
-    const start = new Date(form.startTime)
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
     await scheduleStore.bookSession({
-      teacherId: form.teacherId,
-      studentId: form.studentId,
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
+      teacherId: session.teacherId,
+      studentId: session.studentId,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      notes: session.notes,
     })
     toast.success('Session scheduled!', 'The session has been added to the calendar.')
     showAddSessionModal.value = false
-    Object.assign(form, { teacherId: '', studentId: '', startTime: '' })
   } catch {
     toast.error('Failed to schedule', 'Please check the details and try again.')
   }
@@ -578,108 +576,13 @@ async function confirmQuickAssign() {
   </div>
 
   <!-- Add Session Modal -->
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition opacity-200 ease-out duration-200"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showAddSessionModal"
-        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="assign-modal-title"
-        @click.self="showAddSessionModal = false"
-      >
-        <div
-          class="absolute inset-0 bg-black/70 backdrop-blur-sm"
-          @click="showAddSessionModal = false"
-        />
-        <div
-          class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl"
-        >
-          <div class="flex items-center justify-between mb-6">
-            <h3 id="assign-modal-title" class="text-xl font-black text-white">
-              Assign New Session
-            </h3>
-            <button
-              class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
-              aria-label="Close modal"
-              @click="showAddSessionModal = false"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <form class="space-y-4" @submit.prevent="createAdminSession">
-            <div>
-              <label
-                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block"
-                for="modal-teacher"
-                >Teacher</label
-              >
-              <select
-                id="modal-teacher"
-                v-model="form.teacherId"
-                required
-                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-              >
-                <option value="">Select a teacher...</option>
-                <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block"
-                for="modal-student"
-                >Student</label
-              >
-              <select
-                id="modal-student"
-                v-model="form.studentId"
-                required
-                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-              >
-                <option value="">Select a student...</option>
-                <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5 block"
-                for="modal-date"
-                >Date &amp; Time</label
-              >
-              <input
-                id="modal-date"
-                v-model="form.startTime"
-                type="datetime-local"
-                required
-                class="w-full bg-surface-container-highest border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-              />
-            </div>
-            <div class="flex gap-3 pt-2">
-              <button
-                type="button"
-                class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all"
-                @click="showAddSessionModal = false"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
-              >
-                {{ scheduleStore.isLoading ? 'Scheduling...' : 'Confirm Session' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+  <ProposeSessionModal
+    v-if="showAddSessionModal"
+    user-role="admin"
+    :current-user-id="authStore.currentUser?.id ?? ''"
+    :teachers="teachers"
+    :students="students"
+    @close="showAddSessionModal = false"
+    @submitted="onProposeSubmit"
+  />
 </template>

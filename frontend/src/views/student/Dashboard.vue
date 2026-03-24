@@ -22,6 +22,9 @@ const showProofViewer = ref(false)
 const stagedProofFile = ref<File | null>(null)
 const stagedProofUrl = ref<string | null>(null)
 
+const proofPreviewUrl = ref<string | null>(null)
+const proofPreviewFile = ref<File | null>(null)
+
 onMounted(async () => {
   if (authStore.currentUser?.id) {
     await Promise.all([
@@ -95,7 +98,10 @@ async function submitRequest() {
       startTime: start.toISOString(),
       endTime: end.toISOString(),
     })
-    toast.success('Session requested!', 'Your teacher will review and forward to admin for approval.')
+    toast.success(
+      'Session requested!',
+      'Your teacher will review and forward to admin for approval.'
+    )
     showRequestModal.value = false
     Object.assign(requestForm, { teacherId: '', startTime: '' })
   } catch {
@@ -131,16 +137,26 @@ function closeSessionModal() {
   stagedProofUrl.value = null
 }
 
-async function handleGenericProofUpload(event: Event) {
-  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
-  if (!firstScheduled) {
-    toast.warning('No session to attach to', 'Upload a proof for a specific session below.')
-    return
-  }
+function handleGenericProofSelection(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
-  await interactionsStore.uploadImageProof(firstScheduled.id, input.files[0])
+  proofPreviewFile.value = input.files[0]
+  proofPreviewUrl.value = URL.createObjectURL(proofPreviewFile.value)
+}
+
+async function handleGenericProofUpload() {
+  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
+  if (!firstScheduled) {
+    toast.warning('No session to attach to', 'You need an active scheduled session.')
+    return
+  }
+  if (!proofPreviewFile.value) return
+
+  await interactionsStore.uploadImageProof(firstScheduled.id, proofPreviewFile.value)
   toast.success('Proof uploaded!', 'Your session proof has been saved.')
+
+  proofPreviewFile.value = null
+  proofPreviewUrl.value = null
 }
 </script>
 
@@ -154,7 +170,8 @@ async function handleGenericProofUpload(event: Event) {
         </h2>
         <p class="text-zinc-400 font-medium mb-6">
           Your next recital rehearsal is in
-          <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span>.
+          <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span
+          >.
         </p>
         <div class="flex gap-4">
           <RouterLink
@@ -186,9 +203,7 @@ async function handleGenericProofUpload(event: Event) {
               <span
                 class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
               >
-                <span
-                  class="material-symbols-outlined"
-                  style="font-variation-settings: 'FILL' 1"
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >event_note</span
                 >
               </span>
@@ -214,7 +229,10 @@ async function handleGenericProofUpload(event: Event) {
           </div>
 
           <!-- Empty -->
-          <div v-else-if="mySessions.length === 0" class="py-12 flex flex-col items-center text-center">
+          <div
+            v-else-if="mySessions.length === 0"
+            class="py-12 flex flex-col items-center text-center"
+          >
             <span
               class="material-symbols-outlined text-5xl text-zinc-700 mb-3"
               style="font-variation-settings: 'FILL' 1"
@@ -244,11 +262,15 @@ async function handleGenericProofUpload(event: Event) {
               <div
                 class="flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-lg shrink-0"
                 :class="
-                  session.status === 'completed'   ? 'bg-zinc-800 text-zinc-400' :
-                  session.status === 'pending_teacher' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' :
-                  session.status === 'pending_admin'   ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' :
-                  session.status === 'rejected'        ? 'bg-red-900 text-red-300' :
-                  'bg-orange-500 text-white shadow-orange-900/30'
+                  session.status === 'completed'
+                    ? 'bg-zinc-800 text-zinc-400'
+                    : session.status === 'pending_teacher'
+                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                      : session.status === 'pending_admin'
+                        ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
+                        : session.status === 'rejected'
+                          ? 'bg-red-900 text-red-300'
+                          : 'bg-orange-500 text-white shadow-orange-900/30'
                 "
               >
                 <span class="text-[10px] uppercase font-black">{{
@@ -263,26 +285,36 @@ async function handleGenericProofUpload(event: Event) {
                   <span
                     class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border"
                     :class="
-                      session.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' :
-                      session.status === 'pending_admin'   ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
-                      session.status === 'rejected'        ? 'bg-red-500/20 border-red-500/30 text-red-400' :
-                      session.status === 'completed'       ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' :
-                      'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                      session.status === 'pending_teacher'
+                        ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                        : session.status === 'pending_admin'
+                          ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                          : session.status === 'rejected'
+                            ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                            : session.status === 'completed'
+                              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                              : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
                     "
                   >
                     {{
-                      session.status === 'pending_teacher' ? 'Awaiting Teacher' :
-                      session.status === 'pending_admin'   ? 'Awaiting Admin' :
-                      session.status === 'rejected'        ? 'Declined' :
-                      session.status === 'completed'       ? 'Completed' :
-                      'Confirmed'
+                      session.status === 'pending_teacher'
+                        ? 'Awaiting Teacher'
+                        : session.status === 'pending_admin'
+                          ? 'Awaiting Admin'
+                          : session.status === 'rejected'
+                            ? 'Declined'
+                            : session.status === 'completed'
+                              ? 'Completed'
+                              : 'Confirmed'
                     }}
                   </span>
                   <span class="text-zinc-500 text-xs">{{ formatTime(session.startTime) }}</span>
                 </div>
                 <h4 class="font-bold text-lg text-white">Session #{{ session.id }}</h4>
                 <p class="text-zinc-500 text-sm">Teacher #{{ session.teacherId }}</p>
-                <p v-if="session.notes" class="text-zinc-600 text-xs mt-0.5 italic">{{ session.notes }}</p>
+                <p v-if="session.notes" class="text-zinc-600 text-xs mt-0.5 italic">
+                  {{ session.notes }}
+                </p>
               </div>
 
               <!-- Right actions -->
@@ -312,9 +344,7 @@ async function handleGenericProofUpload(event: Event) {
             <span
               class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
             >
-              <span
-                class="material-symbols-outlined"
-                style="font-variation-settings: 'FILL' 1"
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                 >cloud_upload</span
               >
             </span>
@@ -323,27 +353,65 @@ async function handleGenericProofUpload(event: Event) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Upload area -->
             <label
-              class="border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group"
+              class="relative overflow-hidden border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
+              :class="
+                proofPreviewUrl
+                  ? 'border-orange-500/50'
+                  : 'hover:bg-white/5 hover:border-orange-500/50'
+              "
             >
-              <div
-                class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-              >
-                <span
-                  class="material-symbols-outlined text-3xl"
-                  style="font-variation-settings: 'FILL' 1"
-                  >add_a_photo</span
+              <template v-if="!proofPreviewUrl">
+                <div
+                  class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
                 >
-              </div>
-              <p class="font-bold text-white">Upload Session Photo</p>
-              <p class="text-xs text-zinc-500 mt-2">Verification for completed credits</p>
+                  <span
+                    class="material-symbols-outlined text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >add_a_photo</span
+                  >
+                </div>
+                <p class="font-bold text-white">Select Session Photo...</p>
+                <p class="text-xs text-zinc-500 mt-2">Verification for completed credits</p>
+              </template>
+
+              <template v-else>
+                <img
+                  :src="proofPreviewUrl"
+                  alt="Proof preview"
+                  class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
+                />
+                <div
+                  class="relative z-10 w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3"
+                >
+                  <span
+                    class="material-symbols-outlined absolute"
+                    style="font-variation-settings: 'FILL' 1"
+                    >check_circle</span
+                  >
+                </div>
+                <p
+                  class="relative z-10 font-black text-white text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
+                >
+                  Image Selected
+                </p>
+              </template>
+
               <input
                 type="file"
                 accept="image/*"
                 class="hidden"
                 aria-label="Upload session photo proof"
-                @change="handleGenericProofUpload"
+                @change="handleGenericProofSelection"
               />
             </label>
+            <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
+              <button
+                @click="handleGenericProofUpload"
+                class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+              >
+                Submit Proof
+              </button>
+            </div>
 
             <!-- Pending homework -->
             <div
@@ -353,9 +421,7 @@ async function handleGenericProofUpload(event: Event) {
               <div
                 class="w-12 h-12 bg-zinc-800 text-zinc-400 rounded-2xl flex items-center justify-center shrink-0"
               >
-                <span
-                  class="material-symbols-outlined"
-                  style="font-variation-settings: 'FILL' 1"
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >description</span
                 >
               </div>
@@ -461,7 +527,10 @@ async function handleGenericProofUpload(event: Event) {
               >
               Notice Board
             </h3>
-            <button class="text-zinc-500 hover:text-white transition-colors" aria-label="More options">
+            <button
+              class="text-zinc-500 hover:text-white transition-colors"
+              aria-label="More options"
+            >
               <span class="material-symbols-outlined">more_horiz</span>
             </button>
           </div>
@@ -533,7 +602,14 @@ async function handleGenericProofUpload(event: Event) {
 
   <!-- Session Detail Modal -->
   <Teleport to="body">
-    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="selectedSession"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -542,10 +618,7 @@ async function handleGenericProofUpload(event: Event) {
         aria-labelledby="session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div
-          class="absolute inset-0 bg-black/70 backdrop-blur-sm"
-          @click="closeSessionModal"
-        />
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
@@ -555,14 +628,20 @@ async function handleGenericProofUpload(event: Event) {
               <div
                 class="flex flex-col items-center justify-center w-14 h-14 rounded-2xl shadow-lg shrink-0"
                 :class="
-                  selectedSession.status === 'completed'   ? 'bg-zinc-800 text-zinc-400' :
-                  selectedSession.status === 'pending_teacher' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' :
-                  selectedSession.status === 'pending_admin'   ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' :
-                  selectedSession.status === 'rejected'        ? 'bg-red-900 text-red-300' :
-                  'bg-orange-500 text-white shadow-orange-900/30'
+                  selectedSession.status === 'completed'
+                    ? 'bg-zinc-800 text-zinc-400'
+                    : selectedSession.status === 'pending_teacher'
+                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
+                        : selectedSession.status === 'rejected'
+                          ? 'bg-red-900 text-red-300'
+                          : 'bg-orange-500 text-white shadow-orange-900/30'
                 "
               >
-                <span class="text-[9px] uppercase font-black">{{ formatMonth(selectedSession.startTime) }}</span>
+                <span class="text-[9px] uppercase font-black">{{
+                  formatMonth(selectedSession.startTime)
+                }}</span>
                 <span class="text-xl font-black">{{ formatDay(selectedSession.startTime) }}</span>
               </div>
               <div>
@@ -572,19 +651,27 @@ async function handleGenericProofUpload(event: Event) {
                 <span
                   class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border inline-block mt-1"
                   :class="
-                    selectedSession.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' :
-                    selectedSession.status === 'pending_admin'   ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
-                    selectedSession.status === 'rejected'        ? 'bg-red-500/20 border-red-500/30 text-red-400' :
-                    selectedSession.status === 'completed'       ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' :
-                    'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                    selectedSession.status === 'pending_teacher'
+                      ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                        : selectedSession.status === 'rejected'
+                          ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                          : selectedSession.status === 'completed'
+                            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                            : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
                   "
                 >
                   {{
-                    selectedSession.status === 'pending_teacher' ? 'Awaiting Teacher' :
-                    selectedSession.status === 'pending_admin'   ? 'Awaiting Admin' :
-                    selectedSession.status === 'rejected'        ? 'Declined' :
-                    selectedSession.status === 'completed'       ? 'Completed' :
-                    'Confirmed'
+                    selectedSession.status === 'pending_teacher'
+                      ? 'Awaiting Teacher'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'Awaiting Admin'
+                        : selectedSession.status === 'rejected'
+                          ? 'Declined'
+                          : selectedSession.status === 'completed'
+                            ? 'Completed'
+                            : 'Confirmed'
                   }}
                 </span>
               </div>
@@ -602,16 +689,35 @@ async function handleGenericProofUpload(event: Event) {
           <div class="space-y-4">
             <div class="flex justify-between items-center py-2 border-b border-white/5">
               <span class="text-xs text-zinc-400">Teacher</span>
-              <span class="text-sm font-bold text-white">Teacher #{{ selectedSession.teacherId }}</span>
+              <span class="text-sm font-bold text-white"
+                >Teacher #{{ selectedSession.teacherId }}</span
+              >
             </div>
             <div class="flex justify-between items-center py-2 border-b border-white/5">
               <span class="text-xs text-zinc-400">Time</span>
-              <span class="text-sm font-bold text-white">{{ formatTime(selectedSession.startTime) }}</span>
+              <span class="text-sm font-bold text-white">{{
+                formatTime(selectedSession.startTime)
+              }}</span>
             </div>
             <div class="flex justify-between items-center py-2 border-b border-white/5">
               <span class="text-xs text-zinc-400">Homework</span>
-              <span class="text-sm font-bold" :class="selectedSession.homeworkCompleted ? 'text-emerald-400' : (selectedSession.homeworkAssigned ? 'text-amber-400' : 'text-zinc-500')">
-                {{ selectedSession.homeworkCompleted ? 'Completed ✓' : (selectedSession.homeworkAssigned ? 'Pending' : 'None') }}
+              <span
+                class="text-sm font-bold"
+                :class="
+                  selectedSession.homeworkCompleted
+                    ? 'text-emerald-400'
+                    : selectedSession.homeworkAssigned
+                      ? 'text-amber-400'
+                      : 'text-zinc-500'
+                "
+              >
+                {{
+                  selectedSession.homeworkCompleted
+                    ? 'Completed ✓'
+                    : selectedSession.homeworkAssigned
+                      ? 'Pending'
+                      : 'None'
+                }}
               </span>
             </div>
             <div v-if="selectedSession.notes" class="py-2">
@@ -621,12 +727,19 @@ async function handleGenericProofUpload(event: Event) {
           </div>
 
           <!-- Proof Section -->
-          <div v-if="selectedSession.status !== 'cancelled'" class="bg-black/40 rounded-xl p-4 border border-white/5">
-            <h4 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Session Proof</h4>
+          <div
+            v-if="selectedSession.status !== 'cancelled'"
+            class="bg-black/40 rounded-xl p-4 border border-white/5"
+          >
+            <h4 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+              Session Proof
+            </h4>
 
             <div v-if="selectedSession.imageProofUrl" class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 shrink-0">
+                <div
+                  class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 shrink-0"
+                >
                   <img :src="selectedSession.imageProofUrl" class="w-full h-full object-cover" />
                 </div>
                 <div>
@@ -644,14 +757,21 @@ async function handleGenericProofUpload(event: Event) {
 
             <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 shrink-0">
+                <div
+                  class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 shrink-0"
+                >
                   <img :src="stagedProofUrl" class="w-full h-full object-cover" />
                 </div>
                 <div>
                   <p class="text-sm font-bold text-white">Ready to save</p>
                   <label class="text-xs text-orange-500 cursor-pointer hover:underline">
                     Replace
-                    <input type="file" accept="image/*" class="hidden" @change="handleStagedProofUpload" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      @change="handleStagedProofUpload"
+                    />
                   </label>
                 </div>
               </div>
@@ -664,11 +784,24 @@ async function handleGenericProofUpload(event: Event) {
             </div>
 
             <div v-else>
-              <label class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-white/10 rounded-xl hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center">
-                <span class="material-symbols-outlined text-zinc-500 group-hover:text-orange-500 text-2xl mb-1">upload</span>
-                <span class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">Select Image</span>
+              <label
+                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-white/10 rounded-xl hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center"
+              >
+                <span
+                  class="material-symbols-outlined text-zinc-500 group-hover:text-orange-500 text-2xl mb-1"
+                  >upload</span
+                >
+                <span
+                  class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors"
+                  >Select Image</span
+                >
                 <span class="text-xs text-zinc-500 mt-1">PNG, JPG, or WEBP</span>
-                <input type="file" accept="image/*" class="hidden" @change="handleStagedProofUpload" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleStagedProofUpload"
+                />
               </label>
             </div>
           </div>
@@ -679,7 +812,14 @@ async function handleGenericProofUpload(event: Event) {
 
   <!-- Proof Viewer Lightbox -->
   <Teleport to="body">
-    <Transition enter-active-class="transition opacity-200 ease-out duration-300" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-300" leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="showProofViewer && selectedSession?.imageProofUrl"
         class="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
@@ -701,7 +841,14 @@ async function handleGenericProofUpload(event: Event) {
 
   <!-- Request Session Modal -->
   <Teleport to="body">
-    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="showRequestModal"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -782,4 +929,3 @@ async function handleGenericProofUpload(event: Event) {
     </Transition>
   </Teleport>
 </template>
-
