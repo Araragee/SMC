@@ -5,7 +5,7 @@ import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
 import { useNotificationStore } from '../../stores/notification'
 import { useToastStore } from '../../stores/toast'
-import WeeklyCalendarGrid from '../../components/WeeklyCalendarGrid.vue'
+import BaseCalendar from '../../components/BaseCalendar.vue'
 import SessionDetailModal from '../../components/SessionDetailModal.vue'
 import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
 import type { Session } from '../../types'
@@ -203,7 +203,7 @@ function formatDay(iso: string): string {
           <span class="flex items-center gap-1.5 text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pending Review</span>
         </div>
       </div>
-      <WeeklyCalendarGrid
+      <BaseCalendar
         :sessions="mySessions"
         @dayClick="onDayClick"
       />

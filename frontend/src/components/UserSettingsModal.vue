@@ -2,6 +2,7 @@
 import { reactive, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import BaseInput from './BaseInput.vue'
+import { useThemeStore } from '../stores/theme'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -13,6 +14,7 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
+const themeStore = useThemeStore()
 const router = useRouter()
 
 const form = reactive({
@@ -135,10 +137,10 @@ const handleLogout = () => {
             <section class="space-y-6">
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-orange-500 text-lg">security</span>
-                <h3 class="text-sm font-black text-white uppercase tracking-widest">Security & Privacy</h3>
+                <h3 class="text-sm font-black text-white uppercase tracking-widest">Security &amp; Privacy</h3>
               </div>
               
-              <div class="bg-white/[0.03] border border-white/5 rounded-3xl p-6 space-y-6">
+              <div class="bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/5 rounded-3xl p-6 space-y-6">
                 <BaseInput
                   v-model="form.password"
                   label="Change Password"
@@ -149,6 +151,40 @@ const handleLogout = () => {
                 <p class="text-[10px] text-zinc-500 font-medium px-2 italic leading-relaxed">
                   Leave the password field empty if you don't wish to change it. Your new password must be at least 8 characters long.
                 </p>
+              </div>
+            </section>
+
+            <!-- Appearance Section -->
+            <section class="space-y-6">
+              <div class="flex items-center gap-3 px-1">
+                <span class="material-symbols-outlined text-orange-500 text-lg">palette</span>
+                <h3 class="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest">Appearance</h3>
+              </div>
+              
+              <div class="bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/5 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h4 class="text-zinc-900 dark:text-white font-bold text-sm">Color Theme</h4>
+                  <p class="text-zinc-500 text-xs mt-1">Select between Light or Dark Mode presentation.</p>
+                </div>
+                <!-- Theme Toggle Button -->
+                <button
+                  class="relative flex h-10 w-20 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  :class="themeStore.isDarkMode ? 'bg-orange-500' : 'bg-zinc-300'"
+                  @click="themeStore.toggleTheme"
+                  :aria-label="themeStore.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+                >
+                  <span
+                    class="flex h-8 w-8 transform rounded-full bg-white items-center justify-center shadow-lg transition-transform duration-300"
+                    :class="themeStore.isDarkMode ? 'translate-x-11' : 'translate-x-1'"
+                  >
+                    <span
+                      class="material-symbols-outlined text-base transition-colors duration-300"
+                      :class="themeStore.isDarkMode ? 'text-orange-500' : 'text-zinc-500'"
+                    >
+                      {{ themeStore.isDarkMode ? 'dark_mode' : 'light_mode' }}
+                    </span>
+                  </span>
+                </button>
               </div>
             </section>
 

@@ -107,13 +107,34 @@ async function handleProofUpload(sessionId: string, event: Event) {
   await interactionsStore.uploadImageProof(sessionId, input.files[0])
 }
 
-async function handleGenericProofUpload(event: Event) {
-  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
-  if (!firstScheduled) {
-    toast.warning('No session to attach to', 'Upload a proof for a specific session below.')
+const proofPreviewUrl = ref<string | null>(null)
+const selectedProofFile = ref<File | null>(null)
+
+async function handleGenericProofSelection(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.[0]) {
+    proofPreviewUrl.value = null
+    selectedProofFile.value = null
     return
   }
-  await handleProofUpload(firstScheduled.id, event)
+  selectedProofFile.value = input.files[0]
+  if (typeof window !== 'undefined' && window.URL) {
+    proofPreviewUrl.value = window.URL.createObjectURL(input.files[0])
+  }
+}
+
+async function handleGenericProofUpload() {
+  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
+  if (!firstScheduled) {
+    toast.warning('No session to attach to', 'You need an active scheduled session.')
+    return
+  }
+  if (!selectedProofFile.value) return
+
+  await interactionsStore.uploadImageProof(firstScheduled.id, selectedProofFile.value)
+  toast.success('Proof uploaded!', 'Your session proof has been successfully submitted.')
+  proofPreviewUrl.value = null
+  selectedProofFile.value = null
 }
 </script>
 
@@ -316,27 +337,47 @@ async function handleGenericProofUpload(event: Event) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Upload area -->
             <label
-              class="border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group"
+              class="relative overflow-hidden border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
+              :class="proofPreviewUrl ? 'border-orange-500/50' : 'hover:bg-white/5 hover:border-orange-500/50'"
             >
-              <div
-                class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
-              >
-                <span
-                  class="material-symbols-outlined text-3xl"
-                  style="font-variation-settings: 'FILL' 1"
-                  >add_a_photo</span
+              <template v-if="!proofPreviewUrl">
+                <div
+                  class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
                 >
-              </div>
-              <p class="font-bold text-white">Upload Session Photo</p>
-              <p class="text-xs text-zinc-500 mt-2">Verification for completed credits</p>
+                  <span
+                    class="material-symbols-outlined text-3xl"
+                    style="font-variation-settings: 'FILL' 1"
+                    >add_a_photo</span
+                  >
+                </div>
+                <p class="font-bold text-white">Select Session Photo...</p>
+                <p class="text-xs text-zinc-500 mt-2">Verification for completed credits</p>
+              </template>
+              
+              <template v-else>
+                <img :src="proofPreviewUrl" alt="Proof preview" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen" />
+                <div class="relative z-10 w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3">
+                  <span class="material-symbols-outlined absolute" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                </div>
+                <p class="relative z-10 font-black text-white text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">Image Selected</p>
+              </template>
+
               <input
                 type="file"
                 accept="image/*"
                 class="hidden"
                 aria-label="Upload session photo proof"
-                @change="handleGenericProofUpload"
+                @change="handleGenericProofSelection"
               />
             </label>
+            <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
+               <button 
+                 @click="handleGenericProofUpload" 
+                 class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+               >
+                 Submit Proof
+               </button>
+            </div>
 
             <!-- Pending homework -->
             <div

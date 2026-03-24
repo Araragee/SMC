@@ -5,7 +5,7 @@ import TopNavbar from '../components/TopNavbar.vue'
 
 <template>
   <div
-    class="cosmic-void antialiased min-h-screen selection:bg-primary/30 bg-[#0e0e0e] font-sans text-white"
+    class="cosmic-void antialiased min-h-screen selection:bg-primary/30 bg-zinc-50 dark:bg-[#0e0e0e] font-sans text-zinc-900 dark:text-white transition-colors duration-300"
   >
     <div
       class="fixed top-1/4 -left-20 w-96 h-96 bg-primary/10 blur-[128px] rounded-full -z-10 pointer-events-none"
