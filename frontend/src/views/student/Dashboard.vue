@@ -5,6 +5,7 @@ import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
 import { useToastStore } from '../../stores/toast'
 import { useInteractionsStore } from '../../stores/interactions'
+import type { Session } from '../../types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -14,6 +15,12 @@ const interactionsStore = useInteractionsStore()
 
 const showRequestModal = ref(false)
 const requestForm = reactive({ teacherId: '', startTime: '' })
+
+const selectedSession = ref<Session | null>(null)
+const showProofViewer = ref(false)
+
+const stagedProofFile = ref<File | null>(null)
+const stagedProofUrl = ref<string | null>(null)
 
 onMounted(async () => {
   if (authStore.currentUser?.id) {
@@ -88,7 +95,10 @@ async function submitRequest() {
       startTime: start.toISOString(),
       endTime: end.toISOString(),
     })
-    toast.success('Session requested!', 'Your teacher will review and forward to admin for approval.')
+    toast.success(
+      'Session requested!',
+      'Your teacher will review and forward to admin for approval.'
+    )
     showRequestModal.value = false
     Object.assign(requestForm, { teacherId: '', startTime: '' })
   } catch {
@@ -101,45 +111,44 @@ async function markHomeworkDone(sessionId: string) {
   toast.success('Homework submitted!', 'Great work — keep it up.')
 }
 
-async function handleProofUpload(sessionId: string, event: Event) {
+function handleStagedProofUpload(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
-  await interactionsStore.uploadImageProof(sessionId, input.files[0])
+  stagedProofFile.value = input.files[0]
+  stagedProofUrl.value = URL.createObjectURL(stagedProofFile.value)
 }
 
-const proofPreviewUrl = ref<string | null>(null)
-const selectedProofFile = ref<File | null>(null)
+async function saveStagedProof() {
+  if (!selectedSession.value || !stagedProofFile.value) return
+  await interactionsStore.uploadImageProof(selectedSession.value.id, stagedProofFile.value)
+  toast.success('Proof uploaded!', 'Your session proof has been saved.')
 
-async function handleGenericProofSelection(event: Event) {
-  const input = event.target as HTMLInputElement
-  if (!input.files?.[0]) {
-    proofPreviewUrl.value = null
-    selectedProofFile.value = null
-    return
-  }
-  selectedProofFile.value = input.files[0]
-  if (typeof window !== 'undefined' && window.URL) {
-    proofPreviewUrl.value = window.URL.createObjectURL(input.files[0])
-  }
+  // Update the local state to show "View Proof" instead of the staged file
+  stagedProofFile.value = null
+  stagedProofUrl.value = null
 }
 
-async function handleGenericProofUpload() {
+function closeSessionModal() {
+  selectedSession.value = null
+  stagedProofFile.value = null
+  stagedProofUrl.value = null
+}
+
+async function handleGenericProofUpload(event: Event) {
   const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
   if (!firstScheduled) {
     toast.warning('No session to attach to', 'You need an active scheduled session.')
     return
   }
-  if (!selectedProofFile.value) return
-
-  await interactionsStore.uploadImageProof(firstScheduled.id, selectedProofFile.value)
-  toast.success('Proof uploaded!', 'Your session proof has been successfully submitted.')
-  proofPreviewUrl.value = null
-  selectedProofFile.value = null
+  const input = event.target as HTMLInputElement
+  if (!input.files?.[0]) return
+  await interactionsStore.uploadImageProof(firstScheduled.id, input.files[0])
+  toast.success('Proof uploaded!', 'Your session proof has been saved.')
 }
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto pb-28">
+  <div class="max-w-5xl mx-auto pb-10">
     <!-- Hero Welcome -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>
@@ -148,7 +157,8 @@ async function handleGenericProofUpload() {
         </h2>
         <p class="text-zinc-400 font-medium mb-6">
           Your next recital rehearsal is in
-          <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span>.
+          <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span
+          >.
         </p>
         <div class="flex gap-4">
           <RouterLink
@@ -180,9 +190,7 @@ async function handleGenericProofUpload() {
               <span
                 class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
               >
-                <span
-                  class="material-symbols-outlined"
-                  style="font-variation-settings: 'FILL' 1"
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >event_note</span
                 >
               </span>
@@ -208,7 +216,10 @@ async function handleGenericProofUpload() {
           </div>
 
           <!-- Empty -->
-          <div v-else-if="mySessions.length === 0" class="py-12 flex flex-col items-center text-center">
+          <div
+            v-else-if="mySessions.length === 0"
+            class="py-12 flex flex-col items-center text-center"
+          >
             <span
               class="material-symbols-outlined text-5xl text-zinc-700 mb-3"
               style="font-variation-settings: 'FILL' 1"
@@ -232,16 +243,21 @@ async function handleGenericProofUpload() {
               v-for="session in mySessions"
               :key="session.id"
               class="bg-white/5 border border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
+              @click="selectedSession = session"
             >
               <!-- Date badge -->
               <div
                 class="flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-lg shrink-0"
                 :class="
-                  session.status === 'completed'   ? 'bg-zinc-800 text-zinc-400' :
-                  session.status === 'pending_teacher' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' :
-                  session.status === 'pending_admin'   ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' :
-                  session.status === 'rejected'        ? 'bg-red-900 text-red-300' :
-                  'bg-orange-500 text-white shadow-orange-900/30'
+                  session.status === 'completed'
+                    ? 'bg-zinc-800 text-zinc-400'
+                    : session.status === 'pending_teacher'
+                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                      : session.status === 'pending_admin'
+                        ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
+                        : session.status === 'rejected'
+                          ? 'bg-red-900 text-red-300'
+                          : 'bg-orange-500 text-white shadow-orange-900/30'
                 "
               >
                 <span class="text-[10px] uppercase font-black">{{
@@ -256,26 +272,36 @@ async function handleGenericProofUpload() {
                   <span
                     class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border"
                     :class="
-                      session.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' :
-                      session.status === 'pending_admin'   ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' :
-                      session.status === 'rejected'        ? 'bg-red-500/20 border-red-500/30 text-red-400' :
-                      session.status === 'completed'       ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' :
-                      'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                      session.status === 'pending_teacher'
+                        ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                        : session.status === 'pending_admin'
+                          ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                          : session.status === 'rejected'
+                            ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                            : session.status === 'completed'
+                              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                              : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
                     "
                   >
                     {{
-                      session.status === 'pending_teacher' ? 'Awaiting Teacher' :
-                      session.status === 'pending_admin'   ? 'Awaiting Admin' :
-                      session.status === 'rejected'        ? 'Declined' :
-                      session.status === 'completed'       ? 'Completed' :
-                      'Confirmed'
+                      session.status === 'pending_teacher'
+                        ? 'Awaiting Teacher'
+                        : session.status === 'pending_admin'
+                          ? 'Awaiting Admin'
+                          : session.status === 'rejected'
+                            ? 'Declined'
+                            : session.status === 'completed'
+                              ? 'Completed'
+                              : 'Confirmed'
                     }}
                   </span>
                   <span class="text-zinc-500 text-xs">{{ formatTime(session.startTime) }}</span>
                 </div>
                 <h4 class="font-bold text-lg text-white">Session #{{ session.id }}</h4>
                 <p class="text-zinc-500 text-sm">Teacher #{{ session.teacherId }}</p>
-                <p v-if="session.notes" class="text-zinc-600 text-xs mt-0.5 italic">{{ session.notes }}</p>
+                <p v-if="session.notes" class="text-zinc-600 text-xs mt-0.5 italic">
+                  {{ session.notes }}
+                </p>
               </div>
 
               <!-- Right actions -->
@@ -290,27 +316,6 @@ async function handleGenericProofUpload() {
                   class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold"
                   >HW Done ✓</span
                 >
-                <label
-                  v-if="session.status !== 'cancelled'"
-                  class="cursor-pointer text-xs px-3 py-1.5 rounded-xl border transition-all focus-within:ring-2 focus-within:ring-orange-500/50"
-                  :class="
-                    session.imageProofUrl
-                      ? 'border-emerald-500/40 text-emerald-400'
-                      : 'border-white/10 text-zinc-500 hover:border-orange-500/50 hover:text-orange-400'
-                  "
-                >
-                  <span class="material-symbols-outlined text-xs mr-1 align-middle">{{
-                    session.imageProofUrl ? 'check_circle' : 'upload'
-                  }}</span>
-                  {{ session.imageProofUrl ? 'Proof ✓' : 'Upload Proof' }}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    :aria-label="`Upload proof for session ${session.id}`"
-                    @change="handleProofUpload(session.id, $event)"
-                  />
-                </label>
                 <span
                   class="material-symbols-outlined text-zinc-600 group-hover:text-orange-500 transition-colors"
                   >arrow_forward</span
@@ -326,9 +331,7 @@ async function handleGenericProofUpload() {
             <span
               class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
             >
-              <span
-                class="material-symbols-outlined"
-                style="font-variation-settings: 'FILL' 1"
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                 >cloud_upload</span
               >
             </span>
@@ -338,7 +341,11 @@ async function handleGenericProofUpload() {
             <!-- Upload area -->
             <label
               class="relative overflow-hidden border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
-              :class="proofPreviewUrl ? 'border-orange-500/50' : 'hover:bg-white/5 hover:border-orange-500/50'"
+              :class="
+                proofPreviewUrl
+                  ? 'border-orange-500/50'
+                  : 'hover:bg-white/5 hover:border-orange-500/50'
+              "
             >
               <template v-if="!proofPreviewUrl">
                 <div
@@ -353,13 +360,27 @@ async function handleGenericProofUpload() {
                 <p class="font-bold text-white">Select Session Photo...</p>
                 <p class="text-xs text-zinc-500 mt-2">Verification for completed credits</p>
               </template>
-              
+
               <template v-else>
-                <img :src="proofPreviewUrl" alt="Proof preview" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen" />
-                <div class="relative z-10 w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3">
-                  <span class="material-symbols-outlined absolute" style="font-variation-settings: 'FILL' 1">check_circle</span>
+                <img
+                  :src="proofPreviewUrl"
+                  alt="Proof preview"
+                  class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
+                />
+                <div
+                  class="relative z-10 w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3"
+                >
+                  <span
+                    class="material-symbols-outlined absolute"
+                    style="font-variation-settings: 'FILL' 1"
+                    >check_circle</span
+                  >
                 </div>
-                <p class="relative z-10 font-black text-white text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">Image Selected</p>
+                <p
+                  class="relative z-10 font-black text-white text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
+                >
+                  Image Selected
+                </p>
               </template>
 
               <input
@@ -371,12 +392,12 @@ async function handleGenericProofUpload() {
               />
             </label>
             <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
-               <button 
-                 @click="handleGenericProofUpload" 
-                 class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
-               >
-                 Submit Proof
-               </button>
+              <button
+                @click="handleGenericProofUpload"
+                class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+              >
+                Submit Proof
+              </button>
             </div>
 
             <!-- Pending homework -->
@@ -387,9 +408,7 @@ async function handleGenericProofUpload() {
               <div
                 class="w-12 h-12 bg-zinc-800 text-zinc-400 rounded-2xl flex items-center justify-center shrink-0"
               >
-                <span
-                  class="material-symbols-outlined"
-                  style="font-variation-settings: 'FILL' 1"
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >description</span
                 >
               </div>
@@ -495,7 +514,10 @@ async function handleGenericProofUpload() {
               >
               Notice Board
             </h3>
-            <button class="text-zinc-500 hover:text-white transition-colors" aria-label="More options">
+            <button
+              class="text-zinc-500 hover:text-white transition-colors"
+              aria-label="More options"
+            >
               <span class="material-symbols-outlined">more_horiz</span>
             </button>
           </div>
@@ -565,9 +587,255 @@ async function handleGenericProofUpload() {
     </div>
   </div>
 
+  <!-- Session Detail Modal -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="selectedSession"
+        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="session-modal-title"
+        @click.self="closeSessionModal"
+      >
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
+        <div
+          class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
+        >
+          <!-- Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div
+                class="flex flex-col items-center justify-center w-14 h-14 rounded-2xl shadow-lg shrink-0"
+                :class="
+                  selectedSession.status === 'completed'
+                    ? 'bg-zinc-800 text-zinc-400'
+                    : selectedSession.status === 'pending_teacher'
+                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
+                        : selectedSession.status === 'rejected'
+                          ? 'bg-red-900 text-red-300'
+                          : 'bg-orange-500 text-white shadow-orange-900/30'
+                "
+              >
+                <span class="text-[9px] uppercase font-black">{{
+                  formatMonth(selectedSession.startTime)
+                }}</span>
+                <span class="text-xl font-black">{{ formatDay(selectedSession.startTime) }}</span>
+              </div>
+              <div>
+                <h3 id="session-modal-title" class="text-xl font-black text-white">
+                  Session #{{ selectedSession.id }}
+                </h3>
+                <span
+                  class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border inline-block mt-1"
+                  :class="
+                    selectedSession.status === 'pending_teacher'
+                      ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                        : selectedSession.status === 'rejected'
+                          ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                          : selectedSession.status === 'completed'
+                            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+                            : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                  "
+                >
+                  {{
+                    selectedSession.status === 'pending_teacher'
+                      ? 'Awaiting Teacher'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'Awaiting Admin'
+                        : selectedSession.status === 'rejected'
+                          ? 'Declined'
+                          : selectedSession.status === 'completed'
+                            ? 'Completed'
+                            : 'Confirmed'
+                  }}
+                </span>
+              </div>
+            </div>
+            <button
+              class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 self-start"
+              aria-label="Close modal"
+              @click="closeSessionModal"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <!-- Info rows -->
+          <div class="space-y-4">
+            <div class="flex justify-between items-center py-2 border-b border-white/5">
+              <span class="text-xs text-zinc-400">Teacher</span>
+              <span class="text-sm font-bold text-white"
+                >Teacher #{{ selectedSession.teacherId }}</span
+              >
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-white/5">
+              <span class="text-xs text-zinc-400">Time</span>
+              <span class="text-sm font-bold text-white">{{
+                formatTime(selectedSession.startTime)
+              }}</span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-white/5">
+              <span class="text-xs text-zinc-400">Homework</span>
+              <span
+                class="text-sm font-bold"
+                :class="
+                  selectedSession.homeworkCompleted
+                    ? 'text-emerald-400'
+                    : selectedSession.homeworkAssigned
+                      ? 'text-amber-400'
+                      : 'text-zinc-500'
+                "
+              >
+                {{
+                  selectedSession.homeworkCompleted
+                    ? 'Completed ✓'
+                    : selectedSession.homeworkAssigned
+                      ? 'Pending'
+                      : 'None'
+                }}
+              </span>
+            </div>
+            <div v-if="selectedSession.notes" class="py-2">
+              <span class="text-xs text-zinc-400 block mb-1">Notes</span>
+              <p class="text-sm text-zinc-300 italic">{{ selectedSession.notes }}</p>
+            </div>
+          </div>
+
+          <!-- Proof Section -->
+          <div
+            v-if="selectedSession.status !== 'cancelled'"
+            class="bg-black/40 rounded-xl p-4 border border-white/5"
+          >
+            <h4 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">
+              Session Proof
+            </h4>
+
+            <div v-if="selectedSession.imageProofUrl" class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 shrink-0"
+                >
+                  <img :src="selectedSession.imageProofUrl" class="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-white">Proof Uploaded</p>
+                  <p class="text-xs text-emerald-400">Verified ✓</p>
+                </div>
+              </div>
+              <button
+                class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg transition-all border border-white/10"
+                @click="showProofViewer = true"
+              >
+                View Proof
+              </button>
+            </div>
+
+            <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-white/10 shrink-0"
+                >
+                  <img :src="stagedProofUrl" class="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-white">Ready to save</p>
+                  <label class="text-xs text-orange-500 cursor-pointer hover:underline">
+                    Replace
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      @change="handleStagedProofUpload"
+                    />
+                  </label>
+                </div>
+              </div>
+              <button
+                class="w-full py-2 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-xs font-black rounded-lg transition-all active:scale-95"
+                @click="saveStagedProof"
+              >
+                Save Proof
+              </button>
+            </div>
+
+            <div v-else>
+              <label
+                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-white/10 rounded-xl hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center"
+              >
+                <span
+                  class="material-symbols-outlined text-zinc-500 group-hover:text-orange-500 text-2xl mb-1"
+                  >upload</span
+                >
+                <span
+                  class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors"
+                  >Select Image</span
+                >
+                <span class="text-xs text-zinc-500 mt-1">PNG, JPG, or WEBP</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleStagedProofUpload"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- Proof Viewer Lightbox -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-300"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-300"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showProofViewer && selectedSession?.imageProofUrl"
+        class="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+        @click.self="showProofViewer = false"
+      >
+        <button
+          class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-black/50 p-2 rounded-full backdrop-blur-md border border-white/10"
+          @click="showProofViewer = false"
+        >
+          <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+        <img
+          :src="selectedSession.imageProofUrl"
+          class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+        />
+      </div>
+    </Transition>
+  </Teleport>
+
   <!-- Request Session Modal -->
   <Teleport to="body">
-    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="showRequestModal"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -648,4 +916,3 @@ async function handleGenericProofUpload() {
     </Transition>
   </Teleport>
 </template>
-

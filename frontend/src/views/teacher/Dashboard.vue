@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
+import { ref } from 'vue'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
+import { useInteractionsStore } from '../../stores/interactions'
+import { useToastStore } from '../../stores/toast'
+import type { Session } from '../../types'
 
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
+const interactionsStore = useInteractionsStore()
+const toast = useToastStore()
+
+const expandedSession = ref<Session | null>(null)
+const practiceGoalsText = ref('')
+const stagedProofFile = ref<File | null>(null)
+const stagedProofUrl = ref<string | null>(null)
 
 onMounted(async () => {
   if (authStore.currentUser?.id) {
@@ -30,13 +41,61 @@ const todaySessions = computed(() => {
   )
 })
 
+const currentSession = computed(() => {
+  const now = new Date()
+  return mySessions.value.find((s) => {
+    if (s.status !== 'scheduled' || !s.startTime || !s.endTime) return false
+    const start = new Date(s.startTime)
+    const end = new Date(s.endTime)
+    return start <= now && now < end
+  }) ?? null
+})
+
 const nextSession = computed(
-  () =>
-    mySessions.value
-      .filter((s) => s.status === 'scheduled')
-      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
-    null
+  () => {
+    const now = new Date()
+    return mySessions.value
+      .filter((s) => s.status === 'scheduled' && s.startTime && new Date(s.startTime) > now)
+      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ?? null
+  }
 )
+
+function getStudentName(studentId: string) {
+  return usersStore.users.find(u => u.id === studentId)?.name || `Student #${studentId}`
+}
+
+function openSessionModal(session: Session) {
+  expandedSession.value = session
+  practiceGoalsText.value = session.notes || ''
+  stagedProofFile.value = null
+  stagedProofUrl.value = null
+}
+
+function closeSessionModal() {
+  expandedSession.value = null
+}
+
+function handleStagedProofUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.[0]) return
+  stagedProofFile.value = input.files[0]
+  stagedProofUrl.value = URL.createObjectURL(stagedProofFile.value)
+}
+
+async function saveSessionChanges() {
+  if (!expandedSession.value) return
+
+  if (stagedProofFile.value) {
+    await interactionsStore.uploadImageProof(expandedSession.value.id, stagedProofFile.value)
+  }
+
+  // Note: updating practice goals (notes) usually calls a specific API or is handled by an action.
+  // Assuming a generic update or setting homework. For now we will update the session object optimistically.
+  expandedSession.value.notes = practiceGoalsText.value
+
+  toast.success('Session updated', 'Changes have been saved successfully.')
+  closeSessionModal()
+}
 
 // Build unique student entries for the roster
 const rosterEntries = computed(() => {
@@ -96,44 +155,66 @@ const formatTime = (dt: string | undefined) => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto pb-28">
+  <div class="max-w-5xl mx-auto pb-10">
     <!-- Hero Header -->
-    <section class="flex items-start justify-between gap-4 mb-6">
-      <div>
-        <h1 class="text-5xl font-black tracking-tight text-white mb-3">
-          Welcome back, <span class="text-orange-500">Maestro.</span>
-        </h1>
-        <p class="text-zinc-400 text-lg font-medium mb-6">
-          You have
-          <span class="text-white font-bold">{{ todaySessions.length || 0 }} sessions</span>
-          today. Performance index is at
-          <span class="text-emerald-400 font-bold">98%</span>.
-        </p>
+    <section class="mb-8">
+      <h1 class="text-5xl font-black tracking-tight text-white mb-3">
+        Welcome back, <span class="text-orange-500">Maestro.</span>
+      </h1>
+      <p class="text-zinc-400 text-lg font-medium mb-6">
+        You have
+        <span class="text-white font-bold">{{ todaySessions.length || 0 }} sessions</span>
+        today. Performance index is at
+        <span class="text-emerald-400 font-bold">98%</span>.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Current Session Card -->
+        <div
+          v-if="currentSession"
+          class="liquid-glass border border-orange-500/20 rounded-3xl overflow-hidden cursor-pointer hover:border-orange-500/50 transition-all flex flex-col group"
+          @click="openSessionModal(currentSession)"
+        >
+          <div class="h-2 bg-gradient-to-r from-orange-500 to-orange-700 w-full relative">
+            <div class="absolute right-2 -top-1 w-3 h-3 bg-white rounded-full animate-ping"></div>
+            <div class="absolute right-2 -top-1 w-3 h-3 bg-white rounded-full"></div>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-center">
+            <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+              LIVE NOW
+            </p>
+            <h3 class="text-xl font-black text-white mb-1 truncate">Session #{{ currentSession.id }}</h3>
+            <p class="text-sm text-zinc-400 truncate">{{ getStudentName(currentSession.studentId) }}</p>
+            <p class="text-xs text-white/50 mt-2">{{ formatTime(currentSession.startTime) }} - {{ formatTime(currentSession.endTime) }}</p>
+          </div>
+        </div>
+        <div v-else class="liquid-glass border border-white/5 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70">
+          <span class="material-symbols-outlined text-3xl text-zinc-600 mb-2">hotel_class</span>
+          <p class="text-sm font-bold text-zinc-500 uppercase tracking-wider">No Active Session</p>
+        </div>
+
+        <!-- Next Up Session Card -->
         <div
           v-if="nextSession"
-          class="liquid-glass p-5 rounded-3xl inline-flex items-center gap-5 border border-white/10"
+          class="liquid-glass border border-white/5 border-l-[6px] border-l-white/20 rounded-3xl p-5 cursor-pointer hover:bg-white/5 transition-all flex flex-col justify-center group"
+          @click="openSessionModal(nextSession)"
         >
-          <div
-            class="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-500"
-          >
-            <span
-              class="material-symbols-outlined"
-              style="font-variation-settings: 'FILL' 1"
-              >timer</span
-            >
-          </div>
-          <div>
-            <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Next Up</p>
-            <p class="font-bold text-xl text-white">{{ formatTime(nextSession.startTime) }} • Session</p>
-          </div>
+          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-zinc-400 transition-colors">Next Up</p>
+          <h3 class="text-xl font-black text-white mb-1 truncate">Session #{{ nextSession.id }}</h3>
+          <p class="text-sm text-zinc-400 truncate">{{ getStudentName(nextSession.studentId) }}</p>
+          <p class="text-xs text-orange-400 mt-2 font-bold">{{ formatTime(nextSession.startTime) }}</p>
+        </div>
+        <div v-else class="liquid-glass border border-white/5 border-l-[6px] border-l-white/10 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70">
+          <span class="material-symbols-outlined text-3xl text-zinc-600 mb-2">event_available</span>
+          <p class="text-sm font-bold text-zinc-500 uppercase tracking-wider">Schedule Clear</p>
         </div>
       </div>
     </section>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-4">
-      <!-- Left Column: Roster & Schedule -->
-      <div class="col-span-1 md:col-span-8 space-y-4">
+    <div class="grid grid-cols-1 gap-4">
+      <!-- Full Column -->
+      <div class="col-span-full space-y-4">
         <!-- Student Roster -->
         <div class="liquid-glass rounded-3xl p-4 border border-white/5 space-y-3">
           <div class="flex justify-between items-center">
@@ -221,22 +302,22 @@ const formatTime = (dt: string | undefined) => {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+          <div class="grid grid-cols-7 gap-3">
             <div v-for="day in weekDays" :key="day.label" class="space-y-3">
               <div class="text-center">
                 <p
-                  class="text-[10px] font-black uppercase tracking-[0.2em]"
+                  class="text-xs font-black uppercase tracking-[0.2em]"
                   :class="day.isToday ? 'text-orange-500' : day.isWeekend ? 'text-zinc-600' : 'text-zinc-500'"
                 >{{ day.label }}</p>
                 <div
-                  class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black mx-auto mt-1"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black mx-auto mt-1"
                   :class="day.isToday ? 'bg-gradient-to-br from-orange-500 to-orange-700 text-white' : 'text-zinc-500'"
                 >{{ day.dateNum }}</div>
               </div>
               <!-- Has session -->
               <div
                 v-if="day.session"
-                class="rounded-2xl p-3 border-l-2"
+                class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between"
                 :class="day.session.status === 'scheduled' ? 'bg-orange-500/10 border-orange-500' :
                         day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' :
                         day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' :
@@ -253,7 +334,7 @@ const formatTime = (dt: string | undefined) => {
               <!-- Empty slot -->
               <div
                 v-else
-                class="h-20 border border-dashed rounded-2xl flex items-center justify-center"
+                class="h-32 border border-dashed rounded-2xl flex items-center justify-center"
                 :class="day.isWeekend ? 'border-white/[0.03] bg-white/[0.01]' : 'border-white/5 bg-black/20'"
               >
                 <span class="material-symbols-outlined text-zinc-800 text-base">add</span>
@@ -266,127 +347,6 @@ const formatTime = (dt: string | undefined) => {
         </div>
       </div>
 
-      <!-- Right Column: Live Session Card -->
-      <div class="col-span-1 md:col-span-4">
-        <div
-          class="liquid-glass rounded-3xl overflow-hidden border border-white/10 shadow-2xl sticky top-4 flex flex-col"
-        >
-          <!-- Orange header -->
-          <div
-            class="p-4 bg-gradient-to-br from-orange-500 to-orange-700 relative overflow-hidden"
-          >
-            <div
-              class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"
-            ></div>
-            <div class="flex justify-between items-start mb-6 relative z-10">
-              <span
-                class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[9px] font-black tracking-widest uppercase border border-white/30 text-white"
-                >Live Session</span
-              >
-              <button class="text-white/80 hover:text-white">
-                <span class="material-symbols-outlined">more_horiz</span>
-              </button>
-            </div>
-            <div v-if="nextSession" class="relative z-10">
-              <h3 class="text-2xl font-black text-white leading-tight">
-                Session #{{ nextSession.id }}
-              </h3>
-              <p
-                class="text-white/70 text-[11px] mt-2 font-bold uppercase tracking-widest"
-              >
-                {{ formatTime(nextSession.startTime) }} • Student #{{ nextSession.studentId }}
-              </p>
-            </div>
-            <div v-else class="relative z-10">
-              <h3 class="text-2xl font-black text-white leading-tight">No Active Session</h3>
-              <p class="text-white/70 text-[11px] mt-2 font-bold uppercase tracking-widest">
-                Sessions will appear here
-              </p>
-            </div>
-          </div>
-
-          <!-- Body -->
-          <div class="p-4 space-y-4 flex-1">
-            <!-- Proof Upload -->
-            <div class="space-y-4">
-              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
-                >Visual Evidence</label
-              >
-              <div
-                class="aspect-video bg-black/40 rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 hover:border-orange-500/50 transition-all group overflow-hidden relative"
-              >
-                <div class="text-center group-hover:scale-105 transition-transform">
-                  <div
-                    class="w-14 h-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3"
-                  >
-                    <span
-                      class="material-symbols-outlined text-3xl text-orange-500"
-                      style="font-variation-settings: 'FILL' 1"
-                      >add_a_photo</span
-                    >
-                  </div>
-                  <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wide">
-                    Take Photo or Upload
-                  </p>
-                </div>
-                <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Upload session proof" />
-              </div>
-            </div>
-
-            <!-- Practice Goals -->
-            <div class="space-y-4">
-              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
-                >Next Week's Practice Goals</label
-              >
-              <textarea
-                class="w-full h-32 bg-black/40 border border-white/5 rounded-3xl focus:ring-2 focus:ring-orange-500/40 text-sm p-5 text-white placeholder-zinc-600 resize-none transition-all"
-                placeholder="E.g. Focus on paradiddle transitions at 120bpm..."
-              ></textarea>
-            </div>
-
-            <!-- Shared Resources -->
-            <div class="space-y-4">
-              <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
-                >Shared Resources</label
-              >
-              <div class="space-y-3">
-                <div
-                  class="bg-black/40 p-4 rounded-2xl flex items-center justify-between border border-white/5"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500"
-                    >
-                      <span class="material-symbols-outlined text-lg">music_note</span>
-                    </div>
-                    <div>
-                      <p class="text-xs font-bold text-white">Drum_Fills_Intermediate.pdf</p>
-                      <p class="text-[9px] text-zinc-500 uppercase">1.2 MB • Sheet Music</p>
-                    </div>
-                  </div>
-                  <button class="text-zinc-500 hover:text-red-400 transition-colors">
-                    <span class="material-symbols-outlined text-lg">close</span>
-                  </button>
-                </div>
-                <button
-                  class="w-full py-3 bg-white/5 rounded-2xl text-[10px] font-black text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
-                >
-                  <span class="material-symbols-outlined text-lg">attach_file</span>
-                  Attach Media
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-4 border-t border-white/5 bg-black/20">
-            <button
-              class="w-full py-5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-3xl font-black text-lg shadow-[0_15px_40px_rgba(249,115,22,0.3)] hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-tighter"
-            >
-              Complete Session
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Footer Stats -->
@@ -440,4 +400,107 @@ const formatTime = (dt: string | undefined) => {
       </div>
     </section>
   </div>
+
+  <!-- Session Detail Modal (Teacher) -->
+  <Teleport to="body">
+    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+      <div
+        v-if="expandedSession"
+        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="teacher-session-modal-title"
+        @click.self="closeSessionModal"
+      >
+        <div
+          class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          @click="closeSessionModal"
+        />
+        <div
+          class="relative w-full max-w-lg bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
+        >
+          <!-- Header -->
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 id="teacher-session-modal-title" class="text-2xl font-black text-white leading-tight">
+                Session #{{ expandedSession.id }}
+              </h3>
+              <p class="text-zinc-400 text-sm mt-1">
+                {{ formatTime(expandedSession.startTime) }} - {{ formatTime(expandedSession.endTime) }}
+              </p>
+              <p class="text-white font-bold mt-1">Student: {{ getStudentName(expandedSession.studentId) }}</p>
+            </div>
+            <button
+              class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-white/5 border border-white/5"
+              aria-label="Close modal"
+              @click="closeSessionModal"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <!-- Proof Section -->
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Visual Evidence</label>
+            <div v-if="expandedSession.imageProofUrl" class="relative group rounded-2xl overflow-hidden border border-white/10">
+              <img :src="expandedSession.imageProofUrl" class="w-full h-auto object-cover max-h-48" />
+              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <label class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors">
+                  Replace Image
+                  <input type="file" accept="image/*" class="hidden" @change="handleStagedProofUpload" />
+                </label>
+              </div>
+            </div>
+            <div v-else-if="stagedProofUrl" class="relative rounded-2xl overflow-hidden border border-orange-500/50">
+              <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
+              <div class="absolute top-2 right-2 flex gap-2">
+                <label class="px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors border border-white/20">
+                  Change
+                  <input type="file" accept="image/*" class="hidden" @change="handleStagedProofUpload" />
+                </label>
+              </div>
+            </div>
+            <label
+              v-else
+              class="block aspect-video bg-black/40 rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 hover:border-orange-500/50 transition-all group overflow-hidden relative"
+            >
+              <div class="text-center group-hover:scale-105 transition-transform">
+                <div class="w-14 h-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="material-symbols-outlined text-3xl text-orange-500" style="font-variation-settings: 'FILL' 1">add_a_photo</span>
+                </div>
+                <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wide">Take Photo or Upload</p>
+              </div>
+              <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Upload session proof" @change="handleStagedProofUpload" />
+            </label>
+          </div>
+
+          <!-- Practice Goals -->
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Practice Goals / Notes</label>
+            <textarea
+              v-model="practiceGoalsText"
+              class="w-full h-32 bg-black/40 border border-white/5 rounded-3xl focus:ring-2 focus:ring-orange-500/40 text-sm p-5 text-white placeholder-zinc-600 resize-none transition-all"
+              placeholder="E.g. Focus on paradiddle transitions at 120bpm..."
+            ></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3 pt-2">
+            <button
+              class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all bg-white/5 hover:bg-white/10"
+              @click="closeSessionModal"
+            >
+              Cancel
+            </button>
+            <button
+              class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 shadow-lg shadow-orange-900/20"
+              @click="saveSessionChanges"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
