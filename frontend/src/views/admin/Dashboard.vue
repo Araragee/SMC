@@ -278,7 +278,9 @@ async function confirmQuickAssign() {
           </div>
 
           <!-- Column headers -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4">
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4"
+          >
             <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1">
               Time
             </div>
@@ -349,7 +351,9 @@ async function confirmQuickAssign() {
             </div>
 
             <!-- Add slot -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2 -mx-2">
+            <div
+              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2 -mx-2"
+            >
               <div class="col-span-1"></div>
               <button
                 class="col-span-5 border-2 border-dashed border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-zinc-500 hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-white/[0.02] uppercase tracking-widest text-sm font-bold"
@@ -575,7 +579,14 @@ async function confirmQuickAssign() {
 
   <!-- Add Session Modal -->
   <Teleport to="body">
-    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="showAddSessionModal"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -672,4 +683,3 @@ async function confirmQuickAssign() {
     </Transition>
   </Teleport>
 </template>
-
