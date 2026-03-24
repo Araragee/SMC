@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import FloatingNavbar from '../components/FloatingNavbar.vue'
-import TopNavbar from '../components/TopNavbar.vue'
+import SidebarNav from '../components/SidebarNav.vue'
 </script>
 
 <template>
@@ -14,11 +13,11 @@ import TopNavbar from '../components/TopNavbar.vue'
       class="fixed bottom-1/4 -right-20 w-96 h-96 bg-tertiary/10 blur-[128px] rounded-full -z-10 pointer-events-none"
     />
 
-    <TopNavbar />
-    <FloatingNavbar />
-
-    <div class="p-6 pt-20 pb-28 min-h-screen">
-      <RouterView />
+    <div class="flex min-h-screen">
+      <SidebarNav />
+      <main class="flex-1 lg:ml-64 p-6 min-h-screen">
+        <RouterView />
+      </main>
     </div>
   </div>
 </template>
