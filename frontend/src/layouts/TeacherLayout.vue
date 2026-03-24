@@ -20,7 +20,7 @@ import SidebarNav from '../components/SidebarNav.vue'
       <div class="lg:hidden">
         <SidebarNav />
       </div>
-      <main class="lg:col-span-5 min-h-screen">
+      <main class="lg:col-span-5 min-h-screen w-full">
         <RouterView />
       </main>
     </div>

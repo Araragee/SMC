@@ -118,7 +118,7 @@ function handleStagedProofUpload(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   stagedProofFile.value = input.files[0]
-  stagedProofUrl.value = URL.createObjectURL(stagedProofFile.value)
+  stagedProofUrl.value = window.URL.createObjectURL(stagedProofFile.value)
 }
 
 async function saveStagedProof() {
