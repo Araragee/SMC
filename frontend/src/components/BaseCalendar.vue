@@ -144,13 +144,13 @@ function resetToToday() {
       >
         <button
           @click="previousWeek"
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
         >
           <span class="material-symbols-outlined text-lg">chevron_left</span>
         </button>
         <button
           @click="nextWeek"
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
         >
           <span class="material-symbols-outlined text-lg">chevron_right</span>
         </button>
@@ -218,7 +218,7 @@ function resetToToday() {
             class="absolute inset-x-0 bottom-2 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <span
-              class="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 shadow flex items-center justify-center text-zinc-400 dark:text-zinc-500"
+              class="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 shadow flex items-center justify-center text-zinc-500 dark:text-zinc-400 dark:text-zinc-500"
             >
               <span class="material-symbols-outlined text-sm">add</span>
             </span>

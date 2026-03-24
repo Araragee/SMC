@@ -62,7 +62,7 @@ const isActive = (path: string) => route.path === path
     <div class="h-5 w-px bg-zinc-200 dark:bg-white/10 mx-1"></div>
 
     <div class="relative flex items-center">
-      <span class="material-symbols-outlined absolute left-3 text-zinc-400 dark:text-zinc-500 text-sm">search</span>
+      <span class="material-symbols-outlined absolute left-3 text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 text-sm">search</span>
       <input
         type="text"
         placeholder="Quick find..."

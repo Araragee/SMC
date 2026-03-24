@@ -23,7 +23,7 @@ const handleLogin = async () => {
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tertiary_container flex items-center justify-center shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)]">
           <span class="material-symbols-outlined text-on_primary_container" style="font-variation-settings: 'FILL' 1;">music_note</span>
         </div>
-        <span class="text-2xl font-black tracking-tighter text-white uppercase font-sans">Sernan's Music Clinic</span>
+        <span class="text-2xl font-black tracking-tighter text-zinc-900 dark:text-white uppercase font-sans">Sernan's Music Clinic</span>
       </div>
       <div class="space-y-4">
         <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-on_surface font-sans">
@@ -38,7 +38,7 @@ const handleLogin = async () => {
     <div class="w-full max-w-md">
       <div class="relative group">
         <div class="absolute -inset-1 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-50"></div>
-        <div class="relative bg-surface-container-low/40 backdrop-blur-3xl p-6 sm:p-8 md:p-10 rounded-xl shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] border border-white/5 space-y-8">
+        <div class="relative bg-surface-container-low/40 backdrop-blur-3xl p-6 sm:p-8 md:p-10 rounded-xl shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] border border-black/[0.04] dark:border-white/5 space-y-8">
           <form class="space-y-6" @submit.prevent="handleLogin">
             <div class="space-y-4">
               <div class="space-y-2">

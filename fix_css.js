@@ -1,4 +1,14 @@
-@tailwind base;
+const fs = require('fs');
+
+let cssContent = fs.readFileSync('frontend/src/style.css', 'utf8');
+
+// The original file only has .liquid-glass and .cosmic-void defined.
+// We want to add light mode fallbacks without creating new classes.
+// The task states:
+// "Only update the existing .liquid-glass light mode definition to add a subtle border and refined shadow — no new custom classes. Also update .cosmic-void light mode to be warmer."
+
+// Let's replace the whole style.css with the requested updates
+const newCssContent = `@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -64,3 +74,6 @@ body {
 h1, h2, h3, h4, h5, h6 {
   @apply font-semibold tracking-tight;
 }
+`;
+
+fs.writeFileSync('frontend/src/style.css', newCssContent);

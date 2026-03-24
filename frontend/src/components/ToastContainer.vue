@@ -13,9 +13,9 @@ const toastClasses = (type: ToastType) => ({
 })
 
 const iconClasses = (type: ToastType) => ({
-  'text-emerald-400': type === 'success',
-  'text-red-400': type === 'error',
-  'text-amber-400': type === 'warning',
+  'text-emerald-700 dark:text-emerald-400': type === 'success',
+  'text-red-700 dark:text-red-400': type === 'error',
+  'text-amber-700 dark:text-amber-400': type === 'warning',
   'text-indigo-400': type === 'info',
 })
 
@@ -49,11 +49,11 @@ const toastIcon = (type: ToastType) => ({
             {{ toastIcon(toast.type) }}
           </span>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-white leading-tight">{{ toast.title }}</p>
-            <p v-if="toast.message" class="text-xs text-white/70 mt-0.5 leading-snug">{{ toast.message }}</p>
+            <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white leading-tight">{{ toast.title }}</p>
+            <p v-if="toast.message" class="text-xs text-zinc-900 dark:text-white/70 mt-0.5 leading-snug">{{ toast.message }}</p>
           </div>
           <button
-            class="text-white/40 hover:text-white/80 transition-colors shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
+            class="text-zinc-900 dark:text-white/40 hover:text-zinc-900 dark:text-white/80 transition-colors shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
             :aria-label="`Dismiss notification: ${toast.title}`"
             @click="toastStore.remove(toast.id)"
           >

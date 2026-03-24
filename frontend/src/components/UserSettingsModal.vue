@@ -76,11 +76,11 @@ const handleLogout = () => {
         @click.self="$emit('close')"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-black/30 dark:bg-black/80 backdrop-blur-md" @click="$emit('close')" />
 
         <!-- Modal Card -->
         <div
-          class="relative w-full max-w-xl liquid-glass rounded-[2.5rem] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          class="relative w-full max-w-xl liquid-glass rounded-[2.5rem] border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           <!-- Decorative Header -->
           <div
@@ -93,11 +93,11 @@ const handleLogout = () => {
               <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-2">
                 Account Control
               </p>
-              <h2 class="text-3xl font-black text-white tracking-tight">User Settings</h2>
+              <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">User Settings</h2>
             </div>
             <button
               @click="$emit('close')"
-              class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all group"
+              class="w-12 h-12 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group"
             >
               <span
                 class="material-symbols-outlined text-xl group-hover:rotate-90 transition-transform duration-300"
@@ -125,15 +125,15 @@ const handleLogout = () => {
 
                     <!-- Overlay for upload (mock) -->
                     <div
-                      class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                      class="absolute inset-0 bg-black/30 dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                     >
-                      <span class="material-symbols-outlined text-white text-2xl">add_a_photo</span>
+                      <span class="material-symbols-outlined text-zinc-900 dark:text-white text-2xl">add_a_photo</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-white mb-1">{{ authStore.user?.name }}</h3>
-                  <p class="text-zinc-500 text-sm font-medium">{{ authStore.user?.email }}</p>
+                  <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-1">{{ authStore.user?.name }}</h3>
+                  <p class="text-zinc-600 dark:text-zinc-500 text-sm font-medium">{{ authStore.user?.email }}</p>
                   <div
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mt-3"
                   >
@@ -171,7 +171,7 @@ const handleLogout = () => {
             <section class="space-y-6">
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-orange-500 text-lg">security</span>
-                <h3 class="text-sm font-black text-white uppercase tracking-widest">
+                <h3 class="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest">
                   Security &amp; Privacy
                 </h3>
               </div>
@@ -186,7 +186,7 @@ const handleLogout = () => {
                   placeholder="Enter new password"
                   icon-left="lock"
                 />
-                <p class="text-[10px] text-zinc-500 font-medium px-2 italic leading-relaxed">
+                <p class="text-[10px] text-zinc-600 dark:text-zinc-500 font-medium px-2 italic leading-relaxed">
                   Leave the password field empty if you don't wish to change it. Your new password
                   must be at least 8 characters long.
                 </p>
@@ -209,7 +209,7 @@ const handleLogout = () => {
               >
                 <div>
                   <h4 class="text-zinc-900 dark:text-white font-bold text-sm">Color Theme</h4>
-                  <p class="text-zinc-500 text-xs mt-1">
+                  <p class="text-zinc-600 dark:text-zinc-500 text-xs mt-1">
                     Select between Light or Dark Mode presentation.
                   </p>
                 </div>
@@ -262,18 +262,18 @@ const handleLogout = () => {
 
           <!-- Sticky Footer -->
           <div
-            class="p-8 border-t border-white/5 bg-white/[0.02] flex items-center justify-end gap-4 shrink-0"
+            class="p-8 border-t border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end gap-4 shrink-0"
           >
             <button
               @click="$emit('close')"
-              class="px-6 py-3 text-sm font-bold text-zinc-400 hover:text-white transition-colors"
+              class="px-6 py-3 text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               @click="handleSave"
               :disabled="authStore.isLoading"
-              class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+              class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-zinc-900 dark:text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
             >
               <span
                 v-if="authStore.isLoading"

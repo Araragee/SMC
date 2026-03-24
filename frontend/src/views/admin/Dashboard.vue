@@ -125,8 +125,8 @@ async function confirmQuickAssign() {
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-white mb-2">Admin Dashboard</h1>
-        <p class="text-zinc-500 font-medium">Sernan's Music Clinic — Overview</p>
+        <h1 class="text-5xl font-black tracking-tight text-zinc-900 dark:text-white mb-2">Admin Dashboard</h1>
+        <p class="text-zinc-600 dark:text-zinc-500 font-medium">Sernan's Music Clinic — Overview</p>
       </div>
     </div>
 
@@ -134,7 +134,7 @@ async function confirmQuickAssign() {
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <!-- Live Analytics (col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2) -->
       <div
-        class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 liquid-glass p-4 rounded-3xl border border-white/5 flex flex-col justify-between"
+        class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 liquid-glass p-4 rounded-3xl border border-black/[0.04] dark:border-white/5 flex flex-col justify-between"
       >
         <div>
           <span class="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]"
@@ -142,12 +142,12 @@ async function confirmQuickAssign() {
           >
           <div
             v-if="scheduleStore.isLoading"
-            class="h-10 w-48 rounded bg-white/5 animate-pulse mt-2"
+            class="h-10 w-48 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
           />
-          <h2 v-else class="text-3xl font-black mt-2 tracking-tight text-white">
+          <h2 v-else class="text-3xl font-black mt-2 tracking-tight text-zinc-900 dark:text-white">
             {{ stats.totalSessions }} Active Sessions
           </h2>
-          <p class="text-zinc-400 text-sm mt-1">{{ stats.scheduledSessions }} scheduled today</p>
+          <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">{{ stats.scheduledSessions }} scheduled today</p>
         </div>
         <div class="flex gap-2 mt-8">
           <span
@@ -155,7 +155,7 @@ async function confirmQuickAssign() {
             >Piano Masterclass</span
           >
           <span
-            class="px-4 py-1.5 bg-white/5 border border-white/10 text-zinc-300 text-[10px] font-black rounded-full uppercase tracking-wider"
+            class="px-4 py-1.5 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-zinc-300 text-[10px] font-black rounded-full uppercase tracking-wider"
             >Theory Exams</span
           >
         </div>
@@ -180,7 +180,7 @@ async function confirmQuickAssign() {
             v-if="scheduleStore.isLoading"
             class="h-14 w-20 rounded bg-white/20 animate-pulse mt-2"
           />
-          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
+          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-zinc-900 dark:text-white">
             {{ stats.completionRate }}%
           </h2>
         </div>
@@ -190,16 +190,16 @@ async function confirmQuickAssign() {
       </div>
 
       <!-- New Registrations -->
-      <div class="liquid-glass p-4 rounded-3xl border border-white/5 flex flex-col justify-between">
+      <div class="liquid-glass p-4 rounded-3xl border border-black/[0.04] dark:border-white/5 flex flex-col justify-between">
         <div>
-          <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]"
+          <span class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-[0.2em]"
             >New Registrations</span
           >
           <div
             v-if="usersStore.isLoading"
-            class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
           />
-          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
+          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-zinc-900 dark:text-white">
             {{ students.length }}
           </h2>
         </div>
@@ -207,14 +207,14 @@ async function confirmQuickAssign() {
           <div
             v-for="(s, i) in students.slice(0, 3)"
             :key="s.id"
-            class="w-10 h-10 rounded-full border-2 border-zinc-900 bg-surface-container-highest flex items-center justify-center text-white font-black text-xs"
+            class="w-10 h-10 rounded-full border-2 border-zinc-900 bg-surface-container-highest flex items-center justify-center text-zinc-900 dark:text-white font-black text-xs"
             :style="{ zIndex: 3 - i }"
           >
             {{ s.name.charAt(0) }}
           </div>
           <div
             v-if="students.length > 3"
-            class="w-10 h-10 rounded-full border-2 border-zinc-900 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black flex items-center justify-center"
+            class="w-10 h-10 rounded-full border-2 border-zinc-900 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white text-[10px] font-black flex items-center justify-center"
           >
             +{{ students.length - 3 }}
           </div>
@@ -232,7 +232,7 @@ async function confirmQuickAssign() {
           >
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-16 rounded bg-white/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
           />
           <h2
             v-else
@@ -243,7 +243,7 @@ async function confirmQuickAssign() {
           </h2>
         </div>
         <p
-          class="text-zinc-600 text-xs font-bold group-hover:text-amber-500 transition-colors mt-6"
+          class="text-zinc-500 dark:text-zinc-600 text-xs font-bold group-hover:text-amber-500 transition-colors mt-6"
         >
           Review →
         </p>
@@ -255,20 +255,20 @@ async function confirmQuickAssign() {
       <!-- Left: Schedule + Faculty -->
       <div class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 space-y-4">
         <!-- Music Schedule -->
-        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
           <div class="flex items-center justify-between mb-8">
             <div>
-              <h3 class="text-2xl font-black tracking-tight text-white">Music Schedule</h3>
-              <p class="text-zinc-500 text-sm">Managing for today</p>
+              <h3 class="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">Music Schedule</h3>
+              <p class="text-zinc-600 dark:text-zinc-500 text-sm">Managing for today</p>
             </div>
             <div class="flex gap-2">
               <button
-                class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-white/10 transition-all"
               >
                 <span class="material-symbols-outlined text-sm">chevron_left</span>
               </button>
               <button
-                class="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-white/10 transition-all"
               >
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
               </button>
@@ -277,19 +277,19 @@ async function confirmQuickAssign() {
 
           <!-- Column headers -->
           <div
-            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4"
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-black/[0.04] dark:border-white/5 mb-4"
           >
-            <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1">
+            <div class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-[0.2em] col-span-1">
               Time
             </div>
-            <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-5">
+            <div class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-[0.2em] col-span-5">
               Sessions &amp; Instructors
             </div>
           </div>
 
           <!-- Loading -->
           <div v-if="scheduleStore.isLoading" class="space-y-4">
-            <div v-for="i in 3" :key="i" class="h-20 rounded-3xl bg-white/5 animate-pulse" />
+            <div v-for="i in 3" :key="i" class="h-20 rounded-3xl bg-black/[0.04] dark:bg-white/5 animate-pulse" />
           </div>
 
           <!-- Empty -->
@@ -297,9 +297,9 @@ async function confirmQuickAssign() {
             v-else-if="scheduleStore.allSessions.length === 0"
             class="py-10 flex flex-col items-center text-center"
           >
-            <span class="material-symbols-outlined text-4xl text-zinc-700 mb-3">event_busy</span>
-            <p class="font-bold text-white text-sm mb-1">No sessions scheduled</p>
-            <p class="text-xs text-zinc-500">Use "Assign New" to create your first session.</p>
+            <span class="material-symbols-outlined text-4xl text-zinc-400 dark:text-zinc-700 mb-3">event_busy</span>
+            <p class="font-bold text-zinc-900 dark:text-white text-sm mb-1">No sessions scheduled</p>
+            <p class="text-xs text-zinc-600 dark:text-zinc-500">Use "Assign New" to create your first session.</p>
           </div>
 
           <!-- Session rows -->
@@ -311,12 +311,12 @@ async function confirmQuickAssign() {
             >
               <div class="col-span-1 flex flex-col justify-center">
                 <span class="text-sm font-black">{{ formatTime(session.startTime) }}</span>
-                <span class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{{
+                <span class="text-[10px] text-zinc-600 dark:text-zinc-500 uppercase font-bold tracking-widest">{{
                   formatAmPm(session.startTime)
                 }}</span>
               </div>
               <div
-                class="col-span-5 bg-white/5 border-l-4 p-5 rounded-3xl flex items-center justify-between"
+                class="col-span-5 bg-black/[0.04] dark:bg-white/5 border-l-4 p-5 rounded-3xl flex items-center justify-between"
                 :class="borderColor(session.status)"
               >
                 <div class="flex items-center gap-4">
@@ -327,8 +327,8 @@ async function confirmQuickAssign() {
                     <span class="material-symbols-outlined">music_note</span>
                   </div>
                   <div>
-                    <h4 class="text-sm font-bold text-white">Session #{{ session.id }}</h4>
-                    <p class="text-xs text-zinc-400">
+                    <h4 class="text-sm font-bold text-zinc-900 dark:text-white">Session #{{ session.id }}</h4>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
                       T:{{ session.teacherId }} • S:{{ session.studentId }}
                     </p>
                   </div>
@@ -340,7 +340,7 @@ async function confirmQuickAssign() {
                     >{{ session.status }}</span
                   >
                   <button
-                    class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-white"
+                    class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-600 dark:text-zinc-500 hover:text-white"
                   >
                     <span class="material-symbols-outlined">more_vert</span>
                   </button>
@@ -354,7 +354,7 @@ async function confirmQuickAssign() {
             >
               <div class="col-span-1"></div>
               <button
-                class="col-span-5 border-2 border-dashed border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-zinc-500 hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-white/[0.02] uppercase tracking-widest text-sm font-bold"
+                class="col-span-5 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-zinc-600 dark:text-zinc-500 hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-black/[0.02] dark:bg-white/[0.02] uppercase tracking-widest text-sm font-bold"
                 @click="showAddSessionModal = true"
               >
                 <span class="material-symbols-outlined">add_circle</span>
@@ -365,18 +365,18 @@ async function confirmQuickAssign() {
         </section>
 
         <!-- Faculty & Staff -->
-        <section class="liquid-glass rounded-3xl p-4 border border-white/5 overflow-hidden">
+        <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 overflow-hidden">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-            <h3 class="text-2xl font-black tracking-tight text-white">Faculty &amp; Staff</h3>
+            <h3 class="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">Faculty &amp; Staff</h3>
             <div class="flex items-center gap-3">
               <button
-                class="px-5 py-2.5 bg-white/5 text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-white/10 rounded-2xl hover:bg-white/10 transition-colors flex items-center gap-2"
+                class="px-5 py-2.5 bg-black/[0.04] dark:bg-white/5 text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest border border-black/[0.08] dark:border-white/10 rounded-2xl hover:bg-white/10 transition-colors flex items-center gap-2"
               >
                 <span class="material-symbols-outlined text-sm">filter_list</span>
                 Filter
               </button>
               <button
-                class="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
+                class="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
                 @click="showAddSessionModal = true"
               >
                 <span class="material-symbols-outlined text-sm">person_add</span>
@@ -386,20 +386,20 @@ async function confirmQuickAssign() {
           </div>
 
           <div v-if="usersStore.isLoading" class="space-y-4">
-            <div v-for="i in 3" :key="i" class="h-16 rounded-2xl bg-white/5 animate-pulse" />
+            <div v-for="i in 3" :key="i" class="h-16 rounded-2xl bg-black/[0.04] dark:bg-white/5 animate-pulse" />
           </div>
 
           <div v-else-if="teachers.length === 0" class="py-10 text-center">
-            <span class="material-symbols-outlined text-4xl text-zinc-700 mb-2 block"
+            <span class="material-symbols-outlined text-4xl text-zinc-400 dark:text-zinc-700 mb-2 block"
               >group_off</span
             >
-            <p class="text-sm font-bold text-white mb-1">No faculty members yet</p>
+            <p class="text-sm font-bold text-zinc-900 dark:text-white mb-1">No faculty members yet</p>
           </div>
 
           <div v-else class="overflow-x-auto">
             <table class="w-full text-left">
               <thead>
-                <tr class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+                <tr class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-[0.2em]">
                   <th class="pb-6 px-2">Member</th>
                   <th class="pb-6 px-2">Department</th>
                   <th class="pb-6 px-2">Status</th>
@@ -416,13 +416,13 @@ async function confirmQuickAssign() {
                   <td class="py-6 px-2">
                     <div class="flex items-center gap-4">
                       <div
-                        class="w-12 h-12 rounded-[18px] bg-surface-container-highest border border-white/10 flex items-center justify-center text-white font-black text-lg"
+                        class="w-12 h-12 rounded-[18px] bg-surface-container-highest border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-900 dark:text-white font-black text-lg"
                       >
                         {{ teacher.name.charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-sm font-black text-white">{{ teacher.name }}</p>
-                        <p class="text-xs text-zinc-500">{{ teacher.email }}</p>
+                        <p class="text-sm font-black text-zinc-900 dark:text-white">{{ teacher.name }}</p>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-500">{{ teacher.email }}</p>
                       </div>
                     </div>
                   </td>
@@ -440,7 +440,7 @@ async function confirmQuickAssign() {
                     </span>
                   </td>
                   <td class="py-6 px-2">
-                    <span class="text-sm font-black text-white">
+                    <span class="text-sm font-black text-zinc-900 dark:text-white">
                       {{
                         scheduleStore.allSessions.filter((s) => s.teacherId === teacher.id).length
                       }}
@@ -448,10 +448,10 @@ async function confirmQuickAssign() {
                   </td>
                   <td class="py-6 px-2 text-right">
                     <div class="flex items-center justify-end gap-1">
-                      <button class="p-2 text-zinc-500 hover:text-white transition-colors">
+                      <button class="p-2 text-zinc-600 dark:text-zinc-500 hover:text-white transition-colors">
                         <span class="material-symbols-outlined text-lg">edit</span>
                       </button>
-                      <button class="p-2 text-zinc-500 hover:text-red-400 transition-colors">
+                      <button class="p-2 text-zinc-600 dark:text-zinc-500 hover:text-red-400 transition-colors">
                         <span class="material-symbols-outlined text-lg">delete</span>
                       </button>
                     </div>
@@ -466,9 +466,9 @@ async function confirmQuickAssign() {
       <!-- Right: Alerts + Quick Assign -->
       <div class="space-y-4">
         <!-- Alerts & Updates -->
-        <section class="liquid-glass rounded-3xl p-4 border border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-lg font-black tracking-tight text-white">Alerts &amp; Updates</h3>
+            <h3 class="text-lg font-black tracking-tight text-zinc-900 dark:text-white">Alerts &amp; Updates</h3>
             <span
               class="text-[10px] font-black text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1"
             >
@@ -478,7 +478,7 @@ async function confirmQuickAssign() {
           </div>
           <div class="space-y-4">
             <div
-              class="bg-white/5 p-5 rounded-3xl border-l-4 border-orange-500 hover:bg-white/10 transition-colors"
+              class="bg-black/[0.04] dark:bg-white/5 p-5 rounded-3xl border-l-4 border-orange-500 hover:bg-white/10 transition-colors"
             >
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-orange-500 text-xl">warning</span>
@@ -500,24 +500,24 @@ async function confirmQuickAssign() {
               </div>
             </div>
             <div
-              class="bg-white/5 p-5 rounded-3xl border-l-4 border-zinc-700 hover:bg-white/10 transition-colors"
+              class="bg-black/[0.04] dark:bg-white/5 p-5 rounded-3xl border-l-4 border-zinc-700 hover:bg-white/10 transition-colors"
             >
               <div class="flex gap-4">
-                <span class="material-symbols-outlined text-zinc-400 text-xl">campaign</span>
+                <span class="material-symbols-outlined text-zinc-500 dark:text-zinc-400 text-xl">campaign</span>
                 <div>
-                  <h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-zinc-500">
+                  <h4 class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-zinc-600 dark:text-zinc-500">
                     System
                   </h4>
                   <p class="text-xs text-zinc-300 leading-relaxed">
                     {{ teachers.length }} active faculty • {{ students.length }} enrolled students
                   </p>
-                  <p class="text-[10px] text-zinc-500 mt-2 font-bold uppercase">Just now</p>
+                  <p class="text-[10px] text-zinc-600 dark:text-zinc-500 mt-2 font-bold uppercase">Just now</p>
                 </div>
               </div>
             </div>
           </div>
           <button
-            class="w-full mt-8 py-4 text-[10px] font-black text-zinc-400 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all uppercase tracking-[0.2em]"
+            class="w-full mt-8 py-4 text-[10px] font-black text-zinc-500 dark:text-zinc-400 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-white/10 transition-all uppercase tracking-[0.2em]"
           >
             View All Activity
           </button>
@@ -525,9 +525,9 @@ async function confirmQuickAssign() {
 
         <!-- Quick Assign -->
         <section
-          class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-4 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
+          class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-4 text-zinc-900 dark:text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
         >
-          <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-black/[0.06] dark:bg-white/10 rounded-full blur-3xl"></div>
           <div class="relative z-10">
             <h3 class="text-xl font-black mb-6 tracking-tight">Quick Assign</h3>
             <div class="space-y-5">
@@ -538,7 +538,7 @@ async function confirmQuickAssign() {
                 >
                 <select
                   v-model="quickTeacherId"
-                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-black/[0.08] dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-zinc-900 dark:text-white"
                 >
                   <option value="" class="text-zinc-900">Select Faculty</option>
                   <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">
@@ -553,7 +553,7 @@ async function confirmQuickAssign() {
                 >
                 <select
                   v-model="quickStudentId"
-                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-black/[0.08] dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-zinc-900 dark:text-white"
                 >
                   <option value="" class="text-zinc-900">Select Student</option>
                   <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">
@@ -563,7 +563,7 @@ async function confirmQuickAssign() {
               </div>
               <button
                 :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
-                class="w-full bg-black/40 backdrop-blur-xl border border-white/10 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all duration-150 uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-black/40 backdrop-blur-xl border border-black/[0.08] dark:border-white/10 text-zinc-900 dark:text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all duration-150 uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="confirmQuickAssign"
               >
                 {{ isQuickAssigning ? 'Scheduling...' : 'Confirm Schedule' }}

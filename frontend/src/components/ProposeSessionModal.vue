@@ -79,20 +79,20 @@ async function submit() {
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="$emit('close')" />
 
-        <div class="relative w-full max-w-md liquid-glass rounded-3xl border border-white/10 shadow-2xl">
+        <div class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 shadow-2xl">
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-white/5">
+          <div class="flex items-center justify-between p-6 border-b border-black/[0.04] dark:border-white/5">
             <div>
               <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">
                 {{ userRole === 'admin' ? 'Direct Schedule' : 'Propose Session' }}
               </p>
-              <h3 class="text-xl font-black text-white">New Session Request</h3>
+              <h3 class="text-xl font-black text-zinc-900 dark:text-white">New Session Request</h3>
             </div>
             <button
               @click="$emit('close')"
-              class="w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all"
+              class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
             >
               <span class="material-symbols-outlined text-lg">close</span>
             </button>
@@ -102,10 +102,10 @@ async function submit() {
           <div class="p-6 space-y-5">
             <!-- Teacher select (for student / admin) -->
             <div v-if="userRole === 'student' || userRole === 'admin'">
-              <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Teacher</label>
+              <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Teacher</label>
               <select
                 v-model="form.teacherId"
-                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
               >
                 <option value="" disabled class="bg-zinc-900">Select a teacher</option>
                 <option v-for="t in teachers" :key="t.id" :value="t.id" class="bg-zinc-900">{{ t.name }}</option>
@@ -114,10 +114,10 @@ async function submit() {
 
             <!-- Student select (for teacher / admin) -->
             <div v-if="userRole === 'teacher' || userRole === 'admin'">
-              <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Student</label>
+              <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Student</label>
               <select
                 v-model="form.studentId"
-                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
               >
                 <option value="" disabled class="bg-zinc-900">Select a student</option>
                 <option v-for="s in students" :key="s.id" :value="s.id" class="bg-zinc-900">{{ s.name }}</option>
@@ -127,30 +127,30 @@ async function submit() {
             <!-- Date & Time -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Date</label>
+                <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Date</label>
                 <input
                   type="date"
                   v-model="form.date"
                   :min="todayStr"
-                  class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
                 />
               </div>
               <div>
-                <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Time</label>
+                <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Time</label>
                 <input
                   type="time"
                   v-model="form.time"
-                  class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
                 />
               </div>
             </div>
 
             <!-- Duration -->
             <div>
-              <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Duration</label>
+              <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Duration</label>
               <select
                 v-model="form.durationHours"
-                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
               >
                 <option value="0.5" class="bg-zinc-900">30 minutes</option>
                 <option value="1" class="bg-zinc-900">1 hour</option>
@@ -161,12 +161,12 @@ async function submit() {
 
             <!-- Notes -->
             <div>
-              <label class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Notes <span class="text-zinc-600 normal-case font-medium">(optional)</span></label>
+              <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Notes <span class="text-zinc-500 dark:text-zinc-600 normal-case font-medium">(optional)</span></label>
               <textarea
                 v-model="form.notes"
                 rows="3"
                 placeholder="Add context, instrument focus, or any special requests..."
-                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 resize-none"
+                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 resize-none"
               />
             </div>
 
@@ -181,11 +181,11 @@ async function submit() {
           </div>
 
           <!-- Footer -->
-          <div class="p-4 border-t border-white/5 flex gap-3">
+          <div class="p-4 border-t border-black/[0.04] dark:border-white/5 flex gap-3">
             <button
               @click="submit"
               :disabled="!isValid || isSubmitting"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
             >
               <span v-if="isSubmitting" class="material-symbols-outlined text-base animate-spin">refresh</span>
               <span v-else class="material-symbols-outlined text-base">send</span>
@@ -193,7 +193,7 @@ async function submit() {
             </button>
             <button
               @click="$emit('close')"
-              class="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white font-bold rounded-2xl transition-all text-sm"
+              class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white font-bold rounded-2xl transition-all text-sm"
             >
               Cancel
             </button>

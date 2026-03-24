@@ -15,7 +15,7 @@ const logout = () => {
   <aside class="hidden md:flex fixed left-0 top-0 w-64 flex flex-col p-4 gap-8 bg-surface-container-low/40 backdrop-blur-3xl rounded-3xl m-4 h-[calc(100vh-2rem)] z-50 shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.1)] shadow-2xl transition-all duration-300">
     <div class="flex items-center gap-3 px-2">
       <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40">
-        <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">music_note</span>
+        <span class="material-symbols-outlined text-zinc-900 dark:text-white" style="font-variation-settings: 'FILL' 1;">music_note</span>
       </div>
       <div>
         <h2 class="text-orange-500 font-black tracking-tight leading-none text-lg">Music Clinic</h2>
@@ -26,7 +26,7 @@ const logout = () => {
     <nav class="flex flex-col gap-2">
       <router-link
         to="/admin"
-        class="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl shadow-lg shadow-orange-900/20 font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1"
+        class="group flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white rounded-2xl shadow-lg shadow-orange-900/20 font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1"
         aria-current="page"
       >
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
@@ -52,8 +52,8 @@ const logout = () => {
         <span>Sign Out</span>
       </button>
 
-      <div class="p-4 bg-surface-container-highest/30 rounded-2xl flex items-center gap-3 border border-white/5">
-        <div class="w-10 h-10 rounded-full border-2 border-orange-500/30 bg-surface-container-highest flex items-center justify-center text-white font-bold text-sm shrink-0">
+      <div class="p-4 bg-surface-container-highest/30 rounded-2xl flex items-center gap-3 border border-black/[0.04] dark:border-white/5">
+        <div class="w-10 h-10 rounded-full border-2 border-orange-500/30 bg-surface-container-highest flex items-center justify-center text-zinc-900 dark:text-white font-bold text-sm shrink-0">
           {{ authStore.currentUser?.name?.charAt(0) || 'A' }}
         </div>
         <div class="overflow-hidden">

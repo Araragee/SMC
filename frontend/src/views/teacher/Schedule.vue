@@ -135,9 +135,9 @@ function formatDay(iso: string): string {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-white mb-2">My Schedule</h1>
-        <p class="text-zinc-500 font-medium">
-          <span class="text-white font-bold">{{ mySessions.length }}</span> total sessions,
+        <h1 class="text-5xl font-black tracking-tight text-zinc-900 dark:text-white mb-2">My Schedule</h1>
+        <p class="text-zinc-600 dark:text-zinc-500 font-medium">
+          <span class="text-zinc-900 dark:text-white font-bold">{{ mySessions.length }}</span> total sessions,
           <span class="text-amber-400 font-bold">{{ studentProposals.length }}</span> student
           proposals awaiting review.
         </p>
@@ -145,7 +145,7 @@ function formatDay(iso: string): string {
       <div class="shrink-0 flex items-start gap-4">
         <button
           @click="showProposeModal = true"
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
           Propose Session
@@ -167,8 +167,8 @@ function formatDay(iso: string): string {
           >
         </div>
         <div>
-          <h3 class="text-lg font-black text-white">Student Proposals</h3>
-          <p class="text-zinc-500 text-sm">
+          <h3 class="text-lg font-black text-zinc-900 dark:text-white">Student Proposals</h3>
+          <p class="text-zinc-600 dark:text-zinc-500 text-sm">
             {{ studentProposals.length }} request{{ studentProposals.length !== 1 ? 's' : '' }}
             awaiting your review
           </p>
@@ -187,9 +187,9 @@ function formatDay(iso: string): string {
             {{ getStudentName(session.studentId).charAt(0) }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-white font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
-            <p class="text-zinc-400 text-xs">{{ formatDateTime(session.startTime) }}</p>
-            <p v-if="session.notes" class="text-zinc-500 text-xs mt-0.5 italic">
+            <p class="text-zinc-900 dark:text-white font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
+            <p class="text-zinc-500 dark:text-zinc-400 text-xs">{{ formatDateTime(session.startTime) }}</p>
+            <p v-if="session.notes" class="text-zinc-600 dark:text-zinc-500 text-xs mt-0.5 italic">
               "{{ session.notes }}"
             </p>
           </div>
@@ -214,9 +214,9 @@ function formatDay(iso: string): string {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-white flex items-center gap-3">
+        <h3 class="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
           <span
             class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
           >
@@ -242,8 +242,8 @@ function formatDay(iso: string): string {
     </section>
 
     <!-- Upcoming Confirmed Sessions -->
-    <section class="liquid-glass rounded-3xl p-4 border border-white/5">
-      <h3 class="text-xl font-black text-white mb-6 flex items-center gap-3">
+    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+      <h3 class="text-xl font-black text-zinc-900 dark:text-white mb-6 flex items-center gap-3">
         <span class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-emerald-400"
@@ -257,23 +257,23 @@ function formatDay(iso: string): string {
         <div
           v-for="session in upcomingSessions"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/5 transition-all"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-white/5 transition-all"
         >
           <div class="text-center w-14 shrink-0">
             <p class="text-[10px] font-black text-orange-500 uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-2xl font-black text-white">{{ formatDay(session.startTime) }}</p>
+            <p class="text-2xl font-black text-zinc-900 dark:text-white">{{ formatDay(session.startTime) }}</p>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-white font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
-            <p class="text-zinc-500 text-xs">
+            <p class="text-zinc-900 dark:text-white font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
+            <p class="text-zinc-600 dark:text-zinc-500 text-xs">
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
           </div>
           <span class="w-2 h-2 rounded-full bg-orange-500 shrink-0"></span>
         </div>
-        <div v-if="upcomingSessions.length === 0" class="text-center py-6 text-zinc-600">
+        <div v-if="upcomingSessions.length === 0" class="text-center py-6 text-zinc-500 dark:text-zinc-600">
           No upcoming sessions
         </div>
       </div>
@@ -294,18 +294,18 @@ function formatDay(iso: string): string {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
             @click="rejectModal.open = false"
           />
           <div
-            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-white/10 p-6 space-y-4"
+            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
-            <h3 class="text-lg font-black text-white">Decline Session Request</h3>
+            <h3 class="text-lg font-black text-zinc-900 dark:text-white">Decline Session Request</h3>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
               placeholder="Reason for declining (optional)..."
-              class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
             />
             <div class="flex gap-3">
               <button
@@ -316,7 +316,7 @@ function formatDay(iso: string): string {
               </button>
               <button
                 @click="rejectModal.open = false"
-                class="px-5 py-3 bg-white/5 border border-white/10 text-zinc-400 font-bold rounded-2xl text-sm"
+                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 font-bold rounded-2xl text-sm"
               >
                 Cancel
               </button>

@@ -60,7 +60,7 @@ const logout = () => {
     <!-- Logo Section -->
     <div class="flex items-center gap-3 px-2">
       <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0">
-        <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings: 'FILL' 1">music_note</span>
+        <span class="material-symbols-outlined text-zinc-900 dark:text-white text-xl" style="font-variation-settings: 'FILL' 1">music_note</span>
       </div>
       <div class="hidden sm:block leading-none">
         <h2 class="text-zinc-900 dark:text-white font-black tracking-tight text-sm">Sernan's</h2>
@@ -74,13 +74,13 @@ const logout = () => {
     <!-- Notifications -->
     <button
       @click="isNotificationsOpen = true"
-      class="relative w-11 h-11 rounded-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group"
+      class="relative w-11 h-11 rounded-full flex items-center justify-center text-zinc-600 dark:text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group"
       title="Notifications"
     >
       <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">notifications</span>
       <span
         v-if="unreadCount > 0"
-        class="absolute top-1.5 right-1.5 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-black text-white flex items-center justify-center border-2 border-white dark:border-[#121212]"
+        class="absolute top-1.5 right-1.5 w-5 h-5 bg-orange-500 rounded-full text-[10px] font-black text-zinc-900 dark:text-white flex items-center justify-center border-2 border-white dark:border-[#121212]"
       >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
     </button>
 
@@ -100,10 +100,10 @@ const logout = () => {
         </div>
         <div class="hidden lg:block text-left">
           <p class="text-sm font-bold text-zinc-900 dark:text-white leading-tight truncate max-w-[120px]">{{ authStore.currentUser?.name || 'User' }}</p>
-          <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{{ roleLabel }}</p>
+          <p class="text-[10px] text-zinc-600 dark:text-zinc-500 font-bold uppercase tracking-widest">{{ roleLabel }}</p>
         </div>
         <span 
-          class="material-symbols-outlined text-zinc-400 dark:text-zinc-500 text-xl transition-transform duration-300"
+          class="material-symbols-outlined text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 text-xl transition-transform duration-300"
           :class="{ 'rotate-180': isUserDropdownOpen }"
         >expand_more</span>
       </button>
@@ -116,26 +116,26 @@ const logout = () => {
           v-click-outside="() => isUserDropdownOpen = false"
         >
           <div class="p-4 border-b border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.02]">
-            <p class="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1">Signed in as</p>
+            <p class="text-[10px] font-black text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1">Signed in as</p>
             <p class="text-sm font-bold text-zinc-900 dark:text-white truncate">{{ authStore.currentUser?.email }}</p>
           </div>
           
           <div class="p-2">
             <button
               @click="isSettingsOpen = true; isUserDropdownOpen = false"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all text-xs font-bold"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 dark:text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all text-xs font-bold"
             >
               <span class="material-symbols-outlined text-lg">person_edit</span>
               Profile Settings
             </button>
-            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all text-xs font-bold">
+            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 dark:text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all text-xs font-bold">
               <span class="material-symbols-outlined text-lg">settings</span>
               Preferences
             </button>
             <div class="h-px bg-zinc-100 dark:bg-white/5 my-1 mx-2"></div>
             <button
               @click="logout"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-xs font-black"
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-xs font-black"
             >
               <span class="material-symbols-outlined text-lg">logout</span>
               Sign Out

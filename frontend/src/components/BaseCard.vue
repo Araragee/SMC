@@ -30,7 +30,7 @@ const computedClasses = computed(() => {
 <template>
   <div :class="computedClasses">
     <!-- Liquid Glass Inner Glow -->
-    <div class="absolute inset-0 rounded-[24px] pointer-events-none border border-white/5 shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] z-0"></div>
+    <div class="absolute inset-0 rounded-[24px] pointer-events-none border border-black/[0.04] dark:border-white/5 shadow-[inset_1px_1px_0px_0px_rgba(0,0,0,0.05)] dark:shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] z-0"></div>
 
     <div class="relative z-10 w-full h-full p-8 flex flex-col gap-8">
       <!-- "Spacing-6 (2rem) of vertical white space to separate list items" -->

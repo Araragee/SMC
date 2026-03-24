@@ -170,13 +170,13 @@ function statusBadgeClass(status: string): string {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-white mb-2">Schedule</h1>
-        <p class="text-zinc-500 font-medium">Manage all sessions — approve, edit, and schedule.</p>
+        <h1 class="text-5xl font-black tracking-tight text-zinc-900 dark:text-white mb-2">Schedule</h1>
+        <p class="text-zinc-600 dark:text-zinc-500 font-medium">Manage all sessions — approve, edit, and schedule.</p>
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
           @click="showProposeModal = true"
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
           Schedule Session
@@ -198,8 +198,8 @@ function statusBadgeClass(status: string): string {
           >
         </div>
         <div>
-          <h3 class="text-lg font-black text-white">Pending Approvals</h3>
-          <p class="text-zinc-500 text-sm">
+          <h3 class="text-lg font-black text-zinc-900 dark:text-white">Pending Approvals</h3>
+          <p class="text-zinc-600 dark:text-zinc-500 text-sm">
             {{ pendingSessions.length }} session{{ pendingSessions.length !== 1 ? 's' : '' }}
             awaiting review
           </p>
@@ -231,13 +231,13 @@ function statusBadgeClass(status: string): string {
                 {{ session.status === 'pending_admin' ? 'Awaiting Admin' : 'Awaiting Teacher' }}
               </span>
             </div>
-            <p class="text-white font-bold text-sm">
+            <p class="text-zinc-900 dark:text-white font-bold text-sm">
               {{ formatDateTime(session.startTime) }}
             </p>
-            <p class="text-zinc-500 text-xs mt-0.5">
+            <p class="text-zinc-600 dark:text-zinc-500 text-xs mt-0.5">
               {{ getUserName(session.teacherId) }} &rarr; {{ getUserName(session.studentId) }}
             </p>
-            <p v-if="session.notes" class="text-zinc-600 text-xs mt-1 italic">
+            <p v-if="session.notes" class="text-zinc-500 dark:text-zinc-600 text-xs mt-1 italic">
               {{ session.notes }}
             </p>
           </div>
@@ -266,9 +266,9 @@ function statusBadgeClass(status: string): string {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-white flex items-center gap-3">
+        <h3 class="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
           <span
             class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
           >
@@ -298,18 +298,18 @@ function statusBadgeClass(status: string): string {
     </section>
 
     <!-- All Sessions Table -->
-    <section class="liquid-glass rounded-3xl p-4 border border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-white flex items-center gap-3">
-          <span class="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center">
-            <span class="material-symbols-outlined text-zinc-400">list_alt</span>
+        <h3 class="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center">
+            <span class="material-symbols-outlined text-zinc-500 dark:text-zinc-400">list_alt</span>
           </span>
           All Sessions
         </h3>
         <div class="flex items-center gap-3">
           <select
             v-model="filterStatus"
-            class="bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-zinc-300 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+            class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-2 text-zinc-300 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500/50"
           >
             <option value="" class="bg-zinc-900">All Statuses</option>
             <option value="scheduled" class="bg-zinc-900">Confirmed</option>
@@ -325,12 +325,12 @@ function statusBadgeClass(status: string): string {
         <div
           v-for="session in filteredSessions"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-white/10 transition-all"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] hover:bg-white/5 border border-black/[0.04] dark:border-white/5 hover:border-white/10 transition-all"
         >
           <div class="w-1 h-10 rounded-full shrink-0" :class="statusBarClass(session.status)"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-white font-bold text-sm">{{ formatDateTime(session.startTime) }}</p>
-            <p class="text-zinc-500 text-xs">
+            <p class="text-zinc-900 dark:text-white font-bold text-sm">{{ formatDateTime(session.startTime) }}</p>
+            <p class="text-zinc-600 dark:text-zinc-500 text-xs">
               {{ getUserName(session.teacherId) }} &rarr; {{ getUserName(session.studentId) }}
             </p>
           </div>
@@ -359,14 +359,14 @@ function statusBadgeClass(status: string): string {
             </button>
             <button
               @click="openEdit(session)"
-              class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all"
+              class="p-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
               title="Edit"
             >
               <span class="material-symbols-outlined text-sm">edit</span>
             </button>
           </div>
         </div>
-        <div v-if="filteredSessions.length === 0" class="text-center py-8 text-zinc-600">
+        <div v-if="filteredSessions.length === 0" class="text-center py-8 text-zinc-500 dark:text-zinc-600">
           No sessions found
         </div>
       </div>
@@ -388,18 +388,18 @@ function statusBadgeClass(status: string): string {
           @click.self="rejectModal.open = false"
         >
           <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
             @click="rejectModal.open = false"
           />
           <div
-            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-white/10 p-6 space-y-4"
+            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
-            <h3 class="text-lg font-black text-white">Reject Session</h3>
+            <h3 class="text-lg font-black text-zinc-900 dark:text-white">Reject Session</h3>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
               placeholder="Reason for rejection (optional)..."
-              class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
             />
             <div class="flex gap-3">
               <button
@@ -410,7 +410,7 @@ function statusBadgeClass(status: string): string {
               </button>
               <button
                 @click="rejectModal.open = false"
-                class="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 font-bold rounded-2xl text-sm transition-all"
+                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 font-bold rounded-2xl text-sm transition-all"
               >
                 Cancel
               </button>
@@ -436,17 +436,17 @@ function statusBadgeClass(status: string): string {
           @click.self="editModal.open = false"
         >
           <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
             @click="editModal.open = false"
           />
           <div
-            class="relative w-full max-w-md liquid-glass rounded-3xl border border-white/10 p-6 space-y-5"
+            class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-5"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-black text-white">Edit Session</h3>
+              <h3 class="text-lg font-black text-zinc-900 dark:text-white">Edit Session</h3>
               <button
                 @click="editModal.open = false"
-                class="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white"
+                class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white"
               >
                 <span class="material-symbols-outlined text-base">close</span>
               </button>
@@ -454,48 +454,48 @@ function statusBadgeClass(status: string): string {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
-                  class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2"
+                  class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2"
                   >Date</label
                 >
                 <input
                   type="date"
                   v-model="editModal.date"
-                  class="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
               <div>
                 <label
-                  class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2"
+                  class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2"
                   >Time</label
                 >
                 <input
                   type="time"
                   v-model="editModal.time"
-                  class="w-full bg-white/5 border border-white/10 rounded-2xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
             </div>
             <div>
               <label
-                class="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2"
+                class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2"
                 >Notes</label
               >
               <textarea
                 v-model="editModal.notes"
                 rows="2"
-                class="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
+                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
               />
             </div>
             <div class="flex gap-3">
               <button
                 @click="confirmEdit"
-                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl text-sm"
+                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl text-sm"
               >
                 Save Changes
               </button>
               <button
                 @click="editModal.open = false"
-                class="px-5 py-3 bg-white/5 border border-white/10 text-zinc-400 font-bold rounded-2xl text-sm"
+                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 font-bold rounded-2xl text-sm"
               >
                 Cancel
               </button>
