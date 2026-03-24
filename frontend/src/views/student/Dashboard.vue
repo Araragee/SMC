@@ -161,7 +161,7 @@ async function handleGenericProofUpload() {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto pb-10">
+  <div class="w-full mx-auto pb-10">
     <!-- Hero Welcome -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>

@@ -43,25 +43,28 @@ const todaySessions = computed(() => {
 
 const currentSession = computed(() => {
   const now = new Date()
-  return mySessions.value.find((s) => {
-    if (s.status !== 'scheduled' || !s.startTime || !s.endTime) return false
-    const start = new Date(s.startTime)
-    const end = new Date(s.endTime)
-    return start <= now && now < end
-  }) ?? null
+  return (
+    mySessions.value.find((s) => {
+      if (s.status !== 'scheduled' || !s.startTime || !s.endTime) return false
+      const start = new Date(s.startTime)
+      const end = new Date(s.endTime)
+      return start <= now && now < end
+    }) ?? null
+  )
 })
 
-const nextSession = computed(
-  () => {
-    const now = new Date()
-    return mySessions.value
+const nextSession = computed(() => {
+  const now = new Date()
+  return (
+    mySessions.value
       .filter((s) => s.status === 'scheduled' && s.startTime && new Date(s.startTime) > now)
-      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ?? null
-  }
-)
+      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
+    null
+  )
+})
 
 function getStudentName(studentId: string) {
-  return usersStore.users.find(u => u.id === studentId)?.name || `Student #${studentId}`
+  return usersStore.users.find((u) => u.id === studentId)?.name || `Student #${studentId}`
 }
 
 function openSessionModal(session: Session) {
@@ -140,8 +143,8 @@ const weekDays = computed(() => {
   })
 })
 
-const pendingProposals = computed(() =>
-  mySessions.value.filter(s => s.status === 'pending_teacher').length
+const pendingProposals = computed(
+  () => mySessions.value.filter((s) => s.status === 'pending_teacher').length
 )
 
 const formatTime = (dt: string | undefined) => {
@@ -155,7 +158,7 @@ const formatTime = (dt: string | undefined) => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto pb-10">
+  <div class="w-full mx-auto pb-10">
     <!-- Hero Header -->
     <section class="mb-8">
       <h1 class="text-5xl font-black tracking-tight text-white mb-3">
@@ -180,15 +183,26 @@ const formatTime = (dt: string | undefined) => {
             <div class="absolute right-2 -top-1 w-3 h-3 bg-white rounded-full"></div>
           </div>
           <div class="p-5 flex-1 flex flex-col justify-center">
-            <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+            <p
+              class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 flex items-center gap-2"
+            >
               LIVE NOW
             </p>
-            <h3 class="text-xl font-black text-white mb-1 truncate">Session #{{ currentSession.id }}</h3>
-            <p class="text-sm text-zinc-400 truncate">{{ getStudentName(currentSession.studentId) }}</p>
-            <p class="text-xs text-white/50 mt-2">{{ formatTime(currentSession.startTime) }} - {{ formatTime(currentSession.endTime) }}</p>
+            <h3 class="text-xl font-black text-white mb-1 truncate">
+              Session #{{ currentSession.id }}
+            </h3>
+            <p class="text-sm text-zinc-400 truncate">
+              {{ getStudentName(currentSession.studentId) }}
+            </p>
+            <p class="text-xs text-white/50 mt-2">
+              {{ formatTime(currentSession.startTime) }} - {{ formatTime(currentSession.endTime) }}
+            </p>
           </div>
         </div>
-        <div v-else class="liquid-glass border border-white/5 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70">
+        <div
+          v-else
+          class="liquid-glass border border-white/5 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70"
+        >
           <span class="material-symbols-outlined text-3xl text-zinc-600 mb-2">hotel_class</span>
           <p class="text-sm font-bold text-zinc-500 uppercase tracking-wider">No Active Session</p>
         </div>
@@ -199,12 +213,21 @@ const formatTime = (dt: string | undefined) => {
           class="liquid-glass border border-white/5 border-l-[6px] border-l-white/20 rounded-3xl p-5 cursor-pointer hover:bg-white/5 transition-all flex flex-col justify-center group"
           @click="openSessionModal(nextSession)"
         >
-          <p class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-zinc-400 transition-colors">Next Up</p>
+          <p
+            class="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-zinc-400 transition-colors"
+          >
+            Next Up
+          </p>
           <h3 class="text-xl font-black text-white mb-1 truncate">Session #{{ nextSession.id }}</h3>
           <p class="text-sm text-zinc-400 truncate">{{ getStudentName(nextSession.studentId) }}</p>
-          <p class="text-xs text-orange-400 mt-2 font-bold">{{ formatTime(nextSession.startTime) }}</p>
+          <p class="text-xs text-orange-400 mt-2 font-bold">
+            {{ formatTime(nextSession.startTime) }}
+          </p>
         </div>
-        <div v-else class="liquid-glass border border-white/5 border-l-[6px] border-l-white/10 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70">
+        <div
+          v-else
+          class="liquid-glass border border-white/5 border-l-[6px] border-l-white/10 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70"
+        >
           <span class="material-symbols-outlined text-3xl text-zinc-600 mb-2">event_available</span>
           <p class="text-sm font-bold text-zinc-500 uppercase tracking-wider">Schedule Clear</p>
         </div>
@@ -292,11 +315,14 @@ const formatTime = (dt: string | undefined) => {
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-2xl font-black text-white flex items-center gap-3">
-                <span class="material-symbols-outlined text-orange-500 text-3xl">calendar_month</span>
+                <span class="material-symbols-outlined text-orange-500 text-3xl"
+                  >calendar_month</span
+                >
                 Weekly Schedule
               </h3>
               <p v-if="pendingProposals > 0" class="text-amber-400 text-sm font-bold mt-1">
-                {{ pendingProposals }} student proposal{{ pendingProposals !== 1 ? 's' : '' }} await your review
+                {{ pendingProposals }} student proposal{{ pendingProposals !== 1 ? 's' : '' }} await
+                your review
                 <RouterLink to="/teacher/schedule" class="underline ml-1">Review →</RouterLink>
               </p>
             </div>
@@ -307,46 +333,88 @@ const formatTime = (dt: string | undefined) => {
               <div class="text-center">
                 <p
                   class="text-xs font-black uppercase tracking-[0.2em]"
-                  :class="day.isToday ? 'text-orange-500' : day.isWeekend ? 'text-zinc-600' : 'text-zinc-500'"
-                >{{ day.label }}</p>
+                  :class="
+                    day.isToday
+                      ? 'text-orange-500'
+                      : day.isWeekend
+                        ? 'text-zinc-600'
+                        : 'text-zinc-500'
+                  "
+                >
+                  {{ day.label }}
+                </p>
                 <div
                   class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black mx-auto mt-1"
-                  :class="day.isToday ? 'bg-gradient-to-br from-orange-500 to-orange-700 text-white' : 'text-zinc-500'"
-                >{{ day.dateNum }}</div>
+                  :class="
+                    day.isToday
+                      ? 'bg-gradient-to-br from-orange-500 to-orange-700 text-white'
+                      : 'text-zinc-500'
+                  "
+                >
+                  {{ day.dateNum }}
+                </div>
               </div>
               <!-- Has session -->
               <div
                 v-if="day.session"
                 class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between"
-                :class="day.session.status === 'scheduled' ? 'bg-orange-500/10 border-orange-500' :
-                        day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' :
-                        day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' :
-                        'bg-white/5 border-white/20'"
+                :class="
+                  day.session.status === 'scheduled'
+                    ? 'bg-orange-500/10 border-orange-500'
+                    : day.session.status === 'pending_admin'
+                      ? 'bg-blue-500/10 border-blue-500'
+                      : day.session.status === 'pending_teacher'
+                        ? 'bg-amber-500/10 border-amber-500'
+                        : 'bg-white/5 border-white/20'
+                "
               >
-                <p class="text-[10px] font-black text-orange-500 mb-1">{{ formatTime(day.session.startTime) }}</p>
-                <p class="text-xs font-bold text-white truncate">S#{{ day.session.studentId.slice(-4) }}</p>
+                <p class="text-[10px] font-black text-orange-500 mb-1">
+                  {{ formatTime(day.session.startTime) }}
+                </p>
+                <p class="text-xs font-bold text-white truncate">
+                  S#{{ day.session.studentId.slice(-4) }}
+                </p>
                 <p
                   class="text-[9px] font-bold mt-0.5"
-                  :class="day.session.status === 'pending_admin' ? 'text-blue-400' :
-                          day.session.status === 'pending_teacher' ? 'text-amber-400' : 'text-zinc-500'"
-                >{{ day.session.status === 'pending_admin' ? 'Pending Admin' : day.session.status === 'pending_teacher' ? 'Pending Review' : 'Confirmed' }}</p>
+                  :class="
+                    day.session.status === 'pending_admin'
+                      ? 'text-blue-400'
+                      : day.session.status === 'pending_teacher'
+                        ? 'text-amber-400'
+                        : 'text-zinc-500'
+                  "
+                >
+                  {{
+                    day.session.status === 'pending_admin'
+                      ? 'Pending Admin'
+                      : day.session.status === 'pending_teacher'
+                        ? 'Pending Review'
+                        : 'Confirmed'
+                  }}
+                </p>
               </div>
               <!-- Empty slot -->
               <div
                 v-else
                 class="h-32 border border-dashed rounded-2xl flex items-center justify-center"
-                :class="day.isWeekend ? 'border-white/[0.03] bg-white/[0.01]' : 'border-white/5 bg-black/20'"
+                :class="
+                  day.isWeekend
+                    ? 'border-white/[0.03] bg-white/[0.01]'
+                    : 'border-white/5 bg-black/20'
+                "
               >
                 <span class="material-symbols-outlined text-zinc-800 text-base">add</span>
               </div>
             </div>
           </div>
-          <RouterLink to="/teacher/schedule" class="block text-center text-xs text-zinc-600 hover:text-orange-500 transition-colors font-bold">
+          <RouterLink
+            to="/teacher/schedule"
+            class="block text-center text-xs text-zinc-600 hover:text-orange-500 transition-colors font-bold"
+          >
             View Full Schedule →
           </RouterLink>
         </div>
       </div>
-
     </div>
 
     <!-- Footer Stats -->
@@ -370,9 +438,7 @@ const formatTime = (dt: string | undefined) => {
         <div
           class="w-20 h-20 rounded-3xl bg-orange-500/20 text-orange-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
         >
-          <span
-            class="material-symbols-outlined text-4xl"
-            style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1"
             >star</span
           >
         </div>
@@ -387,9 +453,7 @@ const formatTime = (dt: string | undefined) => {
         <div
           class="w-20 h-20 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
         >
-          <span
-            class="material-symbols-outlined text-4xl"
-            style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1"
             >analytics</span
           >
         </div>
@@ -403,7 +467,14 @@ const formatTime = (dt: string | undefined) => {
 
   <!-- Session Detail Modal (Teacher) -->
   <Teleport to="body">
-    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
+    <Transition
+      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="expandedSession"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -412,23 +483,26 @@ const formatTime = (dt: string | undefined) => {
         aria-labelledby="teacher-session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div
-          class="absolute inset-0 bg-black/70 backdrop-blur-sm"
-          @click="closeSessionModal"
-        />
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-lg bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
         >
           <!-- Header -->
           <div class="flex items-start justify-between">
             <div>
-              <h3 id="teacher-session-modal-title" class="text-2xl font-black text-white leading-tight">
+              <h3
+                id="teacher-session-modal-title"
+                class="text-2xl font-black text-white leading-tight"
+              >
                 Session #{{ expandedSession.id }}
               </h3>
               <p class="text-zinc-400 text-sm mt-1">
-                {{ formatTime(expandedSession.startTime) }} - {{ formatTime(expandedSession.endTime) }}
+                {{ formatTime(expandedSession.startTime) }} -
+                {{ formatTime(expandedSession.endTime) }}
               </p>
-              <p class="text-white font-bold mt-1">Student: {{ getStudentName(expandedSession.studentId) }}</p>
+              <p class="text-white font-bold mt-1">
+                Student: {{ getStudentName(expandedSession.studentId) }}
+              </p>
             </div>
             <button
               class="text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-white/5 border border-white/5"
@@ -441,22 +515,49 @@ const formatTime = (dt: string | undefined) => {
 
           <!-- Proof Section -->
           <div class="space-y-3">
-            <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Visual Evidence</label>
-            <div v-if="expandedSession.imageProofUrl" class="relative group rounded-2xl overflow-hidden border border-white/10">
-              <img :src="expandedSession.imageProofUrl" class="w-full h-auto object-cover max-h-48" />
-              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <label class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors">
+            <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+              >Visual Evidence</label
+            >
+            <div
+              v-if="expandedSession.imageProofUrl"
+              class="relative group rounded-2xl overflow-hidden border border-white/10"
+            >
+              <img
+                :src="expandedSession.imageProofUrl"
+                class="w-full h-auto object-cover max-h-48"
+              />
+              <div
+                class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              >
+                <label
+                  class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors"
+                >
                   Replace Image
-                  <input type="file" accept="image/*" class="hidden" @change="handleStagedProofUpload" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleStagedProofUpload"
+                  />
                 </label>
               </div>
             </div>
-            <div v-else-if="stagedProofUrl" class="relative rounded-2xl overflow-hidden border border-orange-500/50">
+            <div
+              v-else-if="stagedProofUrl"
+              class="relative rounded-2xl overflow-hidden border border-orange-500/50"
+            >
               <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
               <div class="absolute top-2 right-2 flex gap-2">
-                <label class="px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors border border-white/20">
+                <label
+                  class="px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors border border-white/20"
+                >
                   Change
-                  <input type="file" accept="image/*" class="hidden" @change="handleStagedProofUpload" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleStagedProofUpload"
+                  />
                 </label>
               </div>
             </div>
@@ -465,18 +566,34 @@ const formatTime = (dt: string | undefined) => {
               class="block aspect-video bg-black/40 rounded-3xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 hover:border-orange-500/50 transition-all group overflow-hidden relative"
             >
               <div class="text-center group-hover:scale-105 transition-transform">
-                <div class="w-14 h-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span class="material-symbols-outlined text-3xl text-orange-500" style="font-variation-settings: 'FILL' 1">add_a_photo</span>
+                <div
+                  class="w-14 h-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3"
+                >
+                  <span
+                    class="material-symbols-outlined text-3xl text-orange-500"
+                    style="font-variation-settings: 'FILL' 1"
+                    >add_a_photo</span
+                  >
                 </div>
-                <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wide">Take Photo or Upload</p>
+                <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wide">
+                  Take Photo or Upload
+                </p>
               </div>
-              <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" aria-label="Upload session proof" @change="handleStagedProofUpload" />
+              <input
+                type="file"
+                accept="image/*"
+                class="absolute inset-0 opacity-0 cursor-pointer"
+                aria-label="Upload session proof"
+                @change="handleStagedProofUpload"
+              />
             </label>
           </div>
 
           <!-- Practice Goals -->
           <div class="space-y-3">
-            <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Practice Goals / Notes</label>
+            <label class="text-[10px] font-black text-zinc-500 uppercase tracking-widest"
+              >Practice Goals / Notes</label
+            >
             <textarea
               v-model="practiceGoalsText"
               class="w-full h-32 bg-black/40 border border-white/5 rounded-3xl focus:ring-2 focus:ring-orange-500/40 text-sm p-5 text-white placeholder-zinc-600 resize-none transition-all"
