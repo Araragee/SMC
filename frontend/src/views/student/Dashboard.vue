@@ -141,7 +141,7 @@ function handleGenericProofSelection(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   proofPreviewFile.value = input.files[0]
-  proofPreviewUrl.value = URL.createObjectURL(proofPreviewFile.value)
+  proofPreviewUrl.value = window.URL.createObjectURL(proofPreviewFile.value)
 }
 
 async function handleGenericProofUpload() {
