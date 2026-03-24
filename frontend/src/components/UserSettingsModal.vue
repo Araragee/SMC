@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { reactive, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import BaseInput from './BaseInput.vue'
 import { useRouter } from 'vue-router'
