@@ -1,6 +1,81 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Notification } from '../types'
+import { useNotificationStore } from '../stores/notification'
+import { useAuthStore } from '../stores/auth'
+
+const props = defineProps<{
+  isOpen: boolean
+  notifications: Notification[]
+}>()
+
+const emit = defineEmits<{
+  close: []
+  select: [notification: Notification]
+}>()
+
+const notifStore = useNotificationStore()
+const authStore = useAuthStore()
+
+const sortedNotifications = computed(() => {
+  return [...props.notifications].sort((a, b) => {
+    // Unread first, then by date desc
+    if (a.isRead !== b.isRead) return a.isRead ? 1 : -1
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+})
+
+const unreadCount = computed(() => props.notifications.filter(n => !n.isRead).length)
+
+function typeClasses(type: string) {
+  const map: Record<string, string> = {
+    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
+    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    error: 'bg-red-500/10 border-red-500/20 text-red-400',
+  }
+  return map[type] || map.info
+}
+
+function typeIcon(type: string) {
+  const map: Record<string, string> = {
+    info: 'info',
+    success: 'check_circle',
+    warning: 'warning',
+    error: 'error',
+  }
+  return map[type] || 'notifications'
+}
+
+function formatTime(iso: string) {
+  const date = new Date(iso)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+
+  if (diff < 60000) return 'Just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function handleNotifClick(notif: Notification) {
+  if (!notif.isRead) {
+    notifStore.markAsRead(notif.id)
+  }
+  emit('select', notif)
+}
+
+function markAllAsRead() {
+  if (authStore.currentUser?.id) {
+    notifStore.markAllAsRead(authStore.currentUser.id)
+  }
+}
+</script>
+
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
         v-if="isOpen"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -100,109 +175,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-import type { Notification } from '../types'
-import { useNotificationStore } from '../stores/notification'
-import { useAuthStore } from '../stores/auth'
-
-const props = defineProps<{
-  isOpen: boolean
-  notifications: Notification[]
-}>()
-
-const emit = defineEmits<{
-  close: []
-  select: [notification: Notification]
-}>()
-
-const notifStore = useNotificationStore()
-const authStore = useAuthStore()
-
-const sortedNotifications = computed(() => {
-  return [...props.notifications].sort((a, b) => {
-    // Unread first, then by date desc
-    if (a.isRead !== b.isRead) return a.isRead ? 1 : -1
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  })
-})
-
-const unreadCount = computed(() => props.notifications.filter(n => !n.isRead).length)
-
-function typeClasses(type: string) {
-  const map: Record<string, string> = {
-    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    error: 'bg-red-500/10 border-red-500/20 text-red-400',
-  }
-  return map[type] || map.info
-}
-
-function typeIcon(type: string) {
-  const map: Record<string, string> = {
-    info: 'info',
-    success: 'check_circle',
-    warning: 'warning',
-    error: 'error',
-  }
-  return map[type] || 'notifications'
-}
-
-function formatTime(iso: string) {
-  const date = new Date(iso)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  
-  if (diff < 60000) return 'Just now'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-  
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-function handleNotifClick(notif: Notification) {
-  if (!notif.isRead) {
-    notifStore.markAsRead(notif.id)
-  }
-  emit('select', notif)
-}
-
-function markAllAsRead() {
-  if (authStore.currentUser?.id) {
-    notifStore.markAllAsRead(authStore.currentUser.id)
-  }
-}
-</script>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-enter-active .relative,
-.modal-leave-active .relative {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-enter-from .relative {
-  transform: scale(0.9) translateY(20px);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-</style>

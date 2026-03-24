@@ -1,14 +1,32 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
+const email = ref('')
+const password = ref('')
+
+const handleLogin = async () => {
+    await authStore.login(email.value, password.value)
+    if (authStore.isAuthenticated && authStore.user) {
+        router.push(`/${authStore.user.role || 'student'}`)
+    }
+}
+</script>
+
 <template>
-  <main class="relative z-10 w-full max-w-[1200px] px-6 py-12 flex flex-col items-center justify-center lg:flex-row gap-16">
+  <main class="relative z-10 w-full max-w-[1200px] px-6 py-12 flex flex-col items-center justify-center lg:flex-row gap-8 lg:gap-16 sm:px-8 md:px-12">
     <div class="w-full lg:w-1/2 space-y-8 text-center lg:text-left">
       <div class="inline-flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tertiary_container flex items-center justify-center inner-glow-top-left">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tertiary_container flex items-center justify-center shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)]">
           <span class="material-symbols-outlined text-on_primary_container" style="font-variation-settings: 'FILL' 1;">music_note</span>
         </div>
         <span class="text-2xl font-black tracking-tighter text-white uppercase font-sans">Sernan's Music Clinic</span>
       </div>
       <div class="space-y-4">
-        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] text-on_surface font-sans">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-on_surface font-sans">
           Welcome back, <br/>
           <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-tertiary_container">Maestro.</span>
         </h1>
@@ -20,7 +38,7 @@
     <div class="w-full max-w-md">
       <div class="relative group">
         <div class="absolute -inset-1 bg-gradient-to-br from-primary/20 to-transparent blur-2xl opacity-50"></div>
-        <div class="relative bg-surface-container-low/40 backdrop-blur-3xl p-10 rounded-xl inner-glow-top-left border border-white/5 space-y-8">
+        <div class="relative bg-surface-container-low/40 backdrop-blur-3xl p-6 sm:p-8 md:p-10 rounded-xl shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] border border-white/5 space-y-8">
           <form class="space-y-6" @submit.prevent="handleLogin">
             <div class="space-y-4">
               <div class="space-y-2">
@@ -43,26 +61,3 @@
   </main>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-
-const router = useRouter()
-const authStore = useAuthStore()
-const email = ref('')
-const password = ref('')
-
-const handleLogin = async () => {
-    await authStore.login(email.value, password.value)
-    if (authStore.isAuthenticated && authStore.user) {
-        router.push(`/${authStore.user.role || 'student'}`)
-    }
-}
-</script>
-
-<style scoped>
-.inner-glow-top-left {
-  box-shadow: inset 1px 1px 0px 0px rgba(255, 255, 255, 0.15);
-}
-</style>

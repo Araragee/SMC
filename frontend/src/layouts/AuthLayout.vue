@@ -1,3 +1,6 @@
+<script setup lang="ts">
+</script>
+
 <template>
   <div class="cosmic-void text-on-surface antialiased min-h-screen selection:bg-primary/30 flex items-center justify-center">
     <!-- Background Decorative Elements -->
@@ -6,6 +9,3 @@
     <RouterView />
   </div>
 </template>
-
-<script setup lang="ts">
-</script>

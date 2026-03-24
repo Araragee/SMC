@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import FloatingNavbar from '../components/FloatingNavbar.vue'
+import TopNavbar from '../components/TopNavbar.vue'
+</script>
+
 <template>
   <div class="cosmic-void antialiased min-h-screen selection:bg-primary/30 bg-[#0e0e0e] font-sans text-white">
     <div class="fixed top-1/4 -left-20 w-96 h-96 bg-primary/10 blur-[128px] rounded-full -z-10 pointer-events-none" />
@@ -11,8 +16,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import FloatingNavbar from '../components/FloatingNavbar.vue'
-import TopNavbar from '../components/TopNavbar.vue'
-</script>

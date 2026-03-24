@@ -1,6 +1,95 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Session, User } from '../types'
+
+const props = defineProps<{
+  date: Date | null
+  sessions: Session[]
+  userRole: 'admin' | 'teacher' | 'student'
+  currentUserId: string
+  users: User[]
+}>()
+
+defineEmits<{
+  close: []
+  propose: []
+  'approve-teacher': [sessionId: string]
+  'reject-teacher': [sessionId: string]
+  'approve-admin': [sessionId: string]
+  'reject-admin': [sessionId: string]
+  'edit-admin': [session: Session]
+}>()
+
+const formattedDate = computed(() => {
+  if (!props.date) return ''
+  return props.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+})
+
+function getTeacherName(teacherId: string): string {
+  return props.users.find(u => u.id === teacherId)?.name ?? `Teacher #${teacherId}`
+}
+
+function getStudentName(studentId: string): string {
+  return props.users.find(u => u.id === studentId)?.name ?? `Student #${studentId}`
+}
+
+function formatTime(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    scheduled: 'Confirmed',
+    completed: 'Completed',
+    pending_teacher: 'Awaiting Teacher',
+    pending_admin: 'Awaiting Admin',
+    rejected: 'Declined',
+    cancelled: 'Cancelled',
+  }
+  return map[status] ?? status
+}
+
+function sessionCardBg(status: string): string {
+  const map: Record<string, string> = {
+    scheduled:       'bg-orange-500/5 border-orange-500/20',
+    completed:       'bg-emerald-500/5 border-emerald-500/20',
+    pending_teacher: 'bg-amber-500/5 border-amber-500/20',
+    pending_admin:   'bg-blue-500/5 border-blue-500/20',
+    rejected:        'bg-red-500/5 border-red-500/20',
+    cancelled:       'bg-zinc-500/5 border-zinc-500/20',
+  }
+  return map[status] ?? 'bg-white/5 border-white/10'
+}
+
+function statusBadgeClass(status: string): string {
+  const map: Record<string, string> = {
+    scheduled:       'bg-orange-500/20 border-orange-500/40 text-orange-400',
+    completed:       'bg-emerald-500/20 border-emerald-500/40 text-emerald-400',
+    pending_teacher: 'bg-amber-500/20 border-amber-500/40 text-amber-400',
+    pending_admin:   'bg-blue-500/20 border-blue-500/40 text-blue-400',
+    rejected:        'bg-red-500/20 border-red-500/40 text-red-400',
+    cancelled:       'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',
+  }
+  return map[status] ?? 'bg-white/10 border-white/20 text-zinc-400'
+}
+
+function statusDotClass(status: string): string {
+  const map: Record<string, string> = {
+    scheduled:       'bg-orange-400',
+    completed:       'bg-emerald-400',
+    pending_teacher: 'bg-amber-400',
+    pending_admin:   'bg-blue-400',
+    rejected:        'bg-red-400',
+    cancelled:       'bg-zinc-400',
+  }
+  return map[status] ?? 'bg-zinc-400'
+}
+</script>
+
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
         v-if="date"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -159,109 +248,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-import type { Session, User } from '../types'
-
-const props = defineProps<{
-  date: Date | null
-  sessions: Session[]
-  userRole: 'admin' | 'teacher' | 'student'
-  currentUserId: string
-  users: User[]
-}>()
-
-defineEmits<{
-  close: []
-  propose: []
-  'approve-teacher': [sessionId: string]
-  'reject-teacher': [sessionId: string]
-  'approve-admin': [sessionId: string]
-  'reject-admin': [sessionId: string]
-  'edit-admin': [session: Session]
-}>()
-
-const formattedDate = computed(() => {
-  if (!props.date) return ''
-  return props.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-})
-
-function getTeacherName(teacherId: string): string {
-  return props.users.find(u => u.id === teacherId)?.name ?? `Teacher #${teacherId}`
-}
-
-function getStudentName(studentId: string): string {
-  return props.users.find(u => u.id === studentId)?.name ?? `Student #${studentId}`
-}
-
-function formatTime(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-}
-
-function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    scheduled: 'Confirmed',
-    completed: 'Completed',
-    pending_teacher: 'Awaiting Teacher',
-    pending_admin: 'Awaiting Admin',
-    rejected: 'Declined',
-    cancelled: 'Cancelled',
-  }
-  return map[status] ?? status
-}
-
-function sessionCardBg(status: string): string {
-  const map: Record<string, string> = {
-    scheduled:       'bg-orange-500/5 border-orange-500/20',
-    completed:       'bg-emerald-500/5 border-emerald-500/20',
-    pending_teacher: 'bg-amber-500/5 border-amber-500/20',
-    pending_admin:   'bg-blue-500/5 border-blue-500/20',
-    rejected:        'bg-red-500/5 border-red-500/20',
-    cancelled:       'bg-zinc-500/5 border-zinc-500/20',
-  }
-  return map[status] ?? 'bg-white/5 border-white/10'
-}
-
-function statusBadgeClass(status: string): string {
-  const map: Record<string, string> = {
-    scheduled:       'bg-orange-500/20 border-orange-500/40 text-orange-400',
-    completed:       'bg-emerald-500/20 border-emerald-500/40 text-emerald-400',
-    pending_teacher: 'bg-amber-500/20 border-amber-500/40 text-amber-400',
-    pending_admin:   'bg-blue-500/20 border-blue-500/40 text-blue-400',
-    rejected:        'bg-red-500/20 border-red-500/40 text-red-400',
-    cancelled:       'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',
-  }
-  return map[status] ?? 'bg-white/10 border-white/20 text-zinc-400'
-}
-
-function statusDotClass(status: string): string {
-  const map: Record<string, string> = {
-    scheduled:       'bg-orange-400',
-    completed:       'bg-emerald-400',
-    pending_teacher: 'bg-amber-400',
-    pending_admin:   'bg-blue-400',
-    rejected:        'bg-red-400',
-    cancelled:       'bg-zinc-400',
-  }
-  return map[status] ?? 'bg-zinc-400'
-}
-</script>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-enter-active .relative,
-.modal-leave-active .relative {
-  transition: transform 0.2s ease;
-}
-.modal-enter-from .relative {
-  transform: scale(0.95) translateY(10px);
-}
-</style>

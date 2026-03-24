@@ -1,3 +1,127 @@
+<script setup lang="ts">
+import { onMounted, computed, ref, reactive } from 'vue'
+import { useScheduleStore } from '../../stores/schedule'
+import { useUsersStore } from '../../stores/users'
+import { useAuthStore } from '../../stores/auth'
+import { useNotificationStore } from '../../stores/notification'
+import { useToastStore } from '../../stores/toast'
+
+const scheduleStore = useScheduleStore()
+const usersStore = useUsersStore()
+const authStore = useAuthStore()
+const notifStore = useNotificationStore()
+const toast = useToastStore()
+
+const showAddSessionModal = ref(false)
+const quickTeacherId = ref('')
+const quickStudentId = ref('')
+const isQuickAssigning = ref(false)
+const form = reactive({ teacherId: '', studentId: '', startTime: '' })
+
+onMounted(async () => {
+  await Promise.all([
+    scheduleStore.fetchAllSessions(),
+    scheduleStore.fetchPendingSessions(),
+    usersStore.fetchUsersByRole('teacher'),
+    usersStore.fetchUsersByRole('student'),
+  ])
+  if (authStore.currentUser?.id) {
+    notifStore.fetchNotifications(authStore.currentUser.id)
+  }
+})
+
+const teachers = computed(() => usersStore.getUsersByRole('teacher'))
+const students = computed(() => usersStore.getUsersByRole('student'))
+
+const stats = computed(() => {
+  const sessions = scheduleStore.allSessions
+  const completed = sessions.filter((s) => s.status === 'completed').length
+  const rate = sessions.length ? Math.round((completed / sessions.length) * 100) : 0
+  return {
+    totalSessions: sessions.length,
+    scheduledSessions: sessions.filter((s) => s.status === 'scheduled').length,
+    completedSessions: completed,
+    completionRate: rate,
+  }
+})
+
+const formatTime = (dt: string | undefined) => {
+  if (!dt) return '—'
+  return new Date(dt).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+const formatAmPm = (dt: string | undefined) => {
+  if (!dt) return ''
+  return new Date(dt).toLocaleTimeString('en-US', { hour12: true }).slice(-2)
+}
+
+const statusClass = (status: string) => ({
+  'bg-emerald-500/20 text-emerald-400': status === 'completed',
+  'bg-blue-500/20 text-blue-400': status === 'scheduled',
+  'bg-amber-500/20 text-amber-400': status === 'ongoing',
+  'bg-red-500/20 text-red-400': status === 'cancelled',
+})
+
+const borderColor = (status: string) => ({
+  'border-l-emerald-500': status === 'completed',
+  'border-l-orange-500': status === 'scheduled',
+  'border-l-amber-500': status === 'ongoing',
+  'border-l-red-500': status === 'cancelled',
+})
+
+const iconClass = (status: string) => ({
+  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
+  'bg-orange-500/10 text-orange-400 border-orange-500/20': status === 'scheduled',
+  'bg-amber-500/10 text-amber-400 border-amber-500/20': status === 'ongoing',
+  'bg-red-500/10 text-red-400 border-red-500/20': status === 'cancelled',
+})
+
+async function createAdminSession() {
+  if (!form.teacherId || !form.studentId || !form.startTime) return
+  try {
+    const start = new Date(form.startTime)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    await scheduleStore.bookSession({
+      teacherId: form.teacherId,
+      studentId: form.studentId,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    })
+    toast.success('Session scheduled!', 'The session has been added to the calendar.')
+    showAddSessionModal.value = false
+    Object.assign(form, { teacherId: '', studentId: '', startTime: '' })
+  } catch {
+    toast.error('Failed to schedule', 'Please check the details and try again.')
+  }
+}
+
+async function confirmQuickAssign() {
+  if (!quickTeacherId.value || !quickStudentId.value) return
+  isQuickAssigning.value = true
+  try {
+    const now = new Date()
+    now.setMinutes(0, 0, 0)
+    now.setHours(now.getHours() + 1)
+    await scheduleStore.bookSession({
+      teacherId: quickTeacherId.value,
+      studentId: quickStudentId.value,
+      startTime: now.toISOString(),
+      endTime: new Date(now.getTime() + 3600000).toISOString(),
+    })
+    toast.success('Quick assign done!', 'Session scheduled for the next available hour.')
+    quickTeacherId.value = ''
+    quickStudentId.value = ''
+  } catch {
+    toast.error('Quick assign failed', 'Could not create the session.')
+  } finally {
+    isQuickAssigning.value = false
+  }
+}
+</script>
+
 <template>
   <div class="max-w-[80vw] mx-auto pb-28 space-y-4">
     <!-- Page Header -->
@@ -9,10 +133,10 @@
     </div>
 
     <!-- Bento Stats Grid -->
-    <section class="grid grid-cols-5 gap-6">
-      <!-- Live Analytics (col-span-2) -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <!-- Live Analytics (col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2) -->
       <div
-        class="col-span-2 liquid-glass p-4 rounded-3xl border border-white/5 flex flex-col justify-between"
+        class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 liquid-glass p-4 rounded-3xl border border-white/5 flex flex-col justify-between"
       >
         <div>
           <span class="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]"
@@ -129,9 +253,9 @@
     </section>
 
     <!-- Main Layout -->
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <!-- Left: Schedule + Faculty -->
-      <div class="col-span-2 space-y-4">
+      <div class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 space-y-4">
         <!-- Music Schedule -->
         <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <div class="flex items-center justify-between mb-8">
@@ -154,7 +278,7 @@
           </div>
 
           <!-- Column headers -->
-          <div class="grid grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-white/5 mb-4">
             <div class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] col-span-1">
               Time
             </div>
@@ -183,7 +307,7 @@
             <div
               v-for="session in scheduleStore.allSessions.slice(0, 5)"
               :key="session.id"
-              class="grid grid-cols-6 gap-4 group hover:bg-white/5 transition-all rounded-3xl p-2 -mx-2"
+              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 group hover:bg-white/5 transition-all rounded-3xl p-2 -mx-2"
             >
               <div class="col-span-1 flex flex-col justify-center">
                 <span class="text-sm font-black">{{ formatTime(session.startTime) }}</span>
@@ -225,7 +349,7 @@
             </div>
 
             <!-- Add slot -->
-            <div class="grid grid-cols-6 gap-4 p-2 -mx-2">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2 -mx-2">
               <div class="col-span-1"></div>
               <button
                 class="col-span-5 border-2 border-dashed border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-zinc-500 hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-white/[0.02] uppercase tracking-widest text-sm font-bold"
@@ -451,7 +575,7 @@
 
   <!-- Add Session Modal -->
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
       <div
         v-if="showAddSessionModal"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -549,137 +673,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import { onMounted, computed, ref, reactive } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-
-const scheduleStore = useScheduleStore()
-const usersStore = useUsersStore()
-const authStore = useAuthStore()
-const notifStore = useNotificationStore()
-const toast = useToastStore()
-
-const showAddSessionModal = ref(false)
-const quickTeacherId = ref('')
-const quickStudentId = ref('')
-const isQuickAssigning = ref(false)
-const form = reactive({ teacherId: '', studentId: '', startTime: '' })
-
-onMounted(async () => {
-  await Promise.all([
-    scheduleStore.fetchAllSessions(),
-    scheduleStore.fetchPendingSessions(),
-    usersStore.fetchUsersByRole('teacher'),
-    usersStore.fetchUsersByRole('student'),
-  ])
-  if (authStore.currentUser?.id) {
-    notifStore.fetchNotifications(authStore.currentUser.id)
-  }
-})
-
-const teachers = computed(() => usersStore.getUsersByRole('teacher'))
-const students = computed(() => usersStore.getUsersByRole('student'))
-
-const stats = computed(() => {
-  const sessions = scheduleStore.allSessions
-  const completed = sessions.filter((s) => s.status === 'completed').length
-  const rate = sessions.length ? Math.round((completed / sessions.length) * 100) : 0
-  return {
-    totalSessions: sessions.length,
-    scheduledSessions: sessions.filter((s) => s.status === 'scheduled').length,
-    completedSessions: completed,
-    completionRate: rate,
-  }
-})
-
-const formatTime = (dt: string | undefined) => {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-}
-const formatAmPm = (dt: string | undefined) => {
-  if (!dt) return ''
-  return new Date(dt).toLocaleTimeString('en-US', { hour12: true }).slice(-2)
-}
-
-const statusClass = (status: string) => ({
-  'bg-emerald-500/20 text-emerald-400': status === 'completed',
-  'bg-blue-500/20 text-blue-400': status === 'scheduled',
-  'bg-amber-500/20 text-amber-400': status === 'ongoing',
-  'bg-red-500/20 text-red-400': status === 'cancelled',
-})
-
-const borderColor = (status: string) => ({
-  'border-l-emerald-500': status === 'completed',
-  'border-l-orange-500': status === 'scheduled',
-  'border-l-amber-500': status === 'ongoing',
-  'border-l-red-500': status === 'cancelled',
-})
-
-const iconClass = (status: string) => ({
-  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
-  'bg-orange-500/10 text-orange-400 border-orange-500/20': status === 'scheduled',
-  'bg-amber-500/10 text-amber-400 border-amber-500/20': status === 'ongoing',
-  'bg-red-500/10 text-red-400 border-red-500/20': status === 'cancelled',
-})
-
-async function createAdminSession() {
-  if (!form.teacherId || !form.studentId || !form.startTime) return
-  try {
-    const start = new Date(form.startTime)
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
-    await scheduleStore.bookSession({
-      teacherId: form.teacherId,
-      studentId: form.studentId,
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
-    })
-    toast.success('Session scheduled!', 'The session has been added to the calendar.')
-    showAddSessionModal.value = false
-    Object.assign(form, { teacherId: '', studentId: '', startTime: '' })
-  } catch {
-    toast.error('Failed to schedule', 'Please check the details and try again.')
-  }
-}
-
-async function confirmQuickAssign() {
-  if (!quickTeacherId.value || !quickStudentId.value) return
-  isQuickAssigning.value = true
-  try {
-    const now = new Date()
-    now.setMinutes(0, 0, 0)
-    now.setHours(now.getHours() + 1)
-    await scheduleStore.bookSession({
-      teacherId: quickTeacherId.value,
-      studentId: quickStudentId.value,
-      startTime: now.toISOString(),
-      endTime: new Date(now.getTime() + 3600000).toISOString(),
-    })
-    toast.success('Quick assign done!', 'Session scheduled for the next available hour.')
-    quickTeacherId.value = ''
-    quickStudentId.value = ''
-  } catch {
-    toast.error('Quick assign failed', 'Could not create the session.')
-  } finally {
-    isQuickAssigning.value = false
-  }
-}
-</script>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-</style>

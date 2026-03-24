@@ -1,6 +1,74 @@
+<script setup lang="ts">
+import type { Notification } from '../types'
+
+defineProps<{
+  notification: Notification | null
+}>()
+
+defineEmits<{
+  close: []
+}>()
+
+function typeClasses(type: string) {
+  const map: Record<string, string> = {
+    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
+    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    error: 'bg-red-500/10 border-red-500/20 text-red-400',
+  }
+  return map[type] || map.info
+}
+
+function typeGradient(type: string) {
+  const map: Record<string, string> = {
+    info: 'bg-gradient-to-r from-blue-600 to-indigo-600',
+    success: 'bg-gradient-to-r from-emerald-600 to-teal-600',
+    warning: 'bg-gradient-to-r from-amber-600 to-orange-600',
+    error: 'bg-gradient-to-r from-red-600 to-rose-600',
+  }
+  return map[type] || map.info
+}
+
+function typeIcon(type: string) {
+  const map: Record<string, string> = {
+    info: 'info',
+    success: 'check_circle',
+    warning: 'warning',
+    error: 'error',
+  }
+  return map[type] || 'notifications'
+}
+
+function typeLabel(type: string) {
+  const map: Record<string, string> = {
+    info: 'Information',
+    success: 'Success',
+    warning: 'Attention Needed',
+    error: 'Alert',
+  }
+  return map[type] || 'Notification'
+}
+
+function formatFullDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+}
+</script>
+
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-300 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
         v-if="notification"
         class="fixed inset-0 z-[210] flex items-center justify-center p-4"
@@ -98,89 +166,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import type { Notification } from '../types'
-
-defineProps<{
-  notification: Notification | null
-}>()
-
-defineEmits<{
-  close: []
-}>()
-
-function typeClasses(type: string) {
-  const map: Record<string, string> = {
-    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    error: 'bg-red-500/10 border-red-500/20 text-red-400',
-  }
-  return map[type] || map.info
-}
-
-function typeGradient(type: string) {
-  const map: Record<string, string> = {
-    info: 'bg-gradient-to-r from-blue-600 to-indigo-600',
-    success: 'bg-gradient-to-r from-emerald-600 to-teal-600',
-    warning: 'bg-gradient-to-r from-amber-600 to-orange-600',
-    error: 'bg-gradient-to-r from-red-600 to-rose-600',
-  }
-  return map[type] || map.info
-}
-
-function typeIcon(type: string) {
-  const map: Record<string, string> = {
-    info: 'info',
-    success: 'check_circle',
-    warning: 'warning',
-    error: 'error',
-  }
-  return map[type] || 'notifications'
-}
-
-function typeLabel(type: string) {
-  const map: Record<string, string> = {
-    info: 'Information',
-    success: 'Success',
-    warning: 'Attention Needed',
-    error: 'Alert',
-  }
-  return map[type] || 'Notification'
-}
-
-function formatFullDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit' 
-  })
-}
-</script>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-enter-active .relative,
-.modal-leave-active .relative {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-enter-from .relative {
-  transform: scale(0.9) translateY(30px);
-  filter: blur(10px);
-}
-</style>

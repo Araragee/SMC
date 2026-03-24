@@ -1,5 +1,18 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const logout = () => {
+  authStore.logout()
+  router.push('/')
+}
+</script>
+
 <template>
-  <aside class="fixed left-0 top-0 w-64 flex flex-col p-4 gap-8 bg-surface-container-low/40 backdrop-blur-3xl rounded-3xl m-4 h-[calc(100vh-2rem)] z-50 inner-glow-white-10 shadow-2xl transition-all duration-300">
+  <aside class="hidden md:flex fixed left-0 top-0 w-64 flex flex-col p-4 gap-8 bg-surface-container-low/40 backdrop-blur-3xl rounded-3xl m-4 h-[calc(100vh-2rem)] z-50 shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.1)] shadow-2xl transition-all duration-300">
     <div class="flex items-center gap-3 px-2">
       <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40">
         <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">music_note</span>
@@ -51,16 +64,3 @@
     </div>
   </aside>
 </template>
-
-<script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const logout = () => {
-  authStore.logout()
-  router.push('/')
-}
-</script>

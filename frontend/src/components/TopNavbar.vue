@@ -1,6 +1,61 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { useNotificationStore } from '../stores/notification'
+import type { Notification } from '../types'
+import NotificationsModal from './NotificationsModal.vue'
+import NotificationDetailModal from './NotificationDetailModal.vue'
+import UserSettingsModal from './UserSettingsModal.vue'
+
+// Directive for clicking outside
+const vClickOutside = {
+  mounted(el: any, binding: any) {
+    el.clickOutsideEvent = (event: Event) => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event)
+      }
+    }
+    document.addEventListener('click', el.clickOutsideEvent)
+  },
+  unmounted(el: any) {
+    document.removeEventListener('click', el.clickOutsideEvent)
+  },
+}
+
+const router = useRouter()
+const authStore = useAuthStore()
+const notifStore = useNotificationStore()
+
+const isNotificationsOpen = ref(false)
+const isSettingsOpen = ref(false)
+const isUserDropdownOpen = ref(false)
+const selectedNotification = ref<Notification | null>(null)
+
+function openNotificationDetail(notification: Notification) {
+  selectedNotification.value = notification
+}
+
+const roleLabel = computed(() => {
+  const labels: Record<string, string> = {
+    admin: 'Admin',
+    teacher: 'Teacher',
+    student: 'Student',
+  }
+  return labels[authStore.userRole || ''] || authStore.userRole || ''
+})
+
+const unreadCount = computed(() => notifStore.unreadCount)
+
+const logout = () => {
+  authStore.logout()
+  router.push('/login')
+}
+</script>
+
 <template>
   <header
-    class="fixed top-8 right-8 z-[100] w-max px-6 h-16 bg-surface-container-low/40 backdrop-blur-3xl rounded-full inner-glow-white-10 shadow-2xl flex items-center gap-6 border border-white/5"
+    class="fixed top-8 right-4 sm:right-8 z-[100] w-[calc(100%-2rem)] sm:w-max px-4 sm:px-6 h-16 bg-surface-container-low/40 backdrop-blur-3xl rounded-full shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.1)] shadow-2xl flex items-center gap-3 sm:gap-6 border border-white/5"
   >
     <!-- Logo Section -->
     <div class="flex items-center gap-3 px-2">
@@ -54,7 +109,7 @@
       </button>
 
       <!-- Dropdown Content -->
-      <Transition name="dropdown">
+      <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 translate-y-2 scale-95 blur-[4px]" enter-to-class="opacity-100 translate-y-0 scale-100 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 translate-y-0 scale-100 blur-0" leave-to-class="opacity-0 translate-y-2 scale-95 blur-[4px]">
         <div 
           v-if="isUserDropdownOpen"
           class="absolute top-full right-0 mt-3 w-56 liquid-glass rounded-[1.5rem] border border-white/10 shadow-2xl overflow-hidden z-[110]"
@@ -112,75 +167,3 @@
   />
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { useNotificationStore } from '../stores/notification'
-import type { Notification } from '../types'
-import NotificationsModal from './NotificationsModal.vue'
-import NotificationDetailModal from './NotificationDetailModal.vue'
-import UserSettingsModal from './UserSettingsModal.vue'
-
-// Directive for clicking outside
-const vClickOutside = {
-  mounted(el: any, binding: any) {
-    el.clickOutsideEvent = (event: Event) => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event)
-      }
-    }
-    document.addEventListener('click', el.clickOutsideEvent)
-  },
-  unmounted(el: any) {
-    document.removeEventListener('click', el.clickOutsideEvent)
-  },
-}
-
-const router = useRouter()
-const authStore = useAuthStore()
-const notifStore = useNotificationStore()
-
-const isNotificationsOpen = ref(false)
-const isSettingsOpen = ref(false)
-const isUserDropdownOpen = ref(false)
-const selectedNotification = ref<Notification | null>(null)
-
-function openNotificationDetail(notification: Notification) {
-  selectedNotification.value = notification
-}
-
-const roleLabel = computed(() => {
-  const labels: Record<string, string> = {
-    admin: 'Admin',
-    teacher: 'Teacher',
-    student: 'Student',
-  }
-  return labels[authStore.userRole || ''] || authStore.userRole || ''
-})
-
-const unreadCount = computed(() => notifStore.unreadCount)
-
-const logout = () => {
-  authStore.logout()
-  router.push('/login')
-}
-</script>
-
-<style scoped>
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(10px) scale(0.95);
-  filter: blur(4px);
-}
-
-/* Material Symbols sizing */
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-}
-</style>

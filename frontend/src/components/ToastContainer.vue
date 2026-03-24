@@ -1,41 +1,3 @@
-<template>
-  <Teleport to="body">
-    <div
-      class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"
-      role="region"
-      aria-label="Notifications"
-      aria-live="polite"
-      aria-atomic="false"
-    >
-      <TransitionGroup name="toast">
-        <div
-          v-for="toast in toastStore.toasts"
-          :key="toast.id"
-          class="pointer-events-auto flex items-start gap-3 min-w-[300px] max-w-[400px] px-4 py-3 rounded-xl border backdrop-blur-xl shadow-xl"
-          :class="toastClasses(toast.type)"
-          role="alert"
-          :aria-label="`${toast.type}: ${toast.title}`"
-        >
-          <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="iconClasses(toast.type)" aria-hidden="true">
-            {{ toastIcon(toast.type) }}
-          </span>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-white leading-tight">{{ toast.title }}</p>
-            <p v-if="toast.message" class="text-xs text-white/70 mt-0.5 leading-snug">{{ toast.message }}</p>
-          </div>
-          <button
-            class="text-white/40 hover:text-white/80 transition-colors shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
-            :aria-label="`Dismiss notification: ${toast.title}`"
-            @click="toastStore.remove(toast.id)"
-          >
-            <span class="material-symbols-outlined text-sm" aria-hidden="true">close</span>
-          </button>
-        </div>
-      </TransitionGroup>
-    </div>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
 import { useToastStore } from '../stores/toast'
 
@@ -65,20 +27,41 @@ const toastIcon = (type: ToastType) => ({
 }[type])
 </script>
 
-<style scoped>
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(60px) scale(0.9);
-}
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(60px) scale(0.9);
-}
-.toast-move {
-  transition: transform 0.3s ease;
-}
-</style>
+<template>
+  <Teleport to="body">
+    <div
+      class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      <TransitionGroup enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 translate-x-[60px] scale-90" enter-to-class="opacity-100 translate-x-0 scale-100" leave-active-class="transition-all duration-300 ease-in" leave-from-class="opacity-100 translate-x-0 scale-100" leave-to-class="opacity-0 translate-x-[60px] scale-90" move-class="transition-transform duration-300 ease-in-out">
+        <div
+          v-for="toast in toastStore.toasts"
+          :key="toast.id"
+          class="pointer-events-auto flex items-start gap-3 min-w-[300px] max-w-[400px] px-4 py-3 rounded-xl border backdrop-blur-xl shadow-xl"
+          :class="toastClasses(toast.type)"
+          role="alert"
+          :aria-label="`${toast.type}: ${toast.title}`"
+        >
+          <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="iconClasses(toast.type)" aria-hidden="true">
+            {{ toastIcon(toast.type) }}
+          </span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-white leading-tight">{{ toast.title }}</p>
+            <p v-if="toast.message" class="text-xs text-white/70 mt-0.5 leading-snug">{{ toast.message }}</p>
+          </div>
+          <button
+            class="text-white/40 hover:text-white/80 transition-colors shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
+            :aria-label="`Dismiss notification: ${toast.title}`"
+            @click="toastStore.remove(toast.id)"
+          >
+            <span class="material-symbols-outlined text-sm" aria-hidden="true">close</span>
+          </button>
+        </div>
+      </TransitionGroup>
+    </div>
+  </Teleport>
+</template>
+

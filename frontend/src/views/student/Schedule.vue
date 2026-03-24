@@ -1,8 +1,110 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useScheduleStore } from '../../stores/schedule'
+import { useUsersStore } from '../../stores/users'
+import { useAuthStore } from '../../stores/auth'
+import { useNotificationStore } from '../../stores/notification'
+import { useToastStore } from '../../stores/toast'
+import WeeklyCalendarGrid from '../../components/WeeklyCalendarGrid.vue'
+import SessionDetailModal from '../../components/SessionDetailModal.vue'
+import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
+import type { Session } from '../../types'
+
+const scheduleStore = useScheduleStore()
+const usersStore = useUsersStore()
+const authStore = useAuthStore()
+const notifStore = useNotificationStore()
+const toast = useToastStore()
+
+const selectedDate = ref<Date | null>(null)
+const selectedDaySessions = ref<Session[]>([])
+const showProposeModal = ref(false)
+
+const myId = computed(() => authStore.currentUser?.id ?? '')
+const teachers = computed(() => usersStore.getUsersByRole('teacher'))
+const allUsers = computed(() => usersStore.users)
+
+const mySessions = computed(() =>
+  scheduleStore.allSessions.filter(s => s.studentId === myId.value)
+)
+
+const confirmedSessions = computed(() =>
+  mySessions.value.filter(s => s.status === 'scheduled')
+)
+
+const pendingSessions = computed(() =>
+  mySessions.value.filter(s => s.status === 'pending_teacher' || s.status === 'pending_admin')
+)
+
+const pendingCount = computed(() => pendingSessions.value.length)
+
+const upcomingSessions = computed(() => {
+  const now = new Date()
+  return confirmedSessions.value
+    .filter(s => new Date(s.startTime) >= now)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    .slice(0, 8)
+})
+
+onMounted(async () => {
+  await Promise.all([
+    scheduleStore.fetchUserSessions(myId.value),
+    usersStore.fetchUsersByRole('teacher'),
+    usersStore.fetchUsersByRole('student'),
+    notifStore.fetchNotifications(myId.value),
+  ])
+})
+
+function getTeacherName(id: string): string {
+  return usersStore.users.find(u => u.id === id)?.name ?? `Teacher #${id}`
+}
+
+function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+  selectedDate.value = date
+  selectedDaySessions.value = sessions
+}
+
+async function onProposeSubmit(session: Session) {
+  try {
+    await scheduleStore.proposeSessionAsStudent({
+      teacherId: session.teacherId,
+      studentId: myId.value,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      notes: session.notes,
+    })
+    toast.success('Request submitted!', 'Your teacher will review it and forward to admin.')
+    showProposeModal.value = false
+  } catch {
+    toast.error('Failed to submit request')
+  }
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  })
+}
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+function formatMonth(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
+}
+
+function formatDay(iso: string): string {
+  return String(new Date(iso).getDate())
+}
+</script>
+
 <template>
   <div class="max-w-5xl mx-auto pb-28 space-y-4">
 
     <!-- Header -->
-    <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
       <div>
         <h1 class="text-5xl font-black tracking-tight text-white mb-2">My Schedule</h1>
         <p class="text-zinc-500 font-medium">
@@ -132,109 +234,3 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import WeeklyCalendarGrid from '../../components/WeeklyCalendarGrid.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
-
-const scheduleStore = useScheduleStore()
-const usersStore = useUsersStore()
-const authStore = useAuthStore()
-const notifStore = useNotificationStore()
-const toast = useToastStore()
-
-const selectedDate = ref<Date | null>(null)
-const selectedDaySessions = ref<Session[]>([])
-const showProposeModal = ref(false)
-
-const myId = computed(() => authStore.currentUser?.id ?? '')
-const teachers = computed(() => usersStore.getUsersByRole('teacher'))
-const allUsers = computed(() => usersStore.users)
-
-const mySessions = computed(() =>
-  scheduleStore.allSessions.filter(s => s.studentId === myId.value)
-)
-
-const confirmedSessions = computed(() =>
-  mySessions.value.filter(s => s.status === 'scheduled')
-)
-
-const pendingSessions = computed(() =>
-  mySessions.value.filter(s => s.status === 'pending_teacher' || s.status === 'pending_admin')
-)
-
-const pendingCount = computed(() => pendingSessions.value.length)
-
-const upcomingSessions = computed(() => {
-  const now = new Date()
-  return confirmedSessions.value
-    .filter(s => new Date(s.startTime) >= now)
-    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-    .slice(0, 8)
-})
-
-onMounted(async () => {
-  await Promise.all([
-    scheduleStore.fetchUserSessions(myId.value),
-    usersStore.fetchUsersByRole('teacher'),
-    usersStore.fetchUsersByRole('student'),
-    notifStore.fetchNotifications(myId.value),
-  ])
-})
-
-function getTeacherName(id: string): string {
-  return usersStore.users.find(u => u.id === id)?.name ?? `Teacher #${id}`
-}
-
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
-  selectedDate.value = date
-  selectedDaySessions.value = sessions
-}
-
-async function onProposeSubmit(session: Session) {
-  try {
-    await scheduleStore.proposeSessionAsStudent({
-      teacherId: session.teacherId,
-      studentId: myId.value,
-      startTime: session.startTime,
-      endTime: session.endTime,
-      notes: session.notes,
-    })
-    toast.success('Request submitted!', 'Your teacher will review it and forward to admin.')
-    showProposeModal.value = false
-  } catch {
-    toast.error('Failed to submit request')
-  }
-}
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-    hour: 'numeric', minute: '2-digit', hour12: true,
-  })
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-}
-
-function formatMonth(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
-}
-
-function formatDay(iso: string): string {
-  return String(new Date(iso).getDate())
-}
-</script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

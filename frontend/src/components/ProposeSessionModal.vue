@@ -1,6 +1,80 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import type { User, Session } from '../types'
+
+const props = defineProps<{
+  userRole: 'admin' | 'teacher' | 'student'
+  currentUserId: string
+  teachers: User[]
+  students: User[]
+  initialDate?: Date
+}>()
+
+const emit = defineEmits<{
+  close: []
+  submitted: [session: Session]
+}>()
+
+const todayStr = new Date().toISOString().split('T')[0]
+
+const form = ref({
+  teacherId: props.userRole === 'teacher' ? props.currentUserId : '',
+  studentId: props.userRole === 'student' ? props.currentUserId : '',
+  date: props.initialDate ? props.initialDate.toISOString().split('T')[0] : todayStr,
+  time: '10:00',
+  durationHours: '1',
+  notes: '',
+})
+
+const isSubmitting = ref(false)
+
+watch(() => props.initialDate, (d) => {
+  if (d) form.value.date = d.toISOString().split('T')[0]
+})
+
+const isValid = computed(() => {
+  const needsTeacher = props.userRole === 'student' || props.userRole === 'admin'
+  const needsStudent = props.userRole === 'teacher' || props.userRole === 'admin'
+  return (
+    form.value.date &&
+    form.value.time &&
+    (!needsTeacher || form.value.teacherId) &&
+    (!needsStudent || form.value.studentId)
+  )
+})
+
+const submitLabel = computed(() => {
+  if (isSubmitting.value) return 'Submitting...'
+  if (props.userRole === 'admin') return 'Schedule Session'
+  return 'Send Proposal'
+})
+
+async function submit() {
+  if (!isValid.value || isSubmitting.value) return
+  isSubmitting.value = true
+  try {
+    const startDt = new Date(`${form.value.date}T${form.value.time}:00`)
+    const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
+
+    emit('submitted', {
+      id: '',
+      teacherId: form.value.teacherId,
+      studentId: form.value.studentId,
+      startTime: startDt.toISOString(),
+      endTime: endDt.toISOString(),
+      status: 'scheduled',
+      notes: form.value.notes || undefined,
+      homeworkCompleted: false,
+    })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+</script>
+
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
@@ -130,81 +204,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import type { User, Session } from '../types'
-
-const props = defineProps<{
-  userRole: 'admin' | 'teacher' | 'student'
-  currentUserId: string
-  teachers: User[]
-  students: User[]
-  initialDate?: Date
-}>()
-
-const emit = defineEmits<{
-  close: []
-  submitted: [session: Session]
-}>()
-
-const todayStr = new Date().toISOString().split('T')[0]
-
-const form = ref({
-  teacherId: props.userRole === 'teacher' ? props.currentUserId : '',
-  studentId: props.userRole === 'student' ? props.currentUserId : '',
-  date: props.initialDate ? props.initialDate.toISOString().split('T')[0] : todayStr,
-  time: '10:00',
-  durationHours: '1',
-  notes: '',
-})
-
-const isSubmitting = ref(false)
-
-watch(() => props.initialDate, (d) => {
-  if (d) form.value.date = d.toISOString().split('T')[0]
-})
-
-const isValid = computed(() => {
-  const needsTeacher = props.userRole === 'student' || props.userRole === 'admin'
-  const needsStudent = props.userRole === 'teacher' || props.userRole === 'admin'
-  return (
-    form.value.date &&
-    form.value.time &&
-    (!needsTeacher || form.value.teacherId) &&
-    (!needsStudent || form.value.studentId)
-  )
-})
-
-const submitLabel = computed(() => {
-  if (isSubmitting.value) return 'Submitting...'
-  if (props.userRole === 'admin') return 'Schedule Session'
-  return 'Send Proposal'
-})
-
-async function submit() {
-  if (!isValid.value || isSubmitting.value) return
-  isSubmitting.value = true
-  try {
-    const startDt = new Date(`${form.value.date}T${form.value.time}:00`)
-    const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
-
-    emit('submitted', {
-      id: '',
-      teacherId: form.value.teacherId,
-      studentId: form.value.studentId,
-      startTime: startDt.toISOString(),
-      endTime: endDt.toISOString(),
-      status: 'scheduled',
-      notes: form.value.notes || undefined,
-      homeworkCompleted: false,
-    })
-  } finally {
-    isSubmitting.value = false
-  }
-}
-</script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

@@ -1,16 +1,3 @@
-<template>
-  <div :class="computedClasses">
-    <!-- Liquid Glass Inner Glow -->
-    <div class="absolute inset-0 rounded-[24px] pointer-events-none border border-white/5 inner-glow-top-left z-0"></div>
-
-    <div class="relative z-10 w-full h-full p-8 flex flex-col gap-8">
-      <!-- "Spacing-6 (2rem) of vertical white space to separate list items" -->
-      <!-- We achieve this by defaulting the internal layout to flex-col gap-8 -->
-      <slot></slot>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -40,13 +27,16 @@ const computedClasses = computed(() => {
 });
 </script>
 
-<style scoped>
-/* Inner Glow: To achieve the "Liquid Glass" look, apply a 1px inner-shadow (inset) using on_surface at 15% opacity to the top and left edges of glass containers. This mimics the light-catching edge of a glass pane. */
-.inner-glow-top-left {
-  box-shadow: inset 1px 1px 0px 0px rgba(255, 255, 255, 0.15);
-}
+<template>
+  <div :class="computedClasses">
+    <!-- Liquid Glass Inner Glow -->
+    <div class="absolute inset-0 rounded-[24px] pointer-events-none border border-white/5 shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] z-0"></div>
 
-/* Glass Cards & Lists
-   Constraint: No dividers. Use Spacing-6 (2rem) of vertical white space to separate list items.
-   Visual Interest: Use surface-variant with backdrop-filter: blur(24px). Elements behind the card should be visible but diffused, creating an "iOS 26" depth effect. */
-</style>
+    <div class="relative z-10 w-full h-full p-8 flex flex-col gap-8">
+      <!-- "Spacing-6 (2rem) of vertical white space to separate list items" -->
+      <!-- We achieve this by defaulting the internal layout to flex-col gap-8 -->
+      <slot></slot>
+    </div>
+  </div>
+</template>
+

@@ -1,3 +1,18 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const title = computed(() => {
+  const parts = route.path.split('/')
+  return parts[parts.length - 1] || 'Module'
+})
+const role = computed(() => {
+  const parts = route.path.split('/')
+  return parts[1] || 'student'
+})
+</script>
+
 <template>
   <div class="flex h-screen items-center justify-center text-center p-8">
     <div class="max-w-md w-full">
@@ -18,18 +33,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
-const title = computed(() => {
-  const parts = route.path.split('/')
-  return parts[parts.length - 1] || 'Module'
-})
-const role = computed(() => {
-  const parts = route.path.split('/')
-  return parts[1] || 'student' 
-})
-</script>

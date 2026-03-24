@@ -1,3 +1,39 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const route = useRoute()
+const authStore = useAuthStore()
+
+type NavItem = { path: string; icon: string; label: string }
+
+const navsByRole: Record<string, NavItem[]> = {
+  admin: [
+    { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/admin/users', icon: 'group', label: 'Users' },
+    { path: '/admin/schedule', icon: 'calendar_month', label: 'Schedule' },
+  ],
+  teacher: [
+    { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/teacher/schedule', icon: 'calendar_month', label: 'Schedule' },
+    { path: '/teacher/students', icon: 'group', label: 'Students' },
+    { path: '/teacher/instruments', icon: 'piano', label: 'Instruments' },
+    { path: '/teacher/payments', icon: 'payments', label: 'Payments' },
+    { path: '/teacher/messages', icon: 'chat', label: 'Messages' },
+  ],
+  student: [
+    { path: '/student', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/student/schedule', icon: 'calendar_today', label: 'Schedule' },
+    { path: '/student/homework', icon: 'school', label: 'Homework' },
+  ],
+}
+
+const navItems = computed<NavItem[]>(() => navsByRole[authStore.userRole || ''] ?? [])
+
+const isActive = (path: string) => route.path === path
+</script>
+
 <template>
   <header
     class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-max px-5 h-14 bg-surface-container-low/40 backdrop-blur-3xl rounded-full inner-glow-white-10 shadow-2xl flex items-center gap-2 border border-white/5"
@@ -35,39 +71,3 @@
     </div>
   </header>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-
-const route = useRoute()
-const authStore = useAuthStore()
-
-type NavItem = { path: string; icon: string; label: string }
-
-const navsByRole: Record<string, NavItem[]> = {
-  admin: [
-    { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/admin/users', icon: 'group', label: 'Users' },
-    { path: '/admin/schedule', icon: 'calendar_month', label: 'Schedule' },
-  ],
-  teacher: [
-    { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/teacher/schedule', icon: 'calendar_month', label: 'Schedule' },
-    { path: '/teacher/students', icon: 'group', label: 'Students' },
-    { path: '/teacher/instruments', icon: 'piano', label: 'Instruments' },
-    { path: '/teacher/payments', icon: 'payments', label: 'Payments' },
-    { path: '/teacher/messages', icon: 'chat', label: 'Messages' },
-  ],
-  student: [
-    { path: '/student', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/student/schedule', icon: 'calendar_today', label: 'Schedule' },
-    { path: '/student/homework', icon: 'school', label: 'Homework' },
-  ],
-}
-
-const navItems = computed<NavItem[]>(() => navsByRole[authStore.userRole || ''] ?? [])
-
-const isActive = (path: string) => route.path === path
-</script>

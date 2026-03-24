@@ -1,8 +1,163 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useScheduleStore } from '../../stores/schedule'
+import { useUsersStore } from '../../stores/users'
+import { useAuthStore } from '../../stores/auth'
+import { useNotificationStore } from '../../stores/notification'
+import { useToastStore } from '../../stores/toast'
+import WeeklyCalendarGrid from '../../components/WeeklyCalendarGrid.vue'
+import SessionDetailModal from '../../components/SessionDetailModal.vue'
+import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
+import type { Session } from '../../types'
+
+const scheduleStore = useScheduleStore()
+const usersStore = useUsersStore()
+const authStore = useAuthStore()
+const notifStore = useNotificationStore()
+const toast = useToastStore()
+
+const selectedDate = ref<Date | null>(null)
+const selectedDaySessions = ref<Session[]>([])
+const showProposeModal = ref(false)
+const filterStatus = ref('')
+
+const rejectModal = ref({ open: false, sessionId: '', notes: '' })
+const editModal = ref({ open: false, sessionId: '', date: '', time: '', notes: '' })
+
+const teachers = computed(() => usersStore.getUsersByRole('teacher'))
+const students = computed(() => usersStore.getUsersByRole('student'))
+const allUsers = computed(() => usersStore.users)
+
+const pendingSessions = computed(() => scheduleStore.pendingSessions)
+
+const filteredSessions = computed(() => {
+  const all = [...scheduleStore.allSessions].sort((a, b) =>
+    new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+  )
+  if (!filterStatus.value) return all
+  return all.filter(s => s.status === filterStatus.value)
+})
+
+onMounted(async () => {
+  await Promise.all([
+    scheduleStore.fetchAllSessions(),
+    usersStore.fetchUsers(),
+    notifStore.fetchNotifications(authStore.currentUser?.id ?? ''),
+  ])
+})
+
+function getUserName(id: string): string {
+  return usersStore.users.find(u => u.id === id)?.name ?? `User #${id}`
+}
+
+function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+  selectedDate.value = date
+  selectedDaySessions.value = sessions
+}
+
+async function handleApprove(sessionId: string) {
+  try {
+    await scheduleStore.approveAsAdmin(sessionId)
+    toast.success('Session approved!', 'The session is now confirmed.')
+    selectedDate.value = null
+  } catch {
+    toast.error('Failed to approve session')
+  }
+}
+
+function openReject(sessionId: string) {
+  rejectModal.value = { open: true, sessionId, notes: '' }
+  selectedDate.value = null
+}
+
+async function confirmReject() {
+  try {
+    await scheduleStore.rejectAsAdmin(rejectModal.value.sessionId, rejectModal.value.notes)
+    toast.success('Session rejected')
+    rejectModal.value.open = false
+  } catch {
+    toast.error('Failed to reject session')
+  }
+}
+
+function openEdit(session: Session) {
+  const d = new Date(session.startTime)
+  editModal.value = {
+    open: true,
+    sessionId: session.id,
+    date: d.toISOString().split('T')[0],
+    time: d.toTimeString().slice(0, 5),
+    notes: session.notes ?? '',
+  }
+  selectedDate.value = null
+}
+
+async function confirmEdit() {
+  const { sessionId, date, time, notes } = editModal.value
+  try {
+    const startTime = new Date(`${date}T${time}:00`).toISOString()
+    const endTime = new Date(new Date(`${date}T${time}:00`).getTime() + 3600000).toISOString()
+    await scheduleStore.editSession(sessionId, { startTime, endTime, notes })
+    toast.success('Session updated!')
+    editModal.value.open = false
+  } catch {
+    toast.error('Failed to update session')
+  }
+}
+
+async function onProposeSubmit(session: Session) {
+  try {
+    await scheduleStore.bookSession(session)
+    toast.success('Session scheduled!', 'The session has been confirmed and parties notified.')
+    showProposeModal.value = false
+  } catch {
+    toast.error('Failed to schedule session')
+  }
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  })
+}
+
+function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    scheduled: 'Confirmed', completed: 'Completed',
+    pending_teacher: 'Awaiting Teacher', pending_admin: 'Awaiting Admin',
+    rejected: 'Rejected', cancelled: 'Cancelled',
+  }
+  return map[status] ?? status
+}
+
+function statusBarClass(status: string): string {
+  const map: Record<string, string> = {
+    scheduled: 'bg-orange-500', completed: 'bg-emerald-500',
+    pending_teacher: 'bg-amber-500', pending_admin: 'bg-blue-500',
+    rejected: 'bg-red-500', cancelled: 'bg-zinc-500',
+  }
+  return map[status] ?? 'bg-zinc-700'
+}
+
+function statusBadgeClass(status: string): string {
+  const map: Record<string, string> = {
+    scheduled:       'bg-orange-500/20 border-orange-500/30 text-orange-400',
+    completed:       'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',
+    pending_teacher: 'bg-amber-500/20 border-amber-500/30 text-amber-400',
+    pending_admin:   'bg-blue-500/20 border-blue-500/30 text-blue-400',
+    rejected:        'bg-red-500/20 border-red-500/30 text-red-400',
+    cancelled:       'bg-zinc-500/20 border-zinc-500/30 text-zinc-400',
+  }
+  return map[status] ?? 'bg-white/10 border-white/20 text-zinc-400'
+}
+</script>
+
 <template>
   <div class="max-w-5xl mx-auto pb-28 space-y-4">
 
     <!-- Page Header -->
-    <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
       <div>
         <h1 class="text-5xl font-black tracking-tight text-white mb-2">Schedule</h1>
         <p class="text-zinc-500 font-medium">Manage all sessions — approve, edit, and schedule.</p>
@@ -172,7 +327,7 @@
 
     <!-- Reject Modal (inline) -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition enter-active-class="transition opacity-150 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-150 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
         <div v-if="rejectModal.open" class="fixed inset-0 z-[250] flex items-center justify-center p-4" @click.self="rejectModal.open = false">
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="rejectModal.open = false" />
           <div class="relative w-full max-w-sm liquid-glass rounded-3xl border border-white/10 p-6 space-y-4">
@@ -194,7 +349,7 @@
 
     <!-- Edit Session Modal -->
     <Teleport to="body">
-      <Transition name="modal">
+      <Transition enter-active-class="transition opacity-150 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-150 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
         <div v-if="editModal.open" class="fixed inset-0 z-[250] flex items-center justify-center p-4" @click.self="editModal.open = false">
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="editModal.open = false" />
           <div class="relative w-full max-w-md liquid-glass rounded-3xl border border-white/10 p-6 space-y-5">
@@ -255,162 +410,3 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import WeeklyCalendarGrid from '../../components/WeeklyCalendarGrid.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
-
-const scheduleStore = useScheduleStore()
-const usersStore = useUsersStore()
-const authStore = useAuthStore()
-const notifStore = useNotificationStore()
-const toast = useToastStore()
-
-const selectedDate = ref<Date | null>(null)
-const selectedDaySessions = ref<Session[]>([])
-const showProposeModal = ref(false)
-const filterStatus = ref('')
-
-const rejectModal = ref({ open: false, sessionId: '', notes: '' })
-const editModal = ref({ open: false, sessionId: '', date: '', time: '', notes: '' })
-
-const teachers = computed(() => usersStore.getUsersByRole('teacher'))
-const students = computed(() => usersStore.getUsersByRole('student'))
-const allUsers = computed(() => usersStore.users)
-
-const pendingSessions = computed(() => scheduleStore.pendingSessions)
-
-const filteredSessions = computed(() => {
-  const all = [...scheduleStore.allSessions].sort((a, b) =>
-    new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-  )
-  if (!filterStatus.value) return all
-  return all.filter(s => s.status === filterStatus.value)
-})
-
-onMounted(async () => {
-  await Promise.all([
-    scheduleStore.fetchAllSessions(),
-    usersStore.fetchUsers(),
-    notifStore.fetchNotifications(authStore.currentUser?.id ?? ''),
-  ])
-})
-
-function getUserName(id: string): string {
-  return usersStore.users.find(u => u.id === id)?.name ?? `User #${id}`
-}
-
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
-  selectedDate.value = date
-  selectedDaySessions.value = sessions
-}
-
-async function handleApprove(sessionId: string) {
-  try {
-    await scheduleStore.approveAsAdmin(sessionId)
-    toast.success('Session approved!', 'The session is now confirmed.')
-    selectedDate.value = null
-  } catch {
-    toast.error('Failed to approve session')
-  }
-}
-
-function openReject(sessionId: string) {
-  rejectModal.value = { open: true, sessionId, notes: '' }
-  selectedDate.value = null
-}
-
-async function confirmReject() {
-  try {
-    await scheduleStore.rejectAsAdmin(rejectModal.value.sessionId, rejectModal.value.notes)
-    toast.success('Session rejected')
-    rejectModal.value.open = false
-  } catch {
-    toast.error('Failed to reject session')
-  }
-}
-
-function openEdit(session: Session) {
-  const d = new Date(session.startTime)
-  editModal.value = {
-    open: true,
-    sessionId: session.id,
-    date: d.toISOString().split('T')[0],
-    time: d.toTimeString().slice(0, 5),
-    notes: session.notes ?? '',
-  }
-  selectedDate.value = null
-}
-
-async function confirmEdit() {
-  const { sessionId, date, time, notes } = editModal.value
-  try {
-    const startTime = new Date(`${date}T${time}:00`).toISOString()
-    const endTime = new Date(new Date(`${date}T${time}:00`).getTime() + 3600000).toISOString()
-    await scheduleStore.editSession(sessionId, { startTime, endTime, notes })
-    toast.success('Session updated!')
-    editModal.value.open = false
-  } catch {
-    toast.error('Failed to update session')
-  }
-}
-
-async function onProposeSubmit(session: Session) {
-  try {
-    await scheduleStore.bookSession(session)
-    toast.success('Session scheduled!', 'The session has been confirmed and parties notified.')
-    showProposeModal.value = false
-  } catch {
-    toast.error('Failed to schedule session')
-  }
-}
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-    hour: 'numeric', minute: '2-digit', hour12: true,
-  })
-}
-
-function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    scheduled: 'Confirmed', completed: 'Completed',
-    pending_teacher: 'Awaiting Teacher', pending_admin: 'Awaiting Admin',
-    rejected: 'Rejected', cancelled: 'Cancelled',
-  }
-  return map[status] ?? status
-}
-
-function statusBarClass(status: string): string {
-  const map: Record<string, string> = {
-    scheduled: 'bg-orange-500', completed: 'bg-emerald-500',
-    pending_teacher: 'bg-amber-500', pending_admin: 'bg-blue-500',
-    rejected: 'bg-red-500', cancelled: 'bg-zinc-500',
-  }
-  return map[status] ?? 'bg-zinc-700'
-}
-
-function statusBadgeClass(status: string): string {
-  const map: Record<string, string> = {
-    scheduled:       'bg-orange-500/20 border-orange-500/30 text-orange-400',
-    completed:       'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',
-    pending_teacher: 'bg-amber-500/20 border-amber-500/30 text-amber-400',
-    pending_admin:   'bg-blue-500/20 border-blue-500/30 text-blue-400',
-    rejected:        'bg-red-500/20 border-red-500/30 text-red-400',
-    cancelled:       'bg-zinc-500/20 border-zinc-500/30 text-zinc-400',
-  }
-  return map[status] ?? 'bg-white/10 border-white/20 text-zinc-400'
-}
-</script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: opacity 0.15s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

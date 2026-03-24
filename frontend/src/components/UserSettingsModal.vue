@@ -1,6 +1,62 @@
+<script setup lang="ts">
+import { reactive, watch } from 'vue'
+import { useAuthStore } from '../stores/auth'
+import BaseInput from './BaseInput.vue'
+import { useRouter } from 'vue-router'
+
+const props = defineProps<{
+  isOpen: boolean
+}>()
+
+const emit = defineEmits<{
+  close: []
+}>()
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const form = reactive({
+  name: '',
+  email: '',
+  avatar_url: '',
+  password: ''
+})
+
+// Initialize form when modal opens
+watch(() => props.isOpen, (newVal) => {
+  if (newVal && authStore.user) {
+    form.name = authStore.user.name || ''
+    form.email = authStore.user.email || ''
+    form.avatar_url = authStore.user.avatarUrl || ''
+    form.password = ''
+  }
+}, { immediate: true })
+
+const handleSave = async () => {
+  const payload: any = {
+    name: form.name,
+    email: form.email
+  }
+
+  if (form.avatar_url) payload.avatar_url = form.avatar_url
+  if (form.password) payload.password = form.password
+
+  const success = await authStore.updateProfile(payload)
+  if (success) {
+    emit('close')
+  }
+}
+
+const handleLogout = () => {
+  emit('close')
+  authStore.logout()
+  router.push('/login')
+}
+</script>
+
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition-all duration-300 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-300 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
         v-if="isOpen"
         class="fixed inset-0 z-[220] flex items-center justify-center p-4"
@@ -137,88 +193,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import BaseInput from './BaseInput.vue'
-import { useRouter } from 'vue-router'
-
-const props = defineProps<{
-  isOpen: boolean
-}>()
-
-const emit = defineEmits<{
-  close: []
-}>()
-
-const authStore = useAuthStore()
-const router = useRouter()
-
-const form = reactive({
-  name: '',
-  email: '',
-  avatar_url: '',
-  password: ''
-})
-
-// Initialize form when modal opens
-watch(() => props.isOpen, (newVal) => {
-  if (newVal && authStore.user) {
-    form.name = authStore.user.name || ''
-    form.email = authStore.user.email || ''
-    form.avatar_url = authStore.user.avatarUrl || ''
-    form.password = ''
-  }
-}, { immediate: true })
-
-const handleSave = async () => {
-  const payload: any = {
-    name: form.name,
-    email: form.email
-  }
-  
-  if (form.avatar_url) payload.avatar_url = form.avatar_url
-  if (form.password) payload.password = form.password
-
-  const success = await authStore.updateProfile(payload)
-  if (success) {
-    emit('close')
-  }
-}
-
-const handleLogout = () => {
-  emit('close')
-  authStore.logout()
-  router.push('/login')
-}
-</script>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-.modal-enter-active .relative,
-.modal-leave-active .relative {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-enter-from .relative {
-  transform: scale(0.9) translateY(40px);
-  filter: blur(10px);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-</style>

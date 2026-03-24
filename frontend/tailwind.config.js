@@ -6,6 +6,13 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
+      },
       colors: {
         "surface-container": "#1a1919",
         "surface-tint": "#ff906d",

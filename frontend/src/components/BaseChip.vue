@@ -1,17 +1,3 @@
-<template>
-  <button
-    type="button"
-    :class="computedClasses"
-    @click="toggleSelection"
-  >
-    <div class="relative z-10 flex items-center gap-2">
-      <slot name="icon-left"></slot>
-      <span class="text-[10px] uppercase tracking-widest font-bold font-label"><slot>{{ label }}</slot></span>
-      <slot name="icon-right"></slot>
-    </div>
-  </button>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -41,7 +27,7 @@ const toggleSelection = () => {
 };
 
 const computedClasses = computed(() => {
-  const baseClasses = 'relative inline-flex items-center justify-center px-4 py-2 rounded-[24px] overflow-hidden transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]';
+  const baseClasses = 'relative inline-flex items-center justify-center px-4 py-2 rounded-[24px] overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]';
 
   // Selection Chips
   // "Unselected: surface_container_highest with on_surface_variant text."
@@ -57,11 +43,16 @@ const computedClasses = computed(() => {
 });
 </script>
 
-<style scoped>
-/* Ensure custom easing function from Do's and Don'ts: cubic-bezier(0.2, 0.8, 0.2, 1) */
-button {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
-  transition-duration: 400ms;
-}
-</style>
+<template>
+  <button
+    type="button"
+    :class="computedClasses"
+    @click="toggleSelection"
+  >
+    <div class="relative z-10 flex items-center gap-2">
+      <slot name="icon-left"></slot>
+      <span class="text-[10px] uppercase tracking-widest font-bold font-label"><slot>{{ label }}</slot></span>
+      <slot name="icon-right"></slot>
+    </div>
+  </button>
+</template>

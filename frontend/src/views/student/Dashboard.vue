@@ -1,3 +1,122 @@
+<script setup lang="ts">
+import { onMounted, computed, ref, reactive } from 'vue'
+import { useScheduleStore } from '../../stores/schedule'
+import { useUsersStore } from '../../stores/users'
+import { useAuthStore } from '../../stores/auth'
+import { useToastStore } from '../../stores/toast'
+import { useInteractionsStore } from '../../stores/interactions'
+
+const scheduleStore = useScheduleStore()
+const usersStore = useUsersStore()
+const authStore = useAuthStore()
+const toast = useToastStore()
+const interactionsStore = useInteractionsStore()
+
+const showRequestModal = ref(false)
+const requestForm = reactive({ teacherId: '', startTime: '' })
+
+onMounted(async () => {
+  if (authStore.currentUser?.id) {
+    await Promise.all([
+      scheduleStore.fetchUserSessions(authStore.currentUser.id),
+      usersStore.fetchUsersByRole('teacher'),
+      interactionsStore.fetchStudentEnrollments(authStore.currentUser.id),
+    ])
+  }
+})
+
+const myId = computed(() => authStore.currentUser?.id ?? '')
+
+const mySessions = computed(() =>
+  scheduleStore.allSessions.filter((s) => s.studentId === myId.value)
+)
+
+const nextSession = computed(
+  () =>
+    mySessions.value
+      .filter((s) => s.status === 'scheduled' && s.startTime)
+      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
+    null
+)
+
+const nextSessionCountdown = computed(() => {
+  if (!nextSession.value?.startTime) return 'no upcoming sessions'
+  const diff = new Date(nextSession.value.startTime).getTime() - Date.now()
+  if (diff <= 0) return 'now'
+  const hours = Math.floor(diff / 3600000)
+  if (hours < 24) return `${hours} hours`
+  return `${Math.floor(hours / 24)} days`
+})
+
+const pendingHomework = computed(
+  () => mySessions.value.find((s) => s.homeworkAssigned && !s.homeworkCompleted) ?? null
+)
+
+const sessionProgress = computed(() => {
+  const totalSessions = interactionsStore.enrollments[0]?.sessionsPurchased || 10
+  const used = mySessions.value.filter((s) => s.status === 'completed').length
+  return Math.min((used / totalSessions) * 100, 100)
+})
+
+const allTeachers = computed(() => usersStore.getUsersByRole('teacher'))
+
+const formatTime = (dt: string | undefined) => {
+  if (!dt) return '—'
+  return new Date(dt).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+const formatDay = (dt: string | undefined) => {
+  if (!dt) return '—'
+  return new Date(dt).getDate().toString()
+}
+const formatMonth = (dt: string | undefined) => {
+  if (!dt) return ''
+  return new Date(dt).toLocaleString('en-US', { month: 'short' }).toUpperCase()
+}
+
+async function submitRequest() {
+  if (!requestForm.teacherId || !requestForm.startTime) return
+  try {
+    const start = new Date(requestForm.startTime)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    await scheduleStore.proposeSessionAsStudent({
+      teacherId: requestForm.teacherId,
+      studentId: myId.value,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    })
+    toast.success('Session requested!', 'Your teacher will review and forward to admin for approval.')
+    showRequestModal.value = false
+    Object.assign(requestForm, { teacherId: '', startTime: '' })
+  } catch {
+    toast.error('Request failed', 'Please try again or contact your teacher.')
+  }
+}
+
+async function markHomeworkDone(sessionId: string) {
+  await interactionsStore.completeHomework(sessionId)
+  toast.success('Homework submitted!', 'Great work — keep it up.')
+}
+
+async function handleProofUpload(sessionId: string, event: Event) {
+  const input = event.target as HTMLInputElement
+  if (!input.files?.[0]) return
+  await interactionsStore.uploadImageProof(sessionId, input.files[0])
+}
+
+async function handleGenericProofUpload(event: Event) {
+  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
+  if (!firstScheduled) {
+    toast.warning('No session to attach to', 'Upload a proof for a specific session below.')
+    return
+  }
+  await handleProofUpload(firstScheduled.id, event)
+}
+</script>
+
 <template>
   <div class="max-w-5xl mx-auto pb-28">
     <!-- Hero Welcome -->
@@ -30,9 +149,9 @@
     </div>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-12 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-4">
       <!-- Left Column -->
-      <div class="col-span-8 space-y-4">
+      <div class="col-span-1 md:col-span-8 space-y-4">
         <!-- My Sessions -->
         <section class="liquid-glass rounded-3xl p-4 border border-white/5">
           <div class="flex items-center justify-between mb-8">
@@ -194,7 +313,7 @@
             </span>
             Session Proofs &amp; Homework
           </h3>
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Upload area -->
             <label
               class="border-2 border-dashed border-white/10 bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group"
@@ -256,7 +375,7 @@
       </div>
 
       <!-- Right Column -->
-      <div class="col-span-4 space-y-4">
+      <div class="col-span-1 md:col-span-4 space-y-4">
         <!-- Enrollment Status -->
         <section
           class="liquid-glass rounded-3xl p-4 border border-white/5 relative overflow-hidden group"
@@ -387,7 +506,7 @@
         </section>
 
         <!-- Stats -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="liquid-glass rounded-3xl p-6 text-center border border-white/5">
             <p class="text-3xl font-black text-orange-500">{{ mySessions.length * 60 }}</p>
             <p class="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-1">
@@ -407,7 +526,7 @@
 
   <!-- Request Session Modal -->
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition enter-active-class="transition opacity-200 ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition opacity-200 ease-in duration-200" leave-from-class="opacity-100" leave-to-class="opacity-0">
       <div
         v-if="showRequestModal"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -489,132 +608,3 @@
   </Teleport>
 </template>
 
-<script setup lang="ts">
-import { onMounted, computed, ref, reactive } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useToastStore } from '../../stores/toast'
-import { useInteractionsStore } from '../../stores/interactions'
-
-const scheduleStore = useScheduleStore()
-const usersStore = useUsersStore()
-const authStore = useAuthStore()
-const toast = useToastStore()
-const interactionsStore = useInteractionsStore()
-
-const showRequestModal = ref(false)
-const requestForm = reactive({ teacherId: '', startTime: '' })
-
-onMounted(async () => {
-  if (authStore.currentUser?.id) {
-    await Promise.all([
-      scheduleStore.fetchUserSessions(authStore.currentUser.id),
-      usersStore.fetchUsersByRole('teacher'),
-      interactionsStore.fetchStudentEnrollments(authStore.currentUser.id),
-    ])
-  }
-})
-
-const myId = computed(() => authStore.currentUser?.id ?? '')
-
-const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.studentId === myId.value)
-)
-
-const nextSession = computed(
-  () =>
-    mySessions.value
-      .filter((s) => s.status === 'scheduled' && s.startTime)
-      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
-    null
-)
-
-const nextSessionCountdown = computed(() => {
-  if (!nextSession.value?.startTime) return 'no upcoming sessions'
-  const diff = new Date(nextSession.value.startTime).getTime() - Date.now()
-  if (diff <= 0) return 'now'
-  const hours = Math.floor(diff / 3600000)
-  if (hours < 24) return `${hours} hours`
-  return `${Math.floor(hours / 24)} days`
-})
-
-const pendingHomework = computed(
-  () => mySessions.value.find((s) => s.homeworkAssigned && !s.homeworkCompleted) ?? null
-)
-
-const sessionProgress = computed(() => {
-  const totalSessions = interactionsStore.enrollments[0]?.sessionsPurchased || 10
-  const used = mySessions.value.filter((s) => s.status === 'completed').length
-  return Math.min((used / totalSessions) * 100, 100)
-})
-
-const allTeachers = computed(() => usersStore.getUsersByRole('teacher'))
-
-const formatTime = (dt: string | undefined) => {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  })
-}
-const formatDay = (dt: string | undefined) => {
-  if (!dt) return '—'
-  return new Date(dt).getDate().toString()
-}
-const formatMonth = (dt: string | undefined) => {
-  if (!dt) return ''
-  return new Date(dt).toLocaleString('en-US', { month: 'short' }).toUpperCase()
-}
-
-async function submitRequest() {
-  if (!requestForm.teacherId || !requestForm.startTime) return
-  try {
-    const start = new Date(requestForm.startTime)
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
-    await scheduleStore.proposeSessionAsStudent({
-      teacherId: requestForm.teacherId,
-      studentId: myId.value,
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
-    })
-    toast.success('Session requested!', 'Your teacher will review and forward to admin for approval.')
-    showRequestModal.value = false
-    Object.assign(requestForm, { teacherId: '', startTime: '' })
-  } catch {
-    toast.error('Request failed', 'Please try again or contact your teacher.')
-  }
-}
-
-async function markHomeworkDone(sessionId: string) {
-  await interactionsStore.completeHomework(sessionId)
-  toast.success('Homework submitted!', 'Great work — keep it up.')
-}
-
-async function handleProofUpload(sessionId: string, event: Event) {
-  const input = event.target as HTMLInputElement
-  if (!input.files?.[0]) return
-  await interactionsStore.uploadImageProof(sessionId, input.files[0])
-}
-
-async function handleGenericProofUpload(event: Event) {
-  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
-  if (!firstScheduled) {
-    toast.warning('No session to attach to', 'Upload a proof for a specific session below.')
-    return
-  }
-  await handleProofUpload(firstScheduled.id, event)
-}
-</script>
-
-<style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-</style>

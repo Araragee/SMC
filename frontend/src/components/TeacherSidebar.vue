@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const logout = () => {
+  authStore.logout()
+  router.push('/')
+}
+</script>
+
 <template>
   <aside class="w-64 flex flex-col pt-8 pb-8 px-0 border-r border-white/5 bg-[#0e0e0e] shrink-0 sticky top-0 h-screen text-white">
     <div class="px-8 mb-12 flex items-center gap-3">
@@ -51,16 +64,3 @@
     </div>
   </aside>
 </template>
-
-<script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const logout = () => {
-  authStore.logout()
-  router.push('/')
-}
-</script>

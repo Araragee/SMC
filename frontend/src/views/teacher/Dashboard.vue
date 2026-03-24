@@ -1,3 +1,100 @@
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { useAuthStore } from '../../stores/auth'
+import { useScheduleStore } from '../../stores/schedule'
+import { useUsersStore } from '../../stores/users'
+
+const authStore = useAuthStore()
+const scheduleStore = useScheduleStore()
+const usersStore = useUsersStore()
+
+onMounted(async () => {
+  if (authStore.currentUser?.id) {
+    await Promise.all([
+      scheduleStore.fetchUserSessions(authStore.currentUser.id),
+      usersStore.fetchUsersByRole('student'),
+    ])
+  }
+})
+
+const myId = computed(() => authStore.currentUser?.id ?? '')
+
+const mySessions = computed(() =>
+  scheduleStore.allSessions.filter((s) => s.teacherId === myId.value)
+)
+
+const todaySessions = computed(() => {
+  const today = new Date().toDateString()
+  return mySessions.value.filter(
+    (s) => s.startTime && new Date(s.startTime).toDateString() === today
+  )
+})
+
+const nextSession = computed(
+  () =>
+    mySessions.value
+      .filter((s) => s.status === 'scheduled')
+      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
+    null
+)
+
+// Build unique student entries for the roster
+const rosterEntries = computed(() => {
+  const seen = new Set<string>()
+  return mySessions.value
+    .filter((s) => {
+      if (seen.has(s.studentId)) return false
+      seen.add(s.studentId)
+      return true
+    })
+    .map((s) => {
+      const user = usersStore.users.find((u) => u.id === s.studentId)
+      return {
+        studentId: s.studentId,
+        name: user?.name ?? `Student #${s.studentId}`,
+        startTime: s.startTime,
+        status: s.status,
+      }
+    })
+})
+
+// 7-day week grid (Mon–Sun of current week)
+const weekDays = computed(() => {
+  const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+  const now = new Date()
+  const dayOfWeek = now.getDay() || 7
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - dayOfWeek + 1)
+  monday.setHours(0, 0, 0, 0)
+
+  return days.map((label, i) => {
+    const date = new Date(monday)
+    date.setDate(monday.getDate() + i)
+    const isToday = date.toDateString() === now.toDateString()
+    const isWeekend = i >= 5
+    const session =
+      mySessions.value.find((s) => {
+        if (!s.startTime) return false
+        return new Date(s.startTime).toDateString() === date.toDateString()
+      }) ?? null
+    return { label, date, dateNum: date.getDate(), session, isToday, isWeekend }
+  })
+})
+
+const pendingProposals = computed(() =>
+  mySessions.value.filter(s => s.status === 'pending_teacher').length
+)
+
+const formatTime = (dt: string | undefined) => {
+  if (!dt) return '—'
+  return new Date(dt).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+</script>
+
 <template>
   <div class="max-w-5xl mx-auto pb-28">
     <!-- Hero Header -->
@@ -34,9 +131,9 @@
     </section>
 
     <!-- Main Grid -->
-    <div class="grid grid-cols-12 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-4">
       <!-- Left Column: Roster & Schedule -->
-      <div class="col-span-8 space-y-4">
+      <div class="col-span-1 md:col-span-8 space-y-4">
         <!-- Student Roster -->
         <div class="liquid-glass rounded-3xl p-4 border border-white/5 space-y-3">
           <div class="flex justify-between items-center">
@@ -56,11 +153,11 @@
           </div>
 
           <!-- Loading -->
-          <div v-if="usersStore.isLoading" class="grid grid-cols-2 gap-5">
+          <div v-if="usersStore.isLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div v-for="i in 2" :key="i" class="h-28 rounded-3xl bg-white/5 animate-pulse" />
           </div>
 
-          <div v-else class="grid grid-cols-2 gap-5">
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <!-- Real roster from sessions -->
             <div
               v-for="entry in rosterEntries"
@@ -124,7 +221,7 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-7 gap-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
             <div v-for="day in weekDays" :key="day.label" class="space-y-3">
               <div class="text-center">
                 <p
@@ -170,7 +267,7 @@
       </div>
 
       <!-- Right Column: Live Session Card -->
-      <div class="col-span-4">
+      <div class="col-span-1 md:col-span-4">
         <div
           class="liquid-glass rounded-3xl overflow-hidden border border-white/10 shadow-2xl sticky top-4 flex flex-col"
         >
@@ -293,7 +390,7 @@
     </div>
 
     <!-- Footer Stats -->
-    <section class="grid grid-cols-3 gap-4 mt-8">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
       <div
         class="liquid-glass p-4 rounded-3xl border border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
       >
@@ -344,100 +441,3 @@
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useAuthStore } from '../../stores/auth'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-
-const authStore = useAuthStore()
-const scheduleStore = useScheduleStore()
-const usersStore = useUsersStore()
-
-onMounted(async () => {
-  if (authStore.currentUser?.id) {
-    await Promise.all([
-      scheduleStore.fetchUserSessions(authStore.currentUser.id),
-      usersStore.fetchUsersByRole('student'),
-    ])
-  }
-})
-
-const myId = computed(() => authStore.currentUser?.id ?? '')
-
-const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.teacherId === myId.value)
-)
-
-const todaySessions = computed(() => {
-  const today = new Date().toDateString()
-  return mySessions.value.filter(
-    (s) => s.startTime && new Date(s.startTime).toDateString() === today
-  )
-})
-
-const nextSession = computed(
-  () =>
-    mySessions.value
-      .filter((s) => s.status === 'scheduled')
-      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
-    null
-)
-
-// Build unique student entries for the roster
-const rosterEntries = computed(() => {
-  const seen = new Set<string>()
-  return mySessions.value
-    .filter((s) => {
-      if (seen.has(s.studentId)) return false
-      seen.add(s.studentId)
-      return true
-    })
-    .map((s) => {
-      const user = usersStore.users.find((u) => u.id === s.studentId)
-      return {
-        studentId: s.studentId,
-        name: user?.name ?? `Student #${s.studentId}`,
-        startTime: s.startTime,
-        status: s.status,
-      }
-    })
-})
-
-// 7-day week grid (Mon–Sun of current week)
-const weekDays = computed(() => {
-  const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
-  const now = new Date()
-  const dayOfWeek = now.getDay() || 7
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - dayOfWeek + 1)
-  monday.setHours(0, 0, 0, 0)
-
-  return days.map((label, i) => {
-    const date = new Date(monday)
-    date.setDate(monday.getDate() + i)
-    const isToday = date.toDateString() === now.toDateString()
-    const isWeekend = i >= 5
-    const session =
-      mySessions.value.find((s) => {
-        if (!s.startTime) return false
-        return new Date(s.startTime).toDateString() === date.toDateString()
-      }) ?? null
-    return { label, date, dateNum: date.getDate(), session, isToday, isWeekend }
-  })
-})
-
-const pendingProposals = computed(() =>
-  mySessions.value.filter(s => s.status === 'pending_teacher').length
-)
-
-const formatTime = (dt: string | undefined) => {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-}
-</script>
