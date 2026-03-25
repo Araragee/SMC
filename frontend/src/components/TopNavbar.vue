@@ -73,9 +73,9 @@ const logout = () => {
 
     <!-- Notifications -->
     <button
-      @click="isNotificationsOpen = true"
       class="relative w-11 h-11 rounded-full flex items-center justify-center text-zinc-600 dark:text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group"
       title="Notifications"
+      @click="isNotificationsOpen = true"
     >
       <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">notifications</span>
       <span
@@ -90,9 +90,9 @@ const logout = () => {
     <!-- User Profile Dropdown -->
     <div class="relative">
       <button
-        @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
         class="flex items-center gap-3 px-4 py-2 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 transition-all group border border-transparent"
         :class="{ 'bg-zinc-100 dark:bg-white/10 border-zinc-200 dark:border-white/10 shadow-lg': isUserDropdownOpen }"
+        @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
       >
         <div class="w-10 h-10 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-500 font-black text-sm shrink-0 group-hover:border-orange-500/50 transition-colors overflow-hidden">
           <img v-if="authStore.currentUser?.avatarUrl" :src="authStore.currentUser.avatarUrl" class="w-full h-full object-cover" />
@@ -112,8 +112,8 @@ const logout = () => {
       <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 translate-y-2 scale-95 blur-[4px]" enter-to-class="opacity-100 translate-y-0 scale-100 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 translate-y-0 scale-100 blur-0" leave-to-class="opacity-0 translate-y-2 scale-95 blur-[4px]">
         <div 
           v-if="isUserDropdownOpen"
-          class="absolute top-full right-0 mt-3 w-56 bg-white dark:bg-zinc-900/90 backdrop-blur-2xl rounded-[1.5rem] border border-zinc-200 dark:border-white/10 shadow-xl dark:shadow-2xl overflow-hidden z-[110]"
           v-click-outside="() => isUserDropdownOpen = false"
+          class="absolute top-full right-0 mt-3 w-56 bg-white dark:bg-zinc-900/90 backdrop-blur-2xl rounded-[1.5rem] border border-zinc-200 dark:border-white/10 shadow-xl dark:shadow-2xl overflow-hidden z-[110]"
         >
           <div class="p-4 border-b border-zinc-100 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.02]">
             <p class="text-[10px] font-black text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1">Signed in as</p>
@@ -122,8 +122,8 @@ const logout = () => {
           
           <div class="p-2">
             <button
-              @click="isSettingsOpen = true; isUserDropdownOpen = false"
               class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 dark:text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 transition-all text-xs font-bold"
+              @click="isSettingsOpen = true; isUserDropdownOpen = false"
             >
               <span class="material-symbols-outlined text-lg">person_edit</span>
               Profile Settings
@@ -134,8 +134,8 @@ const logout = () => {
             </button>
             <div class="h-px bg-zinc-100 dark:bg-white/5 my-1 mx-2"></div>
             <button
-              @click="logout"
               class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-xs font-black"
+              @click="logout"
             >
               <span class="material-symbols-outlined text-lg">logout</span>
               Sign Out

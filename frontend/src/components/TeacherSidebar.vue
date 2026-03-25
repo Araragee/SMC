@@ -52,10 +52,10 @@ const logout = () => {
         New Enrollment
       </button>
       <div class="space-y-4 pt-6 border-t border-black/[0.04] dark:border-white/5">
-        <a href="#" class="flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-white text-sm transition-colors">
+        <router-link to="#" class="flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-white text-sm transition-colors">
           <span class="material-symbols-outlined text-xl">help</span>
           Help Center
-        </a>
+        </router-link>
         <button class="flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-red-400 text-sm transition-colors w-full text-left" @click="logout">
           <span class="material-symbols-outlined text-xl">logout</span>
           Sign Out

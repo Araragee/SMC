@@ -131,9 +131,9 @@ function resetToToday() {
           {{ displayMonthYear }}
         </h3>
         <button
-          @click="resetToToday"
           v-if="weekOffset !== 0"
           class="px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-wider hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
+          @click="resetToToday"
         >
           Today
         </button>
@@ -143,14 +143,14 @@ function resetToToday() {
         class="flex items-center gap-2 bg-zinc-100 dark:bg-white/5 p-1 rounded-2xl border border-zinc-200 dark:border-white/5"
       >
         <button
-          @click="previousWeek"
           class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+          @click="previousWeek"
         >
           <span class="material-symbols-outlined text-lg">chevron_left</span>
         </button>
         <button
-          @click="nextWeek"
           class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+          @click="nextWeek"
         >
           <span class="material-symbols-outlined text-lg">chevron_right</span>
         </button>

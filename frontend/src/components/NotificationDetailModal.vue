@@ -104,8 +104,8 @@ function formatTime(iso: string) {
                 </div>
               </div>
               <button
-                @click="$emit('close')"
                 class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group"
+                @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform duration-300">close</span>
               </button>
@@ -146,15 +146,15 @@ function formatTime(iso: string) {
               <router-link
                 v-if="notification.link"
                 :to="notification.link"
-                @click="$emit('close')"
                 class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
+                @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-sm">open_in_new</span>
                 View Details
               </router-link>
               <button
-                @click="$emit('close')"
                 class="px-6 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-900 dark:text-white font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
+                @click="$emit('close')"
               >
                 Dismiss
               </button>

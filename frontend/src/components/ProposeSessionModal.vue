@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import type { User, Session } from '../types'
 
 const props = defineProps<{
+  isOpen: boolean
   userRole: 'admin' | 'teacher' | 'student'
   currentUserId: string
   teachers: User[]
@@ -76,6 +77,7 @@ async function submit() {
   <Teleport to="body">
     <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
+        v-if="isOpen"
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
@@ -91,8 +93,8 @@ async function submit() {
               <h3 class="text-xl font-black text-zinc-900 dark:text-white">New Session Request</h3>
             </div>
             <button
-              @click="$emit('close')"
               class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
+              @click="$emit('close')"
             >
               <span class="material-symbols-outlined text-lg">close</span>
             </button>
@@ -129,8 +131,8 @@ async function submit() {
               <div>
                 <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Date</label>
                 <input
-                  type="date"
                   v-model="form.date"
+                  type="date"
                   :min="todayStr"
                   class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
                 />
@@ -138,8 +140,8 @@ async function submit() {
               <div>
                 <label class="block text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-2">Time</label>
                 <input
-                  type="time"
                   v-model="form.time"
+                  type="time"
                   class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
                 />
               </div>
@@ -183,17 +185,17 @@ async function submit() {
           <!-- Footer -->
           <div class="p-4 border-t border-black/[0.04] dark:border-white/5 flex gap-3">
             <button
-              @click="submit"
               :disabled="!isValid || isSubmitting"
               class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+              @click="submit"
             >
               <span v-if="isSubmitting" class="material-symbols-outlined text-base animate-spin">refresh</span>
               <span v-else class="material-symbols-outlined text-base">send</span>
               {{ submitLabel }}
             </button>
             <button
-              @click="$emit('close')"
               class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white font-bold rounded-2xl transition-all text-sm"
+              @click="$emit('close')"
             >
               Cancel
             </button>

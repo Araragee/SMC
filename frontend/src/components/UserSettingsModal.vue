@@ -96,8 +96,8 @@ const handleLogout = () => {
               <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">User Settings</h2>
             </div>
             <button
-              @click="$emit('close')"
               class="w-12 h-12 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group"
+              @click="$emit('close')"
             >
               <span
                 class="material-symbols-outlined text-xl group-hover:rotate-90 transition-transform duration-300"
@@ -217,10 +217,10 @@ const handleLogout = () => {
                 <button
                   class="relative flex h-10 w-20 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                   :class="themeStore.isDarkMode ? 'bg-orange-500' : 'bg-zinc-300'"
-                  @click="themeStore.toggleTheme"
                   :aria-label="
                     themeStore.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'
                   "
+                  @click="themeStore.toggleTheme"
                 >
                   <span
                     class="flex h-8 w-8 transform rounded-full bg-white items-center justify-center shadow-lg transition-transform duration-300"
@@ -247,8 +247,8 @@ const handleLogout = () => {
               </div>
               <div class="bg-red-500/5 border border-red-500/10 rounded-3xl p-6">
                 <button
-                  @click="handleLogout"
                   class="w-full py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-black rounded-2xl transition-all flex items-center justify-center gap-3 group"
+                  @click="handleLogout"
                 >
                   <span
                     class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform"
@@ -265,15 +265,15 @@ const handleLogout = () => {
             class="p-8 border-t border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end gap-4 shrink-0"
           >
             <button
-              @click="$emit('close')"
               class="px-6 py-3 text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors"
+              @click="$emit('close')"
             >
               Cancel
             </button>
             <button
-              @click="handleSave"
               :disabled="authStore.isLoading"
               class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-zinc-900 dark:text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+              @click="handleSave"
             >
               <span
                 v-if="authStore.isLoading"
