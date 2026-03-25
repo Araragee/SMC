@@ -175,8 +175,8 @@ function statusBadgeClass(status: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          @click="showProposeModal = true"
           class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
           Schedule Session
@@ -246,16 +246,16 @@ function statusBadgeClass(status: string): string {
           <div class="flex items-center gap-2 shrink-0">
             <button
               v-if="session.status === 'pending_admin'"
-              @click="handleApprove(session.id)"
               class="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleApprove(session.id)"
             >
               <span class="material-symbols-outlined text-sm">check_circle</span>
               Approve
             </button>
             <button
               v-if="session.status === 'pending_admin'"
-              @click="openReject(session.id)"
               class="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="openReject(session.id)"
             >
               <span class="material-symbols-outlined text-sm">cancel</span>
               Reject
@@ -294,7 +294,7 @@ function statusBadgeClass(status: string): string {
           >
         </div>
       </div>
-      <BaseCalendar :sessions="scheduleStore.allSessions" @dayClick="onDayClick" />
+      <BaseCalendar :sessions="scheduleStore.allSessions" @day-click="onDayClick" />
     </section>
 
     <!-- All Sessions Table -->
@@ -343,24 +343,24 @@ function statusBadgeClass(status: string): string {
           <div class="flex items-center gap-2 shrink-0">
             <button
               v-if="session.status === 'pending_admin'"
-              @click="handleApprove(session.id)"
               class="p-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-all"
               title="Approve"
+              @click="handleApprove(session.id)"
             >
               <span class="material-symbols-outlined text-sm">check_circle</span>
             </button>
             <button
               v-if="session.status === 'pending_admin' || session.status === 'pending_teacher'"
-              @click="openReject(session.id)"
               class="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
               title="Reject"
+              @click="openReject(session.id)"
             >
               <span class="material-symbols-outlined text-sm">cancel</span>
             </button>
             <button
-              @click="openEdit(session)"
               class="p-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
               title="Edit"
+              @click="openEdit(session)"
             >
               <span class="material-symbols-outlined text-sm">edit</span>
             </button>
@@ -403,14 +403,14 @@ function statusBadgeClass(status: string): string {
             />
             <div class="flex gap-3">
               <button
-                @click="confirmReject"
                 class="flex-1 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold rounded-2xl text-sm transition-all"
+                @click="confirmReject"
               >
                 Confirm Reject
               </button>
               <button
-                @click="rejectModal.open = false"
                 class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 font-bold rounded-2xl text-sm transition-all"
+                @click="rejectModal.open = false"
               >
                 Cancel
               </button>
@@ -445,8 +445,8 @@ function statusBadgeClass(status: string): string {
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-black text-zinc-900 dark:text-white">Edit Session</h3>
               <button
-                @click="editModal.open = false"
                 class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white"
+                @click="editModal.open = false"
               >
                 <span class="material-symbols-outlined text-base">close</span>
               </button>
@@ -458,8 +458,8 @@ function statusBadgeClass(status: string): string {
                   >Date</label
                 >
                 <input
-                  type="date"
                   v-model="editModal.date"
+                  type="date"
                   class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
@@ -469,8 +469,8 @@ function statusBadgeClass(status: string): string {
                   >Time</label
                 >
                 <input
-                  type="time"
                   v-model="editModal.time"
+                  type="time"
                   class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
@@ -488,14 +488,14 @@ function statusBadgeClass(status: string): string {
             </div>
             <div class="flex gap-3">
               <button
-                @click="confirmEdit"
                 class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl text-sm"
+                @click="confirmEdit"
               >
                 Save Changes
               </button>
               <button
-                @click="editModal.open = false"
                 class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 font-bold rounded-2xl text-sm"
+                @click="editModal.open = false"
               >
                 Cancel
               </button>
@@ -521,7 +521,7 @@ function statusBadgeClass(status: string): string {
 
     <!-- Propose Modal -->
     <ProposeSessionModal
-      v-if="showProposeModal"
+      :is-open="showProposeModal"
       user-role="admin"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :teachers="teachers"

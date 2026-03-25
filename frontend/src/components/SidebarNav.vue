@@ -158,8 +158,8 @@ const logout = () => {
     <div class="pt-4 border-t border-black/[0.04] dark:border-white/5 flex flex-col gap-3 relative">
       <div class="flex items-center gap-3">
         <button
-          @click="isNotificationsOpen = true"
           class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 rounded-2xl text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group border border-black/[0.04] dark:border-white/5"
+          @click="isNotificationsOpen = true"
         >
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
             >notifications</span
@@ -176,9 +176,9 @@ const logout = () => {
       <!-- User Profile Dropdown -->
       <div class="relative w-full">
         <button
-          @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
           class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/5 transition-all group border border-transparent"
           :class="{ 'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen }"
+          @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
         >
           <div
             class="w-10 h-10 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 font-black text-sm shrink-0 group-hover:border-orange-500/50 transition-colors overflow-hidden"
@@ -216,8 +216,8 @@ const logout = () => {
         >
           <div
             v-if="isUserDropdownOpen"
-            class="absolute bottom-full right-0 mb-3 w-56 liquid-glass rounded-[1.5rem] border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden z-[110]"
             v-click-outside="() => (isUserDropdownOpen = false)"
+            class="absolute bottom-full right-0 mb-3 w-56 liquid-glass rounded-[1.5rem] border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden z-[110]"
           >
             <div class="p-4 border-b border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
               <p class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-1">
@@ -244,8 +244,8 @@ const logout = () => {
               </button>
               <div class="h-px bg-black/[0.04] dark:bg-white/5 my-1 mx-2"></div>
               <button
-                @click="logout"
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 dark:text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all text-xs font-black"
+                @click="logout"
               >
                 <span class="material-symbols-outlined text-lg">logout</span>
                 Sign Out

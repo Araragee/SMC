@@ -577,7 +577,7 @@ async function confirmQuickAssign() {
 
   <!-- Add Session Modal -->
   <ProposeSessionModal
-    v-if="showAddSessionModal"
+    :is-open="showAddSessionModal"
     user-role="admin"
     :current-user-id="authStore.currentUser?.id ?? ''"
     :teachers="teachers"

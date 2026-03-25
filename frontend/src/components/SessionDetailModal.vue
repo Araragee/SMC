@@ -108,8 +108,8 @@ function statusDotClass(status: string): string {
               <p class="text-zinc-600 dark:text-zinc-500 text-sm mt-0.5">{{ sessions.length }} session{{ sessions.length !== 1 ? 's' : '' }} scheduled</p>
             </div>
             <button
-              @click="$emit('close')"
               class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
+              @click="$emit('close')"
             >
               <span class="material-symbols-outlined text-lg">close</span>
             </button>
@@ -150,9 +150,9 @@ function statusDotClass(status: string): string {
                 <!-- Admin edit button -->
                 <button
                   v-if="userRole === 'admin'"
-                  @click="$emit('edit-admin', session)"
                   class="p-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
                   title="Edit session"
+                  @click="$emit('edit-admin', session)"
                 >
                   <span class="material-symbols-outlined text-base">edit</span>
                 </button>
@@ -181,15 +181,15 @@ function statusDotClass(status: string): string {
                 <!-- Teacher actions: approve/reject student proposals -->
                 <template v-if="userRole === 'teacher' && session.status === 'pending_teacher' && session.teacherId === currentUserId">
                   <button
-                    @click="$emit('approve-teacher', session.id)"
                     class="flex-1 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    @click="$emit('approve-teacher', session.id)"
                   >
                     <span class="material-symbols-outlined text-sm">check_circle</span>
                     Approve
                   </button>
                   <button
-                    @click="$emit('reject-teacher', session.id)"
                     class="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    @click="$emit('reject-teacher', session.id)"
                   >
                     <span class="material-symbols-outlined text-sm">cancel</span>
                     Decline
@@ -199,15 +199,15 @@ function statusDotClass(status: string): string {
                 <!-- Admin actions: approve/reject pending_admin sessions -->
                 <template v-if="userRole === 'admin' && session.status === 'pending_admin'">
                   <button
-                    @click="$emit('approve-admin', session.id)"
                     class="flex-1 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    @click="$emit('approve-admin', session.id)"
                   >
                     <span class="material-symbols-outlined text-sm">check_circle</span>
                     Approve
                   </button>
                   <button
-                    @click="$emit('reject-admin', session.id)"
                     class="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    @click="$emit('reject-admin', session.id)"
                   >
                     <span class="material-symbols-outlined text-sm">cancel</span>
                     Reject
@@ -221,23 +221,23 @@ function statusDotClass(status: string): string {
           <div class="p-4 border-t border-black/[0.04] dark:border-white/5 flex gap-3">
             <button
               v-if="userRole !== 'admin'"
-              @click="$emit('propose')"
               class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+              @click="$emit('propose')"
             >
               <span class="material-symbols-outlined text-base">add_circle</span>
               Propose New Schedule
             </button>
             <button
               v-if="userRole === 'admin'"
-              @click="$emit('propose')"
               class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+              @click="$emit('propose')"
             >
               <span class="material-symbols-outlined text-base">add_circle</span>
               Schedule New Session
             </button>
             <button
-              @click="$emit('close')"
               class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white font-bold rounded-2xl transition-all text-sm"
+              @click="$emit('close')"
             >
               Close
             </button>

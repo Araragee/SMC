@@ -95,14 +95,14 @@ function markAllAsRead() {
             <div class="flex items-center gap-2">
               <button
                 v-if="unreadCount > 0"
-                @click="markAllAsRead"
                 class="text-[10px] font-bold text-zinc-600 dark:text-zinc-500 hover:text-orange-500 transition-colors uppercase tracking-wider px-2 py-1"
+                @click="markAllAsRead"
               >
                 Mark all as read
               </button>
               <button
-                @click="$emit('close')"
                 class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
+                @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
               </button>

@@ -124,8 +124,8 @@ function formatDay(iso: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          @click="showProposeModal = true"
           class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
           Request Session
@@ -205,7 +205,7 @@ function formatDay(iso: string): string {
           >
         </div>
       </div>
-      <BaseCalendar :sessions="mySessions" @dayClick="onDayClick" />
+      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" />
     </section>
 
     <!-- Upcoming Sessions -->
@@ -272,7 +272,7 @@ function formatDay(iso: string): string {
 
     <!-- Propose Modal -->
     <ProposeSessionModal
-      v-if="showProposeModal"
+      :is-open="showProposeModal"
       user-role="student"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :teachers="teachers"

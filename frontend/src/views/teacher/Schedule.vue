@@ -144,8 +144,8 @@ function formatDay(iso: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          @click="showProposeModal = true"
           class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
           Propose Session
@@ -195,15 +195,15 @@ function formatDay(iso: string): string {
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button
-              @click="handleApproveStudent(session.id)"
               class="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleApproveStudent(session.id)"
             >
               <span class="material-symbols-outlined text-sm">check_circle</span>
               Approve
             </button>
             <button
-              @click="openReject(session.id)"
               class="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="openReject(session.id)"
             >
               <span class="material-symbols-outlined text-sm">cancel</span>
               Decline
@@ -238,7 +238,7 @@ function formatDay(iso: string): string {
           >
         </div>
       </div>
-      <BaseCalendar :sessions="mySessions" @dayClick="onDayClick" />
+      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" />
     </section>
 
     <!-- Upcoming Confirmed Sessions -->
@@ -309,14 +309,14 @@ function formatDay(iso: string): string {
             />
             <div class="flex gap-3">
               <button
-                @click="confirmReject"
                 class="flex-1 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold rounded-2xl text-sm transition-all"
+                @click="confirmReject"
               >
                 Confirm Decline
               </button>
               <button
-                @click="rejectModal.open = false"
                 class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 font-bold rounded-2xl text-sm"
+                @click="rejectModal.open = false"
               >
                 Cancel
               </button>
@@ -341,7 +341,7 @@ function formatDay(iso: string): string {
 
     <!-- Propose Modal -->
     <ProposeSessionModal
-      v-if="showProposeModal"
+      :is-open="showProposeModal"
       user-role="teacher"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :teachers="[]"

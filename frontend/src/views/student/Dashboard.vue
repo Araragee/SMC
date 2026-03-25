@@ -406,8 +406,8 @@ async function handleGenericProofUpload() {
             </label>
             <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
               <button
-                @click="handleGenericProofUpload"
                 class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+                @click="handleGenericProofUpload"
               >
                 Submit Proof
               </button>

@@ -32,14 +32,14 @@ const logout = () => {
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
         <span>Dashboard</span>
       </router-link>
-      <a href="#" class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-highest/50 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1">
+      <router-link to="#" class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-highest/50 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1">
         <span class="material-symbols-outlined">group</span>
         <span>Users</span>
-      </a>
-      <a href="#" class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-highest/50 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1">
+      </router-link>
+      <router-link to="#" class="group flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-surface-container-highest/50 transition-colors rounded-2xl font-plus-jakarta-sans text-sm font-medium tracking-wide cubic-bezier(0.2,0.8,0.2,1) hover:translate-x-1">
         <span class="material-symbols-outlined">calendar_month</span>
         <span>Global Schedule</span>
-      </a>
+      </router-link>
     </nav>
     
     <div class="mt-auto space-y-4">
