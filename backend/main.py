@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 import os
 import passlib.hash
 import jwt
@@ -81,26 +82,27 @@ def startup_event():
     db = SessionLocal()
 
     # Run SQLite migration: Add new columns if they don't exist
-    try:
-        db.execute("ALTER TABLE users ADD COLUMN username VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN contact_number VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN home_address VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN birthday VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN age INTEGER")
-        db.execute("ALTER TABLE users ADD COLUMN school VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN parent_name VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN parent_contact VARCHAR")
-        db.execute("ALTER TABLE users ADD COLUMN sessions_enrolled INTEGER")
-    except Exception:
-        pass # Ignore errors if columns already exist
-
-    try:
-        db.execute("ALTER TABLE sessions ADD COLUMN instrument_id INTEGER REFERENCES instruments(id)")
-        db.execute("ALTER TABLE sessions ADD COLUMN is_manual_entry BOOLEAN DEFAULT 0")
-        db.execute("ALTER TABLE sessions ADD COLUMN session_number INTEGER")
-    except Exception:
-        pass # Ignore errors if columns already exist
-    db.commit()
+    columns = [
+        ("users", "username", "VARCHAR"),
+        ("users", "contact_number", "VARCHAR"),
+        ("users", "home_address", "VARCHAR"),
+        ("users", "birthday", "VARCHAR"),
+        ("users", "age", "INTEGER"),
+        ("users", "school", "VARCHAR"),
+        ("users", "parent_name", "VARCHAR"),
+        ("users", "parent_contact", "VARCHAR"),
+        ("users", "sessions_enrolled", "INTEGER"),
+        ("sessions", "instrument_id", "INTEGER REFERENCES instruments(id)"),
+        ("sessions", "is_manual_entry", "BOOLEAN DEFAULT 0"),
+        ("sessions", "session_number", "INTEGER")
+    ]
+    
+    for table, col, col_type in columns:
+        try:
+            db.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
+            db.commit()
+        except Exception:
+            db.rollback() # Ignore errors if columns already exist
 
     try:
         # Create default roles if they don't exist
