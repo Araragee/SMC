@@ -3,8 +3,14 @@ import axios from 'axios';
 import type { Enrollment } from '../types';
 import { useScheduleStore } from './schedule';
 import { useToastStore } from './toast';
+import { useAuthStore } from './auth';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+function authHeaders() {
+  const auth = useAuthStore();
+  return auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
+}
 
 interface InteractionsState {
   enrollments: Enrollment[];
@@ -23,7 +29,7 @@ export const useInteractionsStore = defineStore('interactions', {
       this.isLoading = true;
       this.error = null;
       try {
-        const response = await axios.get(`${API_URL}/enrollments/student/${studentId}`);
+        const response = await axios.get(`${API_URL}/enrollments/student/${studentId}`, { headers: authHeaders() });
         this.enrollments = response.data.map((enrollment: any) => ({
           id: String(enrollment.id),
           studentId: String(enrollment.student_id),
@@ -49,7 +55,7 @@ export const useInteractionsStore = defineStore('interactions', {
           teacher_id: parseInt(payload.teacherId),
           sessions_purchased: payload.sessionsPurchased,
           sessions_used: payload.sessionsUsed,
-        });
+        }, { headers: authHeaders() });
         const newEnrollment: Enrollment = {
           id: String(response.data.id),
           studentId: String(response.data.student_id),
@@ -78,7 +84,7 @@ export const useInteractionsStore = defineStore('interactions', {
         const response = await axios.post(`${API_URL}/homework/?session_id=${sessionId}`, {
           description: homework,
           is_completed: false
-        });
+        }, { headers: authHeaders() });
 
         const scheduleStore = useScheduleStore();
         const session = scheduleStore.allSessions.find(s => s.id === sessionId);
@@ -102,7 +108,10 @@ export const useInteractionsStore = defineStore('interactions', {
             formData.append('file', file);
 
             const response = await axios.post(`${API_URL}/session-proofs/?session_id=${sessionId}`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
+              headers: { 
+                'Content-Type': 'multipart/form-data',
+                ...authHeaders()
+              }
             });
             const scheduleStore = useScheduleStore();
             const session = scheduleStore.allSessions.find(s => s.id === sessionId);
@@ -127,11 +136,11 @@ export const useInteractionsStore = defineStore('interactions', {
             // Since our backend takes homework_id in the PUT route, let's just cheat and send a PUT.
             // Wait, we need the homework ID. Let's assume the backend takes sessionId or we just modify the backend to accept an endpoint for completion.
             // For now, let's fetch session to get its homeworks.
-            const sessionResponse = await axios.get(`${API_URL}/sessions/`);
+            const sessionResponse = await axios.get(`${API_URL}/sessions/`, { headers: authHeaders() });
             const sessionData = sessionResponse.data.find((s: any) => s.id === parseInt(sessionId));
             if (sessionData && sessionData.homeworks && sessionData.homeworks.length > 0) {
               const homeworkId = sessionData.homeworks[0].id;
-              await axios.put(`${API_URL}/homework/${homeworkId}?is_completed=true`);
+              await axios.put(`${API_URL}/homework/${homeworkId}?is_completed=true`, {}, { headers: authHeaders() });
             }
 
             const scheduleStore = useScheduleStore();

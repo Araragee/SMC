@@ -1,8 +1,14 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { useAuthStore } from './auth';
 import type { User, Role, InstrumentRecord } from '../types';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+function authHeaders() {
+  const auth = useAuthStore();
+  return auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
+}
 
 interface UsersState {
   users: User[];
@@ -61,7 +67,7 @@ export const useUsersStore = defineStore('users', {
       // Backend stores roles as lowercase: 'teacher', 'student', 'admin'
       const roleName = role.toLowerCase();
       try {
-        const response = await axios.get(`${API_URL}/users/role/${roleName}`);
+        const response = await axios.get(`${API_URL}/users/role/${roleName}`, { headers: authHeaders() });
         const newUsers = response.data.map((user: any) => ({
           id: String(user.id),
           name: user.name,
@@ -200,14 +206,14 @@ export const useUsersStore = defineStore('users', {
 
         // Handling role change would require fetching role_id again
         if (updateData.role) {
-            const rolesResp = await axios.get(`${API_URL}/roles/`);
+            const rolesResp = await axios.get(`${API_URL}/roles/`, { headers: authHeaders() });
             const roles = rolesResp.data;
             const roleName = updateData.role.charAt(0).toUpperCase() + updateData.role.slice(1);
             const role = roles.find((r: any) => r.name === roleName);
             if (role) payload.role_id = role.id;
         }
 
-        const response = await axios.put(`${API_URL}/users/${userId}`, payload);
+        const response = await axios.put(`${API_URL}/users/${userId}`, payload, { headers: authHeaders() });
         const updatedUser = response.data;
 
         const index = this.users.findIndex(u => u.id === userId);
@@ -244,7 +250,7 @@ export const useUsersStore = defineStore('users', {
       this.isLoading = true;
       this.error = null;
       try {
-        await axios.delete(`${API_URL}/users/${userId}`);
+        await axios.delete(`${API_URL}/users/${userId}`, { headers: authHeaders() });
         this.users = this.users.filter((user) => user.id !== userId);
       } catch (err: any) {
         this.error = err.message || 'Failed to delete user';

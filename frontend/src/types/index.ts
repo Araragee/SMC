@@ -5,6 +5,7 @@ export type SessionStatus =
   | 'completed'
   | 'cancelled'
   | 'pending_teacher'
+  | 'pending_student'
   | 'pending_admin'
   | 'rejected';
 

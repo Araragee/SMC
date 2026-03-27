@@ -24,6 +24,8 @@ const viewMode = ref<'daily' | 'weekly'>('daily')
 const quickTeacherId = ref('')
 const quickStudentId = ref('')
 const isQuickAssigning = ref(false)
+const quickDate = ref(new Date().toISOString().split('T')[0])
+const quickTime = ref(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }))
 const teacherSearch = ref('')
 const showTeacherSearch = ref(false)
 
@@ -136,22 +138,26 @@ const formatAmPm = (dt: string | undefined) => {
 const statusClass = (status: string) => ({
   'bg-emerald-500/20 text-emerald-400': status === 'completed',
   'bg-blue-500/20 text-blue-400': status === 'scheduled',
-  'bg-amber-500/20 text-amber-400': status === 'ongoing',
-  'bg-red-500/20 text-red-400': status === 'cancelled',
+  'bg-amber-500/20 text-amber-400': status === 'pending_teacher' || status === 'ongoing',
+  'bg-orange-500/20 text-orange-400': status === 'pending_student',
+  'bg-blue-600/20 text-blue-300': status === 'pending_admin',
+  'bg-red-500/20 text-red-400': status === 'rejected' || status === 'cancelled',
 })
 
 const borderColor = (status: string) => ({
   'border-l-emerald-500': status === 'completed',
-  'border-l-orange-500': status === 'scheduled',
-  'border-l-amber-500': status === 'ongoing',
-  'border-l-red-500': status === 'cancelled',
+  'border-l-orange-500': status === 'scheduled' || status === 'pending_student',
+  'border-l-amber-500': status === 'pending_teacher' || status === 'ongoing',
+  'border-l-blue-500': status === 'pending_admin',
+  'border-l-red-500': status === 'rejected' || status === 'cancelled',
 })
 
 const iconClass = (status: string) => ({
   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
-  'bg-orange-500/10 text-orange-400 border-orange-500/20': status === 'scheduled',
-  'bg-amber-500/10 text-amber-400 border-amber-500/20': status === 'ongoing',
-  'bg-red-500/10 text-red-400 border-red-500/20': status === 'cancelled',
+  'bg-orange-500/10 text-orange-400 border-orange-500/20': status === 'scheduled' || status === 'pending_student',
+  'bg-amber-500/10 text-amber-400 border-amber-500/20': status === 'pending_teacher' || status === 'ongoing',
+  'bg-blue-500/10 text-blue-400 border-blue-500/20': status === 'pending_admin',
+  'bg-red-500/10 text-red-400 border-red-500/20': status === 'rejected' || status === 'cancelled',
 })
 
 async function onProposeSubmit(session: Session) {
@@ -187,20 +193,32 @@ function refreshDetailSessions() {
 }
 
 async function handleApproveAdmin(sessionId: string) {
+  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
   try {
-    await scheduleStore.approveAsAdmin(sessionId)
-    toast.success('Approved', 'Session has been approved.')
+    if (session?.status === 'pending_teacher') {
+      await scheduleStore.approveAsTeacher(sessionId)
+    } else if (session?.status === 'pending_student') {
+      await scheduleStore.approveAsStudent(sessionId)
+    } else {
+      await scheduleStore.approveAsAdmin(sessionId)
+    }
+    toast.success('Success', `Session ${sessionId} advanced.`)
     await scheduleStore.fetchAllSessions()
     refreshDetailSessions()
   } catch {
-    toast.error('Failed', 'Could not approve session.')
+    toast.error('Failed', 'Action could not be completed.')
   }
 }
 
 async function handleRejectAdmin(sessionId: string) {
+  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
   try {
-    await scheduleStore.rejectAsAdmin(sessionId, '')
-    toast.success('Rejected', 'Session has been rejected.')
+    if (session?.status === 'pending_teacher') {
+      await scheduleStore.rejectAsTeacher(sessionId, 'Decline by Admin')
+    } else {
+      await scheduleStore.rejectAsAdmin(sessionId, 'Reject by Admin')
+    }
+    toast.success('Rejected', 'Session has been updated.')
     await scheduleStore.fetchAllSessions()
     refreshDetailSessions()
   } catch {
@@ -212,20 +230,19 @@ async function confirmQuickAssign() {
   if (!quickTeacherId.value || !quickStudentId.value) return
   isQuickAssigning.value = true
   try {
-    const now = new Date()
-    now.setMinutes(0, 0, 0)
-    now.setHours(now.getHours() + 1)
+    const startTime = new Date(`${quickDate.value}T${quickTime.value}`)
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000) // 1hr
     await scheduleStore.bookSession({
       teacherId: quickTeacherId.value,
       studentId: quickStudentId.value,
-      startTime: now.toISOString(),
-      endTime: new Date(now.getTime() + 3600000).toISOString(),
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
     })
-    toast.success('Quick assign done!', 'Session scheduled for the next available hour.')
+    toast.success('Session assigned!', 'The session has been successfully scheduled.')
     quickTeacherId.value = ''
     quickStudentId.value = ''
-  } catch {
-    toast.error('Quick assign failed', 'Could not create the session.')
+  } catch (err: any) {
+    toast.error('Assignment failed', err.message || 'Check connection.')
   } finally {
     isQuickAssigning.value = false
   }
@@ -960,6 +977,25 @@ function openLiveAnalytics() {
                   </option>
                 </select>
               </div>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Date</label>
+                  <input
+                    v-model="quickDate"
+                    type="date"
+                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
+                  />
+                </div>
+                <div>
+                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Time</label>
+                  <input
+                    v-model="quickTime"
+                    type="time"
+                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
+                  />
+                </div>
+              </div>
               <button
                 :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
                 class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all duration-150 uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -988,6 +1024,11 @@ function openLiveAnalytics() {
     "
     @approve-admin="handleApproveAdmin"
     @reject-admin="handleRejectAdmin"
+    @approve-teacher="handleApproveAdmin"
+    @reject-teacher="handleRejectAdmin"
+    @counter-teacher="(s) => handleApproveAdmin(s.id)"
+    @approve-student="handleApproveAdmin"
+    @counter-student="(s) => handleApproveAdmin(s.id)"
     @edit-admin="
       detailDate = null;
       showAddSessionModal = true;

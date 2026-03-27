@@ -265,5 +265,52 @@ export const useScheduleStore = defineStore('schedule', {
         this.isLoading = false;
       }
     },
+
+    async counterAsTeacher(sessionId: string, data: { startTime: string; endTime: string; notes?: string }) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(`${API_URL}/sessions/${sessionId}/counter/teacher`, {
+          start_time: data.startTime,
+          end_time: data.endTime,
+          notes: data.notes
+        }, { headers: authHeaders() });
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async counterAsStudent(sessionId: string, data: { startTime: string; endTime: string; notes?: string }) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(`${API_URL}/sessions/${sessionId}/counter/student`, {
+          start_time: data.startTime,
+          end_time: data.endTime,
+          notes: data.notes
+        }, { headers: authHeaders() });
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async approveAsStudent(sessionId: string) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(`${API_URL}/sessions/${sessionId}/approve/student`, {}, { headers: authHeaders() });
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });

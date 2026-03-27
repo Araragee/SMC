@@ -20,6 +20,7 @@ const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
 const showProposeModal = ref(false)
 const rejectModal = ref({ open: false, sessionId: '', notes: '' })
+const counterModal = ref({ open: false, sessionId: '', startTime: '', endTime: '', notes: '' })
 
 const myId = computed(() => authStore.currentUser?.id ?? '')
 const students = computed(() => usersStore.getUsersByRole('student'))
@@ -64,6 +65,7 @@ async function handleApproveStudent(sessionId: string) {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Request approved!', 'Forwarded to admin for final approval.')
     selectedDate.value = null
+    await scheduleStore.fetchUserSessions(myId.value);
   } catch {
     toast.error('Failed to approve request')
   }
@@ -79,8 +81,43 @@ async function confirmReject() {
     await scheduleStore.rejectAsTeacher(rejectModal.value.sessionId, rejectModal.value.notes)
     toast.success('Request declined', 'The student has been notified.')
     rejectModal.value.open = false
+    await scheduleStore.fetchUserSessions(myId.value);
   } catch {
     toast.error('Failed to decline request')
+  }
+}
+
+function openCounter(session: Session) {
+  counterModal.value = {
+    open: true,
+    sessionId: session.id,
+    startTime: session.startTime.slice(0, 16),
+    endTime: session.endTime?.slice(0, 16) || '',
+    notes: `Counter proposal: Original time didn't work for me.`
+  }
+}
+
+async function confirmCounter() {
+  try {
+    const startTime = new Date(counterModal.value.startTime).toISOString();
+    let endTime = '';
+    if (counterModal.value.endTime) {
+        endTime = new Date(counterModal.value.endTime).toISOString();
+    } else {
+        // Default to 1 hour after start if missing
+        endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString();
+    }
+
+    await scheduleStore.counterAsTeacher(counterModal.value.sessionId, {
+      startTime,
+      endTime,
+      notes: counterModal.value.notes
+    })
+    toast.success('Counter proposal sent!', 'The student has been notified.')
+    counterModal.value.open = false
+    await scheduleStore.fetchUserSessions(myId.value);
+  } catch {
+    toast.error('Failed to send counter proposal')
   }
 }
 
@@ -200,6 +237,13 @@ function formatDay(iso: string): string {
             >
               <span class="material-symbols-outlined text-sm">check_circle</span>
               Approve
+            </button>
+            <button
+              class="px-4 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="openCounter(session)"
+            >
+              <span class="material-symbols-outlined text-sm">swap_horiz</span>
+              Counter
             </button>
             <button
               class="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center gap-1.5"
@@ -326,7 +370,74 @@ function formatDay(iso: string): string {
       </Transition>
     </Teleport>
 
-    <!-- Session Detail Modal -->
+    <!-- Counter Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition opacity-150 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition opacity-150 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="counterModal.open"
+          class="fixed inset-0 z-[250] flex items-center justify-center p-4"
+        >
+          <div
+            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
+            @click="counterModal.open = false"
+          />
+          <div
+            class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
+          >
+            <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Counter Proposal</h3>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2 block">New Start Time</label>
+                <input
+                  v-model="counterModal.startTime"
+                  type="datetime-local"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 [color-scheme:dark]"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2 block">New End Time</label>
+                <input
+                  v-model="counterModal.endTime"
+                  type="datetime-local"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 [color-scheme:dark]"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2 block">Notes to Student</label>
+                <textarea
+                  v-model="counterModal.notes"
+                  rows="3"
+                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 resize-none"
+                />
+              </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+              <button
+                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-black rounded-2xl text-sm shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all"
+                @click="confirmCounter"
+              >
+                Send Counter
+              </button>
+              <button
+                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                @click="counterModal.open = false"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
     <SessionDetailModal
       :date="selectedDate"
       :sessions="selectedDaySessions"
@@ -337,6 +448,7 @@ function formatDay(iso: string): string {
       @propose="((showProposeModal = true), (selectedDate = null))"
       @approve-teacher="handleApproveStudent"
       @reject-teacher="openReject"
+      @counter-teacher="openCounter"
     />
 
     <!-- Propose Modal -->

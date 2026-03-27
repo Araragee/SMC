@@ -103,6 +103,63 @@ async function saveSessionChanges() {
   closeSessionModal()
 }
 
+async function handleApprove(sessionId: string) {
+  try {
+    await scheduleStore.approveAsTeacher(sessionId)
+    toast.success('Approved!', 'The session is now awaiting admin confirmation.')
+    closeSessionModal()
+    await scheduleStore.fetchUserSessions(myId.value)
+  } catch {
+    toast.error('Failed to approve')
+  }
+}
+
+async function handleReject(sessionId: string, notes?: string) {
+  try {
+    await scheduleStore.rejectAsTeacher(sessionId, notes)
+    toast.success('Declined', 'The student has been notified.')
+    closeSessionModal()
+    await scheduleStore.fetchUserSessions(myId.value)
+  } catch {
+    toast.error('Failed to decline')
+  }
+}
+
+const showCounterModal = ref(false)
+const counterForm = ref({ startTime: '', endTime: '', notes: '' })
+
+function openCounter() {
+  if (!expandedSession.value) return
+  counterForm.value = {
+    startTime: expandedSession.value.startTime.slice(0, 16),
+    endTime: expandedSession.value.endTime?.slice(0, 16) || '',
+    notes: 'Suggesting a different time.'
+  }
+  showCounterModal.value = true
+}
+
+async function submitCounter() {
+  if (!expandedSession.value) return
+  try {
+    const start = new Date(counterForm.value.startTime).toISOString()
+    const end = counterForm.value.endTime 
+        ? new Date(counterForm.value.endTime).toISOString()
+        : new Date(new Date(start).getTime() + 60*60*1000).toISOString()
+        
+    await scheduleStore.counterAsTeacher(expandedSession.value.id, {
+      startTime: start,
+      endTime: end,
+      notes: counterForm.value.notes
+    })
+    toast.success('Counter sent!', 'Awaiting student review.')
+    showCounterModal.value = false
+    closeSessionModal()
+    await scheduleStore.fetchUserSessions(myId.value)
+  } catch {
+    toast.error('Failed to send counter')
+  }
+}
+
 // Build unique student entries for the roster
 const rosterEntries = computed(() => {
   const seen = new Set<string>()
@@ -646,6 +703,37 @@ const formatTime = (dt: string | undefined) => {
             </label>
           </div>
 
+
+          <!-- Negotiation Buttons -->
+          <div v-if="expandedSession.status === 'pending_teacher'" class="p-4 bg-orange-500/5 border border-orange-500/20 rounded-3xl space-y-3">
+             <div class="flex items-center gap-2 mb-2">
+                <span class="material-symbols-outlined text-orange-500 text-sm">schedule_send</span>
+                <span class="text-xs font-bold text-orange-500 uppercase tracking-wider">Student Proposal</span>
+             </div>
+             <div class="flex gap-3">
+                <button 
+                  class="flex-1 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+                  @click="handleApprove(expandedSession.id)"
+                >
+                  <span class="material-symbols-outlined text-sm">check_circle</span>
+                  Approve Time
+                </button>
+                <button 
+                  class="flex-1 py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+                  @click="openCounter"
+                >
+                  <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                  Suggest Other
+                </button>
+             </div>
+             <button 
+                class="w-full py-2 text-red-500/60 hover:text-red-500 text-[10px] font-bold uppercase tracking-widest transition-colors"
+                @click="handleReject(expandedSession.id, 'Time does not work for me.')"
+             >
+                Decline Request
+             </button>
+          </div>
+
           <!-- Practice Goals -->
           <div class="space-y-3">
             <label class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest"
@@ -672,6 +760,43 @@ const formatTime = (dt: string | undefined) => {
             >
               Save Changes
             </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- Teacher Counter Modal -->
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition opacity-150 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition opacity-150 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showCounterModal"
+        class="fixed inset-0 z-[250] flex items-center justify-center p-4"
+        @click.self="showCounterModal = false"
+      >
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showCounterModal = false" />
+        <div class="relative w-full max-w-sm liquid-glass border border-white/10 rounded-3xl p-6 space-y-4 shadow-2xl">
+          <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Suggest New Time</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="text-[10px] font-black uppercase text-on-surface-variant block mb-1">Start Time</label>
+              <input v-model="counterForm.startTime" type="datetime-local" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]" />
+            </div>
+            <div>
+              <label class="text-[10px] font-black uppercase text-on-surface-variant block mb-1">Notes</label>
+              <textarea v-model="counterForm.notes" rows="2" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm resize-none"></textarea>
+            </div>
+            <div class="flex gap-3">
+               <button class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-2xl text-sm" @click="submitCounter">Send Proposal</button>
+               <button class="px-5 py-3 bg-white/5 text-on-surface-variant font-bold rounded-2xl text-sm" @click="showCounterModal = false">Cancel</button>
+            </div>
           </div>
         </div>
       </div>

@@ -158,6 +158,53 @@ async function handleGenericProofUpload() {
   proofPreviewFile.value = null
   proofPreviewUrl.value = null
 }
+
+const isCountering = ref(false)
+const counterForm = reactive({ startTime: '', endTime: '', notes: '' })
+
+function startCountering(session: Session) {
+  isCountering.value = true
+  counterForm.startTime = session.startTime.slice(0, 16)
+  counterForm.endTime = session.endTime?.slice(0, 16) || ''
+  counterForm.notes = 'Refining my schedule'
+}
+
+async function submitStudentCounter() {
+  if (!selectedSession.value) return
+  try {
+    const startTime = new Date(counterForm.startTime).toISOString();
+    let endTime = '';
+    if (counterForm.endTime) {
+        endTime = new Date(counterForm.endTime).toISOString();
+    } else {
+        endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString();
+    }
+
+    await scheduleStore.counterAsStudent(selectedSession.value.id, {
+      startTime,
+      endTime,
+      notes: counterForm.notes
+    })
+    toast.success('Counter proposal sent!', 'Wait for teacher review.')
+    isCountering.value = false
+    closeSessionModal()
+    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? '');
+  } catch {
+    toast.error('Failed to send counter')
+  }
+}
+
+async function approveCounter() {
+  if (!selectedSession.value) return
+  try {
+    await scheduleStore.approveAsStudent(selectedSession.value.id)
+    toast.success('Proposal accepted!', 'Forwarded to admin for final confirmation.')
+    closeSessionModal()
+    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? '');
+  } catch {
+    toast.error('Failed to accept proposal')
+  }
+}
 </script>
 
 <template>
@@ -265,7 +312,9 @@ async function handleGenericProofUpload() {
                   session.status === 'completed'
                     ? 'bg-surface-container-high text-on-surface-variant'
                     : session.status === 'pending_teacher'
-                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                      ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                      : session.status === 'pending_student'
+                        ? 'bg-orange-500/20 border border-orange-500/40 text-orange-400'
                       : session.status === 'pending_admin'
                         ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
                         : session.status === 'rejected'
@@ -299,6 +348,8 @@ async function handleGenericProofUpload() {
                     {{
                       session.status === 'pending_teacher'
                         ? 'Awaiting Teacher'
+                        : session.status === 'pending_student'
+                          ? 'Countered by Teacher'
                         : session.status === 'pending_admin'
                           ? 'Awaiting Admin'
                           : session.status === 'rejected'
@@ -754,6 +805,54 @@ async function handleGenericProofUpload() {
               >
                 View Proof
               </button>
+            </div>
+
+            <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
+              <div class="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/20">
+                <p class="text-sm font-bold text-orange-400 mb-2">Teacher proposed a new time</p>
+                <div v-if="!isCountering" class="flex gap-3">
+                  <button
+                    class="flex-1 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                    @click="approveCounter"
+                  >
+                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                    Approve Time
+                  </button>
+                  <button
+                    class="flex-1 py-2 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                    @click="startCountering(selectedSession)"
+                  >
+                    <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                    Suggest Other
+                  </button>
+                </div>
+                <div v-else class="space-y-3 mt-2 animate-in fade-in slide-in-from-top-2">
+                  <input
+                    v-model="counterForm.startTime"
+                    type="datetime-local"
+                    class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
+                  />
+                  <input
+                    v-model="counterForm.endTime"
+                    type="datetime-local"
+                    class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
+                  />
+                  <div class="flex gap-2">
+                    <button
+                      class="flex-1 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl"
+                      @click="submitStudentCounter"
+                    >
+                      Send Proposal
+                    </button>
+                    <button
+                      class="px-4 py-2 bg-black/5 dark:bg-white/5 text-xs font-bold rounded-xl"
+                      @click="isCountering = false"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">

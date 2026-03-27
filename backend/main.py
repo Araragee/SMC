@@ -48,7 +48,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User).filter(
+        (models.User.username == username) | (models.User.email == username)
+    ).first()
     if user is None:
         raise credentials_exception
     return user
@@ -614,6 +616,87 @@ def reject_session_as_teacher(
     notify_users(db, [db_session.student_id],
         f"❌ Your session request on {dt_str} was declined by {current_user.name}.{reason}")
 
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/counter/teacher", response_model=schemas.Session)
+def counter_session_as_teacher(
+    session_id: int,
+    counter: schemas.SessionCounter,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher)
+):
+    """Teacher proposes an alternative time → pending_student."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_teacher":
+        raise HTTPException(status_code=409, detail="Only pending_teacher sessions can be countered by teacher")
+    
+    db_session.start_time = counter.start_time
+    db_session.end_time = counter.end_time
+    db_session.status = "pending_student"
+    db_session.proposed_by = current_user.id
+    if counter.notes:
+        db_session.notes = counter.notes
+        
+    db.commit()
+    db.refresh(db_session)
+    
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [db_session.student_id], f"🔄 Teacher {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
+    notify_users(db, get_admin_ids(db), f"📋 Session countered by {current_user.name} with a new time: {dt_str}.")
+    
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/counter/student", response_model=schemas.Session)
+def counter_session_as_student(
+    session_id: int,
+    counter: schemas.SessionCounter,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student)
+):
+    """Student proposes an alternative time → pending_teacher."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_student":
+        raise HTTPException(status_code=409, detail="Only pending_student sessions can be countered by student")
+    
+    db_session.start_time = counter.start_time
+    db_session.end_time = counter.end_time
+    db_session.status = "pending_teacher"
+    db_session.proposed_by = current_user.id
+    if counter.notes:
+        db_session.notes = counter.notes
+        
+    db.commit()
+    db.refresh(db_session)
+    
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [db_session.teacher_id], f"🔄 Student {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
+    
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/approve/student", response_model=schemas.Session)
+def approve_session_as_student(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student)
+):
+    """Student approves a teacher's counter-proposal → pending_admin."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_student":
+        raise HTTPException(status_code=409, detail="Session is not awaiting student approval")
+    
+    db_session.status = "pending_admin"
+    db.commit()
+    db.refresh(db_session)
+    
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, get_admin_ids(db), f"✅ Student {current_user.name} accepted the counter-proposal for {dt_str}. Awaiting your final approval.")
+    
     return map_session(db_session)
 
 @app.post("/sessions/{session_id}/approve/admin", response_model=schemas.Session)

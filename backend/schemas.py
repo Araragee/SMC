@@ -114,6 +114,12 @@ class SessionEdit(BaseModel):
 class SessionApproval(BaseModel):
     notes: Optional[str] = None
 
+# Used for counter-proposals
+class SessionCounter(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    notes: Optional[str] = None
+
 class Session(SessionBase):
     id: int
     homeworks: List[Homework] = []

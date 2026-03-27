@@ -56,12 +56,20 @@ function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
 }
 
 async function handleApprove(sessionId: string) {
+  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
   try {
-    await scheduleStore.approveAsAdmin(sessionId)
-    toast.success('Session approved!', 'The session is now confirmed.')
+    if (session?.status === 'pending_teacher') {
+      await scheduleStore.approveAsTeacher(sessionId)
+    } else if (session?.status === 'pending_student') {
+      await scheduleStore.approveAsStudent(sessionId)
+    } else {
+      await scheduleStore.approveAsAdmin(sessionId)
+    }
+    toast.success('Success', `Session advanced.`)
     selectedDate.value = null
+    await scheduleStore.fetchAllSessions()
   } catch {
-    toast.error('Failed to approve session')
+    toast.error('Failed', 'Action could not be completed.')
   }
 }
 
@@ -71,12 +79,18 @@ function openReject(sessionId: string) {
 }
 
 async function confirmReject() {
+  const session = scheduleStore.allSessions.find((s) => s.id === rejectModal.value.sessionId)
   try {
-    await scheduleStore.rejectAsAdmin(rejectModal.value.sessionId, rejectModal.value.notes)
-    toast.success('Session rejected')
+    if (session?.status === 'pending_teacher') {
+      await scheduleStore.rejectAsTeacher(rejectModal.value.sessionId, rejectModal.value.notes)
+    } else {
+      await scheduleStore.rejectAsAdmin(rejectModal.value.sessionId, rejectModal.value.notes)
+    }
+    toast.success('Session updated')
     rejectModal.value.open = false
+    await scheduleStore.fetchAllSessions()
   } catch {
-    toast.error('Failed to reject session')
+    toast.error('Failed to update session')
   }
 }
 
@@ -516,6 +530,11 @@ function statusBadgeClass(status: string): string {
       @propose="((showProposeModal = true), (selectedDate = null))"
       @approve-admin="handleApprove"
       @reject-admin="openReject"
+      @approve-teacher="handleApprove"
+      @reject-teacher="openReject"
+      @counter-teacher="(s) => handleApprove(s.id)"
+      @approve-student="handleApprove"
+      @counter-student="(s) => handleApprove(s.id)"
       @edit-admin="openEdit"
     />
 
