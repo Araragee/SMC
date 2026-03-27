@@ -48,10 +48,6 @@
   transition: background 0.5s ease;
 }
 
-:global(.dark) .blob-canvas {
-  background: #0e0e0e;
-}
-
 /* Content above the canvas */
 .blob-content {
   position: relative;
@@ -87,15 +83,6 @@
   filter: blur(72px);
   animation: pulse-1 15s ease-in-out infinite;
 }
-:global(.dark) .blob-1 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 69,  0,  0.55) 0%,
-    rgba(200, 40,  0,  0.25) 40%,
-    transparent 72%
-  );
-}
-
 /* ============================================================
    Blob 2 — Medium, top-right
    Light: warm amber / golden
@@ -115,15 +102,6 @@
   filter: blur(88px);
   animation: pulse-2 20s ease-in-out infinite;
 }
-:global(.dark) .blob-2 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(230, 50,  0,  0.45) 0%,
-    rgba(180, 30,  0,  0.20) 40%,
-    transparent 72%
-  );
-}
-
 /* ============================================================
    Blob 3 — Large, bottom-center (the cloud floor)
    Light: coral / soft rose-orange
@@ -143,15 +121,6 @@
   filter: blur(100px);
   animation: pulse-3 24s ease-in-out infinite;
 }
-:global(.dark) .blob-3 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 100, 40,  0.40) 0%,
-    rgba(200, 60,  10,  0.18) 45%,
-    transparent 72%
-  );
-}
-
 /* ============================================================
    Blob 4 — Small, mid-right drift
    Light: golden yellow
@@ -171,15 +140,6 @@
   filter: blur(72px);
   animation: pulse-4 17s ease-in-out infinite;
 }
-:global(.dark) .blob-4 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 154, 61,  0.30) 0%,
-    rgba(200, 100, 20,  0.12) 40%,
-    transparent 72%
-  );
-}
-
 /* ============================================================
    Blob 5 — Medium, mid-left
    Light: rose-peach
@@ -199,15 +159,6 @@
   filter: blur(80px);
   animation: pulse-5 13s ease-in-out infinite;
 }
-:global(.dark) .blob-5 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(200, 40,  0,   0.35) 0%,
-    rgba(150, 20,  0,   0.14) 40%,
-    transparent 72%
-  );
-}
-
 /* ============================================================
    Animations — each blob has its own rhythm
    ============================================================ */
@@ -247,5 +198,58 @@
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .blob { animation: none !important; }
+}
+</style>
+
+<!-- Non-scoped: dark mode overrides need to match .dark on <html> -->
+<style>
+.dark .blob-canvas {
+  background: #0e0e0e;
+  transition: background 0.5s ease;
+}
+
+.dark .blob-1 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 69,  0,  0.55) 0%,
+    rgba(200, 40,  0,  0.25) 40%,
+    transparent 72%
+  );
+}
+
+.dark .blob-2 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(230, 50,  0,  0.45) 0%,
+    rgba(180, 30,  0,  0.20) 40%,
+    transparent 72%
+  );
+}
+
+.dark .blob-3 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 100, 40,  0.40) 0%,
+    rgba(200, 60,  10,  0.18) 45%,
+    transparent 72%
+  );
+}
+
+.dark .blob-4 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 154, 61,  0.30) 0%,
+    rgba(200, 100, 20,  0.12) 40%,
+    transparent 72%
+  );
+}
+
+.dark .blob-5 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 40,  0,   0.35) 0%,
+    rgba(150, 20,  0,   0.14) 40%,
+    transparent 72%
+  );
 }
 </style>
