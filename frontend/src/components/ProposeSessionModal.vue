@@ -77,7 +77,7 @@ async function submit() {
   <Teleport to="body">
     <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
-        v-if="isOpen"
+        v-if="true"
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
