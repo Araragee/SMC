@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import type { User, Role } from '../types';
+import type { User, Role, InstrumentRecord } from '../types';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 interface UsersState {
   users: User[];
+  instruments: InstrumentRecord[];
   isLoading: boolean;
   error: string | null;
 }
@@ -13,6 +14,7 @@ interface UsersState {
 export const useUsersStore = defineStore('users', {
   state: (): UsersState => ({
     users: [],
+    instruments: [],
     isLoading: false,
     error: null,
   }),
@@ -33,7 +35,17 @@ export const useUsersStore = defineStore('users', {
           email: user.email,
           role: user.role?.name?.toLowerCase() as Role || 'student',
           avatarUrl: user.avatar_url,
-          sessionsLeft: user.sessions_left
+          sessionsLeft: user.sessions_left,
+          username: user.username,
+          contactNumber: user.contact_number,
+          homeAddress: user.home_address,
+          birthday: user.birthday,
+          age: user.age,
+          school: user.school,
+          parentName: user.parent_name,
+          parentContact: user.parent_contact,
+          sessionsEnrolled: user.sessions_enrolled,
+          instruments: user.instruments
         }));
       } catch (err: any) {
         this.error = err.message || 'Failed to fetch users';
@@ -56,7 +68,17 @@ export const useUsersStore = defineStore('users', {
           email: user.email,
           role: user.role?.name?.toLowerCase() as Role || role,
           avatarUrl: user.avatar_url,
-          sessionsLeft: user.sessions_left
+          sessionsLeft: user.sessions_left,
+          username: user.username,
+          contactNumber: user.contact_number,
+          homeAddress: user.home_address,
+          birthday: user.birthday,
+          age: user.age,
+          school: user.school,
+          parentName: user.parent_name,
+          parentContact: user.parent_contact,
+          sessionsEnrolled: user.sessions_enrolled,
+          instruments: user.instruments
         }));
 
         // Merge fetched users into the state
@@ -76,25 +98,42 @@ export const useUsersStore = defineStore('users', {
       }
     },
 
-    async createUser(userData: Partial<User>, password = "password123") {
+    async fetchInstruments() {
+      try {
+        const response = await axios.get(`${API_URL}/instruments/`);
+        this.instruments = response.data;
+      } catch (err: any) {
+        console.error("Failed to fetch instruments", err);
+      }
+    },
+
+    async createUser(userData: Partial<User>, password?: string) {
       this.isLoading = true;
       this.error = null;
       try {
-        // Find role_id first. Hardcoding for mock purposes, but ideally we fetch roles first.
-        // Assuming Admin=1, Teacher=2, Student=3. Wait, we should probably fetch roles if we want to be safe.
         const rolesResp = await axios.get(`${API_URL}/roles/`);
         const roles = rolesResp.data;
-        const roleName = (userData.role || 'student').charAt(0).toUpperCase() + (userData.role || 'student').slice(1);
-        const role = roles.find((r: any) => r.name === roleName);
+        const roleName = (userData.role || 'student').toLowerCase();
+        const role = roles.find((r: any) => r.name.toLowerCase() === roleName);
         const role_id = role ? role.id : 3;
 
-        const payload = {
+        const payload: any = {
           email: userData.email,
           name: userData.name,
           role_id: role_id,
           password: password,
           avatar_url: userData.avatarUrl || null,
-          sessions_left: userData.sessionsLeft || 0
+          sessions_left: userData.sessionsLeft || 0,
+          username: userData.username || null,
+          contact_number: userData.contactNumber || null,
+          home_address: userData.homeAddress || null,
+          birthday: userData.birthday || null,
+          age: userData.age || null,
+          school: userData.school || null,
+          parent_name: userData.parentName || null,
+          parent_contact: userData.parentContact || null,
+          sessions_enrolled: userData.sessionsEnrolled || null,
+          instrument_ids: userData.instruments ? userData.instruments.map(i => i.id) : []
         };
 
         const response = await axios.post(`${API_URL}/users/`, payload);
@@ -106,7 +145,17 @@ export const useUsersStore = defineStore('users', {
           email: newUser.email,
           role: userData.role as Role || 'student',
           avatarUrl: newUser.avatar_url,
-          sessionsLeft: newUser.sessions_left
+          sessionsLeft: newUser.sessions_left,
+          username: newUser.username,
+          contactNumber: newUser.contact_number,
+          homeAddress: newUser.home_address,
+          birthday: newUser.birthday,
+          age: newUser.age,
+          school: newUser.school,
+          parentName: newUser.parent_name,
+          parentContact: newUser.parent_contact,
+          sessionsEnrolled: newUser.sessions_enrolled,
+          instruments: newUser.instruments
         };
         this.users.push(frontendUser);
         return frontendUser;
@@ -128,6 +177,17 @@ export const useUsersStore = defineStore('users', {
         if (updateData.email) payload.email = updateData.email;
         if (updateData.avatarUrl !== undefined) payload.avatar_url = updateData.avatarUrl;
         if (updateData.sessionsLeft !== undefined) payload.sessions_left = updateData.sessionsLeft;
+        if (updateData.username !== undefined) payload.username = updateData.username;
+        if (updateData.contactNumber !== undefined) payload.contact_number = updateData.contactNumber;
+        if (updateData.homeAddress !== undefined) payload.home_address = updateData.homeAddress;
+        if (updateData.birthday !== undefined) payload.birthday = updateData.birthday;
+        if (updateData.age !== undefined) payload.age = updateData.age;
+        if (updateData.school !== undefined) payload.school = updateData.school;
+        if (updateData.parentName !== undefined) payload.parent_name = updateData.parentName;
+        if (updateData.parentContact !== undefined) payload.parent_contact = updateData.parentContact;
+        if (updateData.sessionsEnrolled !== undefined) payload.sessions_enrolled = updateData.sessionsEnrolled;
+        if (updateData.instruments !== undefined) payload.instrument_ids = updateData.instruments.map(i => i.id);
+
 
         // Handling role change would require fetching role_id again
         if (updateData.role) {
@@ -149,7 +209,17 @@ export const useUsersStore = defineStore('users', {
             email: updatedUser.email,
             avatarUrl: updatedUser.avatar_url,
             sessionsLeft: updatedUser.sessions_left,
-            role: updateData.role || this.users[index].role
+            role: updateData.role || this.users[index].role,
+            username: updatedUser.username,
+            contactNumber: updatedUser.contact_number,
+            homeAddress: updatedUser.home_address,
+            birthday: updatedUser.birthday,
+            age: updatedUser.age,
+            school: updatedUser.school,
+            parentName: updatedUser.parent_name,
+            parentContact: updatedUser.parent_contact,
+            sessionsEnrolled: updatedUser.sessions_enrolled,
+            instruments: updatedUser.instruments
           };
         }
       } catch (err: any) {

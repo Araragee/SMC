@@ -15,6 +15,7 @@ const TeacherDashboard = () => import('../views/teacher/Dashboard.vue')
 
 // Admin Views
 const AdminUsers = () => import('../views/admin/Users.vue')
+const AdminStudentRecords = () => import('../views/admin/StudentRecords.vue')
 
 // Schedule views
 const AdminSchedule = () => import('../views/admin/Schedule.vue')
@@ -45,6 +46,7 @@ const router = createRouter({
         { path: '', name: 'admin-dashboard', component: AdminDashboard },
         { path: 'schedule', name: 'admin-schedule', component: AdminSchedule },
         { path: 'users', name: 'admin-users', component: AdminUsers },
+        { path: 'students/:id/records', name: 'admin-student-records', component: AdminStudentRecords },
         { path: ':module', component: PlaceholderView }
       ]
     },

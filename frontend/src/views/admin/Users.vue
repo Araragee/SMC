@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, reactive } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useUsersStore } from '../../stores/users'
 import { useToastStore } from '../../stores/toast'
 import type { User, Role } from '../../types'
+import CreateUserModal from '../../components/CreateUserModal.vue'
 
+const router = useRouter()
+const route = useRoute()
 const usersStore = useUsersStore()
 const toast = useToastStore()
 
@@ -11,13 +15,6 @@ const showAddModal = ref(false)
 const isSubmitting = ref(false)
 const selectedUser = ref<User | null>(null)
 const showEditModal = ref(false)
-
-const form = reactive({
-  name: '',
-  email: '',
-  role: 'student' as Role,
-  sessionsLeft: 0,
-})
 
 const editForm = reactive({
   name: '',
@@ -28,17 +25,14 @@ const editForm = reactive({
 
 onMounted(async () => {
   await usersStore.fetchUsers()
+  if (route.query.action === 'create') {
+    showAddModal.value = true
+  }
 })
 
 const users = computed(() => usersStore.users)
 
 const openAddModal = () => {
-  Object.assign(form, {
-    name: '',
-    email: '',
-    role: 'student',
-    sessionsLeft: 0,
-  })
   showAddModal.value = true
 }
 
@@ -53,22 +47,12 @@ const openEditModal = (user: User) => {
   showEditModal.value = true
 }
 
-const handleCreateUser = async () => {
-  isSubmitting.value = true
-  try {
-    await usersStore.createUser({
-      name: form.name,
-      email: form.email,
-      role: form.role,
-      sessionsLeft: form.sessionsLeft,
-    })
-    toast.success('User created', `${form.name} was successfully created.`)
-    showAddModal.value = false
-  } catch (err: any) {
-    toast.error('Failed to create user', err.message || 'Something went wrong.')
-  } finally {
-    isSubmitting.value = false
-  }
+const handleUserCreated = (user: User) => {
+  toast.success('User created', `${user.name} was successfully created.`)
+}
+
+const navigateToRecords = (userId: string) => {
+  router.push(`/admin/students/${userId}/records`)
 }
 
 const handleUpdateUser = async () => {
@@ -197,6 +181,14 @@ const handleDeleteUser = async (user: User) => {
               <td class="py-5 px-8 text-right">
                 <div class="flex items-center justify-end gap-2">
                   <button
+                    v-if="user.role === 'student'"
+                    class="w-10 h-10 rounded-xl bg-surface-container-highest/20 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 border border-transparent hover:border-secondary/20 transition-all active:scale-90"
+                    title="View Records"
+                    @click="navigateToRecords(user.id)"
+                  >
+                    <span class="material-symbols-outlined text-lg">folder_open</span>
+                  </button>
+                  <button
                     class="w-10 h-10 rounded-xl bg-surface-container-highest/20 text-on-surface-variant hover:text-primary hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all active:scale-90"
                     title="Edit Profile"
                     @click="openEditModal(user)"
@@ -219,73 +211,11 @@ const handleDeleteUser = async (user: User) => {
     </section>
 
     <!-- Add User Modal -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition-all duration-300 ease-out"
-        enter-from-class="opacity-0 scale-95 blur-[8px]"
-        enter-to-class="opacity-100 scale-100 blur-0"
-        leave-active-class="transition-all duration-200 ease-in"
-        leave-from-class="opacity-100 scale-100 blur-0"
-        leave-to-class="opacity-0 scale-95 blur-[8px]"
-      >
-        <div
-          v-if="showAddModal"
-          class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          @click.self="showAddModal = false"
-        >
-          <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-sm" @click="showAddModal = false" />
-          <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
-            
-            <div class="flex items-center justify-between mb-8">
-              <div>
-                <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">New Account</p>
-                <h3 class="text-2xl font-black text-on-surface">Add New User</h3>
-              </div>
-              <button class="w-10 h-10 rounded-full hover:bg-on-surface/5 flex items-center justify-center transition-colors" @click="showAddModal = false">
-                <span class="material-symbols-outlined text-on-surface-variant">close</span>
-              </button>
-            </div>
-
-            <form class="space-y-5" @submit.prevent="handleCreateUser">
-              <div class="space-y-4">
-                <div class="space-y-1.5">
-                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Full Name</label>
-                  <input v-model="form.name" type="text" required placeholder="Ex: John Doe" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-on-surface-variant/40" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Email Address</label>
-                  <input v-model="form.email" type="email" required placeholder="john@example.com" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-on-surface-variant/40" />
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-1.5">
-                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">System Role</label>
-                    <div class="relative">
-                      <select v-model="form.role" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all appearance-none cursor-pointer">
-                        <option value="student" class="bg-surface-container">Student</option>
-                        <option value="teacher" class="bg-surface-container">Teacher</option>
-                        <option value="admin" class="bg-surface-container">Admin</option>
-                      </select>
-                      <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
-                    </div>
-                  </div>
-                  <div v-if="form.role === 'student'" class="space-y-1.5">
-                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Initial Credits</label>
-                    <input v-model.number="form.sessionsLeft" type="number" min="0" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex gap-3 pt-6">
-                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
-                  {{ isSubmitting ? 'Creating...' : 'Finalize Account' }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <CreateUserModal
+      :is-open="showAddModal"
+      @close="showAddModal = false"
+      @created="handleUserCreated"
+    />
 
     <!-- Edit User Modal -->
     <Teleport to="body">

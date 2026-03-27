@@ -8,14 +8,42 @@ export type SessionStatus =
   | 'pending_admin'
   | 'rejected';
 
+export interface InstrumentRecord {
+  id: number;
+  name: string;
+}
+
+export interface UserInstrument {
+  userId: string | number;
+  instrumentId: number;
+}
+
+export interface TeacherStudent {
+  id: string | number;
+  teacherId: string | number;
+  studentId: string | number;
+  assignedAt: string;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: Role;
   avatarUrl?: string;
+  username?: string;
+  contactNumber?: string;
+  homeAddress?: string;
+  instruments?: InstrumentRecord[];
+
   // Specific to students
   sessionsLeft?: number;
+  birthday?: string;
+  age?: number;
+  school?: string;
+  parentName?: string;
+  parentContact?: string;
+  sessionsEnrolled?: number;
 }
 
 export interface Session {
@@ -30,6 +58,10 @@ export interface Session {
   imageProofUrl?: string;
   homeworkAssigned?: string;
   homeworkCompleted?: boolean;
+  instrumentId?: number;
+  isManualEntry?: boolean;
+  sessionNumber?: number;
+  instrument?: InstrumentRecord;
 }
 
 export interface Schedule {

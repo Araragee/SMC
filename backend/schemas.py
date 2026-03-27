@@ -13,6 +13,27 @@ class Role(RoleBase):
     id: int
     model_config = {"from_attributes": True}
 
+class InstrumentBase(BaseModel):
+    name: str
+
+class InstrumentCreate(InstrumentBase):
+    pass
+
+class Instrument(InstrumentBase):
+    id: int
+    model_config = {"from_attributes": True}
+
+class TeacherStudentBase(BaseModel):
+    teacher_id: int
+    student_id: int
+
+class TeacherStudentCreate(TeacherStudentBase):
+    pass
+
+class TeacherStudent(TeacherStudentBase):
+    id: int
+    assigned_at: datetime
+    model_config = {"from_attributes": True}
 
 class NotificationBase(BaseModel):
     message: str
@@ -63,6 +84,9 @@ class SessionBase(BaseModel):
     status: str = "scheduled"
     proposed_by: Optional[int] = None
     notes: Optional[str] = None
+    instrument_id: Optional[int] = None
+    is_manual_entry: bool = False
+    session_number: Optional[int] = None
 
 class SessionCreate(SessionBase):
     pass
@@ -82,6 +106,9 @@ class SessionEdit(BaseModel):
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     notes: Optional[str] = None
+    instrument_id: Optional[int] = None
+    is_manual_entry: Optional[bool] = None
+    session_number: Optional[int] = None
 
 # Used for approve/reject actions with optional reason
 class SessionApproval(BaseModel):
@@ -94,6 +121,7 @@ class Session(SessionBase):
     proof_image_url: Optional[str] = None
     homework_assigned: Optional[str] = None
     homework_completed: bool = False
+    instrument: Optional[Instrument] = None
 
     model_config = {"from_attributes": True}
 
@@ -123,18 +151,42 @@ class UserBase(BaseModel):
     role_id: int
     avatar_url: Optional[str] = None
     sessions_left: Optional[int] = 0
+    username: Optional[str] = None
+    contact_number: Optional[str] = None
+    home_address: Optional[str] = None
+
+    # Student specific
+    birthday: Optional[str] = None
+    age: Optional[int] = None
+    school: Optional[str] = None
+    parent_name: Optional[str] = None
+    parent_contact: Optional[str] = None
+    sessions_enrolled: Optional[int] = None
 
 class UserCreate(UserBase):
-    password: str
+    password: Optional[str] = None
+    instrument_ids: Optional[List[int]] = None
 
 class UserUpdate(BaseModel):
     email: Optional[str] = None
     name: Optional[str] = None
     avatar_url: Optional[str] = None
     password: Optional[str] = None
+    username: Optional[str] = None
+    contact_number: Optional[str] = None
+    home_address: Optional[str] = None
+    birthday: Optional[str] = None
+    age: Optional[int] = None
+    school: Optional[str] = None
+    parent_name: Optional[str] = None
+    parent_contact: Optional[str] = None
+    sessions_enrolled: Optional[int] = None
+    sessions_left: Optional[int] = None
+    instrument_ids: Optional[List[int]] = None
 
 class User(UserBase):
     id: int
     is_active: bool
     role: Optional[Role] = None
+    instruments: List[Instrument] = []
     model_config = {"from_attributes": True}

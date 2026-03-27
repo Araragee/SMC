@@ -79,12 +79,43 @@ app = FastAPI(title="Music School API")
 @app.on_event("startup")
 def startup_event():
     db = SessionLocal()
+
+    # Run SQLite migration: Add new columns if they don't exist
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN username VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN contact_number VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN home_address VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN birthday VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN age INTEGER")
+        db.execute("ALTER TABLE users ADD COLUMN school VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN parent_name VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN parent_contact VARCHAR")
+        db.execute("ALTER TABLE users ADD COLUMN sessions_enrolled INTEGER")
+    except Exception:
+        pass # Ignore errors if columns already exist
+
+    try:
+        db.execute("ALTER TABLE sessions ADD COLUMN instrument_id INTEGER REFERENCES instruments(id)")
+        db.execute("ALTER TABLE sessions ADD COLUMN is_manual_entry BOOLEAN DEFAULT 0")
+        db.execute("ALTER TABLE sessions ADD COLUMN session_number INTEGER")
+    except Exception:
+        pass # Ignore errors if columns already exist
+    db.commit()
+
     try:
         # Create default roles if they don't exist
         for role_name in ["admin", "teacher", "student"]:
             role = db.query(models.Role).filter(models.Role.name == role_name).first()
             if not role:
                 db.add(models.Role(name=role_name))
+        db.commit()
+
+        # Seed instruments
+        for instrument_name in ["Guitar", "Bass", "Voice", "Drum", "Flute", "Violin", "Keyboard", "Ukulele"]:
+            instrument = db.query(models.Instrument).filter(models.Instrument.name == instrument_name).first()
+            if not instrument:
+                new_instrument = models.Instrument(name=instrument_name)
+                db.add(new_instrument)
         db.commit()
 
         # Create default admin if none exists
@@ -185,19 +216,33 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    hashed_password = pwd_context.hash(user.password[:72])
+    role = db.query(models.Role).filter(models.Role.id == user.role_id).first()
 
-    db_user = models.User(
-        email=user.email,
-        name=user.name,
-        hashed_password=hashed_password,
-        role_id=user.role_id,
-        avatar_url=user.avatar_url,
-        sessions_left=user.sessions_left
-    )
+    password = user.password
+    if not password and role and role.name.lower() == "student":
+        first_name = user.name.split(" ")[0].lower()
+        age_str = str(user.age) if user.age else ""
+        password = f"{first_name}{age_str}SMC"
+    elif not password:
+        password = "password123" # Fallback
+
+    hashed_password = pwd_context.hash(password[:72])
+
+    user_data = user.dict(exclude={"password", "instrument_ids"})
+    user_data["hashed_password"] = hashed_password
+
+    db_user = models.User(**user_data)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    if user.instrument_ids:
+        for instrument_id in user.instrument_ids:
+            db_user_instrument = models.UserInstrument(user_id=db_user.id, instrument_id=instrument_id)
+            db.add(db_user_instrument)
+        db.commit()
+        db.refresh(db_user)
+
     return db_user
 
 @app.put("/users/{user_id}", response_model=schemas.User)
@@ -212,10 +257,17 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
 
     update_data = user.dict(exclude_unset=True)
     if "password" in update_data:
-        update_data["hashed_password"] = pwd_context.hash(update_data.pop("password"))
+        update_data["hashed_password"] = pwd_context.hash(update_data.pop("password")[:72])
+
+    instrument_ids = update_data.pop("instrument_ids", None)
 
     for key, value in update_data.items():
         setattr(db_user, key, value)
+
+    if instrument_ids is not None:
+        db.query(models.UserInstrument).filter(models.UserInstrument.user_id == user_id).delete()
+        for instrument_id in instrument_ids:
+            db.add(models.UserInstrument(user_id=user_id, instrument_id=instrument_id))
 
     db.commit()
     db.refresh(db_user)
@@ -244,6 +296,49 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), c
     users = db.query(models.User).offset(skip).limit(limit).all()
     return users
 
+# --- Instruments ---
+
+@app.get("/instruments/", response_model=list[schemas.Instrument])
+def get_instruments(db: Session = Depends(get_db)):
+    instruments = db.query(models.Instrument).all()
+    return instruments
+
+# --- Teacher-Students ---
+
+@app.post("/teacher-students/", response_model=schemas.TeacherStudent)
+def assign_teacher_student(assignment: schemas.TeacherStudentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    existing = db.query(models.TeacherStudent).filter(
+        models.TeacherStudent.teacher_id == assignment.teacher_id,
+        models.TeacherStudent.student_id == assignment.student_id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Student is already assigned to this teacher")
+
+    new_assignment = models.TeacherStudent(
+        teacher_id=assignment.teacher_id,
+        student_id=assignment.student_id
+    )
+    db.add(new_assignment)
+    db.commit()
+    db.refresh(new_assignment)
+    return new_assignment
+
+@app.get("/teacher-students/teacher/{teacher_id}", response_model=list[schemas.TeacherStudent])
+def get_students_for_teacher(teacher_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    assignments = db.query(models.TeacherStudent).filter(models.TeacherStudent.teacher_id == teacher_id).all()
+    return assignments
+
+@app.delete("/teacher-students/{assignment_id}")
+def unassign_teacher_student(assignment_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    assignment = db.query(models.TeacherStudent).filter(models.TeacherStudent.id == assignment_id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+    db.delete(assignment)
+    db.commit()
+    return {"message": "Assignment deleted successfully"}
+
+
 @app.get("/users/{user_id}", response_model=schemas.User)
 def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -252,6 +347,44 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.
     return db_user
 
 # --- Sessions (Admin direct) ---
+
+@app.post("/sessions/record", response_model=schemas.Session)
+def record_past_session(session: schemas.SessionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    """Admin creates a manual past session directly."""
+    student = db.query(models.User).filter(models.User.id == session.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == session.teacher_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    db_session = models.Session(
+        teacher_id=session.teacher_id,
+        student_id=session.student_id,
+        start_time=session.start_time,
+        end_time=session.end_time,
+        status="completed", # Typically past records are marked completed
+        notes=session.notes,
+        proposed_by=current_user.id,
+        is_manual_entry=True,
+        instrument_id=session.instrument_id,
+        session_number=session.session_number
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+
+    return db_session
+
+
+@app.get("/sessions/student/{student_id}/records", response_model=list[schemas.Session])
+def get_student_records(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    # Authorization logic
+    if current_user.role.name.lower() == "student" and current_user.id != student_id:
+         raise HTTPException(status_code=403, detail="Not authorized")
+
+    sessions = db.query(models.Session).filter(models.Session.student_id == student_id).order_by(models.Session.start_time.desc()).all()
+    return sessions
 
 @app.post("/sessions/", response_model=schemas.Session)
 def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):

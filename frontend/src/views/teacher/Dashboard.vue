@@ -511,7 +511,7 @@ const formatTime = (dt: string | undefined) => {
   </div>
 
   <!-- Propose Session Modal -->
-  <ProposeSessionModal
+  <ProposeSessionModal :is-open="showProposeModal"
     v-if="showProposeModal"
     user-role="teacher"
     :current-user-id="myId"

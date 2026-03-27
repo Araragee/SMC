@@ -430,13 +430,13 @@ async function confirmQuickAssign() {
                 <span class="material-symbols-outlined text-sm">filter_list</span>
                 Filter
               </button>
-              <button
+              <RouterLink
+                to="/admin/users?action=create"
                 class="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
-                @click="showAddSessionModal = true"
               >
                 <span class="material-symbols-outlined text-sm">person_add</span>
                 Add Member
-              </button>
+              </RouterLink>
             </div>
           </div>
 
@@ -645,7 +645,7 @@ async function confirmQuickAssign() {
   />
 
   <!-- Add Session Modal -->
-  <ProposeSessionModal
+  <ProposeSessionModal :is-open="showAddSessionModal"
     v-if="showAddSessionModal"
     user-role="admin"
     :current-user-id="authStore.currentUser?.id ?? ''"

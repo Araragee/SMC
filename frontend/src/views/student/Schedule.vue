@@ -271,7 +271,7 @@ function formatDay(iso: string): string {
     />
 
     <!-- Propose Modal -->
-    <ProposeSessionModal
+    <ProposeSessionModal :is-open="showProposeModal"
       v-if="showProposeModal"
       user-role="student"
       :current-user-id="authStore.currentUser?.id ?? ''"

@@ -13,6 +13,30 @@ class Role(Base):
     users = relationship("User", back_populates="role")
 
 
+
+class Instrument(Base):
+    __tablename__ = "instruments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+
+class UserInstrument(Base):
+    __tablename__ = "user_instruments"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    instrument_id = Column(Integer, ForeignKey("instruments.id"), primary_key=True)
+
+class TeacherStudent(Base):
+    __tablename__ = "teacher_students"
+
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"))
+    student_id = Column(Integer, ForeignKey("users.id"))
+    assigned_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    teacher = relationship("User", foreign_keys=[teacher_id], back_populates="students_assigned")
+    student = relationship("User", foreign_keys=[student_id], back_populates="teachers_assigned")
+
 class User(Base):
     __tablename__ = "users"
 
@@ -24,6 +48,22 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.id"))
     avatar_url = Column(String, nullable=True)
     sessions_left = Column(Integer, default=0, nullable=True)
+    username = Column(String, unique=True, index=True, nullable=True)
+    contact_number = Column(String, nullable=True)
+    home_address = Column(String, nullable=True)
+
+    # Student specific
+    birthday = Column(String, nullable=True)
+    age = Column(Integer, nullable=True)
+    school = Column(String, nullable=True)
+    parent_name = Column(String, nullable=True)
+    parent_contact = Column(String, nullable=True)
+    sessions_enrolled = Column(Integer, nullable=True)
+
+    instruments = relationship("Instrument", secondary="user_instruments")
+    teachers_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.student_id", back_populates="student")
+    students_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.teacher_id", back_populates="teacher")
+
 
     role = relationship("Role", back_populates="users")
 
@@ -45,6 +85,12 @@ class Session(Base):
     status = Column(String, default="scheduled")
     proposed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     notes = Column(String, nullable=True)
+    instrument_id = Column(Integer, ForeignKey("instruments.id"), nullable=True)
+    is_manual_entry = Column(Boolean, default=False)
+    session_number = Column(Integer, nullable=True)
+
+    instrument = relationship("Instrument")
+
 
     teacher = relationship("User", foreign_keys=[teacher_id], back_populates="sessions_as_teacher")
     student = relationship("User", foreign_keys=[student_id], back_populates="sessions_as_student")
