@@ -190,6 +190,9 @@ class CreateGroupRequest(BaseModel):
 class AddParticipantRequest(BaseModel):
     user_id: int
 
+class CreateMessageRequest(BaseModel):
+    body: str
+
 class MessageCursorPage(BaseModel):
     messages:    List[MessageOut]
     next_cursor: Optional[int] = None

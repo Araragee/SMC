@@ -1055,6 +1055,7 @@ async def websocket_endpoint(user_id: int, websocket: WebSocket, token: str = Qu
         return
 
     await ws_manager.connect(user_id, websocket)
+    print(f"✅ WebSocket connected for user {user_id}")
     db = SessionLocal()
     try:
         while True:
@@ -1177,6 +1178,46 @@ def get_messages(
         "messages": [_msg_dict(m) for m in msgs_asc],
         "next_cursor": next_cursor,
     }
+
+@app.post("/conversations/{conversation_id}/messages")
+async def send_message_rest(
+    conversation_id: int,
+    body: schemas.CreateMessageRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    # Verify participation
+    part = db.query(models.ConversationParticipant).filter(
+        models.ConversationParticipant.conversation_id == conversation_id,
+        models.ConversationParticipant.user_id == current_user.id,
+    ).first()
+    if not part:
+        raise HTTPException(status_code=403, detail="Not a participant")
+
+    msg = models.Message(
+        conversation_id=conversation_id,
+        sender_id=current_user.id,
+        body=body.body
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+
+    # Broadcast to other users via WebSocket
+    payload = {"type": "new_message", "message": _msg_dict(msg)}
+    await ws_manager.broadcast_to_conversation(db, conversation_id, payload)
+    
+    # Update unread counts for others
+    for p in db.query(models.ConversationParticipant).filter(
+        models.ConversationParticipant.conversation_id == conversation_id,
+        models.ConversationParticipant.user_id != current_user.id,
+    ).all():
+        count = _unread_count(db, conversation_id, p)
+        await ws_manager.send_to_user(p.user_id, {
+            "type": "unread_update", "conversation_id": conversation_id, "count": count,
+        })
+
+    return _msg_dict(msg)
 
 
 @app.get("/sessions/{session_id}/thread")
