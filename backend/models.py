@@ -145,3 +145,62 @@ class Notification(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="notifications")
+
+
+# ── Messaging ──────────────────────────────────────────────────────────────────
+
+from sqlalchemy import UniqueConstraint
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    type       = Column(String, nullable=False, default="dm")  # "dm" | "group" | "session_thread"
+    name       = Column(String, nullable=True)                  # for groups / session thread label
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    participants   = relationship("ConversationParticipant", back_populates="conversation", cascade="all, delete-orphan")
+    messages       = relationship("Message", back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at")
+    session_thread = relationship("SessionThread", back_populates="conversation", uselist=False)
+
+
+class ConversationParticipant(Base):
+    __tablename__ = "conversation_participants"
+    __table_args__ = (
+        UniqueConstraint("conversation_id", "user_id", name="uq_conv_participant"),
+    )
+
+    id              = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
+    user_id         = Column(Integer, ForeignKey("users.id"), nullable=False)
+    joined_at       = Column(DateTime, default=datetime.datetime.utcnow)
+    last_read_at    = Column(DateTime, nullable=True)
+
+    conversation = relationship("Conversation", back_populates="participants")
+    user         = relationship("User")
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
+    sender_id       = Column(Integer, ForeignKey("users.id"), nullable=False)
+    body            = Column(String, nullable=False)
+    created_at      = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+    is_deleted      = Column(Boolean, default=False)
+
+    conversation = relationship("Conversation", back_populates="messages")
+    sender       = relationship("User")
+
+
+class SessionThread(Base):
+    """One-to-one link between a Session and its Conversation thread."""
+    __tablename__ = "session_threads"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    session_id      = Column(Integer, ForeignKey("sessions.id"), unique=True, nullable=False)
+    conversation_id = Column(Integer, ForeignKey("conversations.id"), unique=True, nullable=False)
+
+    session      = relationship("Session")
+    conversation = relationship("Conversation", back_populates="session_thread")

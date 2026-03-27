@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
+import { useMessagingStore } from '../stores/messaging'
 import type { Notification } from '../types'
 import NotificationsModal from './NotificationsModal.vue'
 import NotificationDetailModal from './NotificationDetailModal.vue'
@@ -27,6 +28,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
+const messagingStore = useMessagingStore()
 
 const isSidebarOpen = ref(false)
 const isNotificationsOpen = ref(false)
@@ -48,7 +50,6 @@ const navsByRole: Record<string, NavItem[]> = {
     { path: '/teacher/students', icon: 'group', label: 'Students' },
     { path: '/teacher/instruments', icon: 'piano', label: 'Instruments' },
     { path: '/teacher/payments', icon: 'payments', label: 'Payments' },
-    { path: '/teacher/messages', icon: 'chat', label: 'Messages' },
   ],
   student: [
     { path: '/student', icon: 'dashboard', label: 'Dashboard' },
@@ -156,20 +157,30 @@ const logout = () => {
 
     <!-- Bottom Section -->
     <div class="pt-4 border-t border-black/[0.04] dark:border-white/5 flex flex-col gap-3 relative">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <!-- Notifications -->
         <button
           class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
           @click="isNotificationsOpen = true"
         >
-          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
-            >notifications</span
-          >
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">notifications</span>
           <span class="text-xs font-bold uppercase tracking-wider">Notifs</span>
           <span
             v-if="unreadCount > 0"
-            class="absolute top-1.5 right-2 w-4 h-4 bg-orange-500 rounded-full text-[9px] font-black text-white dark:text-white flex items-center justify-center"
-            >{{ unreadCount > 9 ? '9+' : unreadCount }}</span
-          >
+            class="absolute top-1.5 right-2 w-4 h-4 bg-orange-500 rounded-full text-[9px] font-black text-white flex items-center justify-center"
+          >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        </button>
+        <!-- Messages -->
+        <button
+          class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
+          @click="messagingStore.isOpen = true"
+        >
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1">chat</span>
+          <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
+          <span
+            v-if="messagingStore.totalUnread > 0"
+            class="absolute top-1.5 right-2 min-w-[16px] h-4 bg-orange-500 rounded-full text-[9px] font-black text-white flex items-center justify-center px-0.5"
+          >{{ messagingStore.totalUnread > 99 ? '99+' : messagingStore.totalUnread }}</span>
         </button>
       </div>
 

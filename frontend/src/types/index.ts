@@ -91,3 +91,34 @@ export interface Enrollment {
   sessionsLeft: number;
   createdAt: string;
 }
+
+// ── Messaging ─────────────────────────────────────────────────────────────────
+
+export type ConversationType = 'dm' | 'group' | 'session_thread'
+
+export interface ConversationParticipantInfo {
+  userId:     string
+  joinedAt:   string
+  lastReadAt: string | null
+  name:       string | null
+}
+
+export interface ChatMessage {
+  id:             string
+  conversationId: string
+  senderId:       string
+  senderName:     string | null
+  body:           string
+  createdAt:      string
+  isDeleted:      boolean
+}
+
+export interface Conversation {
+  id:           string
+  type:         ConversationType
+  name:         string | null
+  createdAt:    string
+  participants: ConversationParticipantInfo[]
+  lastMessage:  ChatMessage | null
+  unreadCount:  number
+}

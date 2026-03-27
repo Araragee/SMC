@@ -151,6 +151,52 @@ class Enrollment(EnrollmentBase):
     model_config = {"from_attributes": True}
 
 
+# ── Messaging Schemas ──────────────────────────────────────────────────────────
+
+class MessageOut(BaseModel):
+    id:              int
+    conversation_id: int
+    sender_id:       int
+    body:            str
+    created_at:      datetime
+    is_deleted:      bool
+    sender_name:     Optional[str] = None
+    model_config = {"from_attributes": True}
+
+class ParticipantOut(BaseModel):
+    user_id:      int
+    joined_at:    datetime
+    last_read_at: Optional[datetime] = None
+    name:         Optional[str] = None
+    model_config = {"from_attributes": True}
+
+class ConversationOut(BaseModel):
+    id:           int
+    type:         str
+    name:         Optional[str] = None
+    created_at:   datetime
+    participants: List[ParticipantOut] = []
+    last_message: Optional[MessageOut] = None
+    unread_count: int = 0
+    model_config = {"from_attributes": True}
+
+class CreateDMRequest(BaseModel):
+    other_user_id: int
+
+class CreateGroupRequest(BaseModel):
+    name:            str
+    participant_ids: List[int]
+
+class AddParticipantRequest(BaseModel):
+    user_id: int
+
+class MessageCursorPage(BaseModel):
+    messages:    List[MessageOut]
+    next_cursor: Optional[int] = None
+
+# ──────────────────────────────────────────────────────────────────────────────
+
+
 class UserBase(BaseModel):
     email: str
     name: str
