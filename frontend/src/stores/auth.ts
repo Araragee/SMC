@@ -32,13 +32,13 @@ export const useAuthStore = defineStore('auth', {
     currentUser: (state) => state.user,
   },
   actions: {
-    async login(email: string, password: string) {
+    async login(username: string, password: string) {
       const toast = useToastStore()
       this.isLoading = true
       this.error = null
       try {
         const formData = new URLSearchParams()
-        formData.append('username', email)
+        formData.append('username', username)
         formData.append('password', password)
 
         const response = await axios.post(`${API_URL}/login`, formData, {
@@ -83,6 +83,14 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('user')
       delete axios.defaults.headers.common['Authorization']
       toast.info('Signed out', 'See you next time!')
+    },
+
+    setTokenAndUser(token: string, user: User) {
+      this.token = token
+      this.user = user
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     },
 
     async updateProfile(payload: { name?: string; email?: string; avatar_url?: string; password?: string }) {

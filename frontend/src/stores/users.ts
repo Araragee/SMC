@@ -137,13 +137,13 @@ export const useUsersStore = defineStore('users', {
         };
 
         const response = await axios.post(`${API_URL}/users/`, payload);
-        const newUser = response.data;
+        const { user: newUser, access_token } = response.data;
 
         const frontendUser: User = {
           id: String(newUser.id),
           name: newUser.name,
           email: newUser.email,
-          role: userData.role as Role || 'student',
+          role: (newUser.role?.name?.toLowerCase() || roleName) as Role,
           avatarUrl: newUser.avatar_url,
           sessionsLeft: newUser.sessions_left,
           username: newUser.username,
@@ -157,7 +157,16 @@ export const useUsersStore = defineStore('users', {
           sessionsEnrolled: newUser.sessions_enrolled,
           instruments: newUser.instruments
         };
+        
         this.users.push(frontendUser);
+
+        // If not already logged in, automatically log in as the new user
+        // OR if this was a student creation from a register-like flow
+        const authStore = (await import('./auth')).useAuthStore();
+        if (!authStore.token) {
+           authStore.setTokenAndUser(access_token, frontendUser);
+        }
+
         return frontendUser;
       } catch (err: any) {
         this.error = err.message || 'Failed to create user';

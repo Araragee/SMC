@@ -25,8 +25,18 @@ const editForm = reactive({
 
 onMounted(async () => {
   await usersStore.fetchUsers()
+  
+  // Handle query parameters
   if (route.query.action === 'create') {
     showAddModal.value = true
+  }
+  
+  if (route.query.edit) {
+    const userId = String(route.query.edit)
+    const user = usersStore.users.find(u => String(u.id) === userId)
+    if (user) {
+      openEditModal(user)
+    }
   }
 })
 

@@ -23,6 +23,10 @@ function mapSession(session: any): Session {
     imageProofUrl: session.proof_image_url,
     homeworkAssigned: session.homework_assigned,
     homeworkCompleted: session.homework_completed,
+    instrumentId: session.instrument_id,
+    isManualEntry: session.is_manual_entry,
+    sessionNumber: session.session_number,
+    instrument: session.instrument
   };
 }
 

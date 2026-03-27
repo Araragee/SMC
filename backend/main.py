@@ -43,12 +43,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        username: str = payload.get("sub")
+        if username is None:
             raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(models.User).filter(models.User.username == username).first()
     if user is None:
         raise credentials_exception
     return user
@@ -127,6 +127,7 @@ def startup_event():
             hashed_password = pwd_context.hash("password123")
             new_admin = models.User(
                 email="admin@example.com",
+                username="admin",
                 name="System Admin",
                 hashed_password=hashed_password,
                 role_id=admin_role.id,
@@ -134,7 +135,10 @@ def startup_event():
             )
             db.add(new_admin)
             db.commit()
-            print("Default admin user created: admin@example.com / password123")
+            print("Default admin user created: admin / password123")
+        elif admin_user and not admin_user.username:
+            admin_user.username = "admin"
+            db.commit()
     finally:
         db.close()
 
@@ -190,7 +194,11 @@ def debug_users(db: Session = Depends(get_db)):
 # --- Auth ---
 @app.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    # Try searching by username first, then fallback to email (for transition)
+    user = db.query(models.User).filter(
+        (models.User.username == form_data.username) | 
+        (models.User.email == form_data.username)
+    ).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
 
@@ -205,20 +213,32 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email, "user_id": user.id}, expires_delta=access_token_expires
+        data={"sub": user.username or user.email, "user_id": user.id}, expires_delta=access_token_expires
     )
 
     return {"access_token": access_token, "token_type": "bearer", "user": schemas.User.model_validate(user)}
 
 # --- Users ---
 
-@app.post("/users/", response_model=schemas.User)
+@app.post("/users/")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
-    if db_user:
+    db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
+    if db_user_email:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     role = db.query(models.Role).filter(models.Role.id == user.role_id).first()
+
+    # Generate default username if not provided
+    username = user.username
+    if not username:
+        # Use first part of email or name as base
+        base = user.email.split("@")[0] if user.email else user.name.replace(" ", "").lower()
+        # Verify uniqueness
+        username = base
+        counter = 1
+        while db.query(models.User).filter(models.User.username == username).first():
+            username = f"{base}{counter}"
+            counter += 1
 
     password = user.password
     if not password and role and role.name.lower() == "student":
@@ -230,8 +250,9 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     hashed_password = pwd_context.hash(password[:72])
 
-    user_data = user.dict(exclude={"password", "instrument_ids"})
+    user_data = user.dict(exclude={"password", "instrument_ids", "username"})
     user_data["hashed_password"] = hashed_password
+    user_data["username"] = username
 
     db_user = models.User(**user_data)
     db.add(db_user)
@@ -245,7 +266,18 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_user)
 
-    return db_user
+    # Automatically generate token for the response to allow "automatic login"
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": db_user.username, "user_id": db_user.id}, 
+        expires_delta=access_token_expires
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": schemas.User.model_validate(db_user)
+    }
 
 @app.put("/users/{user_id}", response_model=schemas.User)
 def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):

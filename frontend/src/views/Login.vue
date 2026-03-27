@@ -5,11 +5,11 @@ import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const email = ref('')
+const username = ref('')
 const password = ref('')
 
 const handleLogin = async () => {
-    await authStore.login(email.value, password.value)
+    await authStore.login(username.value, password.value)
     if (authStore.isAuthenticated && authStore.user) {
         router.push(`/${authStore.user.role || 'student'}`)
     }
@@ -42,8 +42,8 @@ const handleLogin = async () => {
           <form class="space-y-6" @submit.prevent="handleLogin">
             <div class="space-y-4">
               <div class="space-y-2">
-                <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-on-surface-variant font-bold px-1">Email</label>
-                <input v-model="email" type="email" required placeholder="admin@example.com" class="w-full h-16 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl pl-6 pr-6 text-on-surface dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all duration-300 placeholder:text-on-surface-variant dark:placeholder:text-on-surface-variant" />
+                <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-on-surface-variant font-bold px-1">Username</label>
+                <input v-model="username" type="text" required placeholder="admin" class="w-full h-16 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl pl-6 pr-6 text-on-surface dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all duration-300 placeholder:text-on-surface-variant dark:placeholder:text-on-surface-variant" />
               </div>
               <div class="space-y-2">
                 <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-on-surface-variant font-bold px-1">Password</label>
