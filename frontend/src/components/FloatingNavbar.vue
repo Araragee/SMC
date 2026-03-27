@@ -36,7 +36,7 @@ const isActive = (path: string) => route.path === path
 
 <template>
   <header
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-max px-5 h-14 bg-white/80 dark:bg-surface-container-low/40 backdrop-blur-3xl rounded-full shadow-lg dark:inner-glow-white-10 dark:shadow-2xl flex items-center gap-2 border border-zinc-200 dark:border-white/5 transition-colors duration-300"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-max px-5 h-14 glass-thin rounded-full flex items-center gap-2 transition-colors duration-300"
   >
     <nav class="flex items-center gap-1">
       <router-link
@@ -47,7 +47,7 @@ const isActive = (path: string) => route.path === path
         :class="
           isActive(item.path)
             ? 'bg-orange-500/20 text-orange-500 font-bold'
-            : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5'
+            : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5'
         "
       >
         <span
@@ -59,14 +59,14 @@ const isActive = (path: string) => route.path === path
       </router-link>
     </nav>
 
-    <div class="h-5 w-px bg-zinc-200 dark:bg-white/10 mx-1"></div>
+    <div class="h-5 w-px bg-outline-variant dark:bg-outline-variant mx-1"></div>
 
     <div class="relative flex items-center">
-      <span class="material-symbols-outlined absolute left-3 text-zinc-500 dark:text-zinc-400 dark:text-zinc-500 text-sm">search</span>
+      <span class="material-symbols-outlined absolute left-3 text-on-surface-variant dark:text-on-surface-variant text-sm">search</span>
       <input
         type="text"
         placeholder="Quick find..."
-        class="bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-full pl-9 pr-4 py-1.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50 w-36"
+        class="bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-full pl-9 pr-4 py-1.5 text-xs text-on-surface dark:text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-orange-500/50 w-36"
       />
     </div>
   </header>

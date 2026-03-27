@@ -85,23 +85,23 @@ function markAllAsRead() {
         <div class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" @click="$emit('close')" />
 
         <!-- Modal -->
-        <div class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-black/[0.04] dark:border-white/5 shrink-0">
+          <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5 shrink-0">
             <div>
               <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Stay Updated</p>
-              <h3 class="text-xl font-black text-zinc-900 dark:text-white">Notifications</h3>
+              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Notifications</h3>
             </div>
             <div class="flex items-center gap-2">
               <button
                 v-if="unreadCount > 0"
-                class="text-[10px] font-bold text-zinc-600 dark:text-zinc-500 hover:text-orange-500 transition-colors uppercase tracking-wider px-2 py-1"
+                class="text-[10px] font-bold text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider px-2 py-1"
                 @click="markAllAsRead"
               >
                 Mark all as read
               </button>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
+                class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
                 @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
@@ -112,11 +112,11 @@ function markAllAsRead() {
           <!-- Notification List -->
           <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             <div v-if="notifications.length === 0" class="text-center py-12">
-              <div class="w-16 h-16 bg-black/[0.04] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-black/[0.04] dark:border-white/5">
-                <span class="material-symbols-outlined text-3xl text-zinc-400 dark:text-zinc-700">notifications_off</span>
+              <div class="w-16 h-16 bg-black/[0.04] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/40 dark:border-white/5">
+                <span class="material-symbols-outlined text-3xl text-on-surface-variant/60 dark:text-on-surface-variant/40">notifications_off</span>
               </div>
-              <p class="text-zinc-600 dark:text-zinc-500 font-medium">All caught up!</p>
-              <p class="text-zinc-500 dark:text-zinc-600 text-sm mt-1">No new notifications at the moment.</p>
+              <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">All caught up!</p>
+              <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-1">No new notifications at the moment.</p>
             </div>
 
             <div
@@ -125,7 +125,7 @@ function markAllAsRead() {
               class="group relative rounded-2xl p-4 border transition-all cursor-pointer"
               :class="[
                 notif.isRead 
-                  ? 'bg-white/[0.02] border-white/5 opacity-60' 
+                  ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.05] dark:border-white/5 opacity-60' 
                   : 'bg-orange-500/5 border-orange-500/20 hover:bg-orange-500/10'
               ]"
               @click="handleNotifClick(notif)"
@@ -142,14 +142,14 @@ function markAllAsRead() {
                 <!-- Content -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2 mb-1">
-                    <h4 class="text-sm font-bold text-zinc-900 dark:text-white truncate group-hover:text-orange-400 transition-colors">
+                    <h4 class="text-sm font-bold text-on-surface dark:text-on-surface truncate group-hover:text-orange-400 transition-colors">
                       {{ notif.title || 'Notification' }}
                     </h4>
-                    <span class="text-[10px] text-zinc-600 dark:text-zinc-500 whitespace-nowrap font-medium">
+                    <span class="text-[10px] text-on-surface-variant dark:text-on-surface-variant whitespace-nowrap font-medium">
                       {{ formatTime(notif.createdAt) }}
                     </span>
                   </div>
-                  <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2 group-hover:text-zinc-300">
+                  <p class="text-xs text-on-surface-variant dark:text-on-surface-variant leading-relaxed line-clamp-2 group-hover:text-on-surface">
                     {{ notif.message }}
                   </p>
                 </div>
@@ -164,8 +164,8 @@ function markAllAsRead() {
           </div>
 
           <!-- Footer -->
-          <div class="p-4 border-t border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] shrink-0 text-center">
-            <p class="text-[10px] text-zinc-500 dark:text-zinc-600 font-bold uppercase tracking-tighter">
+          <div class="p-4 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] shrink-0 text-center">
+            <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-tighter">
               Showing last {{ notifications.length }} notifications
             </p>
           </div>

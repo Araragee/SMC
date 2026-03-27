@@ -113,9 +113,9 @@ function formatDay(iso: string): string {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-zinc-900 dark:text-white mb-2">My Schedule</h1>
-        <p class="text-zinc-600 dark:text-zinc-500 font-medium">
-          <span class="text-zinc-900 dark:text-white font-bold">{{ confirmedSessions.length }}</span> confirmed
+        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">My Schedule</h1>
+        <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
+          <span class="text-on-surface dark:text-on-surface font-bold">{{ confirmedSessions.length }}</span> confirmed
           sessions this month.
           <template v-if="pendingCount > 0">
             <span class="text-amber-400 font-bold">{{ pendingCount }}</span> pending approval.
@@ -124,7 +124,7 @@ function formatDay(iso: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -145,7 +145,7 @@ function formatDay(iso: string): string {
           >pending_actions</span
         >
         <div class="flex-1">
-          <p class="text-zinc-900 dark:text-white font-bold text-sm mb-3">
+          <p class="text-on-surface dark:text-on-surface font-bold text-sm mb-3">
             {{ pendingSessions.length }} session{{ pendingSessions.length !== 1 ? 's' : '' }} in
             progress
           </p>
@@ -161,8 +161,8 @@ function formatDay(iso: string): string {
               "
             >
               <div>
-                <p class="text-zinc-900 dark:text-white text-sm font-bold">{{ formatDateTime(session.startTime) }}</p>
-                <p class="text-zinc-600 dark:text-zinc-500 text-xs">with {{ getTeacherName(session.teacherId) }}</p>
+                <p class="text-on-surface dark:text-on-surface text-sm font-bold">{{ formatDateTime(session.startTime) }}</p>
+                <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">with {{ getTeacherName(session.teacherId) }}</p>
               </div>
               <span
                 class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border"
@@ -183,7 +183,7 @@ function formatDay(iso: string): string {
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
           <span
             class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
           >
@@ -210,7 +210,7 @@ function formatDay(iso: string): string {
 
     <!-- Upcoming Sessions -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <h3 class="text-xl font-black text-zinc-900 dark:text-white mb-6 flex items-center gap-3">
+      <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
         <span class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-orange-500"
@@ -225,7 +225,7 @@ function formatDay(iso: string): string {
         <div
           v-for="session in upcomingSessions"
           :key="session.id"
-          class="flex items-center gap-5 p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group"
+          class="flex items-center gap-5 p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 hover:border-white/10 transition-all group"
         >
           <!-- Date badge -->
           <div
@@ -234,26 +234,26 @@ function formatDay(iso: string): string {
             <p class="text-[10px] font-black text-orange-500 uppercase tracking-wider">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-xl font-black text-zinc-900 dark:text-white leading-none">
+            <p class="text-xl font-black text-on-surface dark:text-on-surface leading-none">
               {{ formatDay(session.startTime) }}
             </p>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-zinc-900 dark:text-white font-bold">{{ getTeacherName(session.teacherId) }}</p>
-            <p class="text-zinc-600 dark:text-zinc-500 text-sm">
+            <p class="text-on-surface dark:text-on-surface font-bold">{{ getTeacherName(session.teacherId) }}</p>
+            <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
-            <p v-if="session.notes" class="text-zinc-500 dark:text-zinc-600 text-xs mt-1 italic">
+            <p v-if="session.notes" class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1 italic">
               {{ session.notes }}
             </p>
           </div>
           <span
-            class="material-symbols-outlined text-zinc-400 dark:text-zinc-700 group-hover:text-zinc-400 group-hover:translate-x-1 transition-all"
+            class="material-symbols-outlined text-on-surface-variant/50 dark:text-on-surface-variant/40 group-hover:text-on-surface-variant group-hover:translate-x-1 transition-all"
             >arrow_forward</span
           >
         </div>
       </div>
-      <div v-else class="text-center py-8 text-zinc-500 dark:text-zinc-600">
+      <div v-else class="text-center py-8 text-on-surface-variant dark:text-on-surface-variant">
         <span class="material-symbols-outlined text-4xl mb-3 block">calendar_today</span>
         No upcoming sessions. Request one!
       </div>

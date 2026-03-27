@@ -161,12 +161,12 @@ const formatTime = (dt: string | undefined) => {
   <div class="w-full mx-auto pb-10">
     <!-- Hero Header -->
     <section class="mb-8">
-      <h1 class="text-5xl font-black tracking-tight text-zinc-900 dark:text-white mb-3">
+      <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-3">
         Welcome back, <span class="text-orange-500">Maestro.</span>
       </h1>
-      <p class="text-zinc-500 dark:text-zinc-400 text-lg font-medium mb-6">
+      <p class="text-on-surface-variant dark:text-on-surface-variant text-lg font-medium mb-6">
         You have
-        <span class="text-zinc-900 dark:text-white font-bold">{{ todaySessions.length || 0 }} sessions</span>
+        <span class="text-on-surface dark:text-on-surface font-bold">{{ todaySessions.length || 0 }} sessions</span>
         today. Performance index is at
         <span class="text-emerald-400 font-bold">98%</span>.
       </p>
@@ -188,13 +188,13 @@ const formatTime = (dt: string | undefined) => {
             >
               LIVE NOW
             </p>
-            <h3 class="text-xl font-black text-zinc-900 dark:text-white mb-1 truncate">
+            <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-1 truncate">
               Session #{{ currentSession.id }}
             </h3>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+            <p class="text-sm text-on-surface-variant dark:text-on-surface-variant truncate">
               {{ getStudentName(currentSession.studentId) }}
             </p>
-            <p class="text-xs text-white/50 mt-2">
+            <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-2">
               {{ formatTime(currentSession.startTime) }} - {{ formatTime(currentSession.endTime) }}
             </p>
           </div>
@@ -203,33 +203,33 @@ const formatTime = (dt: string | undefined) => {
           v-else
           class="liquid-glass border border-black/[0.04] dark:border-white/5 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70"
         >
-          <span class="material-symbols-outlined text-3xl text-zinc-500 dark:text-zinc-600 mb-2">hotel_class</span>
-          <p class="text-sm font-bold text-zinc-600 dark:text-zinc-500 uppercase tracking-wider">No Active Session</p>
+          <span class="material-symbols-outlined text-3xl text-on-surface-variant dark:text-on-surface-variant mb-2">hotel_class</span>
+          <p class="text-sm font-bold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-wider">No Active Session</p>
         </div>
 
         <!-- Next Up Session Card -->
         <div
           v-if="nextSession"
-          class="liquid-glass border border-black/[0.04] dark:border-white/5 border-l-[6px] border-l-white/20 rounded-3xl p-5 cursor-pointer hover:bg-white/5 transition-all flex flex-col justify-center group"
+          class="liquid-glass border border-black/[0.04] dark:border-white/5 border-l-[6px] border-l-outline-variant dark:border-l-white/20 rounded-3xl p-5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all flex flex-col justify-center group"
           @click="openSessionModal(nextSession)"
         >
           <p
-            class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-1 group-hover:text-zinc-400 transition-colors"
+            class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1 group-hover:text-on-surface-variant transition-colors"
           >
             Next Up
           </p>
-          <h3 class="text-xl font-black text-zinc-900 dark:text-white mb-1 truncate">Session #{{ nextSession.id }}</h3>
-          <p class="text-sm text-zinc-500 dark:text-zinc-400 truncate">{{ getStudentName(nextSession.studentId) }}</p>
+          <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-1 truncate">Session #{{ nextSession.id }}</h3>
+          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant truncate">{{ getStudentName(nextSession.studentId) }}</p>
           <p class="text-xs text-orange-400 mt-2 font-bold">
             {{ formatTime(nextSession.startTime) }}
           </p>
         </div>
         <div
           v-else
-          class="liquid-glass border border-black/[0.04] dark:border-white/5 border-l-[6px] border-l-white/10 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70"
+          class="liquid-glass border border-black/[0.04] dark:border-white/5 border-l-[6px] border-l-outline-variant dark:border-l-white/10 rounded-3xl p-5 flex flex-col justify-center items-center text-center opacity-70"
         >
-          <span class="material-symbols-outlined text-3xl text-zinc-500 dark:text-zinc-600 mb-2">event_available</span>
-          <p class="text-sm font-bold text-zinc-600 dark:text-zinc-500 uppercase tracking-wider">Schedule Clear</p>
+          <span class="material-symbols-outlined text-3xl text-on-surface-variant dark:text-on-surface-variant mb-2">event_available</span>
+          <p class="text-sm font-bold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-wider">Schedule Clear</p>
         </div>
       </div>
     </section>
@@ -241,7 +241,7 @@ const formatTime = (dt: string | undefined) => {
         <!-- Student Roster -->
         <div class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-2xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+            <h3 class="text-2xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
               <span
                 class="material-symbols-outlined text-orange-500 text-3xl"
                 style="font-variation-settings: 'FILL' 1"
@@ -266,18 +266,18 @@ const formatTime = (dt: string | undefined) => {
             <div
               v-for="entry in rosterEntries"
               :key="entry.studentId"
-              class="bg-black/40 backdrop-blur-xl border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-4 hover:border-orange-500/40 transition-all group cursor-pointer"
+              class="bg-black/[0.04] dark:bg-white/5 backdrop-blur-xl border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-4 hover:border-orange-500/40 transition-all group cursor-pointer"
             >
               <div
                 class="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/10 group-hover:scale-105 transition-transform bg-surface-container-highest flex items-center justify-center shrink-0"
               >
-                <span class="text-2xl font-black text-zinc-900 dark:text-white">{{
+                <span class="text-2xl font-black text-on-surface dark:text-on-surface">{{
                   entry.name.charAt(0).toUpperCase()
                 }}</span>
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-zinc-900 dark:text-white text-lg truncate">{{ entry.name }}</h4>
-                <p class="text-xs text-zinc-600 dark:text-zinc-500 font-medium mb-2 uppercase tracking-tighter">
+                <h4 class="font-bold text-on-surface dark:text-on-surface text-lg truncate">{{ entry.name }}</h4>
+                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant font-medium mb-2 uppercase tracking-tighter">
                   {{ formatTime(entry.startTime) }}
                 </p>
                 <div class="flex gap-2 flex-wrap">
@@ -288,21 +288,21 @@ const formatTime = (dt: string | undefined) => {
                 </div>
               </div>
               <span
-                class="material-symbols-outlined text-zinc-500 dark:text-zinc-600 group-hover:text-orange-500 transition-colors"
+                class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 transition-colors"
                 >chevron_right</span
               >
             </div>
 
             <!-- Enroll New -->
             <div
-              class="bg-black/40 backdrop-blur-xl p-5 rounded-3xl flex items-center justify-center border-2 border-dashed border-black/[0.08] dark:border-white/10 hover:border-orange-500/50 hover:bg-white/5 transition-all group cursor-pointer"
+              class="bg-black/[0.04] dark:bg-white/5 backdrop-blur-xl p-5 rounded-3xl flex items-center justify-center border-2 border-dashed border-black/[0.08] dark:border-white/10 hover:border-orange-500/50 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all group cursor-pointer"
             >
               <div class="text-center">
                 <span
-                  class="material-symbols-outlined text-zinc-500 dark:text-zinc-600 group-hover:text-orange-500 text-3xl mb-1 block"
+                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 text-3xl mb-1 block"
                   >person_add</span
                 >
-                <p class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest">
+                <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest">
                   Enroll New
                 </p>
               </div>
@@ -314,7 +314,7 @@ const formatTime = (dt: string | undefined) => {
         <div class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 space-y-3">
           <div class="flex justify-between items-center">
             <div>
-              <h3 class="text-2xl font-black text-zinc-900 dark:text-white flex items-center gap-3">
+              <h3 class="text-2xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
                 <span class="material-symbols-outlined text-orange-500 text-3xl"
                   >calendar_month</span
                 >
@@ -337,8 +337,8 @@ const formatTime = (dt: string | undefined) => {
                     day.isToday
                       ? 'text-orange-500'
                       : day.isWeekend
-                        ? 'text-zinc-600'
-                        : 'text-zinc-500'
+                        ? 'text-on-surface-variant'
+                        : 'text-on-surface-variant'
                   "
                 >
                   {{ day.label }}
@@ -348,7 +348,7 @@ const formatTime = (dt: string | undefined) => {
                   :class="
                     day.isToday
                       ? 'bg-gradient-to-br from-orange-500 to-orange-700 text-white'
-                      : 'text-zinc-500'
+                      : 'text-on-surface-variant'
                   "
                 >
                   {{ day.dateNum }}
@@ -365,13 +365,13 @@ const formatTime = (dt: string | undefined) => {
                       ? 'bg-blue-500/10 border-blue-500'
                       : day.session.status === 'pending_teacher'
                         ? 'bg-amber-500/10 border-amber-500'
-                        : 'bg-white/5 border-white/20'
+                        : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/20'
                 "
               >
                 <p class="text-[10px] font-black text-orange-500 mb-1">
                   {{ formatTime(day.session.startTime) }}
                 </p>
-                <p class="text-xs font-bold text-zinc-900 dark:text-white truncate">
+                <p class="text-xs font-bold text-on-surface dark:text-on-surface truncate">
                   S#{{ day.session.studentId.slice(-4) }}
                 </p>
                 <p
@@ -381,7 +381,7 @@ const formatTime = (dt: string | undefined) => {
                       ? 'text-blue-400'
                       : day.session.status === 'pending_teacher'
                         ? 'text-amber-400'
-                        : 'text-zinc-500'
+                        : 'text-on-surface-variant'
                   "
                 >
                   {{
@@ -399,17 +399,17 @@ const formatTime = (dt: string | undefined) => {
                 class="h-32 border border-dashed rounded-2xl flex items-center justify-center"
                 :class="
                   day.isWeekend
-                    ? 'border-white/[0.03] bg-white/[0.01]'
-                    : 'border-white/5 bg-black/20'
+                    ? 'border-black/[0.04] dark:border-white/[0.03] bg-black/[0.02] dark:bg-white/[0.01]'
+                    : 'border-black/[0.06] dark:border-white/5 bg-black/[0.03] dark:bg-black/20'
                 "
               >
-                <span class="material-symbols-outlined text-zinc-800 text-base">add</span>
+                <span class="material-symbols-outlined text-on-surface-variant text-base">add</span>
               </div>
             </div>
           </div>
           <RouterLink
             to="/teacher/schedule"
-            class="block text-center text-xs text-zinc-500 dark:text-zinc-600 hover:text-orange-500 transition-colors font-bold"
+            class="block text-center text-xs text-on-surface-variant dark:text-on-surface-variant hover:text-orange-500 transition-colors font-bold"
           >
             View Full Schedule →
           </RouterLink>
@@ -420,20 +420,20 @@ const formatTime = (dt: string | undefined) => {
     <!-- Footer Stats -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all"
       >
         <div
-          class="w-20 h-20 rounded-3xl bg-orange-500 text-zinc-900 dark:text-white flex items-center justify-center text-4xl font-black shadow-2xl group-hover:scale-110 transition-transform"
+          class="w-20 h-20 rounded-3xl bg-orange-500 text-white flex items-center justify-center text-4xl font-black shadow-2xl group-hover:scale-110 transition-transform"
         >
           {{ mySessions.length }}
         </div>
         <div>
-          <h4 class="font-black text-xl text-zinc-900 dark:text-white">Active Roster</h4>
-          <p class="text-sm text-zinc-600 dark:text-zinc-500">Enrolled for Summer Term</p>
+          <h4 class="font-black text-xl text-on-surface dark:text-on-surface">Active Roster</h4>
+          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">Enrolled for Summer Term</p>
         </div>
       </div>
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all"
       >
         <div
           class="w-20 h-20 rounded-3xl bg-orange-500/20 text-orange-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
@@ -443,12 +443,12 @@ const formatTime = (dt: string | undefined) => {
           >
         </div>
         <div>
-          <h4 class="font-black text-xl text-zinc-900 dark:text-white">Rating: 4.98</h4>
-          <p class="text-sm text-zinc-600 dark:text-zinc-500">Based on 142 reviews</p>
+          <h4 class="font-black text-xl text-on-surface dark:text-on-surface">Rating: 4.98</h4>
+          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">Based on 142 reviews</p>
         </div>
       </div>
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all"
       >
         <div
           class="w-20 h-20 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
@@ -458,8 +458,8 @@ const formatTime = (dt: string | undefined) => {
           >
         </div>
         <div>
-          <h4 class="font-black text-xl text-zinc-900 dark:text-white">Growth Hub</h4>
-          <p class="text-sm text-zinc-600 dark:text-zinc-500">+15% Month-over-Month</p>
+          <h4 class="font-black text-xl text-on-surface dark:text-on-surface">Growth Hub</h4>
+          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">+15% Month-over-Month</p>
         </div>
       </div>
     </section>
@@ -485,27 +485,27 @@ const formatTime = (dt: string | undefined) => {
       >
         <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
         <div
-          class="relative w-full max-w-lg bg-zinc-900 border border-black/[0.08] dark:border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
+          class="relative w-full max-w-lg bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto"
         >
           <!-- Header -->
           <div class="flex items-start justify-between">
             <div>
               <h3
                 id="teacher-session-modal-title"
-                class="text-2xl font-black text-zinc-900 dark:text-white leading-tight"
+                class="text-2xl font-black text-on-surface dark:text-on-surface leading-tight"
               >
                 Session #{{ expandedSession.id }}
               </h3>
-              <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
+              <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-1">
                 {{ formatTime(expandedSession.startTime) }} -
                 {{ formatTime(expandedSession.endTime) }}
               </p>
-              <p class="text-zinc-900 dark:text-white font-bold mt-1">
+              <p class="text-on-surface dark:text-on-surface font-bold mt-1">
                 Student: {{ getStudentName(expandedSession.studentId) }}
               </p>
             </div>
             <button
-              class="text-zinc-600 dark:text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
+              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
               aria-label="Close modal"
               @click="closeSessionModal"
             >
@@ -515,7 +515,7 @@ const formatTime = (dt: string | undefined) => {
 
           <!-- Proof Section -->
           <div class="space-y-3">
-            <label class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest"
+            <label class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest"
               >Visual Evidence</label
             >
             <div
@@ -530,7 +530,7 @@ const formatTime = (dt: string | undefined) => {
                 class="absolute inset-0 bg-black/30 dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
                 <label
-                  class="px-4 py-2 bg-white/20 hover:bg-white/30 text-zinc-900 dark:text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors"
+                  class="px-4 py-2 bg-white/20 hover:bg-black/10 dark:hover:bg-white/30 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors"
                 >
                   Replace Image
                   <input
@@ -549,7 +549,7 @@ const formatTime = (dt: string | undefined) => {
               <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
               <div class="absolute top-2 right-2 flex gap-2">
                 <label
-                  class="px-3 py-1.5 bg-black/30 dark:bg-black/60 hover:bg-black/80 text-zinc-900 dark:text-white text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors border border-white/20"
+                  class="px-3 py-1.5 bg-black/30 dark:bg-black/60 hover:bg-black/80 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors border border-white/20"
                 >
                   Change
                   <input
@@ -563,7 +563,7 @@ const formatTime = (dt: string | undefined) => {
             </div>
             <label
               v-else
-              class="block aspect-video bg-black/40 rounded-3xl border-2 border-dashed border-black/[0.08] dark:border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 hover:border-orange-500/50 transition-all group overflow-hidden relative"
+              class="block aspect-video bg-black/[0.04] dark:bg-white/5 rounded-3xl border-2 border-dashed border-black/[0.08] dark:border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:border-orange-500/50 transition-all group overflow-hidden relative"
             >
               <div class="text-center group-hover:scale-105 transition-transform">
                 <div
@@ -575,7 +575,7 @@ const formatTime = (dt: string | undefined) => {
                     >add_a_photo</span
                   >
                 </div>
-                <p class="text-[11px] font-black text-zinc-300 uppercase tracking-wide">
+                <p class="text-[11px] font-black text-on-surface-variant uppercase tracking-wide">
                   Take Photo or Upload
                 </p>
               </div>
@@ -591,12 +591,12 @@ const formatTime = (dt: string | undefined) => {
 
           <!-- Practice Goals -->
           <div class="space-y-3">
-            <label class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest"
+            <label class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest"
               >Practice Goals / Notes</label
             >
             <textarea
               v-model="practiceGoalsText"
-              class="w-full h-32 bg-black/40 border border-black/[0.04] dark:border-white/5 rounded-3xl focus:ring-2 focus:ring-orange-500/40 text-sm p-5 text-zinc-900 dark:text-white placeholder-zinc-600 resize-none transition-all"
+              class="w-full h-32 bg-black/[0.04] dark:bg-white/5 border border-black/[0.06] dark:border-white/5 rounded-3xl focus:ring-2 focus:ring-orange-500/40 text-sm p-5 text-on-surface dark:text-on-surface placeholder:text-on-surface-variant resize-none transition-all"
               placeholder="E.g. Focus on paradiddle transitions at 120bpm..."
             ></textarea>
           </div>
@@ -604,13 +604,13 @@ const formatTime = (dt: string | undefined) => {
           <!-- Action Buttons -->
           <div class="flex gap-3 pt-2">
             <button
-              class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white text-sm font-semibold transition-all bg-black/[0.04] dark:bg-white/5 hover:bg-white/10"
+              class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10"
               @click="closeSessionModal"
             >
               Cancel
             </button>
             <button
-              class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-zinc-900 dark:text-white text-sm font-black transition-all active:scale-95 shadow-lg shadow-orange-900/20"
+              class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 shadow-lg shadow-orange-900/20"
               @click="saveSessionChanges"
             >
               Save Changes

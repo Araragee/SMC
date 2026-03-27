@@ -88,7 +88,7 @@ const logout = () => {
     class="fixed top-4 left-4 z-[105] lg:hidden w-12 h-12 bg-surface-container-low/80 backdrop-blur-lg rounded-full border border-black/[0.08] dark:border-white/10 flex items-center justify-center shadow-lg"
     @click="isSidebarOpen = !isSidebarOpen"
   >
-    <span class="material-symbols-outlined text-zinc-900 dark:text-white">menu</span>
+    <span class="material-symbols-outlined text-on-surface dark:text-on-surface">menu</span>
   </button>
 
   <Transition
@@ -107,7 +107,7 @@ const logout = () => {
   </Transition>
 
   <aside
-    class="fixed top-0 left-0 h-screen w-full bg-surface-container-low/40 backdrop-blur-3xl border-r border-black/[0.04] dark:border-white/5 p-4 flex flex-col z-[100] transition-transform duration-300 lg:w-full lg:sticky lg:top-6 lg:h-auto lg:rounded-[2rem] lg:border lg:border-white/10 lg:shadow-2xl lg:translate-x-0 lg:liquid-glass"
+    class="fixed top-0 left-0 h-screen w-full glass-thin border-r border-black/5 dark:border-white/5 p-4 flex flex-col z-[100] transition-transform duration-300 lg:w-full lg:sticky lg:top-6 lg:h-auto lg:rounded-[2rem] lg:shadow-2xl lg:translate-x-0"
     :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
   >
     <!-- Logo Section -->
@@ -116,13 +116,13 @@ const logout = () => {
         class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0 mb-3"
       >
         <span
-          class="material-symbols-outlined text-zinc-900 dark:text-white text-2xl"
+          class="material-symbols-outlined text-white dark:text-white text-2xl"
           style="font-variation-settings: 'FILL' 1"
           >music_note</span
         >
       </div>
       <div class="text-center leading-none">
-        <h2 class="text-zinc-900 dark:text-white font-black tracking-tight text-lg">Sernan's</h2>
+        <h2 class="text-on-surface dark:text-on-surface font-black tracking-tight text-lg">Sernan's</h2>
         <p class="text-orange-500 text-[11px] font-bold uppercase tracking-wider">Music Clinic</p>
       </div>
     </div>
@@ -141,7 +141,7 @@ const logout = () => {
         :class="
           isActive(item.path)
             ? 'bg-orange-500/10 text-orange-500 border-l-4 border-l-orange-500'
-            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5'
         "
         @click="isSidebarOpen = false"
       >
@@ -158,7 +158,7 @@ const logout = () => {
     <div class="pt-4 border-t border-black/[0.04] dark:border-white/5 flex flex-col gap-3 relative">
       <div class="flex items-center gap-3">
         <button
-          class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 rounded-2xl text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group border border-black/[0.04] dark:border-white/5"
+          class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
           @click="isNotificationsOpen = true"
         >
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
@@ -167,7 +167,7 @@ const logout = () => {
           <span class="text-xs font-bold uppercase tracking-wider">Notifs</span>
           <span
             v-if="unreadCount > 0"
-            class="absolute top-1.5 right-2 w-4 h-4 bg-orange-500 rounded-full text-[9px] font-black text-zinc-900 dark:text-white flex items-center justify-center"
+            class="absolute top-1.5 right-2 w-4 h-4 bg-orange-500 rounded-full text-[9px] font-black text-white dark:text-white flex items-center justify-center"
             >{{ unreadCount > 9 ? '9+' : unreadCount }}</span
           >
         </button>
@@ -176,7 +176,7 @@ const logout = () => {
       <!-- User Profile Dropdown -->
       <div class="relative w-full">
         <button
-          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/5 transition-all group border border-transparent"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all group border border-transparent"
           :class="{ 'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen }"
           @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
         >
@@ -191,16 +191,16 @@ const logout = () => {
             <span v-else>{{ authStore.currentUser?.name?.charAt(0)?.toUpperCase() || '?' }}</span>
           </div>
           <div class="flex-1 text-left min-w-0">
-            <p class="text-sm font-bold text-zinc-900 dark:text-white leading-tight truncate">
+            <p class="text-sm font-bold text-on-surface dark:text-on-surface leading-tight truncate">
               {{ authStore.currentUser?.name || 'User' }}
             </p>
-            <p class="text-[10px] text-zinc-600 dark:text-zinc-500 font-bold uppercase tracking-widest truncate">
+            <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-widest truncate">
               {{ roleLabel }}
             </p>
           </div>
           <span
-            class="material-symbols-outlined text-zinc-600 dark:text-zinc-500 text-xl transition-transform duration-300"
-            :class="{ 'rotate-180 text-white': isUserDropdownOpen }"
+            class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant text-xl transition-transform duration-300"
+            :class="{ 'rotate-180 text-on-surface dark:text-on-surface': isUserDropdownOpen }"
             >expand_less</span
           >
         </button>
@@ -217,34 +217,34 @@ const logout = () => {
           <div
             v-if="isUserDropdownOpen"
             v-click-outside="() => (isUserDropdownOpen = false)"
-            class="absolute bottom-full right-0 mb-3 w-56 liquid-glass rounded-[1.5rem] border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden z-[110]"
+            class="absolute bottom-full right-0 mb-3 w-56 glass-heavy rounded-[1.5rem] shadow-2xl overflow-hidden z-[110]"
           >
             <div class="p-4 border-b border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-              <p class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-1">
+              <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1">
                 Signed in as
               </p>
-              <p class="text-sm font-bold text-zinc-900 dark:text-white truncate">
+              <p class="text-sm font-bold text-on-surface dark:text-on-surface truncate">
                 {{ authStore.currentUser?.email }}
               </p>
             </div>
 
             <div class="p-2">
               <button
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
                 @click="((isSettingsOpen = true), (isUserDropdownOpen = false))"
               >
                 <span class="material-symbols-outlined text-lg">person_edit</span>
                 Profile Settings
               </button>
               <button
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-white hover:bg-white/5 transition-all text-xs font-bold"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
               >
                 <span class="material-symbols-outlined text-lg">settings</span>
                 Preferences
               </button>
               <div class="h-px bg-black/[0.04] dark:bg-white/5 my-1 mx-2"></div>
               <button
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 dark:text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all text-xs font-black"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-all text-xs font-black"
                 @click="logout"
               >
                 <span class="material-symbols-outlined text-lg">logout</span>

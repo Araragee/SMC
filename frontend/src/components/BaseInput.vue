@@ -46,15 +46,15 @@ const updateValue = (event: Event) => {
 };
 
 const computedClasses = computed(() => {
-  const baseClasses = 'w-full min-h-[4rem] border-none rounded-[24px] pr-6 text-on-surface placeholder:text-neutral-600 transition-all duration-300 focus:ring-1 focus:ring-primary/50 focus:bg-surface-container-high py-[1.4rem]';
+  const baseClasses = 'w-full min-h-[4rem] border-none rounded-[24px] pr-6 text-on-surface placeholder:text-on-surface-variant transition-all duration-300 focus:ring-1 focus:ring-primary/50 focus:bg-surface-container-high py-[1.4rem]';
 
   // Padding left adjustments based on left icon
   const paddingClasses = props.iconLeft ? 'pl-14' : 'pl-6';
 
   // Error state
   const stateClasses = props.error
-    ? 'bg-error/10 text-error-dim focus:ring-error-dim'
-    : 'bg-surface-container-low';
+    ? 'bg-error/10 text-error-dim focus:ring-error-dim border border-error/30'
+    : 'bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10';
 
   const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : '';
 
@@ -65,7 +65,7 @@ const computedClasses = computed(() => {
 <template>
   <div class="space-y-2 w-full">
     <div v-if="label" class="flex justify-between items-center px-1">
-      <label :for="id" class="text-[10px] tracking-widest uppercase text-neutral-500 font-bold">
+      <label :for="id" class="text-[10px] tracking-widest uppercase text-on-surface-variant font-bold">
         {{ label }}
       </label>
       <slot name="label-right"></slot>
@@ -73,7 +73,7 @@ const computedClasses = computed(() => {
     <div class="relative group">
       <span
         v-if="iconLeft"
-        class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-neutral-500 text-xl transition-colors group-focus-within:text-primary"
+        class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl transition-colors group-focus-within:text-primary"
       >
         {{ iconLeft }}
       </span>
@@ -95,7 +95,7 @@ const computedClasses = computed(() => {
         <button
             v-if="type === 'password'"
             type="button"
-            class="absolute right-5 top-1/2 -translate-y-1/2 text-neutral-500 cursor-pointer hover:text-white transition-colors"
+            class="absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer hover:text-on-surface dark:hover:text-on-surface transition-colors"
             @click="togglePasswordVisibility"
         >
             <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>

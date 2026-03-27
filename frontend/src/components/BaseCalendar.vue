@@ -86,11 +86,11 @@ const themeStatusStyles = (status: string) => {
     rejected:
       'bg-red-100/50 border-red-200 text-red-800 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300',
     cancelled:
-      'bg-zinc-100/50 border-zinc-200 text-zinc-600 dark:bg-zinc-500/10 dark:border-zinc-500/20 dark:text-zinc-400',
+      'bg-surface-container border-outline-variant text-on-surface-variant dark:bg-surface-container dark:border-outline-variant dark:text-on-surface-variant',
   }
   return (
     map[status] ??
-    'bg-zinc-50 border-zinc-200 text-zinc-500 dark:bg-white/5 dark:border-white/10 dark:text-zinc-400'
+    'bg-surface-container-low border-outline-variant text-on-surface-variant dark:bg-surface-container-low dark:border-outline-variant dark:text-on-surface-variant'
   )
 }
 
@@ -122,12 +122,12 @@ function resetToToday() {
 
 <template>
   <div
-    class="bg-white dark:bg-black/20 liquid-glass rounded-3xl p-6 border border-zinc-200 dark:border-white/5 shadow-xl transition-colors duration-300 flex flex-col h-full space-y-6 overflow-x-auto custom-scrollbar"
+    class="bg-surface-container-lowest dark:bg-surface-container-lowest liquid-glass rounded-3xl p-6 border border-outline-variant dark:border-outline-variant shadow-xl transition-colors duration-300 flex flex-col h-full space-y-6 overflow-x-auto custom-scrollbar"
   >
     <!-- Calendar Controls -->
     <div class="flex items-center justify-between min-w-[700px]">
       <div class="flex items-center gap-4">
-        <h3 class="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
+        <h3 class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tight">
           {{ displayMonthYear }}
         </h3>
         <button
@@ -140,16 +140,16 @@ function resetToToday() {
       </div>
 
       <div
-        class="flex items-center gap-2 bg-zinc-100 dark:bg-white/5 p-1 rounded-2xl border border-zinc-200 dark:border-white/5"
+        class="flex items-center gap-2 bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant"
       >
         <button
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
           @click="previousWeek"
         >
           <span class="material-symbols-outlined text-lg">chevron_left</span>
         </button>
         <button
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
           @click="nextWeek"
         >
           <span class="material-symbols-outlined text-lg">chevron_right</span>
@@ -162,15 +162,15 @@ function resetToToday() {
       <div
         v-for="day in weekDays"
         :key="day.iso"
-        class="flex flex-col h-full bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/5 rounded-2xl overflow-hidden hover:border-zinc-300 dark:hover:border-white/10 transition-colors cursor-pointer group"
+        class="flex flex-col h-full bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors cursor-pointer group"
         :class="{ 'ring-2 ring-orange-400 border-transparent': day.isToday }"
         @click="emit('dayClick', { date: day.date, sessions: day.sessions })"
       >
         <!-- Day Header -->
         <div
-          class="p-3 text-center border-b border-zinc-200 dark:border-white/5"
+          class="p-3 text-center border-b border-outline-variant dark:border-outline-variant"
           :class="
-            day.isToday ? 'bg-orange-50 dark:bg-orange-500/10' : 'bg-zinc-100 dark:bg-black/20'
+            day.isToday ? 'bg-primary/10 dark:bg-primary/10' : 'bg-surface-container-high dark:bg-surface-container-high'
           "
         >
           <p
@@ -179,8 +179,8 @@ function resetToToday() {
               day.isToday
                 ? 'text-orange-600 dark:text-orange-400'
                 : day.isWeekend
-                  ? 'text-zinc-400 dark:text-zinc-600'
-                  : 'text-zinc-600 dark:text-zinc-400'
+                  ? 'text-on-surface-variant/50 dark:text-on-surface-variant/40'
+                  : 'text-on-surface-variant dark:text-on-surface-variant'
             "
           >
             {{ day.label }}
@@ -190,7 +190,7 @@ function resetToToday() {
             :class="
               day.isToday
                 ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20'
-                : 'text-zinc-900 dark:text-zinc-300'
+                : 'text-on-surface dark:text-on-surface'
             "
           >
             {{ day.dateNum }}
@@ -218,7 +218,7 @@ function resetToToday() {
             class="absolute inset-x-0 bottom-2 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <span
-              class="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 shadow flex items-center justify-center text-zinc-500 dark:text-zinc-400 dark:text-zinc-500"
+              class="w-8 h-8 rounded-full bg-surface-container-high dark:bg-surface-container-high shadow flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant"
             >
               <span class="material-symbols-outlined text-sm">add</span>
             </span>

@@ -80,7 +80,7 @@ const handleLogout = () => {
 
         <!-- Modal Card -->
         <div
-          class="relative w-full max-w-xl liquid-glass rounded-[2.5rem] border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          class="relative w-full max-w-xl glass-heavy rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           <!-- Decorative Header -->
           <div
@@ -93,10 +93,10 @@ const handleLogout = () => {
               <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-2">
                 Account Control
               </p>
-              <h2 class="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">User Settings</h2>
+              <h2 class="text-3xl font-black text-on-surface dark:text-on-surface tracking-tight">User Settings</h2>
             </div>
             <button
-              class="w-12 h-12 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group"
+              class="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group"
               @click="$emit('close')"
             >
               <span
@@ -127,13 +127,13 @@ const handleLogout = () => {
                     <div
                       class="absolute inset-0 bg-black/30 dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                     >
-                      <span class="material-symbols-outlined text-zinc-900 dark:text-white text-2xl">add_a_photo</span>
+                      <span class="material-symbols-outlined text-white dark:text-white text-2xl">add_a_photo</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-1">{{ authStore.user?.name }}</h3>
-                  <p class="text-zinc-600 dark:text-zinc-500 text-sm font-medium">{{ authStore.user?.email }}</p>
+                  <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-1">{{ authStore.user?.name }}</h3>
+                  <p class="text-on-surface-variant dark:text-on-surface-variant text-sm font-medium">{{ authStore.user?.email }}</p>
                   <div
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mt-3"
                   >
@@ -171,13 +171,13 @@ const handleLogout = () => {
             <section class="space-y-6">
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-orange-500 text-lg">security</span>
-                <h3 class="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest">
+                <h3 class="text-sm font-black text-on-surface dark:text-on-surface uppercase tracking-widest">
                   Security &amp; Privacy
                 </h3>
               </div>
 
               <div
-                class="bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/5 rounded-3xl p-6 space-y-6"
+                class="bg-surface-container-low dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant rounded-3xl p-6 space-y-6"
               >
                 <BaseInput
                   v-model="form.password"
@@ -186,7 +186,7 @@ const handleLogout = () => {
                   placeholder="Enter new password"
                   icon-left="lock"
                 />
-                <p class="text-[10px] text-zinc-600 dark:text-zinc-500 font-medium px-2 italic leading-relaxed">
+                <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-medium px-2 italic leading-relaxed">
                   Leave the password field empty if you don't wish to change it. Your new password
                   must be at least 8 characters long.
                 </p>
@@ -198,42 +198,42 @@ const handleLogout = () => {
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-orange-500 text-lg">palette</span>
                 <h3
-                  class="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest"
+                  class="text-sm font-black text-on-surface dark:text-on-surface uppercase tracking-widest"
                 >
                   Appearance
                 </h3>
               </div>
 
               <div
-                class="bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-white/5 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+                class="bg-surface-container-low dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant rounded-3xl p-6 space-y-4"
               >
                 <div>
-                  <h4 class="text-zinc-900 dark:text-white font-bold text-sm">Color Theme</h4>
-                  <p class="text-zinc-600 dark:text-zinc-500 text-xs mt-1">
-                    Select between Light or Dark Mode presentation.
+                  <h4 class="text-on-surface font-bold text-sm">Color Theme</h4>
+                  <p class="text-on-surface-variant text-xs mt-1">
+                    Choose how Sernan's Music Clinic appears on your device.
                   </p>
                 </div>
-                <!-- Theme Toggle Button -->
-                <button
-                  class="relative flex h-10 w-20 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                  :class="themeStore.isDarkMode ? 'bg-orange-500' : 'bg-zinc-300'"
-                  :aria-label="
-                    themeStore.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'
-                  "
-                  @click="themeStore.toggleTheme"
-                >
-                  <span
-                    class="flex h-8 w-8 transform rounded-full bg-white items-center justify-center shadow-lg transition-transform duration-300"
-                    :class="themeStore.isDarkMode ? 'translate-x-11' : 'translate-x-1'"
+                <!-- 3-Way Theme Picker -->
+                <div class="flex rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.06] dark:border-white/8 p-1 gap-1">
+                  <button
+                    v-for="opt in ([
+                      { value: 'system', icon: 'desktop_windows', label: 'System' },
+                      { value: 'light', icon: 'light_mode', label: 'Light' },
+                      { value: 'dark', icon: 'dark_mode', label: 'Dark' },
+                    ] as const)"
+                    :key="opt.value"
+                    class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
+                    :class="themeStore.preference === opt.value
+                      ? 'bg-white dark:bg-white/15 text-orange-600 dark:text-orange-400 shadow-sm border border-black/[0.06] dark:border-white/10'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-black/[0.04] dark:hover:bg-white/5'"
+                    :aria-label="`Switch to ${opt.label} mode`"
+                    :aria-pressed="themeStore.preference === opt.value"
+                    @click="themeStore.setPreference(opt.value)"
                   >
-                    <span
-                      class="material-symbols-outlined text-base transition-colors duration-300"
-                      :class="themeStore.isDarkMode ? 'text-orange-500' : 'text-zinc-500'"
-                    >
-                      {{ themeStore.isDarkMode ? 'dark_mode' : 'light_mode' }}
-                    </span>
-                  </span>
-                </button>
+                    <span class="material-symbols-outlined text-base" :style="themeStore.preference === opt.value ? 'font-variation-settings: \'FILL\' 1' : ''">{{ opt.icon }}</span>
+                    {{ opt.label }}
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -262,17 +262,17 @@ const handleLogout = () => {
 
           <!-- Sticky Footer -->
           <div
-            class="p-8 border-t border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end gap-4 shrink-0"
+            class="p-8 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end gap-4 shrink-0"
           >
             <button
-              class="px-6 py-3 text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors"
+              class="px-6 py-3 text-sm font-bold text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-colors"
               @click="$emit('close')"
             >
               Cancel
             </button>
             <button
               :disabled="authStore.isLoading"
-              class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-zinc-900 dark:text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+              class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white dark:text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
               @click="handleSave"
             >
               <span

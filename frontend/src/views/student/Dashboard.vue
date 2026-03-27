@@ -165,10 +165,10 @@ async function handleGenericProofUpload() {
     <!-- Hero Welcome -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>
-        <h2 class="text-5xl font-black tracking-tighter text-zinc-900 dark:text-white mb-3">
+        <h2 class="text-5xl font-black tracking-tighter text-on-surface dark:text-on-surface mb-3">
           Morning, {{ authStore.currentUser?.name?.split(' ')[0] || 'Student' }}.
         </h2>
-        <p class="text-zinc-500 dark:text-zinc-400 font-medium mb-6">
+        <p class="text-on-surface-variant dark:text-on-surface-variant font-medium mb-6">
           Your next recital rehearsal is in
           <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span
           >.
@@ -176,13 +176,13 @@ async function handleGenericProofUpload() {
         <div class="flex gap-4">
           <RouterLink
             to="/student/schedule"
-            class="px-6 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 text-zinc-900 dark:text-white font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 active:scale-95 transition-all flex items-center gap-2"
+            class="px-6 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 active:scale-95 transition-all flex items-center gap-2"
           >
             <span class="material-symbols-outlined text-lg">calendar_today</span>
             Schedule
           </RouterLink>
           <button
-            class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
+            class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
             @click="showRequestModal = true"
           >
             <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -199,7 +199,7 @@ async function handleGenericProofUpload() {
         <!-- My Sessions -->
         <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
+            <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3">
               <span
                 class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
               >
@@ -211,12 +211,12 @@ async function handleGenericProofUpload() {
             </h3>
             <div class="flex gap-2">
               <button
-                class="p-2 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 rounded-full border border-black/[0.04] dark:border-white/5 transition-colors"
+                class="p-2 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full border border-black/[0.04] dark:border-white/5 transition-colors"
               >
                 <span class="material-symbols-outlined text-sm">chevron_left</span>
               </button>
               <button
-                class="p-2 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 rounded-full border border-black/[0.04] dark:border-white/5 transition-colors"
+                class="p-2 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full border border-black/[0.04] dark:border-white/5 transition-colors"
               >
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
               </button>
@@ -234,16 +234,16 @@ async function handleGenericProofUpload() {
             class="py-12 flex flex-col items-center text-center"
           >
             <span
-              class="material-symbols-outlined text-5xl text-zinc-400 dark:text-zinc-700 mb-3"
+              class="material-symbols-outlined text-5xl text-on-surface-variant/50 dark:text-on-surface-variant/40 mb-3"
               style="font-variation-settings: 'FILL' 1"
               >music_off</span
             >
-            <p class="font-semibold text-zinc-500 dark:text-zinc-400">No sessions yet</p>
-            <p class="text-sm text-zinc-500 dark:text-zinc-600 mt-1">
+            <p class="font-semibold text-on-surface-variant dark:text-on-surface-variant">No sessions yet</p>
+            <p class="text-sm text-on-surface-variant dark:text-on-surface-variant mt-1">
               Request a session with your teacher to get started!
             </p>
             <button
-              class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
+              class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
               @click="showRequestModal = true"
             >
               Request a Session
@@ -255,7 +255,7 @@ async function handleGenericProofUpload() {
             <div
               v-for="session in mySessions"
               :key="session.id"
-              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
+              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
               @click="selectedSession = session"
             >
               <!-- Date badge -->
@@ -263,7 +263,7 @@ async function handleGenericProofUpload() {
                 class="flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-lg shrink-0"
                 :class="
                   session.status === 'completed'
-                    ? 'bg-zinc-800 text-zinc-400'
+                    ? 'bg-surface-container-high text-on-surface-variant'
                     : session.status === 'pending_teacher'
                       ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
                       : session.status === 'pending_admin'
@@ -308,11 +308,11 @@ async function handleGenericProofUpload() {
                               : 'Confirmed'
                     }}
                   </span>
-                  <span class="text-zinc-600 dark:text-zinc-500 text-xs">{{ formatTime(session.startTime) }}</span>
+                  <span class="text-on-surface-variant dark:text-on-surface-variant text-xs">{{ formatTime(session.startTime) }}</span>
                 </div>
-                <h4 class="font-bold text-lg text-zinc-900 dark:text-white">Session #{{ session.id }}</h4>
-                <p class="text-zinc-600 dark:text-zinc-500 text-sm">Teacher #{{ session.teacherId }}</p>
-                <p v-if="session.notes" class="text-zinc-500 dark:text-zinc-600 text-xs mt-0.5 italic">
+                <h4 class="font-bold text-lg text-on-surface dark:text-on-surface">Session #{{ session.id }}</h4>
+                <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">Teacher #{{ session.teacherId }}</p>
+                <p v-if="session.notes" class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-0.5 italic">
                   {{ session.notes }}
                 </p>
               </div>
@@ -330,7 +330,7 @@ async function handleGenericProofUpload() {
                   >HW Done ✓</span
                 >
                 <span
-                  class="material-symbols-outlined text-zinc-500 dark:text-zinc-600 group-hover:text-orange-500 transition-colors"
+                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 transition-colors"
                   >arrow_forward</span
                 >
               </div>
@@ -340,7 +340,7 @@ async function handleGenericProofUpload() {
 
         <!-- Session Proofs & Homework -->
         <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-          <h3 class="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-3 mb-8">
+          <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3 mb-8">
             <span
               class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
             >
@@ -357,7 +357,7 @@ async function handleGenericProofUpload() {
               :class="
                 proofPreviewUrl
                   ? 'border-orange-500/50'
-                  : 'hover:bg-white/5 hover:border-orange-500/50'
+                  : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50'
               "
             >
               <template v-if="!proofPreviewUrl">
@@ -370,8 +370,8 @@ async function handleGenericProofUpload() {
                     >add_a_photo</span
                   >
                 </div>
-                <p class="font-bold text-zinc-900 dark:text-white">Select Session Photo...</p>
-                <p class="text-xs text-zinc-600 dark:text-zinc-500 mt-2">Verification for completed credits</p>
+                <p class="font-bold text-on-surface dark:text-on-surface">Select Session Photo...</p>
+                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-2">Verification for completed credits</p>
               </template>
 
               <template v-else>
@@ -390,7 +390,7 @@ async function handleGenericProofUpload() {
                   >
                 </div>
                 <p
-                  class="relative z-10 font-black text-zinc-900 dark:text-white text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
+                  class="relative z-10 font-black text-on-surface dark:text-on-surface text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
                 >
                   Image Selected
                 </p>
@@ -406,7 +406,7 @@ async function handleGenericProofUpload() {
             </label>
             <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
               <button
-                class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+                class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
                 @click="handleGenericProofUpload"
               >
                 Submit Proof
@@ -416,18 +416,18 @@ async function handleGenericProofUpload() {
             <!-- Pending homework -->
             <div
               v-if="pendingHomework"
-              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-white/10 transition-all"
+              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-black/5 dark:hover:bg-white/10 transition-all"
             >
               <div
-                class="w-12 h-12 bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl flex items-center justify-center shrink-0"
+                class="w-12 h-12 bg-surface-container-high text-on-surface-variant dark:text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
               >
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >description</span
                 >
               </div>
               <div>
-                <p class="font-bold text-sm text-zinc-900 dark:text-white">{{ pendingHomework.homeworkAssigned }}</p>
-                <p class="text-xs text-zinc-600 dark:text-zinc-500 mt-0.5">Due for next session</p>
+                <p class="font-bold text-sm text-on-surface dark:text-on-surface">{{ pendingHomework.homeworkAssigned }}</p>
+                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-0.5">Due for next session</p>
                 <button
                   class="mt-2 text-orange-500 font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
                   @click="markHomeworkDone(pendingHomework.id)"
@@ -441,7 +441,7 @@ async function handleGenericProofUpload() {
               v-else
               class="bg-black/[0.04] dark:bg-white/5 border border-dashed border-black/[0.08] dark:border-white/10 rounded-3xl p-6 flex items-center justify-center"
             >
-              <p class="text-sm text-zinc-500 dark:text-zinc-600">No homework pending ✓</p>
+              <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">No homework pending ✓</p>
             </div>
           </div>
         </section>
@@ -454,7 +454,7 @@ async function handleGenericProofUpload() {
           class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 relative overflow-hidden group"
         >
           <div class="relative z-10">
-            <h3 class="text-xl font-bold text-zinc-900 dark:text-white mb-8">Enrollment Status</h3>
+            <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-8">Enrollment Status</h3>
             <div class="flex items-center justify-center mb-10 relative">
               <svg
                 class="w-48 h-48 -rotate-90 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]"
@@ -466,7 +466,8 @@ async function handleGenericProofUpload() {
                   cy="96"
                   r="84"
                   fill="none"
-                  stroke="rgba(255,255,255,0.05)"
+                  stroke="currentColor"
+                  class="text-black/[0.06] dark:text-white/5"
                   stroke-width="10"
                 />
                 <circle
@@ -482,11 +483,11 @@ async function handleGenericProofUpload() {
                 />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-4xl font-black text-zinc-900 dark:text-white">
+                <span class="text-4xl font-black text-on-surface dark:text-on-surface">
                   {{ mySessions.filter((s) => s.status === 'completed').length }} /
                   {{ authStore.currentUser?.sessionsLeft || 10 }}
                 </span>
-                <span class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mt-1"
+                <span class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1"
                   >Sessions Used</span
                 >
               </div>
@@ -495,18 +496,18 @@ async function handleGenericProofUpload() {
               <div
                 class="flex justify-between items-center p-3 rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
               >
-                <span class="text-xs text-zinc-500 dark:text-zinc-400">Package</span>
-                <span class="text-xs font-bold text-zinc-900 dark:text-white">Term B - Intensive</span>
+                <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Package</span>
+                <span class="text-xs font-bold text-on-surface dark:text-on-surface">Term B - Intensive</span>
               </div>
               <div
                 class="flex justify-between items-center p-3 rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
               >
-                <span class="text-xs text-zinc-500 dark:text-zinc-400">Valid Until</span>
-                <span class="text-xs font-bold text-zinc-900 dark:text-white">Dec 15, 2026</span>
+                <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Valid Until</span>
+                <span class="text-xs font-bold text-on-surface dark:text-on-surface">Dec 15, 2026</span>
               </div>
             </div>
             <button
-              class="w-full py-3 bg-black/[0.06] dark:bg-white/10 hover:bg-white/20 text-zinc-900 dark:text-white font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 transition-all active:scale-95"
+              class="w-full py-3 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 transition-all active:scale-95"
             >
               Manage Subscription
             </button>
@@ -519,7 +520,7 @@ async function handleGenericProofUpload() {
         <!-- Notice Board -->
         <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
+            <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3">
               <span
                 class="material-symbols-outlined text-orange-500"
                 style="font-variation-settings: 'FILL' 1"
@@ -528,7 +529,7 @@ async function handleGenericProofUpload() {
               Notice Board
             </h3>
             <button
-              class="text-zinc-600 dark:text-zinc-500 hover:text-white transition-colors"
+              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
               aria-label="More options"
             >
               <span class="material-symbols-outlined">more_horiz</span>
@@ -536,11 +537,11 @@ async function handleGenericProofUpload() {
           </div>
           <div class="space-y-4">
             <div
-              class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-6 text-zinc-900 dark:text-white relative overflow-hidden group/promo cursor-pointer"
+              class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-6 text-white relative overflow-hidden group/promo cursor-pointer"
             >
               <div class="relative z-10">
                 <span
-                  class="inline-block px-2 py-1 bg-white/20 backdrop-blur-lg rounded-lg text-[9px] font-black uppercase tracking-widest mb-3"
+                  class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[9px] font-black uppercase tracking-widest mb-3"
                   >Limited Offer</span
                 >
                 <h4 class="font-bold text-lg leading-tight mb-2">Summer Masterclass Series</h4>
@@ -570,10 +571,10 @@ async function handleGenericProofUpload() {
                 >
               </div>
               <div>
-                <p class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-1">
+                <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1">
                   Academy Tip
                 </p>
-                <p class="text-sm font-medium text-white/90 leading-snug">
+                <p class="text-sm font-medium text-on-surface dark:text-on-surface leading-snug">
                   Don't forget to book Studio A for next week's exam recording session.
                 </p>
               </div>
@@ -585,13 +586,13 @@ async function handleGenericProofUpload() {
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="liquid-glass rounded-3xl p-6 text-center border border-black/[0.04] dark:border-white/5">
             <p class="text-3xl font-black text-orange-500">{{ mySessions.length * 60 }}</p>
-            <p class="text-[9px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mt-1">
+            <p class="text-[9px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1">
               Practice Hours
             </p>
           </div>
           <div class="liquid-glass rounded-3xl p-6 text-center border border-black/[0.04] dark:border-white/5">
-            <p class="text-3xl font-black text-zinc-900 dark:text-white">A+</p>
-            <p class="text-[9px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mt-1">
+            <p class="text-3xl font-black text-on-surface dark:text-on-surface">A+</p>
+            <p class="text-[9px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1">
               Avg Grade
             </p>
           </div>
@@ -620,7 +621,7 @@ async function handleGenericProofUpload() {
       >
         <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
         <div
-          class="relative w-full max-w-md bg-zinc-900 border border-black/[0.08] dark:border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
+          class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
           <!-- Header -->
           <div class="flex items-center justify-between">
@@ -629,7 +630,7 @@ async function handleGenericProofUpload() {
                 class="flex flex-col items-center justify-center w-14 h-14 rounded-2xl shadow-lg shrink-0"
                 :class="
                   selectedSession.status === 'completed'
-                    ? 'bg-zinc-800 text-zinc-400'
+                    ? 'bg-surface-container-high text-on-surface-variant'
                     : selectedSession.status === 'pending_teacher'
                       ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
                       : selectedSession.status === 'pending_admin'
@@ -645,7 +646,7 @@ async function handleGenericProofUpload() {
                 <span class="text-xl font-black">{{ formatDay(selectedSession.startTime) }}</span>
               </div>
               <div>
-                <h3 id="session-modal-title" class="text-xl font-black text-zinc-900 dark:text-white">
+                <h3 id="session-modal-title" class="text-xl font-black text-on-surface dark:text-on-surface">
                   Session #{{ selectedSession.id }}
                 </h3>
                 <span
@@ -677,7 +678,7 @@ async function handleGenericProofUpload() {
               </div>
             </div>
             <button
-              class="text-zinc-600 dark:text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 self-start"
+              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 self-start"
               aria-label="Close modal"
               @click="closeSessionModal"
             >
@@ -688,19 +689,19 @@ async function handleGenericProofUpload() {
           <!-- Info rows -->
           <div class="space-y-4">
             <div class="flex justify-between items-center py-2 border-b border-black/[0.04] dark:border-white/5">
-              <span class="text-xs text-zinc-500 dark:text-zinc-400">Teacher</span>
-              <span class="text-sm font-bold text-zinc-900 dark:text-white"
+              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Teacher</span>
+              <span class="text-sm font-bold text-on-surface dark:text-on-surface"
                 >Teacher #{{ selectedSession.teacherId }}</span
               >
             </div>
             <div class="flex justify-between items-center py-2 border-b border-black/[0.04] dark:border-white/5">
-              <span class="text-xs text-zinc-500 dark:text-zinc-400">Time</span>
-              <span class="text-sm font-bold text-zinc-900 dark:text-white">{{
+              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Time</span>
+              <span class="text-sm font-bold text-on-surface dark:text-on-surface">{{
                 formatTime(selectedSession.startTime)
               }}</span>
             </div>
             <div class="flex justify-between items-center py-2 border-b border-black/[0.04] dark:border-white/5">
-              <span class="text-xs text-zinc-500 dark:text-zinc-400">Homework</span>
+              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Homework</span>
               <span
                 class="text-sm font-bold"
                 :class="
@@ -708,7 +709,7 @@ async function handleGenericProofUpload() {
                     ? 'text-emerald-400'
                     : selectedSession.homeworkAssigned
                       ? 'text-amber-400'
-                      : 'text-zinc-500'
+                      : 'text-on-surface-variant'
                 "
               >
                 {{
@@ -721,34 +722,34 @@ async function handleGenericProofUpload() {
               </span>
             </div>
             <div v-if="selectedSession.notes" class="py-2">
-              <span class="text-xs text-zinc-500 dark:text-zinc-400 block mb-1">Notes</span>
-              <p class="text-sm text-zinc-300 italic">{{ selectedSession.notes }}</p>
+              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant block mb-1">Notes</span>
+              <p class="text-sm text-on-surface-variant italic">{{ selectedSession.notes }}</p>
             </div>
           </div>
 
           <!-- Proof Section -->
           <div
             v-if="selectedSession.status !== 'cancelled'"
-            class="bg-black/40 rounded-xl p-4 border border-black/[0.04] dark:border-white/5"
+            class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-4 border border-black/[0.04] dark:border-white/5"
           >
-            <h4 class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest mb-3">
+            <h4 class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-3">
               Session Proof
             </h4>
 
             <div v-if="selectedSession.imageProofUrl" class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-black/[0.08] dark:border-white/10 shrink-0"
+                  class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0"
                 >
                   <img :src="selectedSession.imageProofUrl" class="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <p class="text-sm font-bold text-zinc-900 dark:text-white">Proof Uploaded</p>
+                  <p class="text-sm font-bold text-on-surface dark:text-on-surface">Proof Uploaded</p>
                   <p class="text-xs text-emerald-400">Verified ✓</p>
                 </div>
               </div>
               <button
-                class="px-4 py-2 bg-black/[0.06] dark:bg-white/10 hover:bg-white/20 text-zinc-900 dark:text-white text-xs font-bold rounded-lg transition-all border border-black/[0.08] dark:border-white/10"
+                class="px-4 py-2 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg transition-all border border-black/[0.08] dark:border-white/10"
                 @click="showProofViewer = true"
               >
                 View Proof
@@ -758,12 +759,12 @@ async function handleGenericProofUpload() {
             <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-black/[0.08] dark:border-white/10 shrink-0"
+                  class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0"
                 >
                   <img :src="stagedProofUrl" class="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <p class="text-sm font-bold text-zinc-900 dark:text-white">Ready to save</p>
+                  <p class="text-sm font-bold text-on-surface dark:text-on-surface">Ready to save</p>
                   <label class="text-xs text-orange-500 cursor-pointer hover:underline">
                     Replace
                     <input
@@ -776,7 +777,7 @@ async function handleGenericProofUpload() {
                 </div>
               </div>
               <button
-                class="w-full py-2 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-zinc-900 dark:text-white text-xs font-black rounded-lg transition-all active:scale-95"
+                class="w-full py-2 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-xs font-black rounded-lg transition-all active:scale-95"
                 @click="saveStagedProof"
               >
                 Save Proof
@@ -785,17 +786,17 @@ async function handleGenericProofUpload() {
 
             <div v-else>
               <label
-                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center"
+                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center"
               >
                 <span
-                  class="material-symbols-outlined text-zinc-600 dark:text-zinc-500 group-hover:text-orange-500 text-2xl mb-1"
+                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 text-2xl mb-1"
                   >upload</span
                 >
                 <span
-                  class="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-orange-400 transition-colors"
+                  class="text-sm font-bold text-on-surface dark:text-on-surface group-hover:text-orange-400 transition-colors"
                   >Select Image</span
                 >
-                <span class="text-xs text-zinc-600 dark:text-zinc-500 mt-1">PNG, JPG, or WEBP</span>
+                <span class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -826,7 +827,7 @@ async function handleGenericProofUpload() {
         @click.self="showProofViewer = false"
       >
         <button
-          class="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-black/50 p-2 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/10"
+          class="absolute top-6 right-6 text-white/50 hover:text-on-surface dark:hover:text-on-surface transition-colors bg-black/10 dark:bg-black/50 p-2 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/10"
           @click="showProofViewer = false"
         >
           <span class="material-symbols-outlined text-2xl">close</span>
@@ -862,14 +863,14 @@ async function handleGenericProofUpload() {
           @click="showRequestModal = false"
         />
         <div
-          class="relative w-full max-w-md bg-zinc-900 border border-black/[0.08] dark:border-white/10 rounded-2xl p-6 shadow-2xl"
+          class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl"
         >
           <div class="flex items-center justify-between mb-6">
-            <h3 id="request-modal-title" class="text-xl font-black text-zinc-900 dark:text-white">
+            <h3 id="request-modal-title" class="text-xl font-black text-on-surface dark:text-on-surface">
               Request a Session
             </h3>
             <button
-              class="text-zinc-600 dark:text-zinc-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
+              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
               aria-label="Close modal"
               @click="showRequestModal = false"
             >
@@ -879,7 +880,7 @@ async function handleGenericProofUpload() {
           <form class="space-y-4" @submit.prevent="submitRequest">
             <div>
               <label
-                class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block"
+                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-wider mb-1.5 block"
                 for="req-teacher"
                 >Preferred Teacher</label
               >
@@ -887,7 +888,7 @@ async function handleGenericProofUpload() {
                 id="req-teacher"
                 v-model="requestForm.teacherId"
                 required
-                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-zinc-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
               >
                 <option value="">Select a teacher...</option>
                 <option v-for="t in allTeachers" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -895,7 +896,7 @@ async function handleGenericProofUpload() {
             </div>
             <div>
               <label
-                class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5 block"
+                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-wider mb-1.5 block"
                 for="req-date"
                 >Preferred Date &amp; Time</label
               >
@@ -904,13 +905,13 @@ async function handleGenericProofUpload() {
                 v-model="requestForm.startTime"
                 type="datetime-local"
                 required
-                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-zinc-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
               />
             </div>
             <div class="flex gap-3 pt-2">
               <button
                 type="button"
-                class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white text-sm font-semibold transition-all"
+                class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
                 @click="showRequestModal = false"
               >
                 Cancel
@@ -918,7 +919,7 @@ async function handleGenericProofUpload() {
               <button
                 type="submit"
                 :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-zinc-900 dark:text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
+                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
               >
                 {{ scheduleStore.isLoading ? 'Submitting...' : 'Request Session' }}
               </button>

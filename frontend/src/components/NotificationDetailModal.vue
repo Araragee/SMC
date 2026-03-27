@@ -78,7 +78,7 @@ function formatTime(iso: string) {
         <div class="absolute inset-0 bg-black/30 dark:bg-black/80 backdrop-blur-md" @click="$emit('close')" />
 
         <!-- Modal -->
-        <div class="relative w-full max-w-lg liquid-glass rounded-[2rem] border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden flex flex-col">
+        <div class="relative w-full max-w-lg glass-heavy rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
           <!-- Decorative Top Bar -->
           <div :class="['h-1.5 w-full', typeGradient(notification.type)]"></div>
 
@@ -93,40 +93,40 @@ function formatTime(iso: string) {
                   <span class="material-symbols-outlined text-2xl">{{ typeIcon(notification.type) }}</span>
                 </div>
                 <div>
-                  <span class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-500 mb-1 block">
+                  <span class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant dark:text-on-surface-variant mb-1 block">
                     {{ typeLabel(notification.type) }}
                   </span>
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ formatFullDate(notification.createdAt) }}</span>
-                    <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
-                    <span class="text-xs font-medium text-zinc-600 dark:text-zinc-500">{{ formatTime(notification.createdAt) }}</span>
+                    <span class="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant">{{ formatFullDate(notification.createdAt) }}</span>
+                    <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+                    <span class="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant">{{ formatTime(notification.createdAt) }}</span>
                   </div>
                 </div>
               </div>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all group"
+                class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all group"
                 @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform duration-300">close</span>
               </button>
             </div>
 
-            <h2 class="text-2xl font-black text-zinc-900 dark:text-white leading-tight tracking-tight">
+            <h2 class="text-2xl font-black text-on-surface dark:text-on-surface leading-tight tracking-tight">
               {{ notification.title || 'Notification Update' }}
             </h2>
           </div>
 
           <!-- Content Section -->
           <div class="px-8 py-6">
-            <div class="h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent mb-8"></div>
+            <div class="h-px bg-gradient-to-r from-outline-variant/40 via-outline-variant/20 to-transparent mb-8"></div>
             
-            <div class="prose prose-invert max-w-none">
-              <p class="text-lg text-zinc-300 leading-[1.8] font-medium selection:bg-orange-500/30">
+            <div class="prose max-w-none">
+              <p class="text-lg text-on-surface-variant dark:text-on-surface-variant leading-[1.8] font-medium selection:bg-orange-500/30">
                 {{ notification.message }}
               </p>
             </div>
             
-            <div class="h-px bg-gradient-to-r from-transparent via-white/5 to-white/10 mt-8"></div>
+            <div class="h-px bg-gradient-to-r from-transparent via-outline-variant/20 to-outline-variant/40 mt-8"></div>
           </div>
 
           <!-- Footer/Actions -->
@@ -136,9 +136,9 @@ function formatTime(iso: string) {
                 <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
                 <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest">New</span>
               </div>
-              <div v-else class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-500/10 border border-zinc-500/20 w-max">
-                <span class="material-symbols-outlined text-[12px] text-zinc-600 dark:text-zinc-500">done_all</span>
-                <span class="text-[10px] font-black text-zinc-600 dark:text-zinc-500 uppercase tracking-widest">Read</span>
+              <div v-else class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-outline-variant/20 border border-outline-variant/40 w-max">
+                <span class="material-symbols-outlined text-[12px] text-on-surface-variant dark:text-on-surface-variant">done_all</span>
+                <span class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest">Read</span>
               </div>
             </div>
 
@@ -146,14 +146,14 @@ function formatTime(iso: string) {
               <router-link
                 v-if="notification.link"
                 :to="notification.link"
-                class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
+                class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
                 @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-sm">open_in_new</span>
                 View Details
               </router-link>
               <button
-                class="px-6 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-900 dark:text-white font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
+                class="px-6 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface dark:text-on-surface font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
                 @click="$emit('close')"
               >
                 Dismiss

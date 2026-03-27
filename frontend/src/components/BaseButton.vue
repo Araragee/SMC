@@ -37,7 +37,7 @@ const computedClasses = computed(() => {
   const variantClasses = {
     primary: 'bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed shadow-[0_0_40px_-5px_rgba(255,144,109,0.4)] border-none',
     secondary: 'bg-surface-container-highest text-primary border border-outline-variant/20', // Ghost border
-    tertiary: 'bg-transparent text-primary hover:bg-white/5 border-none relative after:content-[""] after:absolute after:bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-primary hover:after:w-1/2 after:transition-all after:duration-300' // tertiary spec
+    tertiary: 'bg-transparent text-primary hover:bg-black/5 dark:hover:bg-white/5 border-none relative after:content-[""] after:absolute after:bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-0 after:h-0.5 after:bg-primary hover:after:w-1/2 after:transition-all after:duration-300' // tertiary spec
   };
 
   const sizeClasses = {

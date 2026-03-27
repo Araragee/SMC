@@ -6,17 +6,24 @@ const toastStore = useToastStore()
 type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 const toastClasses = (type: ToastType) => ({
-  'bg-emerald-900/80 border-emerald-500/30': type === 'success',
-  'bg-red-900/80 border-red-500/30': type === 'error',
-  'bg-amber-900/80 border-amber-500/30': type === 'warning',
-  'bg-indigo-900/80 border-indigo-500/30': type === 'info',
+  'bg-emerald-500/20 dark:bg-emerald-900/40 border border-emerald-500/50 dark:border-emerald-500/30': type === 'success',
+  'bg-red-500/20 dark:bg-red-900/40 border border-red-500/50 dark:border-red-500/30': type === 'error',
+  'bg-amber-500/20 dark:bg-amber-900/40 border border-amber-500/50 dark:border-amber-500/30': type === 'warning',
+  'bg-blue-500/20 dark:bg-blue-900/40 border border-blue-500/50 dark:border-blue-500/30': type === 'info',
+})
+
+const textClasses = (type: ToastType) => ({
+  'text-emerald-900 dark:text-emerald-100': type === 'success',
+  'text-red-900 dark:text-red-100': type === 'error',
+  'text-amber-900 dark:text-amber-100': type === 'warning',
+  'text-blue-900 dark:text-blue-100': type === 'info',
 })
 
 const iconClasses = (type: ToastType) => ({
-  'text-emerald-700 dark:text-emerald-400': type === 'success',
-  'text-red-700 dark:text-red-400': type === 'error',
-  'text-amber-700 dark:text-amber-400': type === 'warning',
-  'text-indigo-400': type === 'info',
+  'text-emerald-600 dark:text-emerald-400': type === 'success',
+  'text-red-600 dark:text-red-400': type === 'error',
+  'text-amber-600 dark:text-amber-400': type === 'warning',
+  'text-blue-600 dark:text-blue-400': type === 'info',
 })
 
 const toastIcon = (type: ToastType) => ({
@@ -40,8 +47,8 @@ const toastIcon = (type: ToastType) => ({
         <div
           v-for="toast in toastStore.toasts"
           :key="toast.id"
-          class="pointer-events-auto flex items-start gap-3 min-w-[300px] max-w-[400px] px-4 py-3 rounded-xl border backdrop-blur-xl shadow-xl"
-          :class="toastClasses(toast.type)"
+          class="pointer-events-auto flex items-start gap-3 min-w-[300px] max-w-[400px] px-4 py-3 rounded-xl backdrop-blur-xl shadow-xl transition-colors duration-300"
+          :class="[toastClasses(toast.type), textClasses(toast.type)]"
           role="alert"
           :aria-label="`${toast.type}: ${toast.title}`"
         >
@@ -49,11 +56,11 @@ const toastIcon = (type: ToastType) => ({
             {{ toastIcon(toast.type) }}
           </span>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white leading-tight">{{ toast.title }}</p>
-            <p v-if="toast.message" class="text-xs text-zinc-900 dark:text-white/70 mt-0.5 leading-snug">{{ toast.message }}</p>
+            <p class="text-sm font-semibold leading-tight">{{ toast.title }}</p>
+            <p v-if="toast.message" class="text-xs opacity-80 mt-0.5 leading-snug">{{ toast.message }}</p>
           </div>
           <button
-            class="text-zinc-900 dark:text-white/40 hover:text-zinc-900 dark:text-white/80 transition-colors shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-white/30 rounded"
+            class="opacity-60 hover:opacity-100 transition-opacity shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-on-surface/20 dark:focus:ring-white/30 rounded"
             :aria-label="`Dismiss notification: ${toast.title}`"
             @click="toastStore.remove(toast.id)"
           >
@@ -64,4 +71,3 @@ const toastIcon = (type: ToastType) => ({
     </div>
   </Teleport>
 </template>
-

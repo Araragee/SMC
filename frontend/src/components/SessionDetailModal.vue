@@ -59,7 +59,7 @@ function sessionCardBg(status: string): string {
     rejected:        'bg-red-500/5 border-red-500/20',
     cancelled:       'bg-zinc-500/5 border-zinc-500/20',
   }
-  return map[status] ?? 'bg-white/5 border-white/10'
+  return map[status] ?? 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10'
 }
 
 function statusBadgeClass(status: string): string {
@@ -71,7 +71,7 @@ function statusBadgeClass(status: string): string {
     rejected:        'bg-red-500/20 border-red-500/40 text-red-400',
     cancelled:       'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',
   }
-  return map[status] ?? 'bg-white/10 border-white/20 text-zinc-400'
+  return map[status] ?? 'bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 text-on-surface-variant dark:text-on-surface-variant'
 }
 
 function statusDotClass(status: string): string {
@@ -99,16 +99,16 @@ function statusDotClass(status: string): string {
         <div class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" @click="$emit('close')" />
 
         <!-- Modal -->
-        <div class="relative w-full max-w-lg liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 shadow-2xl overflow-hidden">
+        <div class="relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl overflow-hidden">
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-black/[0.04] dark:border-white/5">
+          <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
             <div>
               <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Session Details</p>
-              <h3 class="text-xl font-black text-zinc-900 dark:text-white">{{ formattedDate }}</h3>
-              <p class="text-zinc-600 dark:text-zinc-500 text-sm mt-0.5">{{ sessions.length }} session{{ sessions.length !== 1 ? 's' : '' }} scheduled</p>
+              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">{{ formattedDate }}</h3>
+              <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-0.5">{{ sessions.length }} session{{ sessions.length !== 1 ? 's' : '' }} scheduled</p>
             </div>
             <button
-              class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
+              class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
               @click="$emit('close')"
             >
               <span class="material-symbols-outlined text-lg">close</span>
@@ -119,9 +119,9 @@ function statusDotClass(status: string): string {
           <div class="p-6 space-y-4 max-h-[400px] overflow-y-auto">
             <!-- No sessions state -->
             <div v-if="sessions.length === 0" class="text-center py-8">
-              <span class="material-symbols-outlined text-4xl text-zinc-400 dark:text-zinc-700 mb-3 block">calendar_today</span>
-              <p class="text-zinc-600 dark:text-zinc-500 font-medium">No sessions on this day</p>
-              <p class="text-zinc-500 dark:text-zinc-600 text-sm mt-1">Click "Propose Session" to schedule one</p>
+              <span class="material-symbols-outlined text-4xl text-on-surface-variant/60 dark:text-on-surface-variant/40 mb-3 block">calendar_today</span>
+              <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">No sessions on this day</p>
+              <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-1">Click "Propose Session" to schedule one</p>
             </div>
 
             <!-- Session Cards -->
@@ -134,7 +134,7 @@ function statusDotClass(status: string): string {
               <!-- Time & Status -->
               <div class="flex items-start justify-between gap-3">
                 <div>
-                  <p class="text-zinc-900 dark:text-white font-bold text-sm">
+                  <p class="text-on-surface dark:text-on-surface font-bold text-sm">
                     {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
                   </p>
                   <div class="flex items-center gap-2 mt-1">
@@ -150,7 +150,7 @@ function statusDotClass(status: string): string {
                 <!-- Admin edit button -->
                 <button
                   v-if="userRole === 'admin'"
-                  class="p-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white transition-all"
+                  class="p-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
                   title="Edit session"
                   @click="$emit('edit-admin', session)"
                 >
@@ -161,19 +161,19 @@ function statusDotClass(status: string): string {
               <!-- Participants -->
               <div class="grid grid-cols-2 gap-2">
                 <div class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-2.5">
-                  <p class="text-[9px] text-zinc-500 dark:text-zinc-600 uppercase font-bold tracking-wider mb-1">Teacher</p>
-                  <p class="text-zinc-900 dark:text-white text-xs font-bold truncate">{{ getTeacherName(session.teacherId) }}</p>
+                  <p class="text-[9px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-wider mb-1">Teacher</p>
+                  <p class="text-on-surface dark:text-on-surface text-xs font-bold truncate">{{ getTeacherName(session.teacherId) }}</p>
                 </div>
                 <div class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-2.5">
-                  <p class="text-[9px] text-zinc-500 dark:text-zinc-600 uppercase font-bold tracking-wider mb-1">Student</p>
-                  <p class="text-zinc-900 dark:text-white text-xs font-bold truncate">{{ getStudentName(session.studentId) }}</p>
+                  <p class="text-[9px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-wider mb-1">Student</p>
+                  <p class="text-on-surface dark:text-on-surface text-xs font-bold truncate">{{ getStudentName(session.studentId) }}</p>
                 </div>
               </div>
 
               <!-- Notes -->
               <div v-if="session.notes" class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-2.5">
-                <p class="text-[9px] text-zinc-500 dark:text-zinc-600 uppercase font-bold tracking-wider mb-1">Notes</p>
-                <p class="text-zinc-300 text-xs">{{ session.notes }}</p>
+                <p class="text-[9px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-wider mb-1">Notes</p>
+                <p class="text-on-surface-variant text-xs">{{ session.notes }}</p>
               </div>
 
               <!-- Action Buttons -->
@@ -218,10 +218,10 @@ function statusDotClass(status: string): string {
           </div>
 
           <!-- Footer -->
-          <div class="p-4 border-t border-black/[0.04] dark:border-white/5 flex gap-3">
+          <div class="p-4 border-t border-black/5 dark:border-white/5 flex gap-3">
             <button
               v-if="userRole !== 'admin'"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
               @click="$emit('propose')"
             >
               <span class="material-symbols-outlined text-base">add_circle</span>
@@ -229,14 +229,14 @@ function statusDotClass(status: string): string {
             </button>
             <button
               v-if="userRole === 'admin'"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-zinc-900 dark:text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
               @click="$emit('propose')"
             >
               <span class="material-symbols-outlined text-base">add_circle</span>
               Schedule New Session
             </button>
             <button
-              class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:text-white font-bold rounded-2xl transition-all text-sm"
+              class="px-5 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
               @click="$emit('close')"
             >
               Close
