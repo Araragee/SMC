@@ -7,6 +7,7 @@ import { useUsersStore } from '../../stores/users'
 import { useInteractionsStore } from '../../stores/interactions'
 import { useToastStore } from '../../stores/toast'
 import type { Session } from '../../types'
+import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
 
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()
@@ -15,6 +16,8 @@ const interactionsStore = useInteractionsStore()
 const toast = useToastStore()
 
 const expandedSession = ref<Session | null>(null)
+const showProposeModal = ref(false)
+const proposeForDate = ref<Date | undefined>(undefined)
 const practiceGoalsText = ref('')
 const stagedProofFile = ref<File | null>(null)
 const stagedProofUrl = ref<string | null>(null)
@@ -147,6 +150,45 @@ const pendingProposals = computed(
   () => mySessions.value.filter((s) => s.status === 'pending_teacher').length
 )
 
+const students = computed(() => usersStore.getUsersByRole('student'))
+
+function openProposeForDate(date: Date) {
+  proposeForDate.value = date
+  showProposeModal.value = true
+}
+
+function openRosterSession(studentId: string) {
+  const sessions = mySessions.value.filter((s) => s.studentId === studentId)
+  if (sessions.length === 0) return
+  const now = new Date()
+  const upcoming = sessions
+    .filter((s) => s.startTime && new Date(s.startTime) > now)
+    .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())
+  const target =
+    upcoming[0] ??
+    [...sessions].sort((a, b) => new Date(b.startTime!).getTime() - new Date(a.startTime!).getTime())[0]
+  openSessionModal(target)
+}
+
+async function onTeacherProposeSubmit(session: Session) {
+  try {
+    await scheduleStore.proposeSessionAsTeacher({
+      teacherId: session.teacherId,
+      studentId: session.studentId,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      notes: session.notes,
+    })
+    toast.success('Session proposed!', 'Awaiting admin approval.')
+    showProposeModal.value = false
+    if (authStore.currentUser?.id) {
+      await scheduleStore.fetchUserSessions(authStore.currentUser.id)
+    }
+  } catch {
+    toast.error('Failed to propose', 'Please check the details and try again.')
+  }
+}
+
 const formatTime = (dt: string | undefined) => {
   if (!dt) return '—'
   return new Date(dt).toLocaleTimeString('en-US', {
@@ -267,6 +309,7 @@ const formatTime = (dt: string | undefined) => {
               v-for="entry in rosterEntries"
               :key="entry.studentId"
               class="bg-black/[0.04] dark:bg-white/5 backdrop-blur-xl border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-4 hover:border-orange-500/40 transition-all group cursor-pointer"
+              @click="openRosterSession(entry.studentId)"
             >
               <div
                 class="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/10 group-hover:scale-105 transition-transform bg-surface-container-highest flex items-center justify-center shrink-0"
@@ -357,7 +400,8 @@ const formatTime = (dt: string | undefined) => {
               <!-- Has session -->
               <div
                 v-if="day.session"
-                class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between"
+                class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
+                @click="day.session && openSessionModal(day.session)"
                 :class="
                   day.session.status === 'scheduled'
                     ? 'bg-orange-500/10 border-orange-500'
@@ -396,12 +440,13 @@ const formatTime = (dt: string | undefined) => {
               <!-- Empty slot -->
               <div
                 v-else
-                class="h-32 border border-dashed rounded-2xl flex items-center justify-center"
+                class="h-32 border border-dashed rounded-2xl flex items-center justify-center cursor-pointer hover:border-orange-500/40 hover:bg-orange-500/5 transition-colors"
                 :class="
                   day.isWeekend
                     ? 'border-black/[0.04] dark:border-white/[0.03] bg-black/[0.02] dark:bg-white/[0.01]'
                     : 'border-black/[0.06] dark:border-white/5 bg-black/[0.03] dark:bg-black/20'
                 "
+                @click="openProposeForDate(day.date)"
               >
                 <span class="material-symbols-outlined text-on-surface-variant text-base">add</span>
               </div>
@@ -464,6 +509,18 @@ const formatTime = (dt: string | undefined) => {
       </div>
     </section>
   </div>
+
+  <!-- Propose Session Modal -->
+  <ProposeSessionModal
+    v-if="showProposeModal"
+    user-role="teacher"
+    :current-user-id="myId"
+    :teachers="[]"
+    :students="students"
+    :initial-date="proposeForDate"
+    @close="showProposeModal = false"
+    @submitted="onTeacherProposeSubmit"
+  />
 
   <!-- Session Detail Modal (Teacher) -->
   <Teleport to="body">

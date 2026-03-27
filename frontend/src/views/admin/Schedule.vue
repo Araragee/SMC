@@ -521,7 +521,7 @@ function statusBadgeClass(status: string): string {
 
     <!-- Propose Modal -->
     <ProposeSessionModal
-      :is-open="showProposeModal"
+      v-if="showProposeModal"
       user-role="admin"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :teachers="teachers"

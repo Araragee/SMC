@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/auth'
 import { useNotificationStore } from '../../stores/notification'
 import { useToastStore } from '../../stores/toast'
 import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
+import SessionDetailModal from '../../components/SessionDetailModal.vue'
 import type { Session } from '../../types'
 
 const scheduleStore = useScheduleStore()
@@ -15,6 +16,10 @@ const notifStore = useNotificationStore()
 const toast = useToastStore()
 
 const showAddSessionModal = ref(false)
+const detailDate = ref<Date | null>(null)
+const detailSessions = ref<Session[]>([])
+const sessionPage = ref(0)
+const PAGE_SIZE = 5
 const quickTeacherId = ref('')
 const quickStudentId = ref('')
 const isQuickAssigning = ref(false)
@@ -33,6 +38,13 @@ onMounted(async () => {
 
 const teachers = computed(() => usersStore.getUsersByRole('teacher'))
 const students = computed(() => usersStore.getUsersByRole('student'))
+const allUsers = computed(() => [...teachers.value, ...students.value])
+const pagedSessions = computed(() => {
+  const start = sessionPage.value * PAGE_SIZE
+  return scheduleStore.allSessions.slice(start, start + PAGE_SIZE)
+})
+const canGoPrev = computed(() => sessionPage.value > 0)
+const canGoNext = computed(() => (sessionPage.value + 1) * PAGE_SIZE < scheduleStore.allSessions.length)
 
 const stats = computed(() => {
   const sessions = scheduleStore.allSessions
@@ -93,6 +105,44 @@ async function onProposeSubmit(session: Session) {
     showAddSessionModal.value = false
   } catch {
     toast.error('Failed to schedule', 'Please check the details and try again.')
+  }
+}
+
+function openSessionDetail(session: Session) {
+  const d = new Date(session.startTime)
+  detailDate.value = d
+  detailSessions.value = scheduleStore.allSessions.filter(
+    (s) => new Date(s.startTime).toDateString() === d.toDateString()
+  )
+}
+
+function refreshDetailSessions() {
+  if (!detailDate.value) return
+  const dateStr = detailDate.value.toDateString()
+  detailSessions.value = scheduleStore.allSessions.filter(
+    (s) => new Date(s.startTime).toDateString() === dateStr
+  )
+}
+
+async function handleApproveAdmin(sessionId: string) {
+  try {
+    await scheduleStore.approveAsAdmin(sessionId)
+    toast.success('Approved', 'Session has been approved.')
+    await scheduleStore.fetchAllSessions()
+    refreshDetailSessions()
+  } catch {
+    toast.error('Failed', 'Could not approve session.')
+  }
+}
+
+async function handleRejectAdmin(sessionId: string) {
+  try {
+    await scheduleStore.rejectAsAdmin(sessionId, '')
+    toast.success('Rejected', 'Session has been rejected.')
+    await scheduleStore.fetchAllSessions()
+    refreshDetailSessions()
+  } catch {
+    toast.error('Failed', 'Could not reject session.')
   }
 }
 
@@ -263,12 +313,16 @@ async function confirmQuickAssign() {
             </div>
             <div class="flex gap-2">
               <button
-                class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-all"
+                class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="!canGoPrev"
+                @click="sessionPage--"
               >
                 <span class="material-symbols-outlined text-sm">chevron_left</span>
               </button>
               <button
-                class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-all"
+                class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="!canGoNext"
+                @click="sessionPage++"
               >
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
               </button>
@@ -305,7 +359,7 @@ async function confirmQuickAssign() {
           <!-- Session rows -->
           <div v-else class="space-y-2">
             <div
-              v-for="session in scheduleStore.allSessions.slice(0, 5)"
+              v-for="session in pagedSessions"
               :key="session.id"
               class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-3xl p-2 -mx-2"
             >
@@ -316,8 +370,9 @@ async function confirmQuickAssign() {
                 }}</span>
               </div>
               <div
-                class="col-span-5 bg-black/[0.04] dark:bg-white/5 border-l-4 p-5 rounded-3xl flex items-center justify-between"
+                class="col-span-5 bg-black/[0.04] dark:bg-white/5 border-l-4 p-5 rounded-3xl flex items-center justify-between cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/10 transition-colors"
                 :class="borderColor(session.status)"
+                @click="openSessionDetail(session)"
               >
                 <div class="flex items-center gap-4">
                   <div
@@ -575,9 +630,23 @@ async function confirmQuickAssign() {
     </div>
   </div>
 
+  <!-- Session Detail Modal -->
+  <SessionDetailModal
+    :date="detailDate"
+    :sessions="detailSessions"
+    user-role="admin"
+    :current-user-id="authStore.currentUser?.id ?? ''"
+    :users="allUsers"
+    @close="detailDate = null"
+    @propose="detailDate = null; showAddSessionModal = true"
+    @approve-admin="handleApproveAdmin"
+    @reject-admin="handleRejectAdmin"
+    @edit-admin="detailDate = null; showAddSessionModal = true"
+  />
+
   <!-- Add Session Modal -->
   <ProposeSessionModal
-    :is-open="showAddSessionModal"
+    v-if="showAddSessionModal"
     user-role="admin"
     :current-user-id="authStore.currentUser?.id ?? ''"
     :teachers="teachers"

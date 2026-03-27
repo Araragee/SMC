@@ -103,88 +103,112 @@ const handleDeleteUser = async (user: User) => {
 </script>
 
 <template>
-  <div class="max-w-[80vw] mx-auto pb-28 space-y-4">
+  <div class="max-w-[1600px] mx-auto pb-28 space-y-6">
     <!-- Header -->
-    <div class="flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-5xl font-black tracking-tight text-white mb-2">Users Management</h1>
-        <p class="text-zinc-500 font-medium">Manage students, teachers, and their enrollments</p>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div class="space-y-1">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <span class="material-symbols-outlined text-primary text-2xl">group</span>
+          </div>
+          <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Administration</p>
+        </div>
+        <h1 class="text-4xl font-black tracking-tight text-on-surface">Users Management</h1>
+        <p class="text-on-surface-variant font-medium max-w-lg">
+          Onboard new participants, manage permissions, and update student enrollment status.
+        </p>
       </div>
       <button
-        class="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
+        class="group px-6 py-3.5 bg-primary text-white text-[11px] font-black uppercase tracking-[0.15em] rounded-2xl hover:bg-primary/90 transition-all flex items-center gap-3 shadow-lg shadow-primary/20 active:scale-95 whitespace-nowrap"
         @click="openAddModal"
       >
-        <span class="material-symbols-outlined text-sm">person_add</span>
-        Add User
+        <span class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform">add</span>
+        Create New User
       </button>
     </div>
 
-    <!-- Users List -->
-    <section class="liquid-glass rounded-3xl p-4 border border-white/5 overflow-hidden mt-8">
-      <div v-if="usersStore.isLoading && users.length === 0" class="space-y-4">
-        <div v-for="i in 5" :key="i" class="h-16 rounded-2xl bg-white/5 animate-pulse" />
+    <!-- Users List Section -->
+    <section class="glass-medium rounded-[2.5rem] border border-outline-variant/30 overflow-hidden mt-4 shadow-xl">
+      <div v-if="usersStore.isLoading && users.length === 0" class="p-6 space-y-4">
+        <div v-for="i in 5" :key="i" class="h-20 rounded-2xl bg-surface-container-highest/20 animate-pulse" />
       </div>
 
-      <div v-else-if="users.length === 0" class="py-10 text-center">
-        <span class="material-symbols-outlined text-4xl text-zinc-700 mb-2 block">group_off</span>
-        <p class="text-sm font-bold text-white mb-1">No users found</p>
+      <div v-else-if="users.length === 0" class="py-24 text-center">
+        <div class="w-16 h-16 rounded-full bg-surface-container-highest/30 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant">group_off</span>
+        </div>
+        <p class="text-lg font-black text-on-surface mb-1">No users found</p>
+        <p class="text-sm text-on-surface-variant mb-6">Start by creating your first student or teacher.</p>
+        <button class="text-primary text-xs font-black uppercase tracking-widest border-b-2 border-primary/20 pb-0.5 hover:border-primary transition-all" @click="openAddModal">Add User</button>
       </div>
 
       <div v-else class="overflow-x-auto">
-        <table class="w-full text-left">
+        <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
-              <th class="pb-6 px-4">User</th>
-              <th class="pb-6 px-4">Role</th>
-              <th class="pb-6 px-4">Sessions Left</th>
-              <th class="pb-6 px-4 text-right">Actions</th>
+            <tr class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.25em] bg-surface-container-highest/20">
+              <th class="py-6 px-8">Member Identity</th>
+              <th class="py-6 px-4">Access Level</th>
+              <th class="py-6 px-4">Quota / Status</th>
+              <th class="py-6 px-8 text-right">Operations</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5">
+          <tbody class="divide-y divide-outline-variant/10">
             <tr
               v-for="user in users"
               :key="user.id"
-              class="group hover:bg-white/[0.02] transition-colors"
+              class="group hover:bg-primary/[0.03] dark:hover:bg-primary/[0.05] transition-all"
             >
-              <td class="py-4 px-4">
+              <td class="py-5 px-8">
                 <div class="flex items-center gap-4">
                   <div
-                    class="w-10 h-10 rounded-2xl bg-surface-container-highest border border-white/10 flex items-center justify-center text-white font-black text-sm"
+                    class="w-12 h-12 rounded-2xl bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center text-on-surface font-black text-lg shadow-sm overflow-hidden"
                   >
-                    {{ user.avatarUrl ? '' : user.name.charAt(0) }}
-                    <img v-if="user.avatarUrl" :src="user.avatarUrl" class="w-full h-full object-cover rounded-2xl" />
+                    <img v-if="user.avatarUrl" :src="user.avatarUrl" class="w-full h-full object-cover" />
+                    <span v-else>{{ user.name.charAt(0) }}</span>
                   </div>
-                  <div>
-                    <p class="text-sm font-black text-white">{{ user.name }}</p>
-                    <p class="text-xs text-zinc-500">{{ user.email }}</p>
+                  <div class="min-w-0">
+                    <p class="text-sm font-black text-on-surface truncate">{{ user.name }}</p>
+                    <p class="text-xs text-on-surface-variant truncate">{{ user.email }}</p>
                   </div>
                 </div>
               </td>
-              <td class="py-4 px-4">
+              <td class="py-5 px-4 whitespace-nowrap">
                 <span
-                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-colors shadow-sm"
                   :class="{
-                    'bg-orange-500/10 text-orange-400 border-orange-500/20': user.role === 'admin',
-                    'bg-blue-500/10 text-blue-400 border-blue-500/20': user.role === 'teacher',
-                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': user.role === 'student'
+                    'bg-primary/10 text-primary border-primary/20': user.role === 'admin',
+                    'bg-blue-500/10 text-blue-500 border-blue-500/20': user.role === 'teacher',
+                    'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': user.role === 'student'
                   }"
                 >
+                  <span class="w-1 h-1 rounded-full bg-current"></span>
                   {{ user.role }}
                 </span>
               </td>
-              <td class="py-4 px-4">
-                <span v-if="user.role === 'student'" class="text-sm font-black text-white">
-                  {{ user.sessionsLeft !== undefined ? user.sessionsLeft : 'N/A' }}
-                </span>
-                <span v-else class="text-xs text-zinc-500">—</span>
+              <td class="py-5 px-4">
+                <div v-if="user.role === 'student'" class="flex items-center gap-2">
+                  <span class="text-sm font-black text-on-surface">
+                    {{ user.sessionsLeft !== undefined ? user.sessionsLeft : '0' }}
+                  </span>
+                  <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tight">Credits</span>
+                </div>
+                <span v-else class="text-xs text-on-surface-variant italic opacity-50">Authorized Access</span>
               </td>
-              <td class="py-4 px-4 text-right">
-                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button class="p-2 text-zinc-500 hover:text-white transition-colors" @click="openEditModal(user)">
-                    <span class="material-symbols-outlined text-lg">edit</span>
+              <td class="py-5 px-8 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    class="w-10 h-10 rounded-xl bg-surface-container-highest/20 text-on-surface-variant hover:text-primary hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-all active:scale-90"
+                    title="Edit Profile"
+                    @click="openEditModal(user)"
+                  >
+                    <span class="material-symbols-outlined text-lg">edit_note</span>
                   </button>
-                  <button class="p-2 text-zinc-500 hover:text-red-400 transition-colors" @click="handleDeleteUser(user)">
-                    <span class="material-symbols-outlined text-lg">delete</span>
+                  <button
+                    class="w-10 h-10 rounded-xl bg-surface-container-highest/20 text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all active:scale-90"
+                    title="Deactivate Account"
+                    @click="handleDeleteUser(user)"
+                  >
+                    <span class="material-symbols-outlined text-lg">no_accounts</span>
                   </button>
                 </div>
               </td>
@@ -197,46 +221,64 @@ const handleDeleteUser = async (user: User) => {
     <!-- Add User Modal -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition opacity-200 ease-out duration-200"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition opacity-200 ease-in duration-200"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 scale-95 blur-[8px]"
+        enter-to-class="opacity-100 scale-100 blur-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 scale-100 blur-0"
+        leave-to-class="opacity-0 scale-95 blur-[8px]"
       >
         <div
           v-if="showAddModal"
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showAddModal = false"
         >
-          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="showAddModal = false" />
-          <div class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl">
-            <h3 class="text-xl font-black text-white mb-6">Add New User</h3>
-            <form class="space-y-4" @submit.prevent="handleCreateUser">
+          <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-sm" @click="showAddModal = false" />
+          <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
+            
+            <div class="flex items-center justify-between mb-8">
               <div>
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Name</label>
-                <input v-model="form.name" type="text" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+                <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">New Account</p>
+                <h3 class="text-2xl font-black text-on-surface">Add New User</h3>
               </div>
-              <div>
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Email</label>
-                <input v-model="form.email" type="email" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+              <button class="w-10 h-10 rounded-full hover:bg-on-surface/5 flex items-center justify-center transition-colors" @click="showAddModal = false">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+              </button>
+            </div>
+
+            <form class="space-y-5" @submit.prevent="handleCreateUser">
+              <div class="space-y-4">
+                <div class="space-y-1.5">
+                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Full Name</label>
+                  <input v-model="form.name" type="text" required placeholder="Ex: John Doe" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-on-surface-variant/40" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Email Address</label>
+                  <input v-model="form.email" type="email" required placeholder="john@example.com" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-on-surface-variant/40" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">System Role</label>
+                    <div class="relative">
+                      <select v-model="form.role" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all appearance-none cursor-pointer">
+                        <option value="student" class="bg-surface-container">Student</option>
+                        <option value="teacher" class="bg-surface-container">Teacher</option>
+                        <option value="admin" class="bg-surface-container">Admin</option>
+                      </select>
+                      <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
+                    </div>
+                  </div>
+                  <div v-if="form.role === 'student'" class="space-y-1.5">
+                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Initial Credits</label>
+                    <input v-model.number="form.sessionsLeft" type="number" min="0" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Role</label>
-                <select v-model="form.role" class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 appearance-none">
-                  <option value="student" class="text-zinc-900">Student</option>
-                  <option value="teacher" class="text-zinc-900">Teacher</option>
-                  <option value="admin" class="text-zinc-900">Admin</option>
-                </select>
-              </div>
-              <div v-if="form.role === 'student'">
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Sessions Left</label>
-                <input v-model.number="form.sessionsLeft" type="number" min="0" class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
-              </div>
-              <div class="flex gap-3 pt-4">
-                <button type="button" class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all" @click="showAddModal = false">Cancel</button>
-                <button type="submit" :disabled="isSubmitting" class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50">
-                  {{ isSubmitting ? 'Saving...' : 'Create' }}
+
+              <div class="flex gap-3 pt-6">
+                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
+                  {{ isSubmitting ? 'Creating...' : 'Finalize Account' }}
                 </button>
               </div>
             </form>
@@ -248,46 +290,64 @@ const handleDeleteUser = async (user: User) => {
     <!-- Edit User Modal -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition opacity-200 ease-out duration-200"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition opacity-200 ease-in duration-200"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 scale-95 blur-[8px]"
+        enter-to-class="opacity-100 scale-100 blur-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 scale-100 blur-0"
+        leave-to-class="opacity-0 scale-95 blur-[8px]"
       >
         <div
           v-if="showEditModal"
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showEditModal = false"
         >
-          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="showEditModal = false" />
-          <div class="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-3xl p-6 shadow-2xl">
-            <h3 class="text-xl font-black text-white mb-6">Edit User</h3>
-            <form class="space-y-4" @submit.prevent="handleUpdateUser">
+          <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-sm" @click="showEditModal = false" />
+          <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
+
+            <div class="flex items-center justify-between mb-8">
               <div>
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Name</label>
-                <input v-model="editForm.name" type="text" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+                <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Update Member</p>
+                <h3 class="text-2xl font-black text-on-surface">Edit User</h3>
               </div>
-              <div>
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Email</label>
-                <input v-model="editForm.email" type="email" required class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+              <button class="w-10 h-10 rounded-full hover:bg-on-surface/5 flex items-center justify-center transition-colors" @click="showEditModal = false">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+              </button>
+            </div>
+
+            <form class="space-y-5" @submit.prevent="handleUpdateUser">
+              <div class="space-y-4">
+                <div class="space-y-1.5">
+                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Full Name</label>
+                  <input v-model="editForm.name" type="text" required class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Email Address</label>
+                  <input v-model="editForm.email" type="email" required class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all opacity-70" readonly />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">System Role</label>
+                    <div class="relative">
+                      <select v-model="editForm.role" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all appearance-none cursor-pointer">
+                        <option value="student" class="bg-surface-container">Student</option>
+                        <option value="teacher" class="bg-surface-container">Teacher</option>
+                        <option value="admin" class="bg-surface-container">Admin</option>
+                      </select>
+                      <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
+                    </div>
+                  </div>
+                  <div v-if="editForm.role === 'student'" class="space-y-1.5">
+                    <label class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant ml-1">Remaining Credits</label>
+                    <input v-model.number="editForm.sessionsLeft" type="number" min="0" class="w-full bg-surface-container-highest/20 border border-outline-variant/30 text-on-surface rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all" />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Role</label>
-                <select v-model="editForm.role" class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 appearance-none">
-                  <option value="student" class="text-zinc-900">Student</option>
-                  <option value="teacher" class="text-zinc-900">Teacher</option>
-                  <option value="admin" class="text-zinc-900">Admin</option>
-                </select>
-              </div>
-              <div v-if="editForm.role === 'student'">
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Sessions Left</label>
-                <input v-model.number="editForm.sessionsLeft" type="number" min="0" class="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
-              </div>
-              <div class="flex gap-3 pt-4">
-                <button type="button" class="flex-1 py-3 rounded-xl border border-white/10 text-zinc-400 hover:text-white text-sm font-semibold transition-all" @click="showEditModal = false">Cancel</button>
-                <button type="submit" :disabled="isSubmitting" class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50">
-                  {{ isSubmitting ? 'Saving...' : 'Update' }}
+
+              <div class="flex gap-3 pt-6">
+                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
+                  {{ isSubmitting ? 'Updating...' : 'Save Changes' }}
                 </button>
               </div>
             </form>
