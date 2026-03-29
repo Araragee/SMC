@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
 import { useMessagingStore } from '../stores/messaging'
+import { useModalStore } from '../stores/modal'
 import type { Notification } from '../types'
 import NotificationsModal from './NotificationsModal.vue'
 import NotificationDetailModal from './NotificationDetailModal.vue'
@@ -29,10 +30,9 @@ const route = useRoute()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const messagingStore = useMessagingStore()
+const modalStore = useModalStore()
 
 const isSidebarOpen = ref(false)
-const isNotificationsOpen = ref(false)
-const isSettingsOpen = ref(false)
 const isUserDropdownOpen = ref(false)
 const selectedNotification = ref<Notification | null>(null)
 
@@ -163,7 +163,7 @@ const logout = () => {
         <!-- Notifications -->
         <button
           class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
-          @click="isNotificationsOpen = true"
+          @click="modalStore.openNotifications()"
         >
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
             >notifications</span
@@ -262,7 +262,7 @@ const logout = () => {
             <div class="p-2">
               <button
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
-                @click="((isSettingsOpen = true), (isUserDropdownOpen = false))"
+                @click="((modalStore.openSettings()), (isUserDropdownOpen = false))"
               >
                 <span class="material-symbols-outlined text-lg">person_edit</span>
                 Profile Settings
@@ -290,9 +290,9 @@ const logout = () => {
 
   <!-- Notifications Modal -->
   <NotificationsModal
-    :is-open="isNotificationsOpen"
+    :is-open="modalStore.isNotificationsOpen"
     :notifications="notifStore.notifications"
-    @close="isNotificationsOpen = false"
+    @close="modalStore.closeNotifications()"
     @select="openNotificationDetail"
   />
 
@@ -303,7 +303,7 @@ const logout = () => {
   />
 
   <!-- User Settings Modal -->
-  <UserSettingsModal :is-open="isSettingsOpen" @close="isSettingsOpen = false" />
+  <UserSettingsModal :is-open="modalStore.isSettingsOpen" @close="modalStore.closeSettings()" />
 </template>
 
 <style scoped>
