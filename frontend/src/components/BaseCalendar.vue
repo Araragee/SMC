@@ -81,8 +81,16 @@ const themeStatusStyles = (status: string) => {
       'bg-emerald-100/50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-300',
     pending_teacher:
       'bg-amber-100/50 border-amber-200 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-300',
+    pending_student:
+      'bg-orange-100/50 border-orange-200 text-orange-800 dark:bg-orange-500/10 dark:border-orange-500/20 dark:text-orange-300',
     pending_admin:
       'bg-blue-100/50 border-blue-200 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300',
+    pending_verification:
+      'bg-violet-100/50 border-violet-200 text-violet-800 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-300',
+    overdue:
+      'bg-red-100/50 border-red-300 text-red-800 dark:bg-red-500/15 dark:border-red-500/30 dark:text-red-300',
+    overdue_rejected:
+      'bg-red-100/50 border-red-300 text-red-800 dark:bg-red-500/15 dark:border-red-500/30 dark:text-red-300',
     rejected:
       'bg-red-100/50 border-red-200 text-red-800 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300',
     cancelled:
@@ -96,12 +104,16 @@ const themeStatusStyles = (status: string) => {
 
 function statusLabel(status: string): string {
   const map: Record<string, string> = {
-    scheduled: 'Confirmed',
-    completed: 'Done',
-    pending_teacher: 'Aw. Teacher',
-    pending_admin: 'Aw. Admin',
-    rejected: 'Declined',
-    cancelled: 'Cancelled',
+    scheduled:           'Confirmed',
+    completed:           'Done',
+    pending_teacher:     'Aw. Teacher',
+    pending_student:     'Countered',
+    pending_admin:       'Aw. Admin',
+    pending_verification:'In Review',
+    overdue:             'Overdue',
+    overdue_rejected:    'Proof Rejected',
+    rejected:            'Declined',
+    cancelled:           'Cancelled',
   }
   return map[status] ?? status
 }

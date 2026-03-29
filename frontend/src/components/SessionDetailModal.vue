@@ -147,12 +147,6 @@ function canForceComplete(session: Session) {
                 {{ sessions.length }} session{{ sessions.length !== 1 ? 's' : '' }} scheduled
               </p>
             </div>
-            <button
-              class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
-              @click="$emit('close')"
-            >
-              <span class="material-symbols-outlined text-lg">close</span>
-            </button>
           </div>
 
           <!-- Session List -->
@@ -186,11 +180,11 @@ function canForceComplete(session: Session) {
                   </p>
                   <div class="flex items-center gap-2 mt-1">
                     <span
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-3xl text-[9px] font-black uppercase tracking-wider border"
                       :class="statusBadgeClass(session.status)"
                     >
                       <span
-                        class="w-1.5 h-1.5 rounded-full"
+                        class="w-1.5 h-1.5 rounded-3xl"
                         :class="statusDotClass(session.status)"
                       ></span>
                       {{ statusLabel(session.status) }}
@@ -246,30 +240,81 @@ function canForceComplete(session: Session) {
               </div>
 
               <!-- Proof Status -->
-              <div v-if="['scheduled', 'overdue', 'completed', 'pending_verification', 'overdue_rejected'].includes(session.status)" class="bg-black/[0.04] dark:bg-white/5 rounded-xl py-2.5 px-4 mt-2 border border-black/[0.04] dark:border-white/5">
-                <p class="text-[9px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-wider mb-2">
+              <div
+                v-if="
+                  [
+                    'scheduled',
+                    'overdue',
+                    'completed',
+                    'pending_verification',
+                    'overdue_rejected',
+                  ].includes(session.status)
+                "
+                class="bg-black/[0.04] dark:bg-white/5 rounded-lg py-2.5 px-4 mt-2 border border-black/[0.04] dark:border-white/5"
+              >
+                <p
+                  class="text-[9px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-wider mb-2"
+                >
                   Session Proofs
                 </p>
                 <div class="space-y-1">
                   <div class="flex items-center justify-between text-xs">
                     <span class="text-on-surface-variant">Teacher:</span>
-                    <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
-                      {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : (session.isForceCompleted ? '(force completed by admin)' : 'Pending') }}
+                    <span
+                      class="font-bold"
+                      :class="
+                        session.proofs?.some((p) => p.uploaderRole === 'teacher')
+                          ? 'text-emerald-500'
+                          : 'text-amber-500'
+                      "
+                    >
+                      {{
+                        session.proofs?.some((p) => p.uploaderRole === 'teacher')
+                          ? 'Uploaded ✓'
+                          : session.isForceCompleted
+                            ? '(force completed by admin)'
+                            : 'Pending'
+                      }}
                     </span>
                   </div>
                   <div class="flex items-center justify-between text-xs">
                     <span class="text-on-surface-variant">Student:</span>
-                    <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
-                      {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : (session.isForceCompleted ? '(force completed by admin)' : 'Pending') }}
+                    <span
+                      class="font-bold"
+                      :class="
+                        session.proofs?.some((p) => p.uploaderRole === 'student')
+                          ? 'text-emerald-500'
+                          : 'text-amber-500'
+                      "
+                    >
+                      {{
+                        session.proofs?.some((p) => p.uploaderRole === 'student')
+                          ? 'Uploaded ✓'
+                          : session.isForceCompleted
+                            ? '(force completed by admin)'
+                            : 'Pending'
+                      }}
                     </span>
                   </div>
                 </div>
-                <div v-if="session.proofJustification" class="mt-2 pt-2 border-t border-black/5 dark:border-white/5">
-                  <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider mb-1">Student's Note</p>
+                <div
+                  v-if="session.proofJustification"
+                  class="mt-2 pt-2 border-t border-black/5 dark:border-white/5"
+                >
+                  <p
+                    class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider mb-1"
+                  >
+                    Student's Note
+                  </p>
                   <p class="text-xs text-on-surface italic">"{{ session.proofJustification }}"</p>
                 </div>
-                <div v-if="session.rejectionReason && session.status === 'overdue_rejected'" class="mt-2 pt-2 border-t border-red-500/20">
-                  <p class="text-[9px] text-red-500 uppercase font-bold tracking-wider mb-1">Admin Rejection Reason</p>
+                <div
+                  v-if="session.rejectionReason && session.status === 'overdue_rejected'"
+                  class="mt-2 pt-2 border-t border-red-500/20"
+                >
+                  <p class="text-[9px] text-red-500 uppercase font-bold tracking-wider mb-1">
+                    Admin Rejection Reason
+                  </p>
                   <p class="text-xs text-red-400 font-bold">"{{ session.rejectionReason }}"</p>
                 </div>
               </div>
@@ -372,10 +417,19 @@ function canForceComplete(session: Session) {
                 </template>
 
                 <!-- Admin actions: complete session manually -->
-                <template v-if="userRole === 'admin' && ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)">
+                <template
+                  v-if="
+                    userRole === 'admin' &&
+                    ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)
+                  "
+                >
                   <button
                     class="flex-1 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                    :title="canForceComplete(session) ? 'Overrides proof requirements and finalizes session' : 'Cannot force complete a session until 24 hours after its end time'"
+                    :title="
+                      canForceComplete(session)
+                        ? 'Overrides proof requirements and finalizes session'
+                        : 'Cannot force complete a session until 24 hours after its end time'
+                    "
                     :disabled="!canForceComplete(session)"
                     @click="$emit('complete-admin', session.id)"
                   >
@@ -387,31 +441,6 @@ function canForceComplete(session: Session) {
             </div>
           </div>
 
-          <!-- Footer -->
-          <div class="p-4 border-t border-black/5 dark:border-white/5 flex gap-3">
-            <button
-              v-if="userRole !== 'admin' && !sessions.some(s => ['overdue', 'overdue_rejected', 'pending_verification'].includes(s.status))"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
-              @click="$emit('propose')"
-            >
-              <span class="material-symbols-outlined text-base">add_circle</span>
-              Propose New Schedule
-            </button>
-            <button
-              v-if="userRole === 'admin' && !sessions.some(s => ['overdue', 'overdue_rejected', 'pending_verification'].includes(s.status))"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
-              @click="$emit('propose')"
-            >
-              <span class="material-symbols-outlined text-base">add_circle</span>
-              Schedule New Session
-            </button>
-            <button
-              class="px-5 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
-              @click="$emit('close')"
-            >
-              Close
-            </button>
-          </div>
         </div>
       </div>
     </Transition>

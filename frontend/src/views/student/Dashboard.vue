@@ -16,7 +16,14 @@ const interactionsStore = useInteractionsStore()
 const showRequestModal = ref(false)
 const requestForm = reactive({ teacherId: '', startTime: '' })
 
-const selectedSession = ref<Session | null>(null)
+// ID of the selected session — we store the ID so `selectedSession` always reflects latest store data
+const selectedSessionId = ref<string | null>(null)
+// Always derive the live session object from the store (so status changes reflect immediately)
+const selectedSession = computed(() =>
+  selectedSessionId.value
+    ? (scheduleStore.allSessions.find((s) => s.id === selectedSessionId.value) ?? null)
+    : null
+)
 const showProofViewer = ref(false)
 
 const stagedProofFile = ref<File | null>(null)
@@ -127,19 +134,24 @@ function handleStagedProofUpload(event: Event) {
 
 async function saveStagedProof() {
   if (!selectedSession.value || !stagedProofFile.value) return
-  await interactionsStore.uploadImageProof(selectedSession.value.id, stagedProofFile.value)
-  toast.success('Proof uploaded!', 'Your session proof has been saved.')
+  try {
+    await interactionsStore.uploadImageProof(selectedSession.value.id, stagedProofFile.value)
+    toast.success('Proof saved!', 'Your proof is uploaded. You can now request approval.')
 
-  // Update the local state to show "View Proof" instead of the staged file
-  stagedProofFile.value = null
-  stagedProofUrl.value = null
+    // selectedSession is now a computed, it will auto-update from store - just clear staged state
+    stagedProofFile.value = null
+    stagedProofUrl.value = null
+  } catch {
+    // error already toasted in the store
+  }
 }
 
 function closeSessionModal() {
-  selectedSession.value = null
+  selectedSessionId.value = null
   stagedProofFile.value = null
   stagedProofUrl.value = null
   approvalJustification.value = ''
+  isCountering.value = false
 }
 
 const approvalJustification = ref('')
@@ -149,7 +161,9 @@ async function submitApprovalRequest(sessionId: string) {
     await scheduleStore.requestApproval(sessionId, approvalJustification.value)
     toast.success('Approval Requested', 'Your proof has been submitted for review.')
     approvalJustification.value = ''
-    selectedSession.value = null
+    // The computed selectedSession will update automatically since the store was updated
+    // Close modal only after status update is reflected
+    selectedSessionId.value = null
   } catch (err: any) {
     toast.error('Failed to submit', err.message || 'Something went wrong.')
   }
@@ -205,7 +219,8 @@ async function submitStudentCounter() {
     })
     toast.success('Counter proposal sent!', 'Wait for teacher review.')
     isCountering.value = false
-    closeSessionModal()
+    // Don't close: let the computed session update to show new status (pending_teacher)
+    // Re-fetch to get any extra server-side updates
     await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? '');
   } catch {
     toast.error('Failed to send counter')
@@ -217,7 +232,7 @@ async function approveCounter() {
   try {
     await scheduleStore.approveAsStudent(selectedSession.value.id)
     toast.success('Proposal accepted!', 'Forwarded to admin for final confirmation.')
-    closeSessionModal()
+    // Don't close immediately: let selectedSession computed reactively show new status (pending_admin)
     await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? '');
   } catch {
     toast.error('Failed to accept proposal')
@@ -263,7 +278,7 @@ async function approveCounter() {
       <div>
         <h4 class="font-bold mb-1">Action Required: Overdue Sessions</h4>
         <p class="text-sm">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
-        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="selectedSession = overdueSessions[0]">Resolve Now</button>
+        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="selectedSessionId = overdueSessions[0].id">Resolve Now</button>
       </div>
     </div>
 
@@ -331,7 +346,7 @@ async function approveCounter() {
               v-for="session in mySessions"
               :key="session.id"
               class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
-              @click="selectedSession = session"
+              @click="selectedSessionId = session.id"
             >
               <!-- Date badge -->
               <div

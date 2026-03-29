@@ -288,6 +288,10 @@
   --on-background: #18181b;
 }
 
+html {
+  font-size: 18px; /* bumped from 16px default for better readability */
+}
+
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   @apply bg-[var(--surface)] dark:bg-[var(--surface)] text-[var(--on-surface)] dark:text-[var(--on-surface)] antialiased;

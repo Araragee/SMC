@@ -100,7 +100,6 @@ export const useInteractionsStore = defineStore('interactions', {
     },
 
     async uploadImageProof(sessionId: string, file: File) {
-        const toast = useToastStore();
         this.isLoading = true;
         this.error = null;
         try {
@@ -114,15 +113,32 @@ export const useInteractionsStore = defineStore('interactions', {
               }
             });
             const scheduleStore = useScheduleStore();
+            const auth = useAuthStore();
             const session = scheduleStore.allSessions.find(s => s.id === sessionId);
             if (session) {
+                // Update imageProofUrl (legacy field)
                 session.imageProofUrl = response.data.image_url;
+                // Reactively push new proof into the proofs array so the UI updates immediately
+                if (!session.proofs) session.proofs = [];
+                const newProof = {
+                    id: String(response.data.id),
+                    sessionId: sessionId,
+                    imageUrl: response.data.image_url,
+                    uploadedAt: response.data.uploaded_at,
+                    uploaderId: response.data.uploader_id ? String(response.data.uploader_id) : auth.currentUser?.id,
+                    uploaderRole: response.data.uploader_role || auth.userRole || 'student',
+                };
+                // Remove any previous proof from same role to avoid duplicates
+                session.proofs = session.proofs.filter(p => p.uploaderRole !== newProof.uploaderRole);
+                session.proofs.push(newProof);
             }
-            toast.success('Image uploaded!', 'Proof of session has been saved.');
+            return response.data;
         } catch (err: any) {
+            const toast = useToastStore();
             this.error = err.message || 'Failed to upload image proof';
             toast.error('Upload failed', this.error || undefined);
             console.error(err);
+            throw err;
         } finally {
             this.isLoading = false;
         }
