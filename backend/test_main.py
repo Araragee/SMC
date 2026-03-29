@@ -61,5 +61,5 @@ def test_create_user():
     )
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["email"] == "teacher@example.com"
-    assert "id" in data
+    assert data["user"]["email"] == "teacher@example.com"
+    assert "id" in data["user"]

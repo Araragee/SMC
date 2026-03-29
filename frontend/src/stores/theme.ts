@@ -54,7 +54,7 @@ export const useThemeStore = defineStore('theme', () => {
   })
 
   /** Cycle: system → light → dark → system */
-  function toggleTheme() {
+  const toggleTheme = function() {
     if (preference.value === 'system') {
       preference.value = isDarkMode.value ? 'light' : 'dark'
     } else if (preference.value === 'light') {
@@ -64,7 +64,7 @@ export const useThemeStore = defineStore('theme', () => {
     }
   }
 
-  function setPreference(pref: ThemePreference) {
+  const setPreference = function(pref: ThemePreference) {
     preference.value = pref
   }
 

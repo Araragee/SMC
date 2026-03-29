@@ -310,7 +310,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     hashed_password = pwd_context.hash(password[:72])
 
-    user_data = user.dict(exclude={"password", "instrument_ids", "username"})
+    user_data = user.model_dump(exclude={"password", "instrument_ids", "username"})
     user_data["hashed_password"] = hashed_password
     user_data["username"] = username
 
@@ -349,7 +349,7 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    update_data = user.dict(exclude_unset=True)
+    update_data = user.model_dump(exclude_unset=True)
     if "password" in update_data:
         update_data["hashed_password"] = pwd_context.hash(update_data.pop("password")[:72])
 
@@ -536,7 +536,7 @@ def update_session(session_id: int, session: schemas.SessionEdit, db: Session = 
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    update_data = session.dict(exclude_unset=True)
+    update_data = session.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_session, key, value)
 
@@ -854,8 +854,9 @@ def request_session_approval(
     
     notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.", link=f"/teacher/dashboard")
     
-    if admin_users:
-        notify_users(db, [admin.id for admin in admin_users], f"🔔 Proof submitted by {current_user.name} for overdue session on {dt_str} requires verification.", link=f"/admin/schedule?session_id={db_session.id}")
+    admin_ids = get_admin_ids(db)
+    if admin_ids:
+        notify_users(db, admin_ids, f"🔔 Proof submitted by {current_user.name} for overdue session on {dt_str} requires verification.", link=f"/admin/schedule?session_id={db_session.id}")
 
     return map_session(db_session)
 
@@ -928,8 +929,8 @@ def complete_session_as_admin(
     is_force = False
     if db_session.status != "pending_verification":
         # Force completion! Verify it's past 24 hours since end_time
-        target_time = db_session.end_time + datetime.timedelta(hours=24)
-        if datetime.datetime.utcnow() < target_time:
+        target_time = db_session.end_time + timedelta(hours=24)
+        if datetime.utcnow() < target_time:
             raise HTTPException(status_code=400, detail="Cannot force complete a session until 24 hours after its end time.")
         is_force = True
         db_session.is_force_completed = True
@@ -963,7 +964,7 @@ def complete_session_as_admin(
 
 @app.post("/enrollments/", response_model=schemas.Enrollment)
 def create_enrollment(enrollment: schemas.EnrollmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    db_enrollment = models.Enrollment(**enrollment.dict())
+    db_enrollment = models.Enrollment(**enrollment.model_dump())
     db.add(db_enrollment)
     db.commit()
     db.refresh(db_enrollment)
@@ -982,7 +983,7 @@ def create_homework(session_id: int, homework: schemas.HomeworkCreate, db: Sessi
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    db_homework = models.Homework(**homework.dict(), session_id=session_id)
+    db_homework = models.Homework(**homework.model_dump(), session_id=session_id)
     db.add(db_homework)
     db.commit()
     db.refresh(db_homework)
@@ -1051,7 +1052,7 @@ def read_roles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), c
 
 @app.post("/notifications/", response_model=schemas.Notification)
 def create_notification(notification: schemas.NotificationCreate, db: Session = Depends(get_db)):
-    db_notification = models.Notification(**notification.dict())
+    db_notification = models.Notification(**notification.model_dump())
     db.add(db_notification)
     db.commit()
     db.refresh(db_notification)

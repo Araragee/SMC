@@ -59,7 +59,7 @@ const weekDays = computed<DayData[]>(() => {
   })
 })
 
-function formatTime(iso: string) {
+const formatTime = function(iso: string) {
   const d = new Date(iso)
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
@@ -93,7 +93,7 @@ const themeStatusStyles = (status: string) => {
   )
 }
 
-function statusLabel(status: string): string {
+const statusLabel = function(status: string): string  {
   const map: Record<string, string> = {
     scheduled:            'Confirmed',
     completed:            'Done',
@@ -109,7 +109,7 @@ function statusLabel(status: string): string {
   return map[status] ?? status
 }
 
-function statusDotColor(status: string): string {
+const statusDotColor = function(status: string): string  {
   const map: Record<string, string> = {
     scheduled:            'bg-teal-400',
     completed:            'bg-emerald-400',
@@ -125,9 +125,9 @@ function statusDotColor(status: string): string {
   return map[status] ?? 'bg-zinc-400'
 }
 
-function previousWeek() { weekOffset.value-- }
-function nextWeek() { weekOffset.value++ }
-function resetToToday() { currentDate.value = new Date(); weekOffset.value = 0 }
+const previousWeek = function() { weekOffset.value-- }
+const nextWeek = function() { weekOffset.value++ }
+const resetToToday = function() { currentDate.value = new Date(); weekOffset.value = 0 }
 </script>
 
 <template>

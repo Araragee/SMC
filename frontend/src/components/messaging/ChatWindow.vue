@@ -18,7 +18,7 @@ const msgs = computed(() => store.messages[props.conversationId] ?? [])
 const isGroup = computed(() => conv.value?.type === 'group')
 const typingList = computed(() => store.typingUsers[props.conversationId] ?? [])
 
-function scrollToBottom(smooth = false) {
+const scrollToBottom = function(smooth = false) {
   nextTick(() => {
     if (listRef.value) {
       listRef.value.scrollTo({ top: listRef.value.scrollHeight, behavior: smooth ? 'smooth' : 'instant' })
@@ -26,7 +26,7 @@ function scrollToBottom(smooth = false) {
   })
 }
 
-function isAtBottom(): boolean {
+const isAtBottom = function(): boolean  {
   if (!listRef.value) return true
   const el = listRef.value
   return el.scrollTop + el.clientHeight >= el.scrollHeight - 16
@@ -54,7 +54,7 @@ watch(msgs, (newMsgs, oldMsgs) => {
   }
 }, { deep: false })
 
-async function loadMore() {
+const loadMore = async function() {
   if (!nextCursor.value || isLoadingMore.value) return
   isLoadingMore.value = true
   const el = listRef.value
@@ -67,13 +67,13 @@ async function loadMore() {
 }
 
 let typingTimer: ReturnType<typeof setTimeout> | null = null
-function onInput() {
+const onInput = function() {
   if (typingTimer) return
   store.sendTyping(props.conversationId)
   typingTimer = setTimeout(() => { typingTimer = null }, 1000)
 }
 
-function send() {
+const send = function() {
   const trimmed = input.value.trim()
   if (!trimmed) return
   store.sendMessage(props.conversationId, trimmed)
@@ -81,14 +81,14 @@ function send() {
   scrollToBottom(true)
 }
 
-function onKeydown(e: KeyboardEvent) {
+const onKeydown = function(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
     send()
   }
 }
 
-function getConvLabel(): string {
+const getConvLabel = function(): string  {
   if (!conv.value) return 'Chat'
   if (conv.value.type === 'session_thread') return conv.value.name ?? 'Session Thread'
   if (conv.value.type === 'group') return conv.value.name ?? 'Group Chat'

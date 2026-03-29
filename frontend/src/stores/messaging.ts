@@ -6,12 +6,12 @@ import type { Conversation, ChatMessage } from '../types'
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const WS_URL  = (import.meta.env.VITE_WS_BASE_URL  || 'ws://localhost:8000')
 
-function authHeaders() {
+const authHeaders = function() {
   const auth = useAuthStore()
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 }
 
-function mapMessage(raw: any): ChatMessage {
+const mapMessage = function(raw: any): ChatMessage  {
   return {
     id:             String(raw.id),
     conversationId: String(raw.conversation_id),
@@ -23,7 +23,7 @@ function mapMessage(raw: any): ChatMessage {
   }
 }
 
-function mapParticipant(raw: any) {
+const mapParticipant = function(raw: any) {
   return {
     userId:     String(raw.user_id),
     joinedAt:   raw.joined_at,
@@ -32,7 +32,7 @@ function mapParticipant(raw: any) {
   }
 }
 
-function mapConversation(raw: any): Conversation {
+const mapConversation = function(raw: any): Conversation  {
   return {
     id:           String(raw.id),
     type:         raw.type,

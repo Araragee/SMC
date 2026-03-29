@@ -54,20 +54,20 @@ onMounted(async () => {
   ])
 })
 
-function getTeacherName(id: string): string {
+const getTeacherName = function(id: string): string  {
   return usersStore.users.find((u) => u.id === id)?.name ?? `Teacher #${id}`
 }
 
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-function onSessionClick(session: Session) {
+const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
-async function onProposeSubmit(session: Session) {
+const onProposeSubmit = async function(session: Session) {
   try {
     await scheduleStore.proposeSessionAsStudent({
       teacherId: session.teacherId,
@@ -83,7 +83,7 @@ async function onProposeSubmit(session: Session) {
   }
 }
 
-function formatDateTime(iso: string): string {
+const formatDateTime = function(iso: string): string  {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -94,7 +94,7 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function formatTime(iso: string): string {
+const formatTime = function(iso: string): string  {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -102,11 +102,11 @@ function formatTime(iso: string): string {
   })
 }
 
-function formatMonth(iso: string): string {
+const formatMonth = function(iso: string): string  {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
 }
 
-function formatDay(iso: string): string {
+const formatDay = function(iso: string): string  {
   return String(new Date(iso).getDate())
 }
 </script>

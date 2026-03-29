@@ -7,7 +7,7 @@ import { useAuthStore } from './auth';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-function authHeaders() {
+const authHeaders = function() {
   const auth = useAuthStore();
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
 }

@@ -62,7 +62,7 @@ const navItems = computed<NavItem[]>(() => navsByRole[authStore.userRole || ''] 
 
 const isActive = (path: string) => route.path === path
 
-function openNotificationDetail(notification: Notification) {
+const openNotificationDetail = function(notification: Notification) {
   selectedNotification.value = notification
 }
 

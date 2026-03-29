@@ -29,13 +29,13 @@ const filtered = computed(() =>
   )
 )
 
-function toggleGroup(id: string) {
+const toggleGroup = function(id: string) {
   const idx = selectedGroup.value.indexOf(id)
   if (idx >= 0) selectedGroup.value.splice(idx, 1)
   else selectedGroup.value.push(id)
 }
 
-async function confirm() {
+const confirm = async function() {
   if (isSubmitting.value) return
   isSubmitting.value = true
   try {
@@ -53,7 +53,7 @@ async function confirm() {
   }
 }
 
-function getRoleColor(role: string) {
+const getRoleColor = function(role: string) {
   if (role === 'teacher') return 'text-orange-400 bg-orange-500/10'
   if (role === 'admin')   return 'text-blue-400 bg-blue-500/10'
   return 'text-emerald-400 bg-emerald-500/10'

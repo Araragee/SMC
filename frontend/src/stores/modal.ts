@@ -5,19 +5,19 @@ export const useModalStore = defineStore('modal', () => {
   const isNotificationsOpen = ref(false)
   const isSettingsOpen = ref(false)
   
-  function openNotifications() {
+  const openNotifications = function() {
     isNotificationsOpen.value = true
   }
   
-  function closeNotifications() {
+  const closeNotifications = function() {
     isNotificationsOpen.value = false
   }
 
-  function openSettings() {
+  const openSettings = function() {
     isSettingsOpen.value = true
   }
 
-  function closeSettings() {
+  const closeSettings = function() {
     isSettingsOpen.value = false
   }
 

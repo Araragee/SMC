@@ -9,7 +9,7 @@ defineEmits<{
   close: []
 }>()
 
-function typeClasses(type: string) {
+const typeClasses = function(type: string) {
   const map: Record<string, string> = {
     info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
     success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
@@ -19,7 +19,7 @@ function typeClasses(type: string) {
   return map[type] || map.info
 }
 
-function typeGradient(type: string) {
+const typeGradient = function(type: string) {
   const map: Record<string, string> = {
     info: 'bg-gradient-to-r from-blue-600 to-indigo-600',
     success: 'bg-gradient-to-r from-emerald-600 to-teal-600',
@@ -29,7 +29,7 @@ function typeGradient(type: string) {
   return map[type] || map.info
 }
 
-function typeIcon(type: string) {
+const typeIcon = function(type: string) {
   const map: Record<string, string> = {
     info: 'info',
     success: 'check_circle',
@@ -39,7 +39,7 @@ function typeIcon(type: string) {
   return map[type] || 'notifications'
 }
 
-function typeLabel(type: string) {
+const typeLabel = function(type: string) {
   const map: Record<string, string> = {
     info: 'Information',
     success: 'Success',
@@ -49,7 +49,7 @@ function typeLabel(type: string) {
   return map[type] || 'Notification'
 }
 
-function formatFullDate(iso: string) {
+const formatFullDate = function(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -58,7 +58,7 @@ function formatFullDate(iso: string) {
   })
 }
 
-function formatTime(iso: string) {
+const formatTime = function(iso: string) {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit'

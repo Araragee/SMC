@@ -26,15 +26,15 @@ defineEmits<{
 
 const showProofViewer = ref<string | null>(null)
 
-function getUser(id: string): string {
+const getUser = function(id: string): string  {
   return props.users.find((u) => u.id === id)?.name ?? `User #${id}`
 }
 
-function formatTime(iso: string) {
+const formatTime = function(iso: string) {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
-function formatDateLong(iso: string) {
+const formatDateLong = function(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
@@ -55,7 +55,7 @@ const statusConfig = computed(() => {
   return map[s] ?? { label: s, icon: 'info', badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400', dot: 'bg-zinc-400', cardBg: 'bg-black/5', headerBg: 'from-zinc-500/10 to-transparent' }
 })
 
-function canForceComplete(session: Session) {
+const canForceComplete = function(session: Session) {
   return new Date().getTime() >= new Date(session.endTime).getTime() + 24 * 60 * 60 * 1000
 }
 
