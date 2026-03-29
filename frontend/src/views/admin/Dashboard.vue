@@ -1047,6 +1047,7 @@ function openLiveAnalytics() {
     @approve-student="(id) => { handleApproveAdmin(id); selectedSession = null }"
     @counter-student="(s) => { handleApproveAdmin(s.id); selectedSession = null }"
     @edit-admin="() => { selectedSession = null; showAddSessionModal = true; }"
+    @nudge="(id) => { scheduleStore.nudgeSession(id); selectedSession = null }"
   />
 
   <!-- Add Session Modal -->

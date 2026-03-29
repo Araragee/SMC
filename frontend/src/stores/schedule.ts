@@ -370,5 +370,18 @@ export const useScheduleStore = defineStore('schedule', {
         this.isLoading = false;
       }
     },
+
+    async nudgeSession(sessionId: string) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(`${API_URL}/sessions/${sessionId}/nudge`, {}, { headers: authHeaders() });
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });

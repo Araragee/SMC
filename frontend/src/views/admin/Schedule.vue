@@ -579,6 +579,7 @@ function statusBadgeClass(status: string): string {
       @approve-student="(id) => { handleApprove(id); selectedSession = null }"
       @counter-student="(s) => { handleApprove(s.id); selectedSession = null }"
       @edit-admin="(s) => { openEdit(s); selectedSession = null }"
+      @nudge="(id) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->

@@ -273,6 +273,7 @@ function formatDay(iso: string): string {
       @close="selectedSession = null"
       @approve-student="async (id) => { await scheduleStore.approveAsStudent(id); selectedSession = null; await scheduleStore.fetchUserSessions(myId) }"
       @counter-student="() => { selectedSession = null; showProposeModal = true }"
+      @nudge="(id) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->

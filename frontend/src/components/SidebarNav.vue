@@ -123,7 +123,9 @@ const logout = () => {
         >
       </div>
       <div class="text-center leading-none">
-        <h2 class="text-on-surface dark:text-on-surface font-black tracking-tight text-lg">Sernan's</h2>
+        <h2 class="text-on-surface dark:text-on-surface font-black tracking-tight text-lg">
+          Sernan's
+        </h2>
         <p class="text-orange-500 text-[11px] font-bold uppercase tracking-wider">Music Clinic</p>
       </div>
     </div>
@@ -157,30 +159,38 @@ const logout = () => {
 
     <!-- Bottom Section -->
     <div class="pt-4 border-t border-black/[0.04] dark:border-white/5 flex flex-col gap-3 relative">
-      <div class="flex items-center gap-2">
+      <div class="flex flex-col items-center gap-2 w-full">
         <!-- Notifications -->
         <button
-          class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
+          class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
           @click="isNotificationsOpen = true"
         >
-          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">notifications</span>
+          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
+            >notifications</span
+          >
           <span class="text-xs font-bold uppercase tracking-wider">Notifs</span>
           <span
             v-if="unreadCount > 0"
             class="absolute top-1.5 right-2 w-4 h-4 bg-orange-500 rounded-full text-[9px] font-black text-white flex items-center justify-center"
-          >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+            >{{ unreadCount > 9 ? '9+' : unreadCount }}</span
+          >
         </button>
         <!-- Messages -->
         <button
-          class="relative flex-1 flex items-center justify-center gap-2 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
+          class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
           @click="messagingStore.isOpen = true"
         >
-          <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1">chat</span>
+          <span
+            class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
+            style="font-variation-settings: 'FILL' 1"
+            >chat</span
+          >
           <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
           <span
             v-if="messagingStore.totalUnread > 0"
             class="absolute top-1.5 right-2 min-w-[16px] h-4 bg-orange-500 rounded-full text-[9px] font-black text-white flex items-center justify-center px-0.5"
-          >{{ messagingStore.totalUnread > 99 ? '99+' : messagingStore.totalUnread }}</span>
+            >{{ messagingStore.totalUnread > 99 ? '99+' : messagingStore.totalUnread }}</span
+          >
         </button>
       </div>
 
@@ -188,7 +198,9 @@ const logout = () => {
       <div class="relative w-full">
         <button
           class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all group border border-transparent"
-          :class="{ 'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen }"
+          :class="{
+            'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen,
+          }"
           @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
         >
           <div
@@ -202,10 +214,14 @@ const logout = () => {
             <span v-else>{{ authStore.currentUser?.name?.charAt(0)?.toUpperCase() || '?' }}</span>
           </div>
           <div class="flex-1 text-left min-w-0">
-            <p class="text-sm font-bold text-on-surface dark:text-on-surface leading-tight truncate">
+            <p
+              class="text-sm font-bold text-on-surface dark:text-on-surface leading-tight truncate"
+            >
               {{ authStore.currentUser?.name || 'User' }}
             </p>
-            <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-widest truncate">
+            <p
+              class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-widest truncate"
+            >
               {{ roleLabel }}
             </p>
           </div>
@@ -228,10 +244,14 @@ const logout = () => {
           <div
             v-if="isUserDropdownOpen"
             v-click-outside="() => (isUserDropdownOpen = false)"
-            class="absolute bottom-full right-0 mb-3 w-56 glass-heavy rounded-[1.5rem] shadow-2xl overflow-hidden z-[110]"
+            class="absolute bottom-full left-0 mb-3 w-56 glass-heavy rounded-[1.5rem] shadow-2xl overflow-hidden z-[110]"
           >
-            <div class="p-4 border-b border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
-              <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1">
+            <div
+              class="p-4 border-b border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]"
+            >
+              <p
+                class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1"
+              >
                 Signed in as
               </p>
               <p class="text-sm font-bold text-on-surface dark:text-on-surface truncate">

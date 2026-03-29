@@ -452,6 +452,7 @@ function formatDay(iso: string): string {
       @approve-teacher="(id) => { handleApproveStudent(id); selectedSession = null }"
       @reject-teacher="(id) => { openReject(id); selectedSession = null }"
       @counter-teacher="(s) => { openCounter(s); selectedSession = null }"
+      @nudge="(id) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->

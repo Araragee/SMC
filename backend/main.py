@@ -74,8 +74,8 @@ def require_teacher(current_user: models.User = Depends(get_current_active_user)
     return current_user
 
 def require_student(current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role is None or current_user.role.name.lower() != "student":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Requires student role")
+    if current_user.role is None or current_user.role.name.lower() not in ["student", "admin"]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Requires student or admin role")
     return current_user
 
 models.Base.metadata.create_all(bind=engine)
@@ -689,6 +689,8 @@ def counter_session_as_teacher(
         raise HTTPException(status_code=404, detail="Session not found")
     if db_session.status != "pending_teacher":
         raise HTTPException(status_code=409, detail="Only pending_teacher sessions can be countered by teacher")
+    if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
     
     db_session.start_time = counter.start_time
     db_session.end_time = counter.end_time
@@ -719,6 +721,8 @@ def counter_session_as_student(
         raise HTTPException(status_code=404, detail="Session not found")
     if db_session.status != "pending_student":
         raise HTTPException(status_code=409, detail="Only pending_student sessions can be countered by student")
+    if db_session.student_id != current_user.id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
     
     db_session.start_time = counter.start_time
     db_session.end_time = counter.end_time
@@ -747,6 +751,8 @@ def approve_session_as_student(
         raise HTTPException(status_code=404, detail="Session not found")
     if db_session.status != "pending_student":
         raise HTTPException(status_code=409, detail="Session is not awaiting student approval")
+    if db_session.student_id != current_user.id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="You can only approve sessions assigned to you")
     
     db_session.status = "pending_admin"
     db.commit()
@@ -848,9 +854,34 @@ def request_session_approval(
     
     notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.", link=f"/teacher/dashboard")
     
-    admin_users = db.query(models.User).join(models.Role).filter(models.Role.name == "admin").all()
     if admin_users:
         notify_users(db, [admin.id for admin in admin_users], f"🔔 Proof submitted by {current_user.name} for overdue session on {dt_str} requires verification.", link=f"/admin/schedule?session_id={db_session.id}")
+
+    return map_session(db_session)
+
+@app.post("/sessions/{session_id}/nudge", response_model=schemas.Session)
+def nudge_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Notify relevant party to upload proof or finalize a session."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    dt_str = format_dt(db_session.start_time)
+    teacher_proof = any(p.uploader_role == 'teacher' for p in db_session.proofs)
+    student_proof = any(p.uploader_role == 'student' for p in db_session.proofs)
+
+    # Simple nudge logic
+    if not student_proof:
+        notify_users(db, [db_session.student_id], f"🔔 Reminder from {current_user.name}: Please upload your proof for the session on {dt_str}.")
+    elif not teacher_proof:
+        notify_users(db, [db_session.teacher_id], f"🔔 Reminder from {current_user.name}: Please upload your proof for the session on {dt_str}.")
+    else:
+        # Both uploaded, nudge the admin
+        notify_users(db, get_admin_ids(db), f"🔔 Reminder from {current_user.name}: Session on {dt_str} is ready for final approval. All proofs are in.")
 
     return map_session(db_session)
 

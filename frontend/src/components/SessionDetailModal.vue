@@ -21,6 +21,7 @@ defineEmits<{
   'edit-admin': [session: Session]
   'complete-admin': [sessionId: string]
   'reject-proof-admin': [sessionId: string]
+  'nudge': [sessionId: string]
 }>()
 
 const showProofViewer = ref<string | null>(null)
@@ -255,16 +256,35 @@ const statusContext = computed(() => {
                 <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-3">Session Proofs</p>
                 <div class="space-y-2">
                   <div class="flex items-center justify-between text-sm">
-                    <span class="text-on-surface-variant">Teacher</span>
-                    <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
-                      {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
+                        {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
+                      </span>
+                      <button
+                        v-if="!session.proofs?.some(p => p.uploaderRole === 'teacher') && !session.isForceCompleted"
+                        class="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-amber-500 transition-colors"
+                        title="Nudge Teacher"
+                        @click="$emit('nudge', session.id)"
+                      >
+                        <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                      </button>
+                    </div>
                   </div>
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-on-surface-variant">Student</span>
-                    <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
-                      {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
+                        {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
+                      </span>
+                      <button
+                        v-if="!session.proofs?.some(p => p.uploaderRole === 'student') && !session.isForceCompleted"
+                        class="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-amber-500 transition-colors"
+                        title="Nudge Student"
+                        @click="$emit('nudge', session.id)"
+                      >
+                        <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <!-- Proof thumbnails (if any) -->
