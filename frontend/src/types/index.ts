@@ -78,6 +78,7 @@ export interface Session {
   instrument?: InstrumentRecord;
   proofJustification?: string;
   rejectionReason?: string;
+  isForceCompleted?: boolean;
 }
 
 export interface Schedule {

@@ -92,6 +92,7 @@ class Session(Base):
     notified_12h = Column(Boolean, default=False)
     proof_justification = Column(String, nullable=True)
     rejection_reason = Column(String, nullable=True)
+    is_force_completed = Column(Boolean, default=False)
 
     instrument = relationship("Instrument")
 

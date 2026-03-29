@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { Notification } from '../types'
 import { useNotificationStore } from '../stores/notification'
 import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
   isOpen: boolean
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 
 const notifStore = useNotificationStore()
 const authStore = useAuthStore()
+const router = useRouter()
 
 const sortedNotifications = computed(() => {
   return [...props.notifications].sort((a, b) => {
@@ -63,7 +65,12 @@ function handleNotifClick(notif: Notification) {
   if (!notif.isRead) {
     notifStore.markAsRead(notif.id)
   }
-  emit('select', notif)
+  if (notif.link) {
+    emit('close')
+    router.push(notif.link)
+  } else {
+    emit('select', notif)
+  }
 }
 
 function markAllAsRead() {

@@ -170,11 +170,11 @@ app.add_middleware(
 def format_dt(dt: datetime) -> str:
     return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
 
-def notify_users(db, user_ids: list, message: str):
+def notify_users(db, user_ids: list, message: str, link: str = None):
     """Create notifications for a list of user IDs."""
     for uid in user_ids:
         if uid:
-            db.add(models.Notification(user_id=uid, message=message, is_read=False))
+            db.add(models.Notification(user_id=uid, message=message, link=link, is_read=False))
     db.commit()
 
 def get_admin_ids(db) -> list:
@@ -846,11 +846,11 @@ def request_session_approval(
     
     dt_str = format_dt(db_session.start_time)
     
-    notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.")
+    notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.", link=f"/teacher/dashboard")
     
     admin_users = db.query(models.User).join(models.Role).filter(models.Role.name == "admin").all()
     if admin_users:
-        notify_users(db, [admin.id for admin in admin_users], f"🔔 Proof submitted by {current_user.name} for overdue session on {dt_str} requires verification.")
+        notify_users(db, [admin.id for admin in admin_users], f"🔔 Proof submitted by {current_user.name} for overdue session on {dt_str} requires verification.", link=f"/admin/schedule?session_id={db_session.id}")
 
     return map_session(db_session)
 
@@ -891,8 +891,17 @@ def complete_session_as_admin(
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
-    if db_session.status not in ["scheduled", "overdue", "pending_verification"]:
-        raise HTTPException(status_code=409, detail="Only scheduled, overdue, or pending_verification sessions can be completed")
+    if db_session.status not in ["scheduled", "overdue", "overdue_rejected", "pending_verification"]:
+        raise HTTPException(status_code=409, detail="Only scheduled, overdue, overdue_rejected, or pending_verification sessions can be completed")
+
+    is_force = False
+    if db_session.status != "pending_verification":
+        # Force completion! Verify it's past 24 hours since end_time
+        target_time = db_session.end_time + datetime.timedelta(hours=24)
+        if datetime.datetime.utcnow() < target_time:
+            raise HTTPException(status_code=400, detail="Cannot force complete a session until 24 hours after its end time.")
+        is_force = True
+        db_session.is_force_completed = True
 
     db_session.status = "completed"
     
@@ -912,8 +921,10 @@ def complete_session_as_admin(
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
-    notify_users(db, [db_session.teacher_id, db_session.student_id],
-        f"✅ Session from {dt_str} has been marked complete by admin.")
+    msg = f"✅ Session from {dt_str} has been marked complete by admin."
+    if is_force:
+        msg = f"⚠️ Session from {dt_str} has been force completed by admin."
+    notify_users(db, [db_session.teacher_id, db_session.student_id], msg)
 
     return map_session(db_session)
 

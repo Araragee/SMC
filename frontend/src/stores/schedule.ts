@@ -36,7 +36,8 @@ function mapSession(session: any): Session {
     sessionNumber: session.session_number,
     instrument: session.instrument,
     proofJustification: session.proof_justification || undefined,
-    rejectionReason: session.rejection_reason || undefined
+    rejectionReason: session.rejection_reason || undefined,
+    isForceCompleted: session.is_force_completed || false
   };
 }
 

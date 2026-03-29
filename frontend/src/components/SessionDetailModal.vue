@@ -101,6 +101,12 @@ function statusDotClass(status: string): string {
   }
   return map[status] ?? 'bg-zinc-400'
 }
+
+function canForceComplete(session: Session) {
+  const end = new Date(session.endTime).getTime()
+  const now = new Date().getTime()
+  return now >= end + 24 * 60 * 60 * 1000
+}
 </script>
 
 <template>
@@ -248,13 +254,13 @@ function statusDotClass(status: string): string {
                   <div class="flex items-center justify-between text-xs">
                     <span class="text-on-surface-variant">Teacher:</span>
                     <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
-                      {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : 'Pending' }}
+                      {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : (session.isForceCompleted ? '(force completed by admin)' : 'Pending') }}
                     </span>
                   </div>
                   <div class="flex items-center justify-between text-xs">
                     <span class="text-on-surface-variant">Student:</span>
                     <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
-                      {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : 'Pending' }}
+                      {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : (session.isForceCompleted ? '(force completed by admin)' : 'Pending') }}
                     </span>
                   </div>
                 </div>
@@ -368,8 +374,9 @@ function statusDotClass(status: string): string {
                 <!-- Admin actions: complete session manually -->
                 <template v-if="userRole === 'admin' && ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)">
                   <button
-                    class="flex-1 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
-                    title="Overrides proof requirements and finalizes session"
+                    class="flex-1 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :title="canForceComplete(session) ? 'Overrides proof requirements and finalizes session' : 'Cannot force complete a session until 24 hours after its end time'"
+                    :disabled="!canForceComplete(session)"
                     @click="$emit('complete-admin', session.id)"
                   >
                     <span class="material-symbols-outlined text-sm">workspace_premium</span>

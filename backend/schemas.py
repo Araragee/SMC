@@ -93,6 +93,7 @@ class SessionBase(BaseModel):
     notified_12h: bool = False
     proof_justification: Optional[str] = None
     rejection_reason: Optional[str] = None
+    is_force_completed: bool = False
 
 class SessionCreate(SessionBase):
     pass

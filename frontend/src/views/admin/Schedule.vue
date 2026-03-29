@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useScheduleStore } from '../../stores/schedule'
 import { useUsersStore } from '../../stores/users'
 import { useAuthStore } from '../../stores/auth'
@@ -15,6 +16,7 @@ const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
+const route = useRoute()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
@@ -44,6 +46,18 @@ onMounted(async () => {
     usersStore.fetchUsers(),
     notifStore.fetchNotifications(authStore.currentUser?.id ?? ''),
   ])
+
+  if (route.query.session_id) {
+    const sId = route.query.session_id as string
+    const sessionToOpen = scheduleStore.allSessions.find(s => s.id === sId)
+    if (sessionToOpen) {
+      selectedDate.value = new Date(sessionToOpen.startTime)
+      selectedDaySessions.value = [sessionToOpen]
+      
+      // Clear query string gracefully so refresh doesn't pop it again
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }
 })
 
 function getUserName(id: string): string {
