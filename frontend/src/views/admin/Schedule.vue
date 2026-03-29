@@ -61,20 +61,20 @@ onMounted(async () => {
   }
 })
 
-function getUserName(id: string): string {
+const getUserName = function(id: string): string  {
   return usersStore.users.find((u) => u.id === id)?.name ?? `User #${id}`
 }
 
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-function onSessionClick(session: Session) {
+const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
-async function handleApprove(sessionId: string) {
+const handleApprove = async function(sessionId: string) {
   const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -92,7 +92,7 @@ async function handleApprove(sessionId: string) {
   }
 }
 
-async function handleCompleteAdmin(sessionId: string) {
+const handleCompleteAdmin = async function(sessionId: string) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session Completed', 'The session has been successfully finalized.')
@@ -103,7 +103,7 @@ async function handleCompleteAdmin(sessionId: string) {
   }
 }
 
-async function handleRejectProofAdmin(sessionId: string) {
+const handleRejectProofAdmin = async function(sessionId: string) {
   const reason = window.prompt("Enter a reason for rejecting this proof:")
   if (!reason) return
   try {
@@ -116,12 +116,12 @@ async function handleRejectProofAdmin(sessionId: string) {
   }
 }
 
-function openReject(sessionId: string) {
+const openReject = function(sessionId: string) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
 }
 
-async function confirmReject() {
+const confirmReject = async function() {
   const session = scheduleStore.allSessions.find((s) => s.id === rejectModal.value.sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -137,7 +137,7 @@ async function confirmReject() {
   }
 }
 
-function openEdit(session: Session) {
+const openEdit = function(session: Session) {
   const d = new Date(session.startTime)
   editModal.value = {
     open: true,
@@ -149,7 +149,7 @@ function openEdit(session: Session) {
   selectedDate.value = null
 }
 
-async function confirmEdit() {
+const confirmEdit = async function() {
   const { sessionId, date, time, notes } = editModal.value
   try {
     const startTime = new Date(`${date}T${time}:00`).toISOString()
@@ -162,7 +162,7 @@ async function confirmEdit() {
   }
 }
 
-async function onProposeSubmit(session: Session) {
+const onProposeSubmit = async function(session: Session) {
   try {
     await scheduleStore.bookSession(session)
     toast.success('Session scheduled!', 'The session has been confirmed and parties notified.')
@@ -172,7 +172,7 @@ async function onProposeSubmit(session: Session) {
   }
 }
 
-function formatDateTime(iso: string): string {
+const formatDateTime = function(iso: string): string  {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -183,7 +183,7 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function statusLabel(status: string): string {
+const statusLabel = function(status: string): string  {
   const map: Record<string, string> = {
     scheduled: 'Confirmed',
     completed: 'Completed',
@@ -195,7 +195,7 @@ function statusLabel(status: string): string {
   return map[status] ?? status
 }
 
-function statusBarClass(status: string): string {
+const statusBarClass = function(status: string): string  {
   const map: Record<string, string> = {
     scheduled: 'bg-orange-500',
     completed: 'bg-emerald-500',
@@ -207,7 +207,7 @@ function statusBarClass(status: string): string {
   return map[status] ?? 'bg-zinc-700'
 }
 
-function statusBadgeClass(status: string): string {
+const statusBadgeClass = function(status: string): string  {
   const map: Record<string, string> = {
     scheduled: 'bg-orange-500/20 border-orange-500/30 text-orange-400',
     completed: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',

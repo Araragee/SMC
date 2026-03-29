@@ -161,7 +161,7 @@ const iconClass = (status: string) => ({
   'bg-red-500/10 text-red-400 border-red-500/20': status === 'rejected' || status === 'cancelled',
 })
 
-async function onProposeSubmit(session: Session) {
+const onProposeSubmit = async function(session: Session) {
   try {
     await scheduleStore.bookSession({
       teacherId: session.teacherId,
@@ -177,11 +177,11 @@ async function onProposeSubmit(session: Session) {
   }
 }
 
-function openSessionDetail(session: Session) {
+const openSessionDetail = function(session: Session) {
   selectedSession.value = session
 }
 
-function refreshDetailSessions() {
+const refreshDetailSessions = function() {
   if (!detailDate.value) return
   const dateStr = detailDate.value.toDateString()
   detailSessions.value = scheduleStore.allSessions.filter(
@@ -189,7 +189,7 @@ function refreshDetailSessions() {
   )
 }
 
-async function handleApproveAdmin(sessionId: string) {
+const handleApproveAdmin = async function(sessionId: string) {
   const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -207,7 +207,7 @@ async function handleApproveAdmin(sessionId: string) {
   }
 }
 
-async function handleRejectAdmin(sessionId: string) {
+const handleRejectAdmin = async function(sessionId: string) {
   const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -222,7 +222,7 @@ async function handleRejectAdmin(sessionId: string) {
   }
 }
 
-async function handleCompleteAdmin(sessionId: string) {
+const handleCompleteAdmin = async function(sessionId: string) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session Completed', 'The session has been successfully finalized.')
@@ -233,7 +233,7 @@ async function handleCompleteAdmin(sessionId: string) {
   }
 }
 
-async function handleRejectProofAdmin(sessionId: string) {
+const handleRejectProofAdmin = async function(sessionId: string) {
   const reason = window.prompt("Enter a reason for rejecting this proof:")
   if (!reason) return
   try {
@@ -246,7 +246,7 @@ async function handleRejectProofAdmin(sessionId: string) {
   }
 }
 
-async function confirmQuickAssign() {
+const confirmQuickAssign = async function() {
   if (!quickTeacherId.value || !quickStudentId.value) return
   isQuickAssigning.value = true
   try {
@@ -268,7 +268,7 @@ async function confirmQuickAssign() {
   }
 }
 
-async function handleDeleteTeacher(teacher: any) {
+const handleDeleteTeacher = async function(teacher: any) {
   if (!window.confirm(`Are you sure you want to deactivate ${teacher.name}?`)) return
   try {
     await usersStore.deleteUser(teacher.id)
@@ -278,17 +278,17 @@ async function handleDeleteTeacher(teacher: any) {
   }
 }
 
-async function handleMarkRead(notifId: string) {
+const handleMarkRead = async function(notifId: string) {
   await notifStore.markAsRead(notifId)
 }
 
-async function handleClearAll() {
+const handleClearAll = async function() {
   if (authStore.currentUser?.id) {
     await notifStore.markAllAsRead(authStore.currentUser.id)
   }
 }
 
-function openLiveAnalytics() {
+const openLiveAnalytics = function() {
   detailDate.value = new Date()
   detailSessions.value = todaySessions.value
 }

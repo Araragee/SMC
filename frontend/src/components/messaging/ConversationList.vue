@@ -11,7 +11,7 @@ const store = useMessagingStore()
 const auth  = useAuthStore()
 const showNew = ref(false)
 
-function getDisplayName(conv: Conversation): string {
+const getDisplayName = function(conv: Conversation): string  {
   if (conv.type === 'session_thread') return conv.name ?? 'Session Thread'
   if (conv.type === 'group') return conv.name ?? 'Group Chat'
   // DM: show the other participant's name
@@ -19,17 +19,14 @@ function getDisplayName(conv: Conversation): string {
   return other?.name ?? 'Direct Message'
 }
 
-function getIcon(conv: Conversation): string {
+const getIcon = function(conv: Conversation): string  {
   if (conv.type === 'session_thread') return 'event_note'
   if (conv.type === 'group') return 'group'
   return 'chat_bubble'
 }
 
-function getInitial(conv: Conversation): string {
-  return getDisplayName(conv).charAt(0).toUpperCase()
-}
 
-function formatTime(iso: string | null | undefined): string {
+const formatTime = function(iso: string | null | undefined): string  {
   if (!iso) return ''
   const d = new Date(iso)
   const now = new Date()
@@ -39,7 +36,7 @@ function formatTime(iso: string | null | undefined): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function onCreated(id: string) {
+const onCreated = function(id: string) {
   showNew.value = false
   emit('select', id)
 }

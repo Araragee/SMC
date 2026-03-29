@@ -29,7 +29,7 @@ const sortedNotifications = computed(() => {
 
 const unreadCount = computed(() => props.notifications.filter(n => !n.isRead).length)
 
-function typeClasses(type: string) {
+const typeClasses = function(type: string) {
   const map: Record<string, string> = {
     info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
     success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
@@ -39,7 +39,7 @@ function typeClasses(type: string) {
   return map[type] || map.info
 }
 
-function typeIcon(type: string) {
+const typeIcon = function(type: string) {
   const map: Record<string, string> = {
     info: 'info',
     success: 'check_circle',
@@ -49,7 +49,7 @@ function typeIcon(type: string) {
   return map[type] || 'notifications'
 }
 
-function formatTime(iso: string) {
+const formatTime = function(iso: string) {
   const date = new Date(iso)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
@@ -61,7 +61,7 @@ function formatTime(iso: string) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function handleNotifClick(notif: Notification) {
+const handleNotifClick = function(notif: Notification) {
   if (!notif.isRead) {
     notifStore.markAsRead(notif.id)
   }
@@ -73,7 +73,7 @@ function handleNotifClick(notif: Notification) {
   }
 }
 
-function markAllAsRead() {
+const markAllAsRead = function() {
   if (authStore.currentUser?.id) {
     notifStore.markAllAsRead(authStore.currentUser.id)
   }

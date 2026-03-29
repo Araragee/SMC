@@ -182,7 +182,7 @@ def update_session(session_id: int, session: schemas.SessionEdit, db: Session = 
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    update_data = session.dict(exclude_unset=True)
+    update_data = session.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_session, key, value)
 
@@ -600,7 +600,7 @@ def complete_session_as_admin(
 
 @router.post("/enrollments/", response_model=schemas.Enrollment)
 def create_enrollment(enrollment: schemas.EnrollmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    db_enrollment = models.Enrollment(**enrollment.dict())
+    db_enrollment = models.Enrollment(**enrollment.model_dump())
     db.add(db_enrollment)
     db.commit()
     db.refresh(db_enrollment)
@@ -619,7 +619,7 @@ def create_homework(session_id: int, homework: schemas.HomeworkCreate, db: Sessi
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    db_homework = models.Homework(**homework.dict(), session_id=session_id)
+    db_homework = models.Homework(**homework.model_dump(), session_id=session_id)
     db.add(db_homework)
     db.commit()
     db.refresh(db_homework)

@@ -72,7 +72,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     hashed_password = pwd_context.hash(password[:72])
 
-    user_data = user.dict(exclude={"password", "instrument_ids", "username"})
+    user_data = user.model_dump(exclude={"password", "instrument_ids", "username"})
     user_data["hashed_password"] = hashed_password
     user_data["username"] = username
 
@@ -109,7 +109,7 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    update_data = user.dict(exclude_unset=True)
+    update_data = user.model_dump(exclude_unset=True)
     if "password" in update_data:
         update_data["hashed_password"] = pwd_context.hash(update_data.pop("password")[:72])
 

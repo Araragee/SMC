@@ -52,20 +52,20 @@ onMounted(async () => {
   ])
 })
 
-function getStudentName(id: string): string {
+const getStudentName = function(id: string): string  {
   return usersStore.users.find((u) => u.id === id)?.name ?? `Student #${id}`
 }
 
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-function onSessionClick(session: Session) {
+const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
-async function handleApproveStudent(sessionId: string) {
+const handleApproveStudent = async function(sessionId: string) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Request approved!', 'Forwarded to admin for final approval.')
@@ -76,12 +76,12 @@ async function handleApproveStudent(sessionId: string) {
   }
 }
 
-function openReject(sessionId: string) {
+const openReject = function(sessionId: string) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
 }
 
-async function confirmReject() {
+const confirmReject = async function() {
   try {
     await scheduleStore.rejectAsTeacher(rejectModal.value.sessionId, rejectModal.value.notes)
     toast.success('Request declined', 'The student has been notified.')
@@ -92,7 +92,7 @@ async function confirmReject() {
   }
 }
 
-function openCounter(session: Session) {
+const openCounter = function(session: Session) {
   counterModal.value = {
     open: true,
     sessionId: session.id,
@@ -102,7 +102,7 @@ function openCounter(session: Session) {
   }
 }
 
-async function confirmCounter() {
+const confirmCounter = async function() {
   try {
     const startTime = new Date(counterModal.value.startTime).toISOString();
     let endTime = '';
@@ -126,7 +126,7 @@ async function confirmCounter() {
   }
 }
 
-async function onProposeSubmit(session: Session) {
+const onProposeSubmit = async function(session: Session) {
   try {
     await scheduleStore.proposeSessionAsTeacher({
       teacherId: myId.value,
@@ -142,7 +142,7 @@ async function onProposeSubmit(session: Session) {
   }
 }
 
-function formatDateTime(iso: string): string {
+const formatDateTime = function(iso: string): string  {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -153,7 +153,7 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function formatTime(iso: string): string {
+const formatTime = function(iso: string): string  {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -161,11 +161,11 @@ function formatTime(iso: string): string {
   })
 }
 
-function formatMonth(iso: string): string {
+const formatMonth = function(iso: string): string  {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
 }
 
-function formatDay(iso: string): string {
+const formatDay = function(iso: string): string  {
   return String(new Date(iso).getDate())
 }
 </script>

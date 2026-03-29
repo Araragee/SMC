@@ -7,7 +7,7 @@ const props = defineProps<{
   showSender: boolean  // true for group chats
 }>()
 
-function formatTime(iso: string) {
+const formatTime = function(iso: string) {
   return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 </script>

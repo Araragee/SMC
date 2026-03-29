@@ -5,12 +5,12 @@ import type { Session, Schedule } from '../types';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-function authHeaders() {
+const authHeaders = function() {
   const auth = useAuthStore();
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
 }
 
-function mapSession(session: any): Session {
+const mapSession = function(session: any): Session  {
   return {
     id: String(session.id),
     studentId: String(session.student_id),

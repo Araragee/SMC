@@ -32,7 +32,7 @@ const isSettingsOpen = ref(false)
 const isUserDropdownOpen = ref(false)
 const selectedNotification = ref<Notification | null>(null)
 
-function openNotificationDetail(notification: Notification) {
+const openNotificationDetail = function(notification: Notification) {
   selectedNotification.value = notification
 }
 
