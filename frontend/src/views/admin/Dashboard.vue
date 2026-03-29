@@ -18,6 +18,7 @@ const toast = useToastStore()
 const showAddSessionModal = ref(false)
 const detailDate = ref<Date | null>(null)
 const detailSessions = ref<Session[]>([])
+const selectedSession = ref<Session | null>(null)
 const sessionPage = ref(0)
 const PAGE_SIZE = 5
 const viewMode = ref<'daily' | 'weekly'>('daily')
@@ -177,11 +178,7 @@ async function onProposeSubmit(session: Session) {
 }
 
 function openSessionDetail(session: Session) {
-  const d = new Date(session.startTime)
-  detailDate.value = d
-  detailSessions.value = scheduleStore.allSessions.filter(
-    (s) => new Date(s.startTime).toDateString() === d.toDateString()
-  )
+  selectedSession.value = session
 }
 
 function refreshDetailSessions() {
@@ -1035,29 +1032,21 @@ function openLiveAnalytics() {
 
   <!-- Session Detail Modal -->
   <SessionDetailModal
-    :date="detailDate"
-    :sessions="detailSessions"
+    :session="selectedSession"
     user-role="admin"
     :current-user-id="authStore.currentUser?.id ?? ''"
     :users="allUsers"
-    @close="detailDate = null"
-    @propose="
-      detailDate = null;
-      showAddSessionModal = true;
-    "
-    @approve-admin="handleApproveAdmin"
-    @reject-admin="handleRejectAdmin"
-    @complete-admin="handleCompleteAdmin"
-    @reject-proof-admin="handleRejectProofAdmin"
-    @approve-teacher="handleApproveAdmin"
-    @reject-teacher="handleRejectAdmin"
-    @counter-teacher="(s) => handleApproveAdmin(s.id)"
-    @approve-student="handleApproveAdmin"
-    @counter-student="(s) => handleApproveAdmin(s.id)"
-    @edit-admin="
-      detailDate = null;
-      showAddSessionModal = true;
-    "
+    @close="selectedSession = null"
+    @approve-admin="(id) => { handleApproveAdmin(id); selectedSession = null }"
+    @reject-admin="(id) => { handleRejectAdmin(id); selectedSession = null }"
+    @complete-admin="(id) => { handleCompleteAdmin(id); selectedSession = null }"
+    @reject-proof-admin="(id) => { handleRejectProofAdmin(id); selectedSession = null }"
+    @approve-teacher="(id) => { handleApproveAdmin(id); selectedSession = null }"
+    @reject-teacher="(id) => { handleRejectAdmin(id); selectedSession = null }"
+    @counter-teacher="(s) => { handleApproveAdmin(s.id); selectedSession = null }"
+    @approve-student="(id) => { handleApproveAdmin(id); selectedSession = null }"
+    @counter-student="(s) => { handleApproveAdmin(s.id); selectedSession = null }"
+    @edit-admin="() => { selectedSession = null; showAddSessionModal = true; }"
   />
 
   <!-- Add Session Modal -->

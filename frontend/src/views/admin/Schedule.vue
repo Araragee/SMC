@@ -20,6 +20,7 @@ const route = useRoute()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
+const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 const filterStatus = ref('')
 
@@ -67,6 +68,10 @@ function getUserName(id: string): string {
 function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
+}
+
+function onSessionClick(session: Session) {
+  selectedSession.value = session
 }
 
 async function handleApprove(sessionId: string) {
@@ -346,7 +351,7 @@ function statusBadgeClass(status: string): string {
           >
         </div>
       </div>
-      <BaseCalendar :sessions="scheduleStore.allSessions" @day-click="onDayClick" />
+      <BaseCalendar :sessions="scheduleStore.allSessions" @day-click="onDayClick" @session-click="onSessionClick" />
     </section>
 
     <!-- All Sessions Table -->
@@ -559,23 +564,21 @@ function statusBadgeClass(status: string): string {
 
     <!-- Session Detail Modal -->
     <SessionDetailModal
-      :date="selectedDate"
-      :sessions="selectedDaySessions"
+      :session="selectedSession"
       user-role="admin"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :users="allUsers"
-      @close="selectedDate = null"
-      @propose="((showProposeModal = true), (selectedDate = null))"
-      @approve-admin="handleApprove"
-      @reject-admin="openReject"
-      @complete-admin="handleCompleteAdmin"
-      @reject-proof-admin="handleRejectProofAdmin"
-      @approve-teacher="handleApprove"
-      @reject-teacher="openReject"
-      @counter-teacher="(s) => handleApprove(s.id)"
-      @approve-student="handleApprove"
-      @counter-student="(s) => handleApprove(s.id)"
-      @edit-admin="openEdit"
+      @close="selectedSession = null"
+      @approve-admin="(id) => { handleApprove(id); selectedSession = null }"
+      @reject-admin="(id) => { openReject(id); selectedSession = null }"
+      @complete-admin="(id) => { handleCompleteAdmin(id); selectedSession = null }"
+      @reject-proof-admin="(id) => { handleRejectProofAdmin(id); selectedSession = null }"
+      @approve-teacher="(id) => { handleApprove(id); selectedSession = null }"
+      @reject-teacher="(id) => { openReject(id); selectedSession = null }"
+      @counter-teacher="(s) => { handleApprove(s.id); selectedSession = null }"
+      @approve-student="(id) => { handleApprove(id); selectedSession = null }"
+      @counter-student="(s) => { handleApprove(s.id); selectedSession = null }"
+      @edit-admin="(s) => { openEdit(s); selectedSession = null }"
     />
 
     <!-- Propose Modal -->

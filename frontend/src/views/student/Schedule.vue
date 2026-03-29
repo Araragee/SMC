@@ -18,6 +18,7 @@ const toast = useToastStore()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
+const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 
 const myId = computed(() => authStore.currentUser?.id ?? '')
@@ -60,6 +61,10 @@ function getTeacherName(id: string): string {
 function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
+}
+
+function onSessionClick(session: Session) {
+  selectedSession.value = session
 }
 
 async function onProposeSubmit(session: Session) {
@@ -205,7 +210,7 @@ function formatDay(iso: string): string {
           >
         </div>
       </div>
-      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" />
+      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" @session-click="onSessionClick" />
     </section>
 
     <!-- Upcoming Sessions -->
@@ -261,13 +266,13 @@ function formatDay(iso: string): string {
 
     <!-- Session Detail Modal -->
     <SessionDetailModal
-      :date="selectedDate"
-      :sessions="selectedDaySessions"
+      :session="selectedSession"
       user-role="student"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :users="allUsers"
-      @close="selectedDate = null"
-      @propose="((showProposeModal = true), (selectedDate = null))"
+      @close="selectedSession = null"
+      @approve-student="async (id) => { await scheduleStore.approveAsStudent(id); selectedSession = null; await scheduleStore.fetchUserSessions(myId) }"
+      @counter-student="() => { selectedSession = null; showProposeModal = true }"
     />
 
     <!-- Propose Modal -->

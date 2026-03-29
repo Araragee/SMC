@@ -18,6 +18,7 @@ const toast = useToastStore()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
+const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 const rejectModal = ref({ open: false, sessionId: '', notes: '' })
 const counterModal = ref({ open: false, sessionId: '', startTime: '', endTime: '', notes: '' })
@@ -58,6 +59,10 @@ function getStudentName(id: string): string {
 function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
+}
+
+function onSessionClick(session: Session) {
+  selectedSession.value = session
 }
 
 async function handleApproveStudent(sessionId: string) {
@@ -282,7 +287,7 @@ function formatDay(iso: string): string {
           >
         </div>
       </div>
-      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" />
+      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" @session-click="onSessionClick" />
     </section>
 
     <!-- Upcoming Confirmed Sessions -->
@@ -439,16 +444,14 @@ function formatDay(iso: string): string {
       </Transition>
     </Teleport>
     <SessionDetailModal
-      :date="selectedDate"
-      :sessions="selectedDaySessions"
+      :session="selectedSession"
       user-role="teacher"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :users="allUsers"
-      @close="selectedDate = null"
-      @propose="((showProposeModal = true), (selectedDate = null))"
-      @approve-teacher="handleApproveStudent"
-      @reject-teacher="openReject"
-      @counter-teacher="openCounter"
+      @close="selectedSession = null"
+      @approve-teacher="(id) => { handleApproveStudent(id); selectedSession = null }"
+      @reject-teacher="(id) => { openReject(id); selectedSession = null }"
+      @counter-teacher="(s) => { openCounter(s); selectedSession = null }"
     />
 
     <!-- Propose Modal -->
