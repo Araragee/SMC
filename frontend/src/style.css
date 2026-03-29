@@ -1,0 +1,418 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+
+  /* ============================================
+     iOS 26 Liquid Glass System
+     ============================================ */
+
+  /* Standard glass — cards, panels */
+  .glass {
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    background: rgba(255, 255, 255, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      0 8px 40px rgba(0, 0, 0, 0.07),
+      0 2px 8px  rgba(0, 0, 0, 0.04),
+      inset 0  1px 0 rgba(255, 255, 255, 0.90),
+      inset 1px 0  0 rgba(255, 255, 255, 0.50),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.20);
+  }
+
+  .dark .glass {
+    background: rgba(28, 28, 30, 0.70);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+      0 8px 40px rgba(0, 0, 0, 0.45),
+      0 2px 8px  rgba(0, 0, 0, 0.30),
+      inset 0  1px 0 rgba(255, 255, 255, 0.12),
+      inset 1px 0  0 rgba(255, 255, 255, 0.05),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.02);
+  }
+
+  /* Thin glass — navbars, pills, floating bars */
+  .glass-thin {
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.50);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .dark .glass-thin {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  }
+
+  /* Heavy glass — modals, sheets, overlays */
+  .glass-heavy {
+    backdrop-filter: blur(56px) saturate(200%);
+    -webkit-backdrop-filter: blur(56px) saturate(200%);
+    background: rgba(252, 250, 255, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.70);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.10),
+      0  8px 32px rgba(0, 0, 0, 0.06),
+      inset 0  1px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0  0 rgba(255, 255, 255, 0.60);
+  }
+
+  .dark .glass-heavy {
+    background: rgba(20, 20, 22, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.60),
+      0  8px 32px rgba(0, 0, 0, 0.40),
+      inset 0  1px 0 rgba(255, 255, 255, 0.14),
+      inset 1px 0  0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Tinted glass — brand-colored accent cards */
+  .glass-tinted {
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    background: rgba(255, 144, 109, 0.10);
+    border: 1px solid rgba(255, 144, 109, 0.28);
+    box-shadow:
+      0 8px 40px rgba(255, 144, 109, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+
+  .dark .glass-tinted {
+    background: rgba(255, 144, 109, 0.08);
+    border: 1px solid rgba(255, 144, 109, 0.18);
+    box-shadow:
+      0 8px 40px rgba(255, 69, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  /* Specular highlight layer — add as extra class for shimmer */
+  .glass-specular {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-specular::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      158deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(255, 255, 255, 0.08) 28%,
+      transparent 55%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .dark .glass-specular::before {
+    background: linear-gradient(
+      158deg,
+      rgba(255, 255, 255, 0.09) 0%,
+      rgba(255, 255, 255, 0.03) 28%,
+      transparent 55%
+    );
+  }
+
+  /* Legacy — keep for backwards compat with liquid-glass usages */
+  .liquid-glass {
+    @apply glass-thin rounded-3xl;
+  }
+
+  /* ============================================
+     Background Utilities
+     ============================================ */
+
+  .cosmic-void {
+    @apply bg-gradient-to-b from-zinc-900 via-[#0e0e0e] to-[#0e0e0e];
+  }
+
+  .text-glow {
+    text-shadow: 0 0 24px rgba(255, 69, 0, 0.4);
+  }
+}
+
+:where(.dark) .cosmic-void {
+  @apply bg-gradient-to-b from-zinc-900 via-[#0e0e0e] to-[#0e0e0e];
+}
+
+:where(.light) .cosmic-void {
+  @apply bg-gradient-to-b from-orange-100 via-orange-50 to-white;
+}
+
+/* ============================================
+   Design Tokens — Dark (default)
+   ============================================ */
+:root {
+  --primary: #ff906d;
+  --on-primary: #5b1600;
+  --primary-container: #ff784d;
+  --on-primary-container: #460f00;
+  --primary-dim: #ff7346;
+  --primary-fixed: #ff784d;
+  --primary-fixed-dim: #ff5d26;
+  --on-primary-fixed: #000000;
+  --on-primary-fixed-variant: #571400;
+  --inverse-primary: #af3200;
+
+  --secondary: #e5e2e1;
+  --on-secondary: #525151;
+  --secondary-container: #474746;
+  --on-secondary-container: #d2d0cf;
+  --secondary-dim: #d6d4d3;
+  --secondary-fixed: #e5e2e1;
+  --secondary-fixed-dim: #d6d4d3;
+  --on-secondary-fixed: #403f3f;
+  --on-secondary-fixed-variant: #5c5b5b;
+
+  --tertiary: #ff9a5d;
+  --on-tertiary: #572400;
+  --tertiary-container: #f9873e;
+  --on-tertiary-container: #451b00;
+  --tertiary-dim: #ef8037;
+  --tertiary-fixed: #ff9655;
+  --tertiary-fixed-dim: #f6853b;
+  --on-tertiary-fixed: #2d0f00;
+  --on-tertiary-fixed-variant: #612900;
+
+  --error: #ff716c;
+  --on-error: #490006;
+  --error-container: #9f0519;
+  --on-error-container: #ffa8a3;
+  --error-dim: #d7383b;
+
+  --primary-rgb: 255 144 109;
+
+  --surface: #0e0e0e;
+  --on-surface: #ffffff;
+  --on-surface-rgb: 255 255 255;
+  --surface-dim: #0e0e0e;
+  --surface-bright: #2c2c2c;
+  --surface-container-lowest: #000000;
+  --surface-container-low: #131313;
+  --surface-container-low-rgb: 19 19 19;
+  --surface-container: #1a1919;
+  --surface-container-high: #201f1f;
+  --surface-container-highest: #262626;
+  --surface-container-highest-rgb: 38 38 38;
+  --surface-variant: #262626;
+  --on-surface-variant: #adaaaa;
+  --on-surface-variant-rgb: 173 170 170;
+  --inverse-surface: #fcf9f8;
+  --inverse-on-surface: #565555;
+  --surface-tint: #ff906d;
+
+  --outline: #767575;
+  --outline-variant: #484847;
+  --outline-variant-rgb: 72 72 71;
+
+  --background: #0e0e0e;
+  --on-background: #ffffff;
+}
+
+/* ============================================
+   Design Tokens — Light
+   ============================================ */
+:root:not(.dark) {
+  --primary: #ff906d;
+  --on-primary: #ffffff;
+  --primary-container: #ffdbce;
+  --on-primary-container: #460f00;
+  --primary-dim: #ff7346;
+  --primary-fixed: #ff784d;
+  --primary-fixed-dim: #ff5d26;
+  --on-primary-fixed: #000000;
+  --on-primary-fixed-variant: #571400;
+  --inverse-primary: #af3200;
+
+  --secondary: #726f6e;
+  --on-secondary: #ffffff;
+  --secondary-container: #f9f8f6;
+  --on-secondary-container: #5c5b5b;
+  --secondary-dim: #d6d4d3;
+  --secondary-fixed: #e5e2e1;
+  --secondary-fixed-dim: #d6d4d3;
+  --on-secondary-fixed: #403f3f;
+  --on-secondary-fixed-variant: #5c5b5b;
+
+  --tertiary: #d47f47;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #ffdcc8;
+  --on-tertiary-container: #451b00;
+  --tertiary-dim: #d46939;
+  --tertiary-fixed: #ffc393;
+  --tertiary-fixed-dim: #ffb373;
+  --on-tertiary-fixed: #6b2c00;
+  --on-tertiary-fixed-variant: #612900;
+
+  --error: #b3261e;
+  --on-error: #ffffff;
+  --error-container: #f9dedc;
+  --on-error-container: #410e0b;
+  --error-dim: #d7383b;
+
+  --surface: #fffbfe;
+  --on-surface: #18181b;
+  --on-surface-rgb: 24 24 27;
+  --surface-dim: #efe1e6;
+  --surface-bright: #fffbfe;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f8f2f7;
+  --surface-container-low-rgb: 248 242 247;
+  --surface-container: #f3ede8;
+  --surface-container-high: #ede7e3;
+  --surface-container-highest: #e8e2dd;
+  --surface-container-highest-rgb: 232 226 221;
+  --surface-variant: #e4e4e7;
+  --on-surface-variant: #52525b;
+  --on-surface-variant-rgb: 82 82 91;
+  --inverse-surface: #18181b;
+  --inverse-on-surface: #f4eff4;
+  --surface-tint: #ff906d;
+
+  --outline: #a1a1aa;
+  --outline-variant: #e4e4e7;
+  --outline-variant-rgb: 228 228 231;
+
+  --background: #fffbfe;
+  --on-background: #18181b;
+}
+
+html {
+  font-size: 18px; /* bumped from 16px default for better readability */
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  @apply bg-[var(--surface)] dark:bg-[var(--surface)] text-[var(--on-surface)] dark:text-[var(--on-surface)] antialiased;
+}
+
+/* Let native browser widgets (date/time pickers, selects, scrollbars) adapt to theme.
+   Default is dark (matches the dark CSS variable defaults above).
+   Light overrides kick in when .dark is absent. */
+:root {
+  color-scheme: dark;
+}
+:root:not(.dark) {
+  color-scheme: light;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-semibold tracking-tight;
+}
+
+/* Selection highlight */
+::selection {
+  background-color: rgba(255, 144, 109, 0.3);
+}
+
+/* Custom scrollbar — theme-aware */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.24);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.10);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.20);
+}
+
+/* ============================================================
+   Semantic token overrides — unlayered (highest priority).
+   Tailwind compiles these with static dark-mode defaults.
+   These rules force CSS variable usage so light/dark switches work.
+   ============================================================ */
+
+/* Text */
+.text-on-surface            { color: var(--on-surface); }
+.text-on-surface-variant    { color: var(--on-surface-variant); }
+.text-on-background         { color: var(--on-background); }
+.text-on-primary            { color: var(--on-primary); }
+.text-on-primary-container  { color: var(--on-primary-container); }
+.text-on-secondary          { color: var(--on-secondary); }
+.text-on-secondary-container{ color: var(--on-secondary-container); }
+.text-on-tertiary           { color: var(--on-tertiary); }
+.text-surface               { color: var(--surface); }
+.text-primary               { color: var(--primary); }
+.text-outline               { color: var(--outline); }
+.text-outline-variant       { color: var(--outline-variant); }
+.text-secondary             { color: var(--secondary); }
+
+/* Opacity variants of on-surface-variant */
+.text-on-surface-variant\/40 { color: rgb(var(--on-surface-variant-rgb) / 0.4); }
+.text-on-surface-variant\/50 { color: rgb(var(--on-surface-variant-rgb) / 0.5); }
+.text-on-surface-variant\/60 { color: rgb(var(--on-surface-variant-rgb) / 0.6); }
+
+/* Hover text */
+.hover\:text-on-surface:hover         { color: var(--on-surface); }
+.hover\:text-on-surface-variant:hover { color: var(--on-surface-variant); }
+.group:hover .group-hover\:text-on-surface        { color: var(--on-surface); }
+.group:hover .group-hover\:text-on-surface-variant{ color: var(--on-surface-variant); }
+
+/* Backgrounds */
+.bg-surface                    { background-color: var(--surface); }
+.bg-surface-dim                { background-color: var(--surface-dim); }
+.bg-surface-bright             { background-color: var(--surface-bright); }
+.bg-surface-variant            { background-color: var(--surface-variant); }
+.bg-surface-container          { background-color: var(--surface-container); }
+.bg-surface-container-low      { background-color: var(--surface-container-low); }
+.bg-surface-container-high     { background-color: var(--surface-container-high); }
+.bg-surface-container-highest  { background-color: var(--surface-container-highest); }
+.bg-surface-container-lowest   { background-color: var(--surface-container-lowest); }
+.bg-outline-variant            { background-color: var(--outline-variant); }
+.bg-secondary-container        { background-color: var(--secondary-container); }
+
+/* Opacity bg variants */
+.bg-surface-container-low\/40     { background-color: rgb(var(--surface-container-low-rgb) / 0.4); }
+.bg-surface-container-low\/80     { background-color: rgb(var(--surface-container-low-rgb) / 0.8); }
+.bg-surface-container-highest\/30 { background-color: rgb(var(--surface-container-highest-rgb) / 0.3); }
+.bg-surface-container-highest\/50 { background-color: rgb(var(--surface-container-highest-rgb) / 0.5); }
+.bg-surface-container-highest\/80 { background-color: rgb(var(--surface-container-highest-rgb) / 0.8); }
+.bg-outline-variant\/20           { background-color: rgb(var(--outline-variant-rgb) / 0.2); }
+
+/* Primary opacity bg */
+.bg-primary\/10  { background-color: rgb(var(--primary-rgb) / 0.1); }
+.bg-primary\/20  { background-color: rgb(var(--primary-rgb) / 0.2); }
+.bg-primary\/30  { background-color: rgb(var(--primary-rgb) / 0.3); }
+
+/* Borders */
+.border-outline-variant   { border-color: var(--outline-variant); }
+.border-outline           { border-color: var(--outline); }
+.border-surface-container-highest { border-color: var(--surface-container-highest); }
+.border-primary           { border-color: var(--primary); }
+
+/* Border opacity variants */
+.border-outline-variant\/20 { border-color: rgb(var(--outline-variant-rgb) / 0.2); }
+.border-outline-variant\/30 { border-color: rgb(var(--outline-variant-rgb) / 0.3); }
+.border-outline-variant\/40 { border-color: rgb(var(--outline-variant-rgb) / 0.4); }
+.border-primary\/30         { border-color: rgb(var(--primary-rgb) / 0.3); }
+.border-primary\/50         { border-color: rgb(var(--primary-rgb) / 0.5); }
+
+/* Ring */
+.ring-on-surface\/20 { --tw-ring-color: rgb(var(--on-surface-rgb) / 0.2); }
+.ring-primary\/40    { --tw-ring-color: rgb(var(--primary-rgb) / 0.4); }
+.ring-primary\/50    { --tw-ring-color: rgb(var(--primary-rgb) / 0.5); }
+
+/* Selection */
+.selection\:bg-primary\/30 *::selection { background-color: rgb(var(--primary-rgb) / 0.3); }
