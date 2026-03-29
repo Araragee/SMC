@@ -58,6 +58,10 @@ const nextSessionCountdown = computed(() => {
   return `${Math.floor(hours / 24)} days`
 })
 
+const overdueSessions = computed(() =>
+  mySessions.value.filter((s) => ['overdue', 'overdue_rejected'].includes(s.status))
+)
+
 const pendingHomework = computed(
   () => mySessions.value.find((s) => s.homeworkAssigned && !s.homeworkCompleted) ?? null
 )
@@ -135,6 +139,20 @@ function closeSessionModal() {
   selectedSession.value = null
   stagedProofFile.value = null
   stagedProofUrl.value = null
+  approvalJustification.value = ''
+}
+
+const approvalJustification = ref('')
+
+async function submitApprovalRequest(sessionId: string) {
+  try {
+    await scheduleStore.requestApproval(sessionId, approvalJustification.value)
+    toast.success('Approval Requested', 'Your proof has been submitted for review.')
+    approvalJustification.value = ''
+    selectedSession.value = null
+  } catch (err: any) {
+    toast.error('Failed to submit', err.message || 'Something went wrong.')
+  }
 }
 
 function handleGenericProofSelection(event: Event) {
@@ -236,6 +254,16 @@ async function approveCounter() {
             Request Session
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Overdue Warning -->
+    <div v-if="overdueSessions.length > 0" class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 text-red-700 dark:text-red-400">
+      <span class="material-symbols-outlined shrink-0 text-red-500" style="font-variation-settings: 'FILL' 1">warning</span>
+      <div>
+        <h4 class="font-bold mb-1">Action Required: Overdue Sessions</h4>
+        <p class="text-sm">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
+        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="selectedSession = overdueSessions[0]">Resolve Now</button>
       </div>
     </div>
 
@@ -780,31 +808,65 @@ async function approveCounter() {
 
           <!-- Proof Section -->
           <div
-            v-if="selectedSession.status !== 'cancelled'"
+            v-if="['scheduled', 'overdue', 'completed', 'pending_verification', 'overdue_rejected'].includes(selectedSession.status)"
             class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-4 border border-black/[0.04] dark:border-white/5"
           >
             <h4 class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-3">
-              Session Proof
+              Session Proofs
             </h4>
 
-            <div v-if="selectedSession.imageProofUrl" class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div
-                  class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0"
-                >
-                  <img :src="selectedSession.imageProofUrl" class="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <p class="text-sm font-bold text-on-surface dark:text-on-surface">Proof Uploaded</p>
-                  <p class="text-xs text-emerald-400">Verified ✓</p>
-                </div>
+            <div v-if="selectedSession.status === 'overdue_rejected'" class="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+              <p class="text-[10px] font-black uppercase text-red-500 tracking-wider mb-1">Proof Rejected</p>
+              <p class="text-xs text-red-400 font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
+              <p class="text-xs text-on-surface-variant">Please upload a valid proof and provide justification below.</p>
+            </div>
+
+            <div class="space-y-3 mb-4">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-on-surface-variant">Your Proof</span>
+                <span class="text-sm font-bold" :class="selectedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
+                  {{ selectedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : 'Pending' }}
+                </span>
               </div>
-              <button
-                class="px-4 py-2 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg transition-all border border-black/[0.08] dark:border-white/10"
-                @click="showProofViewer = true"
-              >
-                View Proof
-              </button>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-on-surface-variant">Teacher's Proof</span>
+                <span class="text-sm font-bold" :class="selectedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
+                  {{ selectedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : 'Pending' }}
+                </span>
+              </div>
+            </div>
+
+            <div v-if="selectedSession.proofs?.some(p => p.uploaderRole === 'student')" class="flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0">
+                    <img :src="selectedSession.proofs?.find(p => p.uploaderRole === 'student')?.imageUrl" class="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold text-on-surface dark:text-on-surface">Your Proof</p>
+                    <p class="text-xs text-emerald-400">Recorded ✓</p>
+                  </div>
+                </div>
+                <button
+                  class="px-4 py-2 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg transition-all border border-black/[0.08] dark:border-white/10"
+                  @click="showProofViewer = true; proofPreviewUrl = selectedSession.proofs?.find(p => p.uploaderRole === 'student')?.imageUrl || null"
+                >
+                  View
+                </button>
+              </div>
+
+              <div v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)" class="mt-2 pt-3 border-t border-black/[0.04] dark:border-white/5 space-y-3">
+                <label class="block text-xs text-on-surface-variant mb-1 font-bold">Add a note for the Admin (Optional)</label>
+                <textarea v-model="approvalJustification" rows="2" class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none placeholder:text-on-surface-variant/50" placeholder="E.g. Class was conducted successfully..."></textarea>
+                <button class="w-full py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] active:scale-95 text-white font-bold rounded-xl transition-all text-sm shadow-md" @click="submitApprovalRequest(selectedSession.id)">
+                  Submit Request for Approval
+                </button>
+              </div>
+            </div>
+
+            <div v-else-if="selectedSession.status === 'pending_verification'" class="mt-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-center">
+              <p class="text-xs font-bold text-emerald-500">Approval Request Pending</p>
+              <p class="text-[10px] text-emerald-400 mt-1">An admin or teacher is reviewing your proof.</p>
             </div>
 
             <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
@@ -883,7 +945,7 @@ async function approveCounter() {
               </button>
             </div>
 
-            <div v-else>
+            <div v-else-if="['scheduled', 'overdue', 'overdue_rejected'].includes(selectedSession.status)">
               <label
                 class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center"
               >

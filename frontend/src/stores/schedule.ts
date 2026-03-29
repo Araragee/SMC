@@ -21,12 +21,22 @@ function mapSession(session: any): Session {
     proposedBy: session.proposed_by ? String(session.proposed_by) : undefined,
     notes: session.notes || undefined,
     imageProofUrl: session.proof_image_url,
+    proofs: session.proofs ? session.proofs.map((p: any) => ({
+      id: String(p.id),
+      sessionId: String(p.session_id),
+      imageUrl: p.image_url,
+      uploadedAt: p.uploaded_at,
+      uploaderId: p.uploader_id ? String(p.uploader_id) : undefined,
+      uploaderRole: p.uploader_role,
+    })) : [],
     homeworkAssigned: session.homework_assigned,
     homeworkCompleted: session.homework_completed,
     instrumentId: session.instrument_id,
     isManualEntry: session.is_manual_entry,
     sessionNumber: session.session_number,
-    instrument: session.instrument
+    instrument: session.instrument,
+    proofJustification: session.proof_justification || undefined,
+    rejectionReason: session.rejection_reason || undefined
   };
 }
 
@@ -304,6 +314,53 @@ export const useScheduleStore = defineStore('schedule', {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/approve/student`, {}, { headers: authHeaders() });
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async completeSession(sessionId: string) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(`${API_URL}/sessions/${sessionId}/complete`, {}, { headers: authHeaders() });
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async requestApproval(sessionId: string, justification?: string) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(
+          `${API_URL}/sessions/${sessionId}/request-approval`,
+          { justification: justification || null },
+          { headers: authHeaders() }
+        );
+        this._upsertSession(mapSession(response.data));
+      } catch (err: any) {
+        this.error = err.message;
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async rejectProof(sessionId: string, reason: string) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(
+          `${API_URL}/sessions/${sessionId}/reject-proof`,
+          { reason },
+          { headers: authHeaders() }
+        );
         this._upsertSession(mapSession(response.data));
       } catch (err: any) {
         this.error = err.message;

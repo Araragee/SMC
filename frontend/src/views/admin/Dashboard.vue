@@ -219,10 +219,33 @@ async function handleRejectAdmin(sessionId: string) {
       await scheduleStore.rejectAsAdmin(sessionId, 'Reject by Admin')
     }
     toast.success('Rejected', 'Session has been updated.')
-    await scheduleStore.fetchAllSessions()
     refreshDetailSessions()
   } catch {
     toast.error('Failed', 'Could not reject session.')
+  }
+}
+
+async function handleCompleteAdmin(sessionId: string) {
+  try {
+    await scheduleStore.completeSession(sessionId)
+    toast.success('Session Completed', 'The session has been successfully finalized.')
+    await scheduleStore.fetchAllSessions()
+    refreshDetailSessions()
+  } catch (err: any) {
+    toast.error('Failed to complete', err.message || 'Something went wrong.')
+  }
+}
+
+async function handleRejectProofAdmin(sessionId: string) {
+  const reason = window.prompt("Enter a reason for rejecting this proof:")
+  if (!reason) return
+  try {
+    await scheduleStore.rejectProof(sessionId, reason)
+    toast.success('Proof Rejected', 'The student has been notified to re-upload.')
+    await scheduleStore.fetchAllSessions()
+    refreshDetailSessions()
+  } catch (err: any) {
+    toast.error('Failed to reject proof', err.message || 'Something went wrong.')
   }
 }
 
@@ -1024,6 +1047,8 @@ function openLiveAnalytics() {
     "
     @approve-admin="handleApproveAdmin"
     @reject-admin="handleRejectAdmin"
+    @complete-admin="handleCompleteAdmin"
+    @reject-proof-admin="handleRejectProofAdmin"
     @approve-teacher="handleApproveAdmin"
     @reject-teacher="handleRejectAdmin"
     @counter-teacher="(s) => handleApproveAdmin(s.id)"

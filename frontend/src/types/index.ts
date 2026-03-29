@@ -7,7 +7,10 @@ export type SessionStatus =
   | 'pending_teacher'
   | 'pending_student'
   | 'pending_admin'
-  | 'rejected';
+  | 'rejected'
+  | 'overdue'
+  | 'pending_verification'
+  | 'overdue_rejected';
 
 export interface InstrumentRecord {
   id: number;
@@ -47,6 +50,15 @@ export interface User {
   sessionsEnrolled?: number;
 }
 
+export interface SessionProof {
+  id: string;
+  sessionId: string;
+  imageUrl: string;
+  uploadedAt: string;
+  uploaderId?: string;
+  uploaderRole?: string;
+}
+
 export interface Session {
   id: string;
   studentId: string;
@@ -56,13 +68,16 @@ export interface Session {
   status: SessionStatus;
   proposedBy?: string;
   notes?: string;
-  imageProofUrl?: string;
+  imageProofUrl?: string; // Legacy/convenience
+  proofs?: SessionProof[];
   homeworkAssigned?: string;
   homeworkCompleted?: boolean;
   instrumentId?: number;
   isManualEntry?: boolean;
   sessionNumber?: number;
   instrument?: InstrumentRecord;
+  proofJustification?: string;
+  rejectionReason?: string;
 }
 
 export interface Schedule {

@@ -73,6 +73,30 @@ async function handleApprove(sessionId: string) {
   }
 }
 
+async function handleCompleteAdmin(sessionId: string) {
+  try {
+    await scheduleStore.completeSession(sessionId)
+    toast.success('Session Completed', 'The session has been successfully finalized.')
+    selectedDate.value = null
+    await scheduleStore.fetchAllSessions()
+  } catch (err: any) {
+    toast.error('Failed to complete', err.message || 'Something went wrong.')
+  }
+}
+
+async function handleRejectProofAdmin(sessionId: string) {
+  const reason = window.prompt("Enter a reason for rejecting this proof:")
+  if (!reason) return
+  try {
+    await scheduleStore.rejectProof(sessionId, reason)
+    toast.success('Proof Rejected', 'The student has been notified to re-upload.')
+    selectedDate.value = null
+    await scheduleStore.fetchAllSessions()
+  } catch (err: any) {
+    toast.error('Failed to reject proof', err.message || 'Something went wrong.')
+  }
+}
+
 function openReject(sessionId: string) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
@@ -530,6 +554,8 @@ function statusBadgeClass(status: string): string {
       @propose="((showProposeModal = true), (selectedDate = null))"
       @approve-admin="handleApprove"
       @reject-admin="openReject"
+      @complete-admin="handleCompleteAdmin"
+      @reject-proof-admin="handleRejectProofAdmin"
       @approve-teacher="handleApprove"
       @reject-teacher="openReject"
       @counter-teacher="(s) => handleApprove(s.id)"
@@ -539,8 +565,9 @@ function statusBadgeClass(status: string): string {
     />
 
     <!-- Propose Modal -->
-    <ProposeSessionModal :is-open="showProposeModal"
+    <ProposeSessionModal
       v-if="showProposeModal"
+      :is-open="showProposeModal"
       user-role="admin"
       :current-user-id="authStore.currentUser?.id ?? ''"
       :teachers="teachers"

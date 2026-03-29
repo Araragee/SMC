@@ -21,6 +21,8 @@ defineEmits<{
   'approve-admin': [sessionId: string]
   'reject-admin': [sessionId: string]
   'edit-admin': [session: Session]
+  'complete-admin': [sessionId: string]
+  'reject-proof-admin': [sessionId: string]
 }>()
 
 const formattedDate = computed(() => {
@@ -50,6 +52,7 @@ function statusLabel(status: string): string {
     pending_admin: 'Awaiting Admin',
     rejected: 'Declined',
     cancelled: 'Cancelled',
+    overdue: 'Overdue',
   }
   return map[status] ?? status
 }
@@ -63,6 +66,7 @@ function sessionCardBg(status: string): string {
     pending_admin: 'bg-blue-500/5 border-blue-500/20',
     rejected: 'bg-red-500/5 border-red-500/20',
     cancelled: 'bg-zinc-500/5 border-zinc-500/20',
+    overdue: 'bg-red-500/5 border-red-500/40',
   }
   return map[status] ?? 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10'
 }
@@ -76,6 +80,7 @@ function statusBadgeClass(status: string): string {
     pending_admin: 'bg-blue-500/20 border-blue-500/40 text-blue-400',
     rejected: 'bg-red-500/20 border-red-500/40 text-red-400',
     cancelled: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',
+    overdue: 'bg-red-500/20 border-red-500/40 text-red-400',
   }
   return (
     map[status] ??
@@ -92,6 +97,7 @@ function statusDotClass(status: string): string {
     pending_admin: 'bg-blue-400',
     rejected: 'bg-red-400',
     cancelled: 'bg-zinc-400',
+    overdue: 'bg-red-400',
   }
   return map[status] ?? 'bg-zinc-400'
 }
@@ -233,6 +239,35 @@ function statusDotClass(status: string): string {
                 <p class="text-on-surface-variant text-xs">{{ session.notes }}</p>
               </div>
 
+              <!-- Proof Status -->
+              <div v-if="['scheduled', 'overdue', 'completed', 'pending_verification', 'overdue_rejected'].includes(session.status)" class="bg-black/[0.04] dark:bg-white/5 rounded-xl py-2.5 px-4 mt-2 border border-black/[0.04] dark:border-white/5">
+                <p class="text-[9px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-wider mb-2">
+                  Session Proofs
+                </p>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-on-surface-variant">Teacher:</span>
+                    <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
+                      {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : 'Pending' }}
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-on-surface-variant">Student:</span>
+                    <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
+                      {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : 'Pending' }}
+                    </span>
+                  </div>
+                </div>
+                <div v-if="session.proofJustification" class="mt-2 pt-2 border-t border-black/5 dark:border-white/5">
+                  <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider mb-1">Student's Note</p>
+                  <p class="text-xs text-on-surface italic">"{{ session.proofJustification }}"</p>
+                </div>
+                <div v-if="session.rejectionReason && session.status === 'overdue_rejected'" class="mt-2 pt-2 border-t border-red-500/20">
+                  <p class="text-[9px] text-red-500 uppercase font-bold tracking-wider mb-1">Admin Rejection Reason</p>
+                  <p class="text-xs text-red-400 font-bold">"{{ session.rejectionReason }}"</p>
+                </div>
+              </div>
+
               <!-- Action Buttons -->
               <div class="flex gap-2 pt-1">
                 <!-- Teacher actions: approve/reject student proposals -->
@@ -309,6 +344,38 @@ function statusDotClass(status: string): string {
                     Reject
                   </button>
                 </template>
+
+                <!-- Admin actions: approve/reject pending_verification (proofs submitted) -->
+                <template v-if="userRole === 'admin' && session.status === 'pending_verification'">
+                  <button
+                    class="flex-1 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    title="Approves proof and finalizes session"
+                    @click="$emit('complete-admin', session.id)"
+                  >
+                    <span class="material-symbols-outlined text-sm">verified</span>
+                    Approve Proof
+                  </button>
+                  <button
+                    class="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    title="Rejects proof with a reason"
+                    @click="$emit('reject-proof-admin', session.id)"
+                  >
+                    <span class="material-symbols-outlined text-sm">cancel</span>
+                    Reject Proof
+                  </button>
+                </template>
+
+                <!-- Admin actions: complete session manually -->
+                <template v-if="userRole === 'admin' && ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)">
+                  <button
+                    class="flex-1 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition-all flex items-center justify-center gap-1"
+                    title="Overrides proof requirements and finalizes session"
+                    @click="$emit('complete-admin', session.id)"
+                  >
+                    <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                    Force Complete
+                  </button>
+                </template>
               </div>
             </div>
           </div>
@@ -316,7 +383,7 @@ function statusDotClass(status: string): string {
           <!-- Footer -->
           <div class="p-4 border-t border-black/5 dark:border-white/5 flex gap-3">
             <button
-              v-if="userRole !== 'admin'"
+              v-if="userRole !== 'admin' && !sessions.some(s => ['overdue', 'overdue_rejected', 'pending_verification'].includes(s.status))"
               class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
               @click="$emit('propose')"
             >
@@ -324,7 +391,7 @@ function statusDotClass(status: string): string {
               Propose New Schedule
             </button>
             <button
-              v-if="userRole === 'admin'"
+              v-if="userRole === 'admin' && !sessions.some(s => ['overdue', 'overdue_rejected', 'pending_verification'].includes(s.status))"
               class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
               @click="$emit('propose')"
             >

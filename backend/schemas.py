@@ -74,6 +74,8 @@ class SessionProof(SessionProofBase):
     id: int
     session_id: int
     uploaded_at: datetime
+    uploader_id: Optional[int] = None
+    uploader_role: Optional[str] = None
     model_config = {"from_attributes": True}
 
 class SessionBase(BaseModel):
@@ -87,6 +89,10 @@ class SessionBase(BaseModel):
     instrument_id: Optional[int] = None
     is_manual_entry: bool = False
     session_number: Optional[int] = None
+    notified_24h: bool = False
+    notified_12h: bool = False
+    proof_justification: Optional[str] = None
+    rejection_reason: Optional[str] = None
 
 class SessionCreate(SessionBase):
     pass
@@ -113,6 +119,12 @@ class SessionEdit(BaseModel):
 # Used for approve/reject actions with optional reason
 class SessionApproval(BaseModel):
     notes: Optional[str] = None
+
+class SessionRequestApproval(BaseModel):
+    justification: Optional[str] = None
+
+class SessionRejectProof(BaseModel):
+    reason: str
 
 # Used for counter-proposals
 class SessionCounter(BaseModel):

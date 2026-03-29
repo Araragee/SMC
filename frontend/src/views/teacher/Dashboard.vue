@@ -458,7 +458,6 @@ const formatTime = (dt: string | undefined) => {
               <div
                 v-if="day.session"
                 class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
-                @click="day.session && openSessionModal(day.session)"
                 :class="
                   day.session.status === 'scheduled'
                     ? 'bg-orange-500/10 border-orange-500'
@@ -468,6 +467,7 @@ const formatTime = (dt: string | undefined) => {
                         ? 'bg-amber-500/10 border-amber-500'
                         : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/20'
                 "
+                @click="day.session && openSessionModal(day.session)"
               >
                 <p class="text-[10px] font-black text-orange-500 mb-1">
                   {{ formatTime(day.session.startTime) }}
@@ -568,8 +568,9 @@ const formatTime = (dt: string | undefined) => {
   </div>
 
   <!-- Propose Session Modal -->
-  <ProposeSessionModal :is-open="showProposeModal"
+  <ProposeSessionModal
     v-if="showProposeModal"
+    :is-open="showProposeModal"
     user-role="teacher"
     :current-user-id="myId"
     :teachers="[]"
@@ -629,15 +630,31 @@ const formatTime = (dt: string | undefined) => {
 
           <!-- Proof Section -->
           <div class="space-y-3">
-            <label class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest"
-              >Visual Evidence</label
-            >
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest">Visual Evidence</label>
+            </div>
+            
+            <div class="space-y-2 mb-4 bg-black/[0.04] dark:bg-white/5 p-3 rounded-xl border border-black/[0.04] dark:border-white/5">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-on-surface-variant">Your Proof</span>
+                <span class="font-bold" :class="expandedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
+                  {{ expandedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : 'Pending' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-on-surface-variant">Student's Proof</span>
+                <span class="font-bold" :class="expandedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
+                  {{ expandedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : 'Pending' }}
+                </span>
+              </div>
+            </div>
+
             <div
-              v-if="expandedSession.imageProofUrl"
+              v-if="expandedSession.proofs?.some(p => p.uploaderRole === 'teacher')"
               class="relative group rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/10"
             >
               <img
-                :src="expandedSession.imageProofUrl"
+                :src="expandedSession.proofs.find(p => p.uploaderRole === 'teacher')?.imageUrl"
                 class="w-full h-auto object-cover max-h-48"
               />
               <div
@@ -677,7 +694,7 @@ const formatTime = (dt: string | undefined) => {
             </div>
             <label
               v-else
-              class="block aspect-video bg-black/[0.04] dark:bg-white/5 rounded-3xl border-2 border-dashed border-black/[0.08] dark:border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:border-orange-500/50 transition-all group overflow-hidden relative"
+              class="aspect-video bg-black/[0.04] dark:bg-white/5 rounded-3xl border-2 border-dashed border-black/[0.08] dark:border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:border-orange-500/50 transition-all group overflow-hidden relative"
             >
               <div class="text-center group-hover:scale-105 transition-transform">
                 <div

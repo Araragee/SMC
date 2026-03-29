@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import pathlib
 import json
 from typing import Dict, List as TList
+import asyncio
 
 # Load .env from the backend directory
 load_dotenv(pathlib.Path(__file__).parent / ".env")
@@ -98,7 +99,11 @@ def startup_event():
         ("users", "sessions_enrolled", "INTEGER"),
         ("sessions", "instrument_id", "INTEGER REFERENCES instruments(id)"),
         ("sessions", "is_manual_entry", "BOOLEAN DEFAULT 0"),
-        ("sessions", "session_number", "INTEGER")
+        ("sessions", "session_number", "INTEGER"),
+        ("sessions", "notified_24h", "BOOLEAN DEFAULT 0"),
+        ("sessions", "notified_12h", "BOOLEAN DEFAULT 0"),
+        ("session_proofs", "uploader_id", "INTEGER REFERENCES users(id)"),
+        ("session_proofs", "uploader_role", "VARCHAR")
     ]
     
     for table, col, col_type in columns:
@@ -146,6 +151,9 @@ def startup_event():
     finally:
         db.close()
 
+    # Start the background task
+    asyncio.create_task(session_checker_task())
+
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -183,6 +191,54 @@ def map_session(db_session: models.Session) -> dict:
     session_dict['homework_assigned'] = db_session.homeworks[0].description if db_session.homeworks else None
     session_dict['homework_completed'] = db_session.homeworks[0].is_completed if db_session.homeworks else False
     return session_dict
+
+async def session_checker_task():
+    while True:
+        try:
+            db = SessionLocal()
+            now = datetime.utcnow()
+            
+            # Check for 24h notifications
+            target_24h = now + timedelta(hours=24)
+            sessions_24h = db.query(models.Session).filter(
+                models.Session.status == "scheduled",
+                models.Session.start_time <= target_24h,
+                models.Session.start_time > now,
+                models.Session.notified_24h == False
+            ).all()
+            for s in sessions_24h:
+                dt_str = format_dt(s.start_time)
+                notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session scheduled in ~24h on {dt_str}.")
+                s.notified_24h = True
+            
+            # Check for 12h notifications
+            target_12h = now + timedelta(hours=12)
+            sessions_12h = db.query(models.Session).filter(
+                models.Session.status == "scheduled",
+                models.Session.start_time <= target_12h,
+                models.Session.start_time > now,
+                models.Session.notified_12h == False
+            ).all()
+            for s in sessions_12h:
+                dt_str = format_dt(s.start_time)
+                notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session schedule nearing! ~12h left for {dt_str}.")
+                s.notified_12h = True
+                
+            # Check for overdue sessions (end_time in the past)
+            overdue_sessions = db.query(models.Session).filter(
+                models.Session.status == "scheduled",
+                models.Session.end_time < now
+            ).all()
+            for s in overdue_sessions:
+                dt_str = format_dt(s.start_time)
+                s.status = "overdue"
+                notify_users(db, [s.teacher_id, s.student_id], f"Action Required: Session from {dt_str} is overdue. Please upload proofs or mark complete.")
+                
+            db.commit()
+            db.close()
+        except Exception as e:
+            print(f"Error in background task: {e}")
+        await asyncio.sleep(60)
 
 # --- Root ---
 
@@ -762,6 +818,105 @@ def reject_session_as_admin(
 
     return map_session(db_session)
 
+@app.post("/sessions/{session_id}/request-approval", response_model=schemas.Session)
+def request_session_approval(
+    session_id: int,
+    approval_req: schemas.SessionRequestApproval,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Student requests approval for an uploaded overdue session proof."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status not in ["overdue", "overdue_rejected"]:
+        raise HTTPException(status_code=409, detail="Only overdue sessions can request approval")
+    
+    # Ensure student has uploaded proof
+    has_proof = any(p.uploader_role == 'student' for p in db_session.proofs)
+    if not has_proof:
+        raise HTTPException(status_code=400, detail="Must upload proof before requesting approval")
+
+    db_session.status = "pending_verification"
+    if approval_req.justification:
+        db_session.proof_justification = approval_req.justification
+    
+    db.commit()
+    db.refresh(db_session)
+    
+    dt_str = format_dt(db_session.start_time)
+    
+    notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.")
+    
+    admin_users = db.query(models.User).join(models.Role).filter(models.Role.name == "admin").all()
+    if admin_users:
+        notify_users(db, [admin.id for admin in admin_users], f"🔔 Proof submitted by {current_user.name} for overdue session on {dt_str} requires verification.")
+
+    return map_session(db_session)
+
+
+@app.post("/sessions/{session_id}/reject-proof", response_model=schemas.Session)
+def reject_session_proof(
+    session_id: int,
+    rejection: schemas.SessionRejectProof,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    """Admin rejects the uploaded session proof."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_verification":
+        raise HTTPException(status_code=409, detail="Session is not pending verification")
+
+    db_session.status = "overdue_rejected"
+    db_session.rejection_reason = rejection.reason
+    
+    db.commit()
+    db.refresh(db_session)
+    
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [db_session.student_id, db_session.teacher_id], f"❌ The proof submitted for the session on {dt_str} was rejected. Reason: {rejection.reason}. Please review and re-submit.")
+
+    return map_session(db_session)
+
+
+@app.post("/sessions/{session_id}/complete", response_model=schemas.Session)
+def complete_session_as_admin(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    """Admin completes a session overriding proof requirements."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status not in ["scheduled", "overdue", "pending_verification"]:
+        raise HTTPException(status_code=409, detail="Only scheduled, overdue, or pending_verification sessions can be completed")
+
+    db_session.status = "completed"
+    
+    # Analytics logic
+    student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
+    if student and student.sessions_left is not None and student.sessions_left > 0:
+        student.sessions_left -= 1
+        
+    enrollment = db.query(models.Enrollment).filter(
+        models.Enrollment.student_id == db_session.student_id,
+        models.Enrollment.teacher_id == db_session.teacher_id
+    ).first()
+    if enrollment:
+        enrollment.sessions_used += 1
+
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    notify_users(db, [db_session.teacher_id, db_session.student_id],
+        f"✅ Session from {dt_str} has been marked complete by admin.")
+
+    return map_session(db_session)
+
 # --- Enrollments ---
 
 @app.post("/enrollments/", response_model=schemas.Enrollment)
@@ -824,7 +979,12 @@ def create_session_proof(
 
     image_url = f"http://localhost:8000/uploads/{file_name}"
 
-    db_proof = models.SessionProof(session_id=session_id, image_url=image_url)
+    db_proof = models.SessionProof(
+        session_id=session_id, 
+        image_url=image_url,
+        uploader_id=current_user.id,
+        uploader_role=current_user.role.name if current_user.role else None
+    )
     db.add(db_proof)
     db.commit()
     db.refresh(db_proof)

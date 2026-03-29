@@ -81,13 +81,17 @@ class Session(Base):
     student_id = Column(Integer, ForeignKey("users.id"))
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    # status: pending_teacher | pending_admin | scheduled | completed | cancelled | rejected
+    # status: pending_teacher | pending_admin | scheduled | completed | cancelled | rejected | overdue
     status = Column(String, default="scheduled")
     proposed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     notes = Column(String, nullable=True)
     instrument_id = Column(Integer, ForeignKey("instruments.id"), nullable=True)
     is_manual_entry = Column(Boolean, default=False)
     session_number = Column(Integer, nullable=True)
+    notified_24h = Column(Boolean, default=False)
+    notified_12h = Column(Boolean, default=False)
+    proof_justification = Column(String, nullable=True)
+    rejection_reason = Column(String, nullable=True)
 
     instrument = relationship("Instrument")
 
@@ -131,8 +135,11 @@ class SessionProof(Base):
     session_id = Column(Integer, ForeignKey("sessions.id"))
     image_url = Column(String)
     uploaded_at = Column(DateTime, default=datetime.datetime.utcnow)
+    uploader_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    uploader_role = Column(String, nullable=True)
 
     session = relationship("Session", back_populates="proofs")
+    uploader = relationship("User", foreign_keys=[uploader_id])
 
 class Notification(Base):
     __tablename__ = "notifications"
