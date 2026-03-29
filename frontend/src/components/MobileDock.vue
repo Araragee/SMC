@@ -38,7 +38,7 @@ const navsByRole: Record<string, NavItem[]> = {
 const navItems = computed<NavItem[]>(() => navsByRole[authStore.userRole || ''] ?? [])
 const isActive = (path: string) => route.path === path
 
-function handleScroll() {
+const handleScroll = function() {
   const currentScrollY = window.scrollY
   if (currentScrollY > lastScrollY && currentScrollY > 100) {
     isVisible.value = false

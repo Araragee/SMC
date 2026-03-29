@@ -98,7 +98,7 @@ const formatMonth = (dt: string | undefined) => {
   return new Date(dt).toLocaleString('en-US', { month: 'short' }).toUpperCase()
 }
 
-async function submitRequest() {
+const submitRequest = async function() {
   if (!requestForm.teacherId || !requestForm.startTime) return
   try {
     const start = new Date(requestForm.startTime)
@@ -120,19 +120,19 @@ async function submitRequest() {
   }
 }
 
-async function markHomeworkDone(sessionId: string) {
+const markHomeworkDone = async function(sessionId: string) {
   await interactionsStore.completeHomework(sessionId)
   toast.success('Homework submitted!', 'Great work — keep it up.')
 }
 
-function handleStagedProofUpload(event: Event) {
+const handleStagedProofUpload = function(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   stagedProofFile.value = input.files[0]
   stagedProofUrl.value = window.URL.createObjectURL(stagedProofFile.value)
 }
 
-async function saveStagedProof() {
+const saveStagedProof = async function() {
   if (!selectedSession.value || !stagedProofFile.value) return
   try {
     await interactionsStore.uploadImageProof(selectedSession.value.id, stagedProofFile.value)
@@ -146,7 +146,7 @@ async function saveStagedProof() {
   }
 }
 
-function closeSessionModal() {
+const closeSessionModal = function() {
   selectedSessionId.value = null
   stagedProofFile.value = null
   stagedProofUrl.value = null
@@ -156,7 +156,7 @@ function closeSessionModal() {
 
 const approvalJustification = ref('')
 
-async function submitApprovalRequest(sessionId: string) {
+const submitApprovalRequest = async function(sessionId: string) {
   try {
     await scheduleStore.requestApproval(sessionId, approvalJustification.value)
     toast.success('Approval Requested', 'Your proof has been submitted for review.')
@@ -169,14 +169,14 @@ async function submitApprovalRequest(sessionId: string) {
   }
 }
 
-function handleGenericProofSelection(event: Event) {
+const handleGenericProofSelection = function(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   proofPreviewFile.value = input.files[0]
   proofPreviewUrl.value = window.URL.createObjectURL(proofPreviewFile.value)
 }
 
-async function handleGenericProofUpload() {
+const handleGenericProofUpload = async function() {
   const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
   if (!firstScheduled) {
     toast.warning('No session to attach to', 'You need an active scheduled session.')
@@ -194,14 +194,14 @@ async function handleGenericProofUpload() {
 const isCountering = ref(false)
 const counterForm = reactive({ startTime: '', endTime: '', notes: '' })
 
-function startCountering(session: Session) {
+const startCountering = function(session: Session) {
   isCountering.value = true
   counterForm.startTime = session.startTime.slice(0, 16)
   counterForm.endTime = session.endTime?.slice(0, 16) || ''
   counterForm.notes = 'Refining my schedule'
 }
 
-async function submitStudentCounter() {
+const submitStudentCounter = async function() {
   if (!selectedSession.value) return
   try {
     const startTime = new Date(counterForm.startTime).toISOString();
@@ -227,7 +227,7 @@ async function submitStudentCounter() {
   }
 }
 
-async function approveCounter() {
+const approveCounter = async function() {
   if (!selectedSession.value) return
   try {
     await scheduleStore.approveAsStudent(selectedSession.value.id)

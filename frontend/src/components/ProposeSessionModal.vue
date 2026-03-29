@@ -50,7 +50,7 @@ const submitLabel = computed(() => {
   return 'Send Proposal'
 })
 
-async function submit() {
+const submit = async function() {
   if (!isValid.value || isSubmitting.value) return
   isSubmitting.value = true
   try {

@@ -5,11 +5,11 @@ import ChatWindow from './ChatWindow.vue'
 
 const store = useMessagingStore()
 
-function selectConversation(id: string) {
+const selectConversation = function(id: string) {
   store.activeConversationId = id
 }
 
-function back() {
+const back = function() {
   store.activeConversationId = null
 }
 </script>

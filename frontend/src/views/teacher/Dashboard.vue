@@ -66,29 +66,29 @@ const nextSession = computed(() => {
   )
 })
 
-function getStudentName(studentId: string) {
+const getStudentName = function(studentId: string) {
   return usersStore.users.find((u) => u.id === studentId)?.name || `Student #${studentId}`
 }
 
-function openSessionModal(session: Session) {
+const openSessionModal = function(session: Session) {
   expandedSession.value = session
   practiceGoalsText.value = session.notes || ''
   stagedProofFile.value = null
   stagedProofUrl.value = null
 }
 
-function closeSessionModal() {
+const closeSessionModal = function() {
   expandedSession.value = null
 }
 
-function handleStagedProofUpload(event: Event) {
+const handleStagedProofUpload = function(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   stagedProofFile.value = input.files[0]
   stagedProofUrl.value = window.URL.createObjectURL(stagedProofFile.value)
 }
 
-async function saveSessionChanges() {
+const saveSessionChanges = async function() {
   if (!expandedSession.value) return
 
   if (stagedProofFile.value) {
@@ -103,7 +103,7 @@ async function saveSessionChanges() {
   closeSessionModal()
 }
 
-async function handleApprove(sessionId: string) {
+const handleApprove = async function(sessionId: string) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Approved!', 'The session is now awaiting admin confirmation.')
@@ -114,7 +114,7 @@ async function handleApprove(sessionId: string) {
   }
 }
 
-async function handleReject(sessionId: string, notes?: string) {
+const handleReject = async function(sessionId: string, notes?: string) {
   try {
     await scheduleStore.rejectAsTeacher(sessionId, notes)
     toast.success('Declined', 'The student has been notified.')
@@ -128,7 +128,7 @@ async function handleReject(sessionId: string, notes?: string) {
 const showCounterModal = ref(false)
 const counterForm = ref({ startTime: '', endTime: '', notes: '' })
 
-function openCounter() {
+const openCounter = function() {
   if (!expandedSession.value) return
   counterForm.value = {
     startTime: expandedSession.value.startTime.slice(0, 16),
@@ -138,7 +138,7 @@ function openCounter() {
   showCounterModal.value = true
 }
 
-async function submitCounter() {
+const submitCounter = async function() {
   if (!expandedSession.value) return
   try {
     const start = new Date(counterForm.value.startTime).toISOString()
@@ -209,12 +209,12 @@ const pendingProposals = computed(
 
 const students = computed(() => usersStore.getUsersByRole('student'))
 
-function openProposeForDate(date: Date) {
+const openProposeForDate = function(date: Date) {
   proposeForDate.value = date
   showProposeModal.value = true
 }
 
-function openRosterSession(studentId: string) {
+const openRosterSession = function(studentId: string) {
   const sessions = mySessions.value.filter((s) => s.studentId === studentId)
   if (sessions.length === 0) return
   const now = new Date()
@@ -227,7 +227,7 @@ function openRosterSession(studentId: string) {
   openSessionModal(target)
 }
 
-async function onTeacherProposeSubmit(session: Session) {
+const onTeacherProposeSubmit = async function(session: Session) {
   try {
     await scheduleStore.proposeSessionAsTeacher({
       teacherId: session.teacherId,
