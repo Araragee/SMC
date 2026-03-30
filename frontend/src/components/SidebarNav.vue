@@ -83,13 +83,38 @@ const logout = () => {
   authStore.logout()
   router.push('/login')
 }
+
+const toggleSidebar = () => {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
+
+const closeSidebar = () => {
+  isSidebarOpen.value = false
+}
+
+const openNotifications = () => {
+  modalStore.openNotifications()
+}
+
+const openMessaging = () => {
+  messagingStore.isOpen = true
+}
+
+const toggleUserDropdown = () => {
+  isUserDropdownOpen.value = !isUserDropdownOpen.value
+}
+
+const openSettings = () => {
+  modalStore.openSettings()
+  isUserDropdownOpen.value = false
+}
 </script>
 
 <template>
   <!-- Mobile Hamburger Overlay Toggle -->
   <button
     class="fixed top-4 left-4 z-[105] lg:hidden w-12 h-12 bg-surface-container-low/80 backdrop-blur-lg rounded-full border border-black/[0.08] dark:border-white/10 flex items-center justify-center shadow-lg"
-    @click="isSidebarOpen = !isSidebarOpen"
+    @click="toggleSidebar"
   >
     <span class="material-symbols-outlined text-on-surface dark:text-on-surface">menu</span>
   </button>
@@ -105,7 +130,7 @@ const logout = () => {
     <div
       v-if="isSidebarOpen"
       class="fixed inset-0 bg-black/50 z-[90] lg:hidden backdrop-blur-sm"
-      @click="isSidebarOpen = false"
+      @click="closeSidebar"
     />
   </Transition>
 
@@ -148,7 +173,7 @@ const logout = () => {
             ? 'bg-orange-500/10 text-orange-500 border-l-4 border-l-orange-500'
             : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5'
         "
-        @click="isSidebarOpen = false"
+        @click="closeSidebar"
       >
         <span
           class="material-symbols-outlined text-xl"
@@ -165,7 +190,7 @@ const logout = () => {
         <!-- Notifications -->
         <button
           class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
-          @click="modalStore.openNotifications()"
+          @click="openNotifications"
         >
           <span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
             >notifications</span
@@ -180,7 +205,7 @@ const logout = () => {
         <!-- Messages -->
         <button
           class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group border border-black/[0.04] dark:border-white/5"
-          @click="messagingStore.isOpen = true"
+          @click="openMessaging"
         >
           <span
             class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform"
@@ -203,7 +228,7 @@ const logout = () => {
           :class="{
             'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen,
           }"
-          @click.stop="isUserDropdownOpen = !isUserDropdownOpen"
+          @click.stop="toggleUserDropdown"
         >
           <div
             class="w-10 h-10 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 font-black text-sm shrink-0 group-hover:border-orange-500/50 transition-colors overflow-hidden"
@@ -264,7 +289,7 @@ const logout = () => {
             <div class="p-2">
               <button
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
-                @click="((modalStore.openSettings()), (isUserDropdownOpen = false))"
+                @click="openSettings"
               >
                 <span class="material-symbols-outlined text-lg">person_edit</span>
                 Profile Settings

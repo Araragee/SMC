@@ -78,6 +78,10 @@ const markAllAsRead = function() {
     notifStore.markAllAsRead(authStore.currentUser.id)
   }
 }
+
+const closeModal = () => {
+  emit('close')
+}
 </script>
 
 <template>
@@ -86,10 +90,10 @@ const markAllAsRead = function() {
       <div
         v-if="isOpen"
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        @click.self="$emit('close')"
+        @click.self="closeModal"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" @click="closeModal" />
 
         <!-- Modal -->
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
@@ -109,7 +113,7 @@ const markAllAsRead = function() {
               </button>
               <button
                 class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
-                @click="$emit('close')"
+                @click="closeModal"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
               </button>

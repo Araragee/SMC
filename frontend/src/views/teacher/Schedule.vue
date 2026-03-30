@@ -438,10 +438,10 @@ const formatDay = function(iso: string): string  {
       :current-user-id="authStore.currentUser?.id ?? ''"
       :users="allUsers"
       @close="selectedSession = null"
-      @approve-teacher="(id) => { handleApproveStudent(id); selectedSession = null }"
-      @reject-teacher="(id) => { openReject(id); selectedSession = null }"
-      @counter-teacher="(s) => { openCounter(s); selectedSession = null }"
-      @nudge="(id) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+    @approve-teacher="(id: string) => { handleApproveStudent(id); selectedSession = null }"
+    @reject-teacher="(id: string) => { openReject(id); selectedSession = null }"
+    @counter-teacher="(s: any) => { openCounter(s); selectedSession = null }"
+    @nudge="(id: string) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->

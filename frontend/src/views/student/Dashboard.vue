@@ -238,6 +238,28 @@ const approveCounter = async function() {
     toast.error('Failed to accept proposal')
   }
 }
+
+const openRequestModal = () => {
+  showRequestModal.value = true
+}
+
+const closeRequestModal = () => {
+  showRequestModal.value = false
+}
+
+const resolveOverdue = () => {
+  if (overdueSessions.value.length > 0) {
+    selectedSessionId.value = overdueSessions.value[0].id
+  }
+}
+
+const selectSession = (id: string) => {
+  selectedSessionId.value = id
+}
+
+const stopCountering = () => {
+  isCountering.value = false
+}
 </script>
 
 <template>
@@ -263,7 +285,7 @@ const approveCounter = async function() {
           </RouterLink>
           <button
             class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
-            @click="showRequestModal = true"
+            @click="openRequestModal"
           >
             <span class="material-symbols-outlined text-lg">add_circle</span>
             Request Session
@@ -278,7 +300,7 @@ const approveCounter = async function() {
       <div>
         <h4 class="font-bold mb-1">Action Required: Overdue Sessions</h4>
         <p class="text-sm">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
-        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="selectedSessionId = overdueSessions[0].id">Resolve Now</button>
+        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="resolveOverdue">Resolve Now</button>
       </div>
     </div>
 
@@ -334,7 +356,7 @@ const approveCounter = async function() {
             </p>
             <button
               class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
-              @click="showRequestModal = true"
+              @click="openRequestModal"
             >
               Request a Session
             </button>
@@ -346,7 +368,7 @@ const approveCounter = async function() {
               v-for="session in mySessions"
               :key="session.id"
               class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
-              @click="selectedSessionId = session.id"
+              @click="selectSession(session.id)"
             >
               <!-- Date badge -->
               <div
@@ -923,7 +945,7 @@ const approveCounter = async function() {
                     </button>
                     <button
                       class="px-4 py-2 bg-black/5 dark:bg-white/5 text-xs font-bold rounded-xl"
-                      @click="isCountering = false"
+                      @click="stopCountering"
                     >
                       Cancel
                     </button>
@@ -1032,11 +1054,11 @@ const approveCounter = async function() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="request-modal-title"
-        @click.self="showRequestModal = false"
+        @click.self="closeRequestModal"
       >
         <div
           class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm"
-          @click="showRequestModal = false"
+          @click="closeRequestModal"
         />
         <div
           class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl"
@@ -1048,7 +1070,7 @@ const approveCounter = async function() {
             <button
               class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
               aria-label="Close modal"
-              @click="showRequestModal = false"
+              @click="closeRequestModal"
             >
               <span class="material-symbols-outlined">close</span>
             </button>
@@ -1088,7 +1110,7 @@ const approveCounter = async function() {
               <button
                 type="button"
                 class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
-                @click="showRequestModal = false"
+                @click="closeRequestModal"
               >
                 Cancel
               </button>

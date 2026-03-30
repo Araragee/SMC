@@ -137,12 +137,54 @@ const copyToClipboard = async (text: string) => {
     console.error('Failed to copy', err);
   }
 };
+
+const closeModal = () => {
+  emit('close');
+};
+
+const selectStudentRole = () => {
+  selectedRole.value = 'student';
+};
+
+const selectTeacherRole = () => {
+  selectedRole.value = 'teacher';
+};
+
+const useSuggestedUsername = () => {
+  formData.value.username = suggestedUsername.value;
+};
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const copyGeneratedPassword = () => {
+  copyToClipboard(password.value || generatedPassword.value);
+};
+
+const setSessionOption = (opt: number) => {
+  formData.value.sessionsEnrolled = opt;
+  formData.value.sessionsLeft = opt;
+  enrollmentCustom.value = false;
+};
+
+const enableCustomEnrollment = () => {
+  enrollmentCustom.value = true;
+};
+
+const handleBackOrClose = () => {
+  if (!props.initialRole && step.value === 2) {
+    step.value = 1;
+  } else {
+    closeModal();
+  }
+};
 </script>
 
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
     <BaseCard class="w-full max-w-2xl max-h-[90vh] overflow-y-auto liquid-glass border border-white/10 p-6 flex flex-col relative">
-      <button @click="$emit('close')" class="absolute top-4 right-4 text-white/50 hover:text-white material-symbols-outlined">close</button>
+      <button @click="closeModal" class="absolute top-4 right-4 text-white/50 hover:text-white material-symbols-outlined">close</button>
 
       <h2 class="text-2xl font-bold text-white mb-6">
         {{ step === 1 ? 'Select Member Role' : `Create New ${selectedRole === 'student' ? 'Student' : 'Teacher'}` }}
@@ -151,7 +193,7 @@ const copyToClipboard = async (text: string) => {
       <!-- Step 1: Role Selection -->
       <div v-if="step === 1" class="grid grid-cols-2 gap-4">
         <div
-          @click="selectedRole = 'student'"
+          @click="selectStudentRole"
           class="p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-4 text-center"
           :class="selectedRole === 'student' ? 'border-primary bg-primary/10' : 'border-white/10 hover:border-white/30'"
         >
@@ -163,7 +205,7 @@ const copyToClipboard = async (text: string) => {
         </div>
 
         <div
-          @click="selectedRole = 'teacher'"
+          @click="selectTeacherRole"
           class="p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-4 text-center"
           :class="selectedRole === 'teacher' ? 'border-primary bg-primary/10' : 'border-white/10 hover:border-white/30'"
         >
@@ -205,15 +247,15 @@ const copyToClipboard = async (text: string) => {
             <div class="grid grid-cols-2 gap-4">
               <div class="relative">
                 <BaseInput v-model="formData.username" label="Username" />
-                <button v-if="suggestedUsername && !formData.username" type="button" @click="formData.username = suggestedUsername" class="absolute right-2 top-8 text-xs text-primary hover:underline">Use {{ suggestedUsername }}</button>
+                <button v-if="suggestedUsername && !formData.username" type="button" @click="useSuggestedUsername" class="absolute right-2 top-8 text-xs text-primary hover:underline">Use {{ suggestedUsername }}</button>
               </div>
               <BaseInput v-model="formData.email" label="Email Address" type="email" required />
               <div class="col-span-2 relative">
                 <BaseInput v-model="password" :label="password ? 'Password' : 'Password (Auto-generated if empty)'" :type="showPassword ? 'text' : 'password'" :placeholder="generatedPassword" />
-                <button type="button" @click="showPassword = !showPassword" class="absolute right-10 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm">
+                <button type="button" @click="togglePasswordVisibility" class="absolute right-10 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm">
                   {{ showPassword ? 'visibility_off' : 'visibility' }}
                 </button>
-                <button type="button" @click="copyToClipboard(password || generatedPassword)" class="absolute right-2 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm" title="Copy password">
+                <button type="button" @click="copyGeneratedPassword" class="absolute right-2 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm" title="Copy password">
                   content_copy
                 </button>
                 <p v-if="!password && generatedPassword" class="text-xs text-white/40 mt-1">Generated: {{ generatedPassword }}</p>
@@ -243,12 +285,12 @@ const copyToClipboard = async (text: string) => {
                 <label class="block text-sm font-medium text-white/70 mb-2">Sessions Enrolled</label>
                 <div class="flex flex-wrap gap-2">
                   <button v-for="opt in sessionOptions" :key="opt" type="button"
-                    @click="formData.sessionsEnrolled = opt; formData.sessionsLeft = opt; enrollmentCustom = false"
+                    @click="setSessionOption(opt)"
                     class="px-4 py-2 rounded-lg border text-sm transition-colors"
                     :class="formData.sessionsEnrolled === opt && !enrollmentCustom ? 'border-primary bg-primary text-white' : 'border-white/10 text-white/70 hover:border-white/30'">
                     {{ opt }}
                   </button>
-                  <button type="button" @click="enrollmentCustom = true" class="px-4 py-2 rounded-lg border text-sm transition-colors" :class="enrollmentCustom ? 'border-primary bg-primary text-white' : 'border-white/10 text-white/70 hover:border-white/30'">Custom</button>
+                  <button type="button" @click="enableCustomEnrollment" class="px-4 py-2 rounded-lg border text-sm transition-colors" :class="enrollmentCustom ? 'border-primary bg-primary text-white' : 'border-white/10 text-white/70 hover:border-white/30'">Custom</button>
                   <BaseInput v-if="enrollmentCustom" v-model.number="formData.sessionsEnrolled" @input="formData.sessionsLeft = formData.sessionsEnrolled" type="number" class="w-24 ml-2 !mb-0" placeholder="Qty" />
                 </div>
               </div>
@@ -293,7 +335,7 @@ const copyToClipboard = async (text: string) => {
               <BaseInput v-model="formData.email" label="Email Address" type="email" required />
               <div class="col-span-2 relative">
                 <BaseInput v-model="password" label="Password" :type="showPassword ? 'text' : 'password'" required />
-                <button type="button" @click="showPassword = !showPassword" class="absolute right-2 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm">
+                <button type="button" @click="togglePasswordVisibility" class="absolute right-2 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm">
                   {{ showPassword ? 'visibility_off' : 'visibility' }}
                 </button>
               </div>
@@ -323,7 +365,7 @@ const copyToClipboard = async (text: string) => {
         </template>
 
         <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-white/5">
-          <BaseButton type="button" variant="secondary" @click="!props.initialRole && step === 2 ? step = 1 : $emit('close')">
+          <BaseButton type="button" variant="secondary" @click="handleBackOrClose">
             {{ !props.initialRole && step === 2 ? 'Back' : 'Cancel' }}
           </BaseButton>
           <BaseButton type="submit" :disabled="usersStore.isLoading">
