@@ -54,20 +54,20 @@ onMounted(async () => {
   ])
 })
 
-const getTeacherName = function(id: string): string  {
+const getTeacherName = function (id: string): string {
   return usersStore.users.find((u) => u.id === id)?.name ?? `Teacher #${id}`
 }
 
-const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function ({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-const onSessionClick = function(session: Session) {
+const onSessionClick = function (session: Session) {
   selectedSession.value = session
 }
 
-const onProposeSubmit = async function(session: Session) {
+const onProposeSubmit = async function (session: Session) {
   try {
     await scheduleStore.proposeSessionAsStudent({
       teacherId: session.teacherId,
@@ -83,7 +83,7 @@ const onProposeSubmit = async function(session: Session) {
   }
 }
 
-const formatDateTime = function(iso: string): string  {
+const formatDateTime = function (iso: string): string {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -94,7 +94,7 @@ const formatDateTime = function(iso: string): string  {
   })
 }
 
-const formatTime = function(iso: string): string  {
+const formatTime = function (iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -102,11 +102,11 @@ const formatTime = function(iso: string): string  {
   })
 }
 
-const formatMonth = function(iso: string): string  {
+const formatMonth = function (iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
 }
 
-const formatDay = function(iso: string): string  {
+const formatDay = function (iso: string): string {
   return String(new Date(iso).getDate())
 }
 </script>
@@ -118,10 +118,14 @@ const formatDay = function(iso: string): string  {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">My Schedule</h1>
+        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">
+          My Schedule
+        </h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
-          <span class="text-on-surface dark:text-on-surface font-bold">{{ confirmedSessions.length }}</span> confirmed
-          sessions this month.
+          <span class="text-on-surface dark:text-on-surface font-bold">{{
+            confirmedSessions.length
+          }}</span>
+          confirmed sessions this month.
           <template v-if="pendingCount > 0">
             <span class="text-amber-400 font-bold">{{ pendingCount }}</span> pending approval.
           </template>
@@ -166,8 +170,12 @@ const formatDay = function(iso: string): string  {
               "
             >
               <div>
-                <p class="text-on-surface dark:text-on-surface text-sm font-bold">{{ formatDateTime(session.startTime) }}</p>
-                <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">with {{ getTeacherName(session.teacherId) }}</p>
+                <p class="text-on-surface dark:text-on-surface text-sm font-bold">
+                  {{ formatDateTime(session.startTime) }}
+                </p>
+                <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">
+                  with {{ getTeacherName(session.teacherId) }}
+                </p>
               </div>
               <span
                 class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border"
@@ -187,35 +195,30 @@ const formatDay = function(iso: string): string  {
 
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
-          <span
-            class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
+      <h3
+        class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6"
+      >
+        <span
+          class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500"
+        >
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+            >calendar_month</span
           >
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
-              >calendar_month</span
-            >
-          </span>
-          My Calendar
-        </h3>
-        <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider">
-          <span class="flex items-center gap-1.5 text-orange-400"
-            ><span class="w-2 h-2 rounded-full bg-orange-400"></span>Confirmed</span
-          >
-          <span class="flex items-center gap-1.5 text-blue-400"
-            ><span class="w-2 h-2 rounded-full bg-blue-400"></span>Pending Admin</span
-          >
-          <span class="flex items-center gap-1.5 text-amber-400"
-            ><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pending Teacher</span
-          >
-        </div>
-      </div>
-      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" @session-click="onSessionClick" />
+        </span>
+        My Calendar
+      </h3>
+      <BaseCalendar
+        :sessions="mySessions"
+        @day-click="onDayClick"
+        @session-click="onSessionClick"
+      />
     </section>
 
     <!-- Upcoming Sessions -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
+      <h3
+        class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3"
+      >
         <span class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-orange-500"
@@ -244,11 +247,16 @@ const formatDay = function(iso: string): string  {
             </p>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-on-surface dark:text-on-surface font-bold">{{ getTeacherName(session.teacherId) }}</p>
+            <p class="text-on-surface dark:text-on-surface font-bold">
+              {{ getTeacherName(session.teacherId) }}
+            </p>
             <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
-            <p v-if="session.notes" class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1 italic">
+            <p
+              v-if="session.notes"
+              class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1 italic"
+            >
               {{ session.notes }}
             </p>
           </div>
@@ -271,13 +279,30 @@ const formatDay = function(iso: string): string  {
       :current-user-id="authStore.currentUser?.id ?? ''"
       :users="allUsers"
       @close="selectedSession = null"
-      @approve-student="async (id) => { await scheduleStore.approveAsStudent(id); selectedSession = null; await scheduleStore.fetchUserSessions(myId) }"
-      @counter-student="() => { selectedSession = null; showProposeModal = true }"
-      @nudge="(id) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+      @approve-student="
+        async (id) => {
+          await scheduleStore.approveAsStudent(id)
+          selectedSession = null
+          await scheduleStore.fetchUserSessions(myId)
+        }
+      "
+      @counter-student="
+        () => {
+          selectedSession = null
+          showProposeModal = true
+        }
+      "
+      @nudge="
+        (id: any) => {
+          scheduleStore.nudgeSession(id)
+          selectedSession = null
+        }
+      "
     />
 
     <!-- Propose Modal -->
-    <ProposeSessionModal :is-open="showProposeModal"
+    <ProposeSessionModal
+      :is-open="showProposeModal"
       v-if="showProposeModal"
       user-role="student"
       :current-user-id="authStore.currentUser?.id ?? ''"

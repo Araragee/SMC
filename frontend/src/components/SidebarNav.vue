@@ -41,8 +41,10 @@ type NavItem = { path: string; icon: string; label: string }
 const navsByRole: Record<string, NavItem[]> = {
   admin: [
     { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/admin/users', icon: 'group', label: 'Users' },
     { path: '/admin/schedule', icon: 'calendar_month', label: 'Schedule' },
+    { path: '/admin/students', icon: 'school', label: 'Students' },
+    { path: '/admin/teachers', icon: 'person_book', label: 'Teachers' },
+    { path: '/admin/users', icon: 'manage_accounts', label: 'All Users' },
   ],
   teacher: [
     { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },

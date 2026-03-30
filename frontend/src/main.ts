@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import axios from 'axios'
+import FloatingVue from 'floating-vue'
+import 'floating-vue/dist/style.css'
 import './style.css'
 import App from './App.vue'
 import router from './router'
@@ -16,6 +18,7 @@ const pinia = createPinia()
 const app = createApp(App)
 
 app.use(pinia)
+app.use(FloatingVue)
 
 // Initialize Theme
 const themeStore = useThemeStore()

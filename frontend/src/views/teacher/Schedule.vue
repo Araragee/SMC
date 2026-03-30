@@ -264,29 +264,12 @@ const formatDay = function(iso: string): string  {
 
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
-          <span
-            class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
-          >
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
-              >calendar_month</span
-            >
-          </span>
-          Weekly Schedule
-        </h3>
-        <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider">
-          <span class="flex items-center gap-1.5 text-orange-400"
-            ><span class="w-2 h-2 rounded-full bg-orange-400"></span>Confirmed</span
-          >
-          <span class="flex items-center gap-1.5 text-blue-400"
-            ><span class="w-2 h-2 rounded-full bg-blue-400"></span>Pending Admin</span
-          >
-          <span class="flex items-center gap-1.5 text-amber-400"
-            ><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pending Review</span
-          >
-        </div>
-      </div>
+      <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
+        <span class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
+        </span>
+        Weekly Schedule
+      </h3>
       <BaseCalendar :sessions="mySessions" @day-click="onDayClick" @session-click="onSessionClick" />
     </section>
 
@@ -349,7 +332,10 @@ const formatDay = function(iso: string): string  {
           <div
             class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
-            <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Decline Session Request</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Decline Session Request</h3>
+              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+            </div>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
@@ -396,7 +382,10 @@ const formatDay = function(iso: string): string  {
           <div
             class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
-            <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Counter Proposal</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Counter Proposal</h3>
+              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="counterModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+            </div>
             
             <div class="space-y-4">
               <div>

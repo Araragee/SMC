@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useToastStore } from '../stores/toast'
 import type { Session, User } from '../types'
 
 const props = defineProps<{
@@ -9,7 +10,7 @@ const props = defineProps<{
   users: User[]
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
   'approve-teacher': [sessionId: string]
   'reject-teacher': [sessionId: string]
@@ -21,10 +22,44 @@ defineEmits<{
   'edit-admin': [session: Session]
   'complete-admin': [sessionId: string]
   'reject-proof-admin': [sessionId: string]
-  'nudge': [sessionId: string]
 }>()
 
+const toast = useToastStore()
 const showProofViewer = ref<string | null>(null)
+
+// ── Nudge cooldown (1 hour per session, persisted in localStorage) ─────────
+const NUDGE_COOLDOWN_MS = 60 * 60 * 1000 // 1 hour
+
+function getNudgeKey(sessionId: string) {
+  return `nudge_last_${sessionId}`
+}
+
+function getNudgeCooldownLeft(sessionId: string): number {
+  const last = localStorage.getItem(getNudgeKey(sessionId))
+  if (!last) return 0
+  const elapsed = Date.now() - Number(last)
+  return Math.max(0, NUDGE_COOLDOWN_MS - elapsed)
+}
+
+function nudgeCooldownLabel(sessionId: string): string {
+  const ms = getNudgeCooldownLeft(sessionId)
+  if (ms <= 0) return ''
+  const mins = Math.ceil(ms / 60000)
+  if (mins >= 60) return `${Math.ceil(mins / 60)}h cooldown`
+  return `${mins}m cooldown`
+}
+
+function isNudgeOnCooldown(sessionId: string): boolean {
+  return getNudgeCooldownLeft(sessionId) > 0
+}
+
+function sendNudge(sessionId: string) {
+  if (isNudgeOnCooldown(sessionId)) return
+  localStorage.setItem(getNudgeKey(sessionId), String(Date.now()))
+  const remaining = '1 hour'
+  toast.info('Nudge sent!', `The other participant has been notified. You can nudge again in ${remaining}.`)
+  emit('close')
+}
 
 const getUser = function(id: string): string  {
   return props.users.find((u) => u.id === id)?.name ?? `User #${id}`
@@ -147,9 +182,18 @@ const statusContext = computed(() => {
                   {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
                 </p>
               </div>
-              <!-- Status icon -->
-              <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" :class="statusConfig.badge">
-                <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1">{{ statusConfig.icon }}</span>
+              <!-- Status icon + close -->
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :class="statusConfig.badge">
+                  <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1">{{ statusConfig.icon }}</span>
+                </div>
+                <!-- Universal close button -->
+                <button
+                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
+                  @click="emit('close')"
+                >
+                  <span class="material-symbols-outlined text-lg">close</span>
+                </button>
               </div>
             </div>
           </div>
@@ -262,9 +306,11 @@ const statusContext = computed(() => {
                       </span>
                       <button
                         v-if="!session.proofs?.some(p => p.uploaderRole === 'teacher') && !session.isForceCompleted"
-                        class="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-amber-500 transition-colors"
-                        title="Nudge Teacher"
-                        @click="$emit('nudge', session.id)"
+                        v-tooltip="isNudgeOnCooldown(session.id) ? `Cooldown: ${nudgeCooldownLabel(session.id)}` : 'Nudge Teacher to upload proof'"
+                        class="p-1 rounded-lg transition-colors"
+                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-black/5 dark:hover:bg-white/5 hover:text-amber-400'"
+                        :disabled="isNudgeOnCooldown(session.id)"
+                        @click="sendNudge(session.id)"
                       >
                         <span class="material-symbols-outlined text-[16px]">notifications_active</span>
                       </button>
@@ -278,9 +324,11 @@ const statusContext = computed(() => {
                       </span>
                       <button
                         v-if="!session.proofs?.some(p => p.uploaderRole === 'student') && !session.isForceCompleted"
-                        class="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-amber-500 transition-colors"
-                        title="Nudge Student"
-                        @click="$emit('nudge', session.id)"
+                        v-tooltip="isNudgeOnCooldown(session.id) ? `Cooldown: ${nudgeCooldownLabel(session.id)}` : 'Nudge Student to upload proof'"
+                        class="p-1 rounded-lg transition-colors"
+                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-black/5 dark:hover:bg-white/5 hover:text-amber-400'"
+                        :disabled="isNudgeOnCooldown(session.id)"
+                        @click="sendNudge(session.id)"
                       >
                         <span class="material-symbols-outlined text-[16px]">notifications_active</span>
                       </button>

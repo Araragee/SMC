@@ -324,33 +324,12 @@ const statusBadgeClass = function(status: string): string  {
 
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
-          <span
-            class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
-          >
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
-              >calendar_month</span
-            >
-          </span>
-          Weekly Overview
-        </h3>
-        <!-- Legend -->
-        <div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
-          <span class="flex items-center gap-1.5 text-orange-400"
-            ><span class="w-2 h-2 rounded-full bg-orange-400"></span>Scheduled</span
-          >
-          <span class="flex items-center gap-1.5 text-blue-400"
-            ><span class="w-2 h-2 rounded-full bg-blue-400"></span>Pending Admin</span
-          >
-          <span class="flex items-center gap-1.5 text-amber-400"
-            ><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pending Teacher</span
-          >
-          <span class="flex items-center gap-1.5 text-emerald-400"
-            ><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Completed</span
-          >
-        </div>
-      </div>
+      <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
+        <span class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
+        </span>
+        Weekly Overview
+      </h3>
       <BaseCalendar :sessions="scheduleStore.allSessions" @day-click="onDayClick" @session-click="onSessionClick" />
     </section>
 
@@ -451,7 +430,10 @@ const statusBadgeClass = function(status: string): string  {
           <div
             class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
-            <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Reject Session</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Reject Session</h3>
+              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+            </div>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
