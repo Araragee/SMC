@@ -161,17 +161,17 @@ const openSettings = () => {
 
     <!-- Nav Links -->
     <nav
-      class="flex flex-col gap-2 flex-1 lg:flex-none lg:max-h-[50vh] overflow-y-auto overflow-x-hidden pt-2 scrollbar-hide"
+      class="flex flex-col flex-1 lg:flex-none lg:max-h-[50vh] overflow-y-auto overflow-x-hidden pt-2 scrollbar-hide"
     >
       <router-link
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="flex items-center gap-3 px-4 py-3 border-y rounded-2xl text-sm font-bold transition-all border-opacity-20"
+        class="flex items-center gap-3 px-4 py-3 border rounded-2xl text-sm font-bold transition-all border-opacity-20 py-1.5"
         :class="
           isActive(item.path)
             ? 'bg-orange-500/10 text-orange-500 border-orange-500 shadow-sm shadow-orange-500/20'
-            : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5'
+            : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 border-transparent'
         "
         @click="closeSidebar"
       >
@@ -185,7 +185,7 @@ const openSettings = () => {
     </nav>
 
     <!-- Bottom Section -->
-    <div class="pt-4 border-t border-black/[0.04] dark:border-white/5 flex flex-col gap-3 relative">
+    <div class="py-3 border-black/[0.04] dark:border-white/5 flex flex-col gap-3 relative">
       <div class="flex flex-col items-center gap-2 w-full">
         <!-- Notifications -->
         <button
