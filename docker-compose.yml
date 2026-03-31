@@ -1,17 +1,15 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ./backend:/app
-      - ./uploads:/app/uploads
+      - ./backend:/app/backend
+      - ./uploads:/app/backend/uploads
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:////app/sql_app.db
+      - DATABASE_URL=sqlite:////app/backend/sql_app.db
     restart: always
 
   frontend:

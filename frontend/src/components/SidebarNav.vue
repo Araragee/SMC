@@ -64,7 +64,7 @@ const navItems = computed<NavItem[]>(() => navsByRole[authStore.userRole || ''] 
 
 const isActive = (path: string) => route.path === path
 
-const openNotificationDetail = function(notification: Notification) {
+const openNotificationDetail = function (notification: Notification) {
   selectedNotification.value = notification
 }
 
@@ -167,10 +167,10 @@ const openSettings = () => {
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all border border-transparent"
+        class="flex items-center gap-3 px-4 py-3 border-y rounded-2xl text-sm font-bold transition-all border-opacity-20"
         :class="
           isActive(item.path)
-            ? 'bg-orange-500/10 text-orange-500 border-l-4 border-l-orange-500'
+            ? 'bg-orange-500/10 text-orange-500 border-orange-500 shadow-sm shadow-orange-500/20'
             : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5'
         "
         @click="closeSidebar"
