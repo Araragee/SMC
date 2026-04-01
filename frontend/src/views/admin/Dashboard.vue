@@ -382,12 +382,8 @@ const openLiveAnalytics = function() {
       <div
         class="bg-gradient-to-br from-orange-500 to-orange-700 p-4 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
       >
-        <div class="absolute -right-6 -bottom-6 opacity-20">
-          <span
-            class="material-symbols-outlined text-[120px]"
-            style="font-variation-settings: 'FILL' 1"
-            >music_note</span
-          >
+        <div class="absolute -right-6 -bottom-6 opacity-20 w-40 h-40">
+          <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
         </div>
         <div class="relative z-10">
           <span class="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]"

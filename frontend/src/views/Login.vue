@@ -20,8 +20,8 @@ const handleLogin = async () => {
   <main class="relative z-10 w-full max-w-[1200px] px-6 py-12 flex flex-col items-center justify-center lg:flex-row gap-8 lg:gap-16 sm:px-8 md:px-12">
     <div class="w-full lg:w-1/2 space-y-8 text-center lg:text-left">
       <div class="inline-flex items-center gap-3">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tertiary-container flex items-center justify-center shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)]">
-          <span class="material-symbols-outlined text-on-primary-container dark:text-on-primary-container" style="font-variation-settings: 'FILL' 1;">music_note</span>
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tertiary-container flex items-center justify-center shadow-[inset_1px_1px_0px_0px_rgba(255,255,255,0.15)] overflow-hidden">
+          <img src="/logo.png" alt="Logo" class="w-full h-full object-cover" />
         </div>
         <span class="text-2xl font-black tracking-tighter text-on-surface dark:text-on-surface uppercase font-sans">Sernan's Music Clinic</span>
       </div>

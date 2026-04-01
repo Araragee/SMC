@@ -84,8 +84,8 @@ const closeUserDropdown = () => {
   >
     <!-- Logo Section -->
     <div class="flex items-center gap-3 px-2">
-      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0">
-        <span class="material-symbols-outlined text-white dark:text-white text-xl" style="font-variation-settings: 'FILL' 1">music_note</span>
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0 overflow-hidden">
+        <img src="/logo.png" alt="Logo" class="w-full h-full object-cover" />
       </div>
       <div class="hidden sm:block leading-none">
         <h2 class="text-on-surface dark:text-on-surface font-black tracking-tight text-sm">Sernan's</h2>

@@ -141,13 +141,9 @@ const openSettings = () => {
     <!-- Logo Section -->
     <div class="flex flex-col items-center py-4 mb-2">
       <div
-        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0 mb-3"
+        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0 mb-3 overflow-hidden"
       >
-        <span
-          class="material-symbols-outlined text-white dark:text-white text-2xl"
-          style="font-variation-settings: 'FILL' 1"
-          >music_note</span
-        >
+        <img src="/logo.png" alt="Logo" class="w-full h-full object-cover" />
       </div>
       <div class="text-center leading-none">
         <h2 class="text-on-surface dark:text-on-surface font-black tracking-tight text-lg">
