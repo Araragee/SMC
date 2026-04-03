@@ -33,6 +33,8 @@ print(f"📂 Using database: {DB_PATH}")
 conn = sqlite3.connect(str(DB_PATH))
 cur = conn.cursor()
 
+import random
+
 TEACHERS = [
     ("Dr. Sarah Jenkins",  "sarah.jenkins@smc.edu"),
     ("Marcus Vane",         "marcus.vane@smc.edu"),
@@ -41,10 +43,20 @@ TEACHERS = [
     ("Dr. Aris Thorne",     "aris.thorne@smc.edu"),
 ]
 
+# Generate 40 random student names
+FIRST_NAMES = ["Elena", "Julian", "Sarah", "Marcus", "James", "Sophie", "Oliver", "Emma", "Liam", "Ava",
+               "Noah", "Isabella", "Ethan", "Mia", "Lucas", "Harper", "Mason", "Evelyn", "Logan", "Abigail",
+               "Aiden", "Emily", "Jackson", "Elizabeth", "Sebastian", "Avery", "Benjamin", "Ella", "Michael", "Scarlett",
+               "Daniel", "Victoria", "Matthew", "Grace", "Alexander", "Chloe", "Jacob", "Lily", "Joseph", "Zoe"]
+
+LAST_NAMES = ["Rodriguez", "Chen", "Mitchell", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+              "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson",
+              "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis",
+              "Robinson", "Young", "Walker", "Hall", "Allen", "King", "Wright", "Scott", "Torres", "Peterson"]
+
 STUDENTS = [
-    ("Elena Rodriguez",  "elena.rodriguez@smc.edu"),
-    ("Julian Chen",      "julian.chen@smc.edu"),
-    ("Sarah Mitchell",   "sarah.mitchell@smc.edu"),
+    (f"{FIRST_NAMES[i]} {LAST_NAMES[i]}", f"{FIRST_NAMES[i].lower()}.{LAST_NAMES[i].lower()}{i}@smc.edu")
+    for i in range(40)
 ]
 
 HOMEWORK_TEXTS = [
@@ -65,21 +77,24 @@ def get_role_id(name):
         row = cur.fetchone()
     return row[0]
 
-def upsert_user(name, email, role_id, sessions_left=0):
-    cur.execute("SELECT id FROM users WHERE email=?", (email,))
+def upsert_user(name, email, role_id, sessions_left=0, username=None):
+    if not username:
+        username = email.split("@")[0] if email else name.replace(" ", "").lower()
+    
+    cur.execute("SELECT id FROM users WHERE email=? OR username=?", (email, username))
     row = cur.fetchone()
     if row:
-        print(f"  Exists: {email}")
+        print(f"  Exists: {username} ({email})")
         return row[0]
     hashed = hash_pw("password123")
     cur.execute(
-        "INSERT INTO users (email, name, hashed_password, is_active, role_id, sessions_left) VALUES (?,?,?,1,?,?)",
-        (email, name, hashed, role_id, sessions_left)
+        "INSERT INTO users (email, username, name, hashed_password, is_active, role_id, sessions_left) VALUES (?,?,?,?,1,?,?)",
+        (email, username, name, hashed, role_id, sessions_left)
     )
     conn.commit()
-    cur.execute("SELECT id FROM users WHERE email=?", (email,))
+    cur.execute("SELECT id FROM users WHERE username=?", (username,))
     uid = cur.fetchone()[0]
-    print(f"  Created: {email}")
+    print(f"  Created: {username} ({email})")
     return uid
 
 def seed():
@@ -87,21 +102,54 @@ def seed():
     student_role_id = get_role_id("student")
     get_role_id("admin")  # ensure admin role exists too
 
-    teacher_ids = [upsert_user(n, e, teacher_role_id, 0) for n, e in TEACHERS]
-    student_ids = [upsert_user(n, e, student_role_id, 10) for n, e in STUDENTS]
+    # Simple accounts first
+    upsert_user("Default Teacher", "teacher@smc.edu", teacher_role_id, 0, "teacher")
+    upsert_user("Default Student", "student@smc.edu", student_role_id, 10, "student")
+    upsert_user("System Admin", "admin@smc.edu", get_role_id("admin"), 0, "admin")
 
+    teacher_ids = [upsert_user(n, e, teacher_role_id, 0) for n, e in TEACHERS]
+    student_ids = [upsert_user(n, e, student_role_id, 20) for n, e in STUDENTS]
+
+    # Randomly assign students to teachers (2-4 students per teacher on average)
+    random.seed(42)  # for reproducibility
+    enrollments_created = 0
+    for sid in student_ids:
+        # Each student gets 1-2 teachers
+        num_teachers = random.randint(1, 2)
+        assigned_teachers = random.sample(teacher_ids, num_teachers)
+        for tid in assigned_teachers:
+            # Create teacher-student assignment
+            cur.execute(
+                "INSERT OR IGNORE INTO teacher_students (teacher_id, student_id) VALUES (?,?)",
+                (tid, sid)
+            )
+            # Create enrollment with purchased sessions
+            cur.execute(
+                "INSERT OR IGNORE INTO enrollments (teacher_id, student_id, sessions_purchased, sessions_used) VALUES (?,?,?,?)",
+                (tid, sid, 20, 0)
+            )
+            conn.commit()
+            enrollments_created += 1
+
+    # Create fake schedules
     base = datetime.datetime(2026, 3, 22, 9, 0, 0)
     session_count = 0
     hw_count = 0
+    statuses = ["scheduled", "completed", "pending_verification", "overdue"]
 
     for i, sid in enumerate(student_ids):
-        for j, tid in enumerate(teacher_ids):
-            for k in range(2):
-                offset_days = (i * 5 + j * 2 + k) % 14
-                offset_hours = (j * 2 + k * 3) % 8
+        # Get teachers assigned to this student
+        cur.execute("SELECT teacher_id FROM enrollments WHERE student_id=?", (sid,))
+        assigned_teachers = [row[0] for row in cur.fetchall()]
+
+        for j, tid in enumerate(assigned_teachers):
+            # Create 3-5 sessions per teacher-student pair
+            for k in range(random.randint(3, 5)):
+                offset_days = (i * 7 + j * 3 + k * 2) % 30
+                offset_hours = (j * 2 + k) % 8
                 start = base + datetime.timedelta(days=offset_days, hours=offset_hours)
                 end = start + datetime.timedelta(hours=1)
-                status = "completed" if (k == 0 and j < 3) else "scheduled"
+                status = random.choice(statuses)
 
                 cur.execute(
                     "INSERT INTO sessions (teacher_id, student_id, start_time, end_time, status) VALUES (?,?,?,?,?)",
@@ -113,7 +161,7 @@ def seed():
 
                 if status == "completed":
                     hw = HOMEWORK_TEXTS[(i + j + k) % len(HOMEWORK_TEXTS)]
-                    is_done = 1 if k == 0 else 0
+                    is_done = 1 if random.random() > 0.3 else 0
                     cur.execute(
                         "INSERT INTO homework (session_id, description, is_completed, created_at) VALUES (?,?,?,?)",
                         (sess_id, hw, is_done, datetime.datetime.utcnow().isoformat())
@@ -121,14 +169,16 @@ def seed():
                     conn.commit()
                     hw_count += 1
 
-    print(f"\n✅ Seeded {len(teacher_ids)} teachers, {len(student_ids)} students, {session_count} sessions, {hw_count} homework entries.")
-    print("\nLogin credentials for all new accounts: password123")
-    print("\nTeacher accounts:")
+    print(f"\n✅ Seeded {len(teacher_ids)} teachers, {len(student_ids)} students")
+    print(f"   {enrollments_created} enrollments, {session_count} sessions, {hw_count} homework entries")
+    print("\n🔐 Login credentials for all accounts: password123")
+    print("\n👨‍🏫 Teacher accounts:")
     for n, e in TEACHERS:
         print(f"  {e}")
-    print("\nStudent accounts:")
-    for n, e in STUDENTS:
+    print(f"\n👩‍🎓 Student accounts (sample):")
+    for i, (n, e) in enumerate(STUDENTS[:5]):
         print(f"  {e}")
+    print(f"  ... and {len(STUDENTS) - 5} more")
 
 if __name__ == "__main__":
     seed()

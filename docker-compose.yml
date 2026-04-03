@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./backend:/app/backend
-      - ./uploads:/app/backend/uploads
+      - ./uploads:/app/uploads
     ports:
       - "8000:8000"
     environment:
@@ -16,13 +16,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
     ports:
       - "3000:80"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
     depends_on:
       - backend
     restart: always
-
-volumes:
-  uploads:

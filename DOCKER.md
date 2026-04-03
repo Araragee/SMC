@@ -73,5 +73,5 @@ This guide provides instructions on how to set up and run the Music School platf
 
 ## Notes
 
-- The default admin credentials are `admin@example.com` / `password123`.
+- The default admin credentials are `admin` / `password123`.
 - The system automatically handles database migrations and initial seeding upon startup.

@@ -70,13 +70,13 @@ def startup_event():
 
         # Create default admin if none exists
         admin_role = db.query(models.Role).filter(models.Role.name == "admin").first()
-        admin_user = db.query(models.User).filter(models.User.email == "admin@example.com").first()
+        admin_user = db.query(models.User).filter((models.User.email == "admin@smc.edu") | (models.User.username == "admin")).first()
         if not admin_user and admin_role:
             # We need to import pwd_context here for the initial admin
             from .dependencies import pwd_context
             hashed_password = pwd_context.hash("password123")
             new_admin = models.User(
-                email="admin@example.com",
+                email="admin@smc.edu",
                 username="admin",
                 name="System Admin",
                 hashed_password=hashed_password,

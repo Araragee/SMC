@@ -154,7 +154,7 @@ const handleLogout = () => {
                 <BaseInput
                   v-model="form.email"
                   label="Email Address"
-                  placeholder="email@example.com"
+                  placeholder="email@smc.edu"
                   icon-left="mail"
                 />
               </div>
