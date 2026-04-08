@@ -1,32 +1,34 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import type { Notification } from '../types'
 
-export const useModalStore = defineStore('modal', () => {
-  const isNotificationsOpen = ref(false)
-  const isSettingsOpen = ref(false)
-  
-  const openNotifications = function() {
-    isNotificationsOpen.value = true
-  }
-  
-  const closeNotifications = function() {
-    isNotificationsOpen.value = false
-  }
-
-  const openSettings = function() {
-    isSettingsOpen.value = true
-  }
-
-  const closeSettings = function() {
-    isSettingsOpen.value = false
-  }
-
-  return {
-    isNotificationsOpen,
-    isSettingsOpen,
-    openNotifications,
-    closeNotifications,
-    openSettings,
-    closeSettings
-  }
+export const useModalStore = defineStore('modal', {
+  state: () => ({
+    isNotificationsOpen: false,
+    isSettingsOpen: false,
+    isPreferencesOpen: false,
+    selectedNotification: null as Notification | null,
+  }),
+  actions: {
+    openNotifications() {
+      this.isNotificationsOpen = true
+    },
+    closeNotifications() {
+      this.isNotificationsOpen = false
+    },
+    openSettings() {
+      this.isSettingsOpen = true
+    },
+    closeSettings() {
+      this.isSettingsOpen = false
+    },
+    openPreferences() {
+      this.isPreferencesOpen = true
+    },
+    closePreferences() {
+      this.isPreferencesOpen = false
+    },
+    setSelectedNotification(notification: Notification | null) {
+      this.selectedNotification = notification
+    },
+  },
 })

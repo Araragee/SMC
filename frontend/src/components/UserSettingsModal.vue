@@ -2,7 +2,6 @@
 import { reactive, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import BaseInput from './BaseInput.vue'
-import { useThemeStore } from '../stores/theme'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -14,7 +13,6 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
-const themeStore = useThemeStore()
 const router = useRouter()
 
 const form = reactive({
@@ -190,50 +188,6 @@ const handleLogout = () => {
                   Leave the password field empty if you don't wish to change it. Your new password
                   must be at least 8 characters long.
                 </p>
-              </div>
-            </section>
-
-            <!-- Appearance Section -->
-            <section class="space-y-6">
-              <div class="flex items-center gap-3 px-1">
-                <span class="material-symbols-outlined text-orange-500 text-lg">palette</span>
-                <h3
-                  class="text-sm font-black text-on-surface dark:text-on-surface uppercase tracking-widest"
-                >
-                  Appearance
-                </h3>
-              </div>
-
-              <div
-                class="bg-surface-container-low dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant rounded-3xl p-6 space-y-4"
-              >
-                <div>
-                  <h4 class="text-on-surface font-bold text-sm">Color Theme</h4>
-                  <p class="text-on-surface-variant text-xs mt-1">
-                    Choose how Sernan's Music Clinic appears on your device.
-                  </p>
-                </div>
-                <!-- 3-Way Theme Picker -->
-                <div class="flex rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.06] dark:border-white/8 p-1 gap-1">
-                  <button
-                    v-for="opt in ([
-                      { value: 'system', icon: 'desktop_windows', label: 'System' },
-                      { value: 'light', icon: 'light_mode', label: 'Light' },
-                      { value: 'dark', icon: 'dark_mode', label: 'Dark' },
-                    ] as const)"
-                    :key="opt.value"
-                    class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
-                    :class="themeStore.preference === opt.value
-                      ? 'bg-white dark:bg-white/15 text-orange-600 dark:text-orange-400 shadow-sm border border-black/[0.06] dark:border-white/10'
-                      : 'text-on-surface-variant hover:text-on-surface hover:bg-black/[0.04] dark:hover:bg-white/5'"
-                    :aria-label="`Switch to ${opt.label} mode`"
-                    :aria-pressed="themeStore.preference === opt.value"
-                    @click="themeStore.setPreference(opt.value)"
-                  >
-                    <span class="material-symbols-outlined text-base" :style="themeStore.preference === opt.value ? 'font-variation-settings: \'FILL\' 1' : ''">{{ opt.icon }}</span>
-                    {{ opt.label }}
-                  </button>
-                </div>
               </div>
             </section>
 

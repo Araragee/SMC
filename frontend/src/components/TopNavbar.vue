@@ -3,10 +3,12 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
+import { useModalStore } from '../stores/modal'
 import type { Notification } from '../types'
 import NotificationsModal from './NotificationsModal.vue'
 import NotificationDetailModal from './NotificationDetailModal.vue'
 import UserSettingsModal from './UserSettingsModal.vue'
+import PreferencesModal from './PreferencesModal.vue'
 
 // Directive for clicking outside
 const vClickOutside = {
@@ -26,9 +28,8 @@ const vClickOutside = {
 const router = useRouter()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
+const modalStore = useModalStore()
 
-const isNotificationsOpen = ref(false)
-const isSettingsOpen = ref(false)
 const isUserDropdownOpen = ref(false)
 const selectedNotification = ref<Notification | null>(null)
 
@@ -53,20 +54,17 @@ const logout = () => {
 }
 
 const openNotifications = () => {
-  isNotificationsOpen.value = true
-}
-
-const closeNotifications = () => {
-  isNotificationsOpen.value = false
+  modalStore.openNotifications()
 }
 
 const openSettings = () => {
-  isSettingsOpen.value = true
+  modalStore.openSettings()
   isUserDropdownOpen.value = false
 }
 
-const closeSettings = () => {
-  isSettingsOpen.value = false
+const openPreferences = () => {
+  modalStore.openPreferences()
+  isUserDropdownOpen.value = false
 }
 
 const toggleUserDropdown = () => {
@@ -153,7 +151,10 @@ const closeUserDropdown = () => {
               <span class="material-symbols-outlined text-lg">person_edit</span>
               Profile Settings
             </button>
-            <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold">
+            <button
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
+              @click="openPreferences"
+            >
               <span class="material-symbols-outlined text-lg">settings</span>
               Preferences
             </button>
@@ -173,9 +174,9 @@ const closeUserDropdown = () => {
 
   <!-- Notifications Modal -->
   <NotificationsModal
-    :is-open="isNotificationsOpen"
+    :is-open="modalStore.isNotificationsOpen"
     :notifications="notifStore.notifications"
-    @close="closeNotifications"
+    @close="modalStore.closeNotifications()"
     @select="openNotificationDetail"
   />
   <NotificationDetailModal
@@ -183,7 +184,11 @@ const closeUserDropdown = () => {
     @close="selectedNotification = null"
   />
   <UserSettingsModal
-    :is-open="isSettingsOpen"
-    @close="closeSettings"
+    :is-open="modalStore.isSettingsOpen"
+    @close="modalStore.closeSettings()"
+  />
+  <PreferencesModal
+    :is-open="modalStore.isPreferencesOpen"
+    @close="modalStore.closePreferences()"
   />
 </template>

@@ -9,6 +9,7 @@ import type { Notification } from '../types'
 import NotificationsModal from './NotificationsModal.vue'
 import NotificationDetailModal from './NotificationDetailModal.vue'
 import UserSettingsModal from './UserSettingsModal.vue'
+import PreferencesModal from './PreferencesModal.vue'
 
 // Directive for clicking outside
 const vClickOutside = {
@@ -292,6 +293,7 @@ const openSettings = () => {
               </button>
               <button
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
+                @click="modalStore.openPreferences(); isUserDropdownOpen = false"
               >
                 <span class="material-symbols-outlined text-lg">settings</span>
                 Preferences
@@ -327,6 +329,9 @@ const openSettings = () => {
 
   <!-- User Settings Modal -->
   <UserSettingsModal :is-open="modalStore.isSettingsOpen" @close="modalStore.closeSettings()" />
+
+  <!-- Preferences Modal -->
+  <PreferencesModal :is-open="modalStore.isPreferencesOpen" @close="modalStore.closePreferences()" />
 </template>
 
 <style scoped>
