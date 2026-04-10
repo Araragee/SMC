@@ -221,7 +221,7 @@ const statusBadgeClass = function(status: string): string  {
 </script>
 
 <template>
-  <div class="w-full mx-auto pb-28 space-y-4">
+  <div class="max-w-[1600px] mx-auto pb-28 space-y-4 px-4 sm:px-6">
     <!-- Page Header -->
     <div
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"

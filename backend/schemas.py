@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, computed_field, field_validator
 
 
 class RoleBase(BaseModel):
@@ -94,6 +94,13 @@ class SessionBase(BaseModel):
     proof_justification: Optional[str] = None
     rejection_reason: Optional[str] = None
     is_force_completed: bool = False
+
+    @field_validator('is_manual_entry', 'notified_24h', 'notified_12h', 'is_force_completed', mode='before')
+    @classmethod
+    def convert_null_to_false(cls, v: Any) -> bool:
+        if v is None:
+            return False
+        return bool(v)
 
 class SessionCreate(SessionBase):
     pass

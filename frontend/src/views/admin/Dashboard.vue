@@ -295,7 +295,7 @@ const openLiveAnalytics = function() {
 </script>
 
 <template>
-  <div class="max-w-[80vw] mx-auto pb-28 space-y-4">
+  <div class="max-w-[1600px] mx-auto pb-28 space-y-4 px-4 sm:px-6">
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4">
       <div>

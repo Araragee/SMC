@@ -242,7 +242,7 @@ async function handleRejectProof(sessionId: string) {
 </script>
 
 <template>
-  <div class="w-full mx-auto pb-28 space-y-6">
+  <div class="max-w-[1600px] mx-auto pb-28 space-y-6 px-4 sm:px-6">
 
     <!-- Header -->
     <div>

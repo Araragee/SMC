@@ -133,6 +133,21 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: model
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # Check if user is linked to sessions or enrollments
+    has_sessions = db.query(models.Session).filter(
+        (models.Session.teacher_id == user_id) | (models.Session.student_id == user_id)
+    ).first()
+
+    has_enrollments = db.query(models.Enrollment).filter(
+        (models.Enrollment.teacher_id == user_id) | (models.Enrollment.student_id == user_id)
+    ).first()
+
+    if has_sessions or has_enrollments:
+        # Perform soft delete by deactivating
+        db_user.is_active = False
+        db.commit()
+        return {"message": "User has linked records and was deactivated instead of deleted"}
+
     db.delete(db_user)
     db.commit()
     return {"message": "User deleted successfully"}

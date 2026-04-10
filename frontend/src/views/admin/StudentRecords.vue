@@ -106,7 +106,7 @@ const handleSessionAdded = () => {
 </script>
 
 <template>
-  <div class="space-y-8 max-w-6xl mx-auto pb-12">
+  <div class="space-y-8 max-w-[1600px] mx-auto pb-12 px-4 sm:px-6">
     <!-- Header/Profile Info -->
     <section v-if="student" class="flex flex-col md:flex-row gap-6 items-start">
       <BaseCard class="flex-1 p-6 liquid-glass border border-white/10 relative overflow-hidden group">
