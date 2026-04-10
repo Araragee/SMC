@@ -20,7 +20,7 @@ const formatDate = (dateStr: string) => {
 </script>
 
 <template>
-  <div class="max-w-[1000px] mx-auto pb-28 space-y-10 px-4 sm:px-6 animate-in fade-in duration-700">
+  <div class="max-w-[1000px] mx-auto pb-28 space-y-10 px-4 sm:px-6   ">
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">

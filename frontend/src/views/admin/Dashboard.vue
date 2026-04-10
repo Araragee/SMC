@@ -340,7 +340,7 @@ const openLiveAnalytics = function() {
             <div
               v-for="(h, i) in hourlyDistribution"
               :key="i"
-              class="w-2 bg-primary/20 rounded-t-sm transition-all duration-1000"
+              class="w-2 bg-primary/20 rounded-t-sm transition-all "
               :style="{
                 height: `${h}%`,
                 backgroundColor: h > 70 ? 'var(--md-sys-color-primary)' : '',
@@ -1017,7 +1017,7 @@ const openLiveAnalytics = function() {
               </div>
               <button
                 :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
-                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all duration-150 uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all  uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="confirmQuickAssign"
               >
                 {{ isQuickAssigning ? 'Scheduling...' : 'Confirm Schedule' }}

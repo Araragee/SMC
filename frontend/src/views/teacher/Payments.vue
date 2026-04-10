@@ -41,7 +41,7 @@ const statusClass = (status: string) => {
 </script>
 
 <template>
-  <div class="max-w-[1600px] mx-auto pb-28 space-y-8 px-4 sm:px-6 animate-in fade-in duration-700">
+  <div class="max-w-[1600px] mx-auto pb-28 space-y-8 px-4 sm:px-6   ">
     <!-- Header -->
     <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 py-8">
       <div>

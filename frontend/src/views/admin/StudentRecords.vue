@@ -116,7 +116,7 @@ const handleSessionAdded = () => {
               <span class="font-bold text-white">{{ totalUsed }} / {{ totalEnrolled }}</span>
             </div>
             <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-              <div class="h-full bg-primary transition-all duration-1000" :style="{ width: `${progressPercentage}%` }"></div>
+              <div class="h-full bg-primary transition-all " :style="{ width: `${progressPercentage}%` }"></div>
             </div>
           </div>
           <div class="flex justify-between items-center pt-2 border-t border-white/5">

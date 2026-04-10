@@ -43,15 +43,15 @@ const handleLogin = async () => {
             <div class="space-y-4">
               <div class="space-y-2">
                 <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-on-surface-variant font-bold px-1">Username</label>
-                <input v-model="username" type="text" required placeholder="admin" class="w-full h-16 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl pl-6 pr-6 text-on-surface dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all duration-300 placeholder:text-on-surface-variant dark:placeholder:text-on-surface-variant" />
+                <input v-model="username" type="text" required placeholder="admin" class="w-full h-16 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl pl-6 pr-6 text-on-surface dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all  placeholder:text-on-surface-variant dark:placeholder:text-on-surface-variant" />
               </div>
               <div class="space-y-2">
                 <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-on-surface-variant font-bold px-1">Password</label>
-                <input v-model="password" type="password" required placeholder="••••••••" class="w-full h-16 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl pl-6 pr-6 text-on-surface dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all duration-300 placeholder:text-on-surface-variant dark:placeholder:text-on-surface-variant" />
+                <input v-model="password" type="password" required placeholder="••••••••" class="w-full h-16 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl pl-6 pr-6 text-on-surface dark:text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all  placeholder:text-on-surface-variant dark:placeholder:text-on-surface-variant" />
               </div>
             </div>
             <p v-if="authStore.error" class="text-error dark:text-error text-sm text-center">{{ authStore.error }}</p>
-            <button :disabled="authStore.isLoading" class="group relative w-full h-16 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white dark:text-white uppercase tracking-wider overflow-hidden active:scale-[0.98] transition-all duration-300 disabled:opacity-50" type="submit">
+            <button :disabled="authStore.isLoading" class="group relative w-full h-16 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white dark:text-white uppercase tracking-wider overflow-hidden active:scale-[0.98] transition-all  disabled:opacity-50" type="submit">
               <span class="relative z-10">{{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}</span>
               <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>

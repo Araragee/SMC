@@ -230,10 +230,10 @@ const handleDeleteUser = async (user: User) => {
     <!-- Edit User Modal -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition-all duration-300 ease-out"
+        enter-active-class="transition-all  ease-out"
         enter-from-class="opacity-0 scale-95 blur-[8px]"
         enter-to-class="opacity-100 scale-100 blur-0"
-        leave-active-class="transition-all duration-200 ease-in"
+        leave-active-class="transition-all  ease-in"
         leave-from-class="opacity-100 scale-100 blur-0"
         leave-to-class="opacity-0 scale-95 blur-[8px]"
       >

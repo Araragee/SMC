@@ -59,7 +59,7 @@ onUnmounted(() => {
 
 <template>
   <div 
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] transition-all duration-500 ease-in-out"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]   -out"
     :class="isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90'"
   >
     <nav class="flex items-center gap-1 p-2 bg-surface-container-low/80 backdrop-blur-2xl rounded-full border border-white/10 shadow-2xl shadow-black/40">
@@ -67,11 +67,11 @@ onUnmounted(() => {
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="relative p-3 rounded-full transition-all duration-300 group"
+        class="relative p-3 rounded-full   group"
         :class="isActive(item.path) ? 'bg-orange-500 scale-110 shadow-lg shadow-orange-500/40' : 'hover:bg-white/5'"
       >
         <span 
-          class="material-symbols-outlined transition-colors duration-300"
+          class="material-symbols-outlined  "
           :class="isActive(item.path) ? 'text-white' : 'text-on-surface-variant group-hover:text-on-surface'"
           :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
         >
@@ -89,7 +89,7 @@ onUnmounted(() => {
 
       <!-- Notifications -->
       <button 
-        class="relative p-3 rounded-full hover:bg-white/5 transition-all group"
+        class="relative p-3 rounded-full hover:bg-white/5  group"
         @click="modalStore.openNotifications()"
       >
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">notifications</span>
@@ -103,7 +103,7 @@ onUnmounted(() => {
 
       <!-- Messaging -->
       <button 
-        class="relative p-3 rounded-full hover:bg-white/5 transition-all group"
+        class="relative p-3 rounded-full hover:bg-white/5  group"
         @click="messagingStore.isOpen = true"
       >
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">chat</span>
@@ -117,7 +117,7 @@ onUnmounted(() => {
 
       <!-- Profile/Logout -->
       <button 
-        class="w-10 h-10 rounded-full border border-orange-500/30 overflow-hidden ml-1 hover:border-orange-500/60 transition-colors"
+        class="w-10 h-10 rounded-full border border-orange-500/30 overflow-hidden ml-1 hover:border-orange-500/60 "
         @click="modalStore.openSettings()"
       >
         <img 

@@ -592,10 +592,10 @@ const formatTime = (dt: string | undefined) => {
   <!-- Session Detail Modal (Teacher) -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-active-class="transition opacity-200 ease-out "
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-active-class="transition opacity-200 ease-in "
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >

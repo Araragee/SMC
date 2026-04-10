@@ -253,18 +253,18 @@ async function handleApproveStudent(sessionId: string) {
 
       <!-- Search bar -->
       <div class="relative group">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl pointer-events-none transition-colors duration-200 group-focus-within:text-teal-400">search</span>
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl pointer-events-none transition-colors  group-focus-within:text-teal-400">search</span>
         <input
           v-model="search"
           type="text"
           placeholder="Search by name or email…"
-          class="w-full pl-12 pr-11 py-4 bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl text-on-surface placeholder:text-on-surface-variant text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500/30 transition-all duration-200"
+          class="w-full pl-12 pr-11 py-4 bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl text-on-surface placeholder:text-on-surface-variant text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500/30 transition-all "
         />
         <Transition
-          enter-active-class="transition-all duration-150"
+          enter-active-class="transition-all "
           enter-from-class="opacity-0 scale-75"
           enter-to-class="opacity-100 scale-100"
-          leave-active-class="transition-all duration-150"
+          leave-active-class="transition-all "
           leave-from-class="opacity-100 scale-100"
           leave-to-class="opacity-0 scale-75"
         >
@@ -285,7 +285,7 @@ async function handleApproveStudent(sessionId: string) {
           <button
             v-for="f in listFilters"
             :key="f.key"
-            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all duration-200"
+            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all "
             :class="listFilter === f.key
               ? 'bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-500/30'
               : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.08] dark:hover:bg-white/[0.08]'"
@@ -300,7 +300,7 @@ async function handleApproveStudent(sessionId: string) {
         <!-- Sort dropdown -->
         <div class="relative shrink-0">
           <button
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all duration-200 whitespace-nowrap"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all  whitespace-nowrap"
             :class="sortOpen
               ? 'bg-black/[0.08] dark:bg-white/[0.08] border-black/10 dark:border-white/10 text-on-surface'
               : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.07]'"
@@ -308,13 +308,13 @@ async function handleApproveStudent(sessionId: string) {
           >
             <span class="material-symbols-outlined" style="font-size:14px">swap_vert</span>
             {{ sortOptions.find(o => o.key === sortBy)?.label }}
-            <span class="material-symbols-outlined transition-transform duration-200" style="font-size:14px" :class="sortOpen ? 'rotate-180' : ''">expand_more</span>
+            <span class="material-symbols-outlined transition-transform " style="font-size:14px" :class="sortOpen ? 'rotate-180' : ''">expand_more</span>
           </button>
           <Transition
-            enter-active-class="transition-all duration-150 ease-out"
+            enter-active-class="transition-all  ease-out"
             enter-from-class="opacity-0 translate-y-1 scale-95"
             enter-to-class="opacity-100 translate-y-0 scale-100"
-            leave-active-class="transition-all duration-100 ease-in"
+            leave-active-class="transition-all  ease-in"
             leave-from-class="opacity-100 translate-y-0 scale-100"
             leave-to-class="opacity-0 translate-y-1 scale-95"
           >
@@ -341,10 +341,10 @@ async function handleApproveStudent(sessionId: string) {
 
       <!-- Active filter summary + clear -->
       <Transition
-        enter-active-class="transition-all duration-200"
+        enter-active-class="transition-all "
         enter-from-class="opacity-0 -translate-y-1"
         enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all duration-150"
+        leave-active-class="transition-all "
         leave-from-class="opacity-100 translate-y-0"
         leave-to-class="opacity-0 -translate-y-1"
       >
@@ -419,10 +419,10 @@ async function handleApproveStudent(sessionId: string) {
     <!-- ── Student Detail Modal ────────────────────────────────────────────── -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition-all duration-200 ease-out"
+        enter-active-class="transition-all  ease-out"
         enter-from-class="opacity-0 translate-x-8"
         enter-to-class="opacity-100 translate-x-0"
-        leave-active-class="transition-all duration-150 ease-in"
+        leave-active-class="transition-all  ease-in"
         leave-from-class="opacity-100 translate-x-0"
         leave-to-class="opacity-0 translate-x-8"
       >

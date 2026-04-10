@@ -45,7 +45,6 @@
   overflow: hidden;
   /* Light mode base */
   background: #fffbfe;
-  transition: background 0.5s ease;
 }
 
 /* Content above the canvas */
@@ -205,7 +204,6 @@
 <style>
 .dark .blob-canvas {
   background: #0e0e0e;
-  transition: background 0.5s ease;
 }
 
 .dark .blob-1 {

@@ -72,7 +72,7 @@ async function removeInstrument(instrumentId: string | number) {
 </script>
 
 <template>
-  <div class="max-w-[1200px] mx-auto pb-28 space-y-8 px-4 sm:px-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <div class="max-w-[1200px] mx-auto pb-28 space-y-8 px-4 sm:px-6    ">
     <!-- Header -->
     <header class="relative py-8">
       <div class="absolute -top-10 -left-10 w-64 h-64 bg-orange-500/10 blur-[100px] rounded-full -z-10 animate-pulse" />
@@ -118,10 +118,10 @@ async function removeInstrument(instrumentId: string | number) {
           <div 
             v-for="inst in myInstruments" 
             :key="inst.id"
-            class="group relative overflow-hidden glass-heavy rounded-3xl border border-outline-variant/20 hover:border-orange-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/5 hover:-translate-y-1 p-6"
+            class="group relative overflow-hidden glass-heavy rounded-3xl border border-outline-variant/20 hover:border-orange-500/30 transition-all  hover:shadow-2xl hover:shadow-orange-500/5 hover:-translate-y-1 p-6"
           >
             <!-- Decorative bg -->
-            <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 transition-all duration-500">
+            <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 transition-all ">
               <span class="material-symbols-outlined text-9xl">music_note</span>
             </div>
 

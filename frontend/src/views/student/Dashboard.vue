@@ -629,7 +629,7 @@ const stopCountering = () => {
             </button>
           </div>
           <div
-            class="absolute -right-20 -bottom-20 w-48 h-48 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all duration-700"
+            class="absolute -right-20 -bottom-20 w-48 h-48 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all "
           ></div>
         </section>
 
@@ -671,7 +671,7 @@ const stopCountering = () => {
                 </button>
               </div>
               <span
-                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform duration-500"
+                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform "
                 style="font-variation-settings: 'FILL' 1"
                 >music_note</span
               >
@@ -720,10 +720,10 @@ const stopCountering = () => {
   <!-- Session Detail Modal -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-active-class="transition opacity-200 ease-out "
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-active-class="transition opacity-200 ease-in "
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -925,7 +925,7 @@ const stopCountering = () => {
                     Suggest Other
                   </button>
                 </div>
-                <div v-else class="space-y-3 mt-2 animate-in fade-in slide-in-from-top-2">
+                <div v-else class="space-y-3 mt-2   ">
                   <input
                     v-model="counterForm.startTime"
                     type="datetime-local"
@@ -1012,10 +1012,10 @@ const stopCountering = () => {
   <!-- Proof Viewer Lightbox -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out duration-300"
+      enter-active-class="transition opacity-200 ease-out "
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in duration-300"
+      leave-active-class="transition opacity-200 ease-in "
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -1041,10 +1041,10 @@ const stopCountering = () => {
   <!-- Request Session Modal -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out duration-200"
+      enter-active-class="transition opacity-200 ease-out "
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in duration-200"
+      leave-active-class="transition opacity-200 ease-in "
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
