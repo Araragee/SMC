@@ -125,6 +125,7 @@ class Homework(Base):
     session_id = Column(Integer, ForeignKey("sessions.id"))
     description = Column(String)
     is_completed = Column(Boolean, default=False)
+    file_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     session = relationship("Session", back_populates="homeworks")
@@ -141,6 +142,19 @@ class SessionProof(Base):
 
     session = relationship("Session", back_populates="proofs")
     uploader = relationship("User", foreign_keys=[uploader_id])
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("users.id"))
+    amount = Column(Integer) # In cents or smallest currency unit
+    date = Column(DateTime, default=datetime.datetime.utcnow)
+    method = Column(String) # cash | bank_transfer | card
+    status = Column(String, default="completed") # pending | completed | failed
+    notes = Column(String, nullable=True)
+    
+    student = relationship("User", foreign_keys=[student_id])
 
 class Notification(Base):
     __tablename__ = "notifications"

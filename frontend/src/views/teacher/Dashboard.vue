@@ -91,16 +91,25 @@ const handleStagedProofUpload = function(event: Event) {
 const saveSessionChanges = async function() {
   if (!expandedSession.value) return
 
-  if (stagedProofFile.value) {
-    await interactionsStore.uploadImageProof(expandedSession.value.id, stagedProofFile.value)
+  try {
+    if (stagedProofFile.value) {
+      await interactionsStore.uploadImageProof(expandedSession.value.id, stagedProofFile.value)
+    }
+
+    // Call editSession to persist notes (practice goals) to the backend
+    await scheduleStore.editSession(expandedSession.value.id, {
+      notes: practiceGoalsText.value
+    })
+
+    toast.success('Session updated', 'Changes have been saved successfully.')
+    closeSessionModal()
+    // Refresh sessions to reflect changes
+    if (authStore.currentUser?.id) {
+       await scheduleStore.fetchUserSessions(authStore.currentUser.id)
+    }
+  } catch (err: any) {
+    toast.error('Update Failed', err.message || 'Could not save changes.')
   }
-
-  // Note: updating practice goals (notes) usually calls a specific API or is handled by an action.
-  // Assuming a generic update or setting homework. For now we will update the session object optimistically.
-  expandedSession.value.notes = practiceGoalsText.value
-
-  toast.success('Session updated', 'Changes have been saved successfully.')
-  closeSessionModal()
 }
 
 const handleApprove = async function(sessionId: string) {

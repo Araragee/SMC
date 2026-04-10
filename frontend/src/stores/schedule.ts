@@ -383,5 +383,24 @@ export const useScheduleStore = defineStore('schedule', {
         this.isLoading = false;
       }
     },
+
+    async fetchStudentRecords(studentId: string) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await axios.get(`${API_URL}/sessions/student/${studentId}/records`, { headers: authHeaders() });
+        const mapped = response.data.map(mapSession);
+        for (const session of mapped) {
+          this._upsertSession(session);
+        }
+        return mapped;
+      } catch (err: any) {
+        this.error = err.message || 'Failed to fetch student records';
+        console.error(err);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
   },
 });

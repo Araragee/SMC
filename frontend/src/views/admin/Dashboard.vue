@@ -250,7 +250,9 @@ const confirmQuickAssign = async function() {
   if (!quickTeacherId.value || !quickStudentId.value) return
   isQuickAssigning.value = true
   try {
-    const startTime = new Date(`${quickDate.value}T${quickTime.value}`)
+    const [y, m, d] = quickDate.value.split('-').map(Number)
+    const [hr, min] = quickTime.value.split(':').map(Number)
+    const startTime = new Date(y, m - 1, d, hr, min)
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000) // 1hr
     await scheduleStore.bookSession({
       teacherId: quickTeacherId.value,
@@ -948,6 +950,7 @@ const openLiveAnalytics = function() {
           <button
             v-if="notifStore.notifications.length > 5"
             class="w-full mt-8 py-4 text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 transition-all uppercase tracking-[0.2em]"
+            @click="toast.info('Roadmap Item', 'The Full Activity Log is planned for Phase 3.')"
           >
             View All Activity
           </button>

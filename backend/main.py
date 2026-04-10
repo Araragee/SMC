@@ -13,7 +13,7 @@ load_dotenv(load_dotenv_path)
 
 from . import models, schemas
 from .database import engine, SessionLocal
-from .routers import users, sessions, notifications, messaging
+from .routers import users, sessions, notifications, messaging, payments
 from .routers.sessions import session_checker_task
 
 # Ensure Base metadata creates all tables
@@ -41,6 +41,10 @@ def startup_event():
         ("sessions", "session_number", "INTEGER"),
         ("sessions", "notified_24h", "BOOLEAN DEFAULT 0"),
         ("sessions", "notified_12h", "BOOLEAN DEFAULT 0"),
+        ("sessions", "proof_justification", "VARCHAR"),
+        ("sessions", "rejection_reason", "VARCHAR"),
+        ("sessions", "is_force_completed", "BOOLEAN DEFAULT 0"),
+        ("homework", "file_url", "VARCHAR"),
         ("session_proofs", "uploader_id", "INTEGER REFERENCES users(id)"),
         ("session_proofs", "uploader_role", "VARCHAR")
     ]
@@ -111,6 +115,7 @@ app.include_router(users.router)
 app.include_router(sessions.router)
 app.include_router(notifications.router)
 app.include_router(messaging.router)
+app.include_router(payments.router, prefix="/payments", tags=["payments"])
 
 @app.get("/")
 def read_root():

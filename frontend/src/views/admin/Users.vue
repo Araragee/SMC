@@ -97,7 +97,7 @@ const handleDeleteUser = async (user: User) => {
 </script>
 
 <template>
-  <div class="max-w-[1600px] mx-auto pb-28 space-y-6">
+  <div class="max-w-[1600px] mx-auto pb-28 space-y-6 px-4 sm:px-6">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div class="space-y-1">

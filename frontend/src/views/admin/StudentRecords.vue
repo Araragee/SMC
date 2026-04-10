@@ -2,24 +2,22 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUsersStore } from '../../stores/users';
+import { useScheduleStore } from '../../stores/schedule';
 
 import BaseCard from '../../components/BaseCard.vue';
 import BaseButton from '../../components/BaseButton.vue';
 import AddPastSessionModal from '../../components/AddPastSessionModal.vue';
 import type { User, Session, InstrumentRecord } from '../../types';
-import axios from 'axios';
 
 const route = useRoute();
 const usersStore = useUsersStore();
-// const scheduleStore = useScheduleStore();
+const scheduleStore = useScheduleStore();
 
 const studentId = route.params.id as string;
 const student = ref<User | null>(null);
 const isLoading = ref(true);
 
-const sessions = ref<Session[]>([]);
 const showAddPastSession = ref(false);
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const filters = ref({
   status: 'all',
@@ -34,27 +32,7 @@ const fetchStudent = async () => {
 };
 
 const fetchSessions = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/sessions/student/${studentId}/records`);
-    sessions.value = res.data.map((s: any) => ({
-      id: String(s.id),
-      studentId: String(s.student_id),
-      teacherId: String(s.teacher_id),
-      startTime: s.start_time,
-      endTime: s.end_time,
-      status: s.status,
-      proposedBy: s.proposed_by ? String(s.proposed_by) : undefined,
-      notes: s.notes,
-      imageProofUrl: s.proof_image_url,
-      homeworkAssigned: s.homework_assigned,
-      homeworkCompleted: s.homework_completed,
-      instrumentId: s.instrument_id,
-      isManualEntry: s.is_manual_entry,
-      sessionNumber: s.session_number
-    }));
-  } catch (err) {
-    console.error("Failed to fetch sessions", err);
-  }
+  await scheduleStore.fetchStudentRecords(studentId);
 };
 
 onMounted(async () => {
@@ -68,16 +46,16 @@ onMounted(async () => {
 });
 
 const filteredSessions = computed(() => {
-  return sessions.value.filter((s: Session) => {
+  return scheduleStore.getSessionsByStudentId(studentId).filter((s: Session) => {
     if (filters.value.status !== 'all' && s.status !== filters.value.status) return false;
     if (filters.value.instrument !== 'all' && s.instrumentId !== Number(filters.value.instrument)) return false;
     return true;
-  });
+  }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 });
 
 const totalEnrolled = computed(() => student.value?.sessionsEnrolled || 0);
 const totalUsed = computed(() => {
-  return sessions.value.filter((s: Session) => s.status === 'completed').length;
+  return scheduleStore.getSessionsByStudentId(studentId).filter((s: Session) => s.status === 'completed').length;
 });
 const progressPercentage = computed(() => {
   if (totalEnrolled.value === 0) return 0;

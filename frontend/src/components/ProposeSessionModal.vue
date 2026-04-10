@@ -54,7 +54,9 @@ const submit = async function() {
   if (!isValid.value || isSubmitting.value) return
   isSubmitting.value = true
   try {
-    const startDt = new Date(`${form.value.date}T${form.value.time}:00`)
+    const [y, m, d] = form.value.date.split('-').map(Number)
+    const [hr, min] = form.value.time.split(':').map(Number)
+    const startDt = new Date(y, m - 1, d, hr, min)
     const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
 
     emit('submitted', {

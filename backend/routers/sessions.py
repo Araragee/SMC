@@ -636,6 +636,45 @@ def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(
     db.refresh(db_homework)
     return db_homework
 
+@router.get("/homework/user/{user_id}", response_model=list[schemas.Homework])
+def get_user_homework(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Fetch all homework assigned to a student."""
+    if current_user.role.name.lower() == "student" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+        
+    return db.query(models.Homework).join(models.Session).filter(models.Session.student_id == user_id).all()
+
+@router.post("/homework/{homework_id}/upload", response_model=schemas.Homework)
+def upload_homework_file(
+    homework_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Students upload proof of completed homework."""
+    db_homework = db.query(models.Homework).filter(models.Homework.id == homework_id).first()
+    if not db_homework:
+        raise HTTPException(status_code=404, detail="Homework not found")
+        
+    # Check if student is the owner
+    session = db.query(models.Session).filter(models.Session.id == db_homework.session_id).first()
+    if current_user.role.name.lower() == "student" and session.student_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    os.makedirs("uploads/homework", exist_ok=True)
+    file_extension = file.filename.split(".")[-1]
+    file_name = f"hw_{homework_id}_{int(datetime.utcnow().timestamp())}.{file_extension}"
+    file_path = f"uploads/homework/{file_name}"
+    
+    with open(file_path, "wb") as f:
+        f.write(file.file.read())
+        
+    db_homework.file_url = f"http://localhost:8000/uploads/homework/{file_name}"
+    db_homework.is_completed = True
+    db.commit()
+    db.refresh(db_homework)
+    return db_homework
+
 # --- Session Proofs ---
 
 @router.post("/session-proofs/", response_model=schemas.SessionProof)

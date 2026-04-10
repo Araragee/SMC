@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notification'
@@ -36,6 +36,20 @@ const isSidebarOpen = ref(false)
 const isUserDropdownOpen = ref(false)
 const selectedNotification = ref<Notification | null>(null)
 
+// ── Deep Linking ─────────────────────────────────────────────────────────────
+watch(() => route.query.chat_id, (id) => {
+  if (id) messagingStore.openConversation(String(id))
+}, { immediate: true })
+
+watch(() => route.query.notif_id, (id) => {
+  if (id) modalStore.openNotifications()
+}, { immediate: true })
+
+onMounted(() => {
+  if (route.query.chat_id) messagingStore.openConversation(String(route.query.chat_id))
+  if (route.query.notif_id) modalStore.openNotifications()
+})
+
 type NavItem = { path: string; icon: string; label: string }
 
 const navsByRole: Record<string, NavItem[]> = {
@@ -57,6 +71,7 @@ const navsByRole: Record<string, NavItem[]> = {
     { path: '/student', icon: 'dashboard', label: 'Dashboard' },
     { path: '/student/schedule', icon: 'calendar_today', label: 'Schedule' },
     { path: '/student/homework', icon: 'school', label: 'Homework' },
+    { path: '/student/payments', icon: 'payments', label: 'Payments' },
   ],
 }
 
@@ -292,6 +307,7 @@ const openSettings = () => {
               </button>
               <button
                 class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 transition-all text-xs font-bold"
+                @click="openSettings"
               >
                 <span class="material-symbols-outlined text-lg">settings</span>
                 Preferences

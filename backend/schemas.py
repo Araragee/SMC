@@ -54,6 +54,7 @@ class Notification(NotificationBase):
 class HomeworkBase(BaseModel):
     description: str
     is_completed: bool = False
+    file_url: Optional[str] = None
 
 class HomeworkCreate(HomeworkBase):
     pass
@@ -76,6 +77,21 @@ class SessionProof(SessionProofBase):
     uploaded_at: datetime
     uploader_id: Optional[int] = None
     uploader_role: Optional[str] = None
+    model_config = {"from_attributes": True}
+
+class PaymentBase(BaseModel):
+    student_id: int
+    amount: int
+    method: str
+    status: str = "completed"
+    notes: Optional[str] = None
+
+class PaymentCreate(PaymentBase):
+    pass
+
+class Payment(PaymentBase):
+    id: int
+    date: datetime
     model_config = {"from_attributes": True}
 
 class SessionBase(BaseModel):

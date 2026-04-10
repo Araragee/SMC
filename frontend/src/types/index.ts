@@ -59,6 +59,15 @@ export interface SessionProof {
   uploaderRole?: string;
 }
 
+export interface Homework {
+  id: number;
+  sessionId: number;
+  description: string;
+  isCompleted: boolean;
+  fileUrl?: string;
+  createdAt: string;
+}
+
 export interface Session {
   id: string;
   studentId: string;

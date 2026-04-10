@@ -152,8 +152,11 @@ const openEdit = function(session: Session) {
 const confirmEdit = async function() {
   const { sessionId, date, time, notes } = editModal.value
   try {
-    const startTime = new Date(`${date}T${time}:00`).toISOString()
-    const endTime = new Date(new Date(`${date}T${time}:00`).getTime() + 3600000).toISOString()
+    const [y, m, d] = date.split('-').map(Number)
+    const [hr, min] = time.split(':').map(Number)
+    const startTimeDt = new Date(y, m - 1, d, hr, min)
+    const startTime = startTimeDt.toISOString()
+    const endTime = new Date(startTimeDt.getTime() + 3600000).toISOString()
     await scheduleStore.editSession(sessionId, { startTime, endTime, notes })
     toast.success('Session updated!')
     editModal.value.open = false

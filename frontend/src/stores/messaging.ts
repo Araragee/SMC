@@ -55,6 +55,7 @@ interface MessagingState {
   _ws:                  WebSocket | null
   _typingTimers:        Record<string, ReturnType<typeof setTimeout>>
   _reconnectTimer:      ReturnType<typeof setTimeout> | null
+  _reconnectAttempts:   number
 }
 
 export const useMessagingStore = defineStore('messaging', {
@@ -69,6 +70,7 @@ export const useMessagingStore = defineStore('messaging', {
     _ws:                  null,
     _typingTimers:        {},
     _reconnectTimer:      null,
+    _reconnectAttempts:   0,
   }),
 
   getters: {
@@ -102,6 +104,7 @@ export const useMessagingStore = defineStore('messaging', {
 
       ws.onopen = () => {
         this.wsStatus = 'connected'
+        this._reconnectAttempts = 0
         this.fetchConversations()
       }
 
@@ -111,7 +114,12 @@ export const useMessagingStore = defineStore('messaging', {
         this.wsStatus = 'disconnected'
         this._ws = null
         if (this._reconnectTimer) clearTimeout(this._reconnectTimer)
-        this._reconnectTimer = setTimeout(() => this.connectWS(), 3000)
+        
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s, max 30s
+        const delay = Math.min(1000 * Math.pow(2, this._reconnectAttempts), 30000)
+        this._reconnectAttempts++
+        
+        this._reconnectTimer = setTimeout(() => this.connectWS(), delay)
       }
 
       ws.onerror = () => ws.close()
