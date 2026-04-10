@@ -13,24 +13,6 @@ const homeworks = ref<Homework[]>([])
 const isLoading = ref(false)
 const isUploading = ref<number | null>(null)
 
-const fetchHomework = async () => {
-  if (!authStore.currentUser) return
-  isLoading.value = true
-  try {
-    const res = await axios.get(`${API_URL}/payments/homework/user/${authStore.currentUser.id}`, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
-    })
-    // Wait, I put homework in payments.py or sessions.py? 
-    // I put it in sessions.py but I should check the path.
-    // In sessions.py: @router.get("/homework/user/{user_id}")
-    // Oh, the router prefix is usually /sessions if I'm not careful.
-    // Let's check main.py for the prefix.
-  } catch (err) {
-    console.error(err)
-  } finally {
-    isLoading.value = false
-  }
-}
 
 // Re-check sessions.py router registration
 // app.include_router(sessions.router) -> No prefix!

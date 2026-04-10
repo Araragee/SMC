@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { onMounted } from 'vue'
 import { usePaymentsStore } from '../../stores/payments'
 import { useUsersStore } from '../../stores/users'
-import { useToastStore } from '../../stores/toast'
 
 const paymentsStore = usePaymentsStore()
 const usersStore = useUsersStore()
-const toast = useToastStore()
 
 onMounted(async () => {
   await Promise.all([
