@@ -716,10 +716,7 @@ const openLiveAnalytics = function () {
                   type="text"
                   placeholder="Search faculty..."
                   class="pl-10 pr-4 py-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/50 w-48 transition-all"
-                  @keyup.esc="
-                    showTeacherSearch = false
-                    teacherSearch = ''
-                  "
+                  @keyup.esc="showTeacherSearch = false; teacherSearch = ''"
                 />
                 <span
                   class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant"

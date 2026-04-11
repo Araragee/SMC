@@ -19,15 +19,7 @@ const typeClasses = function (type: string) {
   return map[type] || map.info
 }
 
-const typeGradient = function (type: string) {
-  const map: Record<string, string> = {
-    info: 'bg-gradient-to-r from-blue-600 to-indigo-600',
-    success: 'bg-gradient-to-r from-emerald-600 to-teal-600',
-    warning: 'bg-gradient-to-r from-amber-600 to-orange-600',
-    error: 'bg-gradient-to-r from-red-600 to-rose-600',
-  }
-  return map[type] || map.info
-}
+
 
 const typeIcon = function (type: string) {
   const map: Record<string, string> = {
