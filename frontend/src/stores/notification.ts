@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuthStore } from '@stores/auth';
 import type { Notification } from '@types';
 
-import { API_URL } from '@typscript/constants'
+import { API_URL } from '@typescript/constants'
 
 const authHeaders = function() {
   const auth = useAuthStore();

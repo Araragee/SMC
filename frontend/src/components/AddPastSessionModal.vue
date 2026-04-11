@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { API_URL } from '@typscript/constants'
+import { API_URL } from '@typescript/constants'
 import { ref, computed, watch } from 'vue';
 import { useUsersStore } from '@stores/users';
 import BaseCard from '@components/BaseCard.vue';

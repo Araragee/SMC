@@ -4,7 +4,7 @@ import type { Enrollment } from '@types';
 import { useScheduleStore } from '@stores/schedule';
 import { useToastStore } from '@stores/toast';
 import { useAuthStore } from '@stores/auth';
-import { API_URL } from '@typscript/constants';
+import { API_URL } from '@typescript/constants';
 
 const authHeaders = function() {
   const auth = useAuthStore();

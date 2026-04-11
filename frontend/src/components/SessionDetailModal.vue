@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NUDGE_COOLDOWN_MS } from '@typscript/constants'
+import { NUDGE_COOLDOWN_MS } from '@typescript/constants'
 import { ref, computed } from 'vue'
 import { useToastStore } from '@stores/toast'
 import type { User, Session } from '@types'

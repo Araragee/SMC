@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { User, Role } from '@types'
 import { useToastStore } from '@stores/toast'
-import { API_URL } from '@typscript/constants'
+import { API_URL } from '@typescript/constants'
 
 const savedToken = localStorage.getItem('token')
 const savedUser = localStorage.getItem('user')

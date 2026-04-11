@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
 
-import { API_URL } from '@typscript/constants'
+import { API_URL } from '@typescript/constants'
 
 const authHeaders = function() {
   const auth = useAuthStore()

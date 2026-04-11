@@ -669,7 +669,7 @@ def upload_homework_file(
     with open(file_path, "wb") as f:
         f.write(file.file.read())
         
-    db_homework.file_url = f"http://localhost:8000/uploads/homework/{file_name}"
+    db_homework.file_url = f"/uploads/homework/{file_name}"
     db_homework.is_completed = True
     db.commit()
     db.refresh(db_homework)
@@ -696,7 +696,7 @@ def create_session_proof(
     with open(file_path, "wb") as f:
         f.write(file.file.read())
 
-    image_url = f"http://localhost:8000/uploads/{file_name}"
+    image_url = f"/uploads/{file_name}"
 
     db_proof = models.SessionProof(
         session_id=session_id,

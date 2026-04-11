@@ -9,7 +9,7 @@
       "@components/*": ["./src/components/*"],
       "@stores/*": ["./src/stores/*"],
       "@views/*": ["./src/views/*"],
-      "@typscript/*": ["./src/typscript/*"],
+      "@typescript/*": ["./src/typescript/*"],
       "@types": ["./src/types/index.ts"],
       "@types/*": ["./src/types/*"],
       "@layouts/*": ["./src/layouts/*"],

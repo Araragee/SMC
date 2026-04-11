@@ -1,7 +1,7 @@
 <script setup lang="ts">
   // TODO: Fix remaining TS issues in this file
 import { ref, onMounted, computed } from 'vue'
-import { API_URL } from '@typscript/constants'
+import { API_URL } from '@typescript/constants'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'

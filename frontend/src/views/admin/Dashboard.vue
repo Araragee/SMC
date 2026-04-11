@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE } from '@typscript/constants'
+import { PAGE_SIZE } from '@typescript/constants'
 import { onMounted, computed, ref } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'

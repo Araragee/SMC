@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
 import type { ChatMessage, Conversation } from '@types'
 
-import { API_URL } from '@typscript/constants'
+import { API_URL } from '@typescript/constants'
 const WS_URL  = (import.meta.env.VITE_WS_BASE_URL  || 'ws://localhost:8000')
 
 const authHeaders = function() {
