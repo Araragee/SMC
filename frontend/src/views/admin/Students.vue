@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useUsersStore } from '../../stores/users'
-import { useScheduleStore } from '../../stores/schedule'
-import { useAuthStore } from '../../stores/auth'
-import { useToastStore } from '../../stores/toast'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import type { User, Session } from '../../types'
+import { useUsersStore } from '@stores/users'
+import { useScheduleStore } from '@stores/schedule'
+import { useAuthStore } from '@stores/auth'
+import { useToastStore } from '@stores/toast'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import type { User, Session } from '@types'
 
 // ── click-outside directive ────────────────────────────────────────────────────
 const vClickOutside = {
@@ -97,10 +97,10 @@ const allStudents = computed(() => {
   // sort
   const out = [...list]
   switch (sortBy.value) {
-    case 'name-asc':      out.sort((a, b) => a.name.localeCompare(b.name)); break
-    case 'name-desc':     out.sort((a, b) => b.name.localeCompare(a.name)); break
-    case 'sessions-high': out.sort((a, b) => (b.sessionsLeft ?? 0) - (a.sessionsLeft ?? 0)); break
-    case 'sessions-low':  out.sort((a, b) => (a.sessionsLeft ?? 0) - (b.sessionsLeft ?? 0)); break
+    case 'name-asc':      out.sort((a: any, b: any) => a.name.localeCompare(b.name)); break
+    case 'name-desc':     out.sort((a: any, b: any) => b.name.localeCompare(a.name)); break
+    case 'sessions-high': out.sort((a: any, b: any) => (b.sessionsLeft ?? 0) - (a.sessionsLeft ?? 0)); break
+    case 'sessions-low':  out.sort((a: any, b: any) => (a.sessionsLeft ?? 0) - (b.sessionsLeft ?? 0)); break
   }
   return out
 })

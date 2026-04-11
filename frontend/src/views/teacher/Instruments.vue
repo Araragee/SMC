@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useToastStore } from '../../stores/toast'
-import type { InstrumentRecord } from '../../types'
+  // TODO: Fix remaining TS issues in this file
+          import { ref, onMounted, computed } from 'vue'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useToastStore } from '@stores/toast'
+import type { InstrumentRecord } from '@types'
 
 const usersStore = useUsersStore()
 const authStore = useAuthStore()

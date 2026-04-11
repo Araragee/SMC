@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { NUDGE_COOLDOWN_MS } from '@typscript/constants'
 import { ref, computed } from 'vue'
-import { useToastStore } from '../stores/toast'
-import type { Session, User } from '../types'
+import { useToastStore } from '@stores/toast'
+import type { User, Session } from '@types'
 
 const props = defineProps<{
   session: Session | null
@@ -28,7 +29,6 @@ const toast = useToastStore()
 const showProofViewer = ref<string | null>(null)
 
 // ── Nudge cooldown (1 hour per session, persisted in localStorage) ─────────
-const NUDGE_COOLDOWN_MS = 60 * 60 * 1000 // 1 hour
 
 function getNudgeKey(sessionId: string) {
   return `nudge_last_${sessionId}`
@@ -62,7 +62,7 @@ function sendNudge(sessionId: string) {
 }
 
 const getUser = function(id: string): string  {
-  return props.users.find((u) => u.id === id)?.name ?? `User #${id}`
+  return props.users.find((u: any) => u.id === id)?.name ?? `User #${id}`
 }
 
 const formatTime = function(iso: string) {

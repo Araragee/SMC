@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMessagingStore } from '../../stores/messaging'
+import { useMessagingStore } from '@stores/messaging'
 import ConversationList from './ConversationList.vue'
 import ChatWindow from './ChatWindow.vue'
 

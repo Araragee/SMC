@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { useUsersStore } from '../stores/users';
-import BaseCard from './BaseCard.vue';
-import BaseButton from './BaseButton.vue';
-import BaseInput from './BaseInput.vue';
-import type { User, Role, InstrumentRecord } from '../types';
+import { useUsersStore } from '@stores/users';
+import BaseCard from '@components/BaseCard.vue';
+import BaseButton from '@components/BaseButton.vue';
+import BaseInput from '@components/BaseInput.vue';
+import type { User, Role, InstrumentRecord } from '@types';
 
 const props = defineProps<{
   isOpen: boolean;

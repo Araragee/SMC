@@ -1,42 +1,42 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import Login from '../views/Login.vue'
-import PlaceholderView from '../components/PlaceholderView.vue'
+import { useAuthStore } from '@stores/auth'
+import Login from '@views/Login.vue'
+import PlaceholderView from '@components/PlaceholderView.vue'
 
 // Role-based layouts
-const AdminLayout = () => import('../layouts/AdminLayout.vue')
-const StudentLayout = () => import('../layouts/StudentLayout.vue')
-const TeacherLayout = () => import('../layouts/TeacherLayout.vue')
+const AdminLayout = () => import('@layouts/AdminLayout.vue')
+const StudentLayout = () => import('@layouts/StudentLayout.vue')
+const TeacherLayout = () => import('@layouts/TeacherLayout.vue')
 
 // Dashboards
-const AdminDashboard = () => import('../views/admin/Dashboard.vue')
-const StudentDashboard = () => import('../views/student/Dashboard.vue')
-const StudentSchedule = () => import('../views/student/Schedule.vue')
-const StudentHomework = () => import('../views/student/Homework.vue')
-const StudentPayments = () => import('../views/student/Payments.vue')
-const TeacherDashboard = () => import('../views/teacher/Dashboard.vue')
+const AdminDashboard = () => import('@views/admin/Dashboard.vue')
+const StudentDashboard = () => import('@views/student/Dashboard.vue')
+const StudentSchedule = () => import('@views/student/Schedule.vue')
+const StudentHomework = () => import('@views/student/Homework.vue')
+const StudentPayments = () => import('@views/student/Payments.vue')
+const TeacherDashboard = () => import('@views/teacher/Dashboard.vue')
 
 // Admin Views
-const AdminUsers = () => import('../views/admin/Users.vue')
-const AdminStudentRecords = () => import('../views/admin/StudentRecords.vue')
-const AdminStudents = () => import('../views/admin/Students.vue')
-const AdminTeachers = () => import('../views/admin/Teachers.vue')
+const AdminUsers = () => import('@views/admin/Users.vue')
+const AdminStudentRecords = () => import('@views/admin/StudentRecords.vue')
+const AdminStudents = () => import('@views/admin/Students.vue')
+const AdminTeachers = () => import('@views/admin/Teachers.vue')
 
 // Teacher Views
-const TeacherStudents = () => import('../views/teacher/Students.vue')
-const TeacherInstruments = () => import('../views/teacher/Instruments.vue')
-const TeacherPayments = () => import('../views/teacher/Payments.vue')
+const TeacherStudents = () => import('@views/teacher/Students.vue')
+const TeacherInstruments = () => import('@views/teacher/Instruments.vue')
+const TeacherPayments = () => import('@views/teacher/Payments.vue')
 
 // Schedule views
-const AdminSchedule = () => import('../views/admin/Schedule.vue')
-const TeacherSchedule = () => import('../views/teacher/Schedule.vue')
+const AdminSchedule = () => import('@views/admin/Schedule.vue')
+const TeacherSchedule = () => import('@views/teacher/Schedule.vue')
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/login',
-      component: () => import('../layouts/AuthLayout.vue'),
+      component: () => import('@layouts/AuthLayout.vue'),
       children: [
         {
           path: '',

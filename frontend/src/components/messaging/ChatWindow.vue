@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { useMessagingStore } from '../../stores/messaging'
-import { useAuthStore } from '../../stores/auth'
+import { useMessagingStore } from '@stores/messaging'
+import { useAuthStore } from '@stores/auth'
 import MessageBubble from './MessageBubble.vue'
 
 const props = defineProps<{ conversationId: string }>()

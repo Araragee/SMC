@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import BaseCalendar from '../../components/BaseCalendar.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
+  // TODO: Fix remaining TS issues in this file
+          import { ref, computed, onMounted } from 'vue'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useToastStore } from '@stores/toast'
+import BaseCalendar from '@components/BaseCalendar.vue'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -28,18 +29,18 @@ const students = computed(() => usersStore.getUsersByRole('student'))
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.teacherId === myId.value)
+  scheduleStore.allSessions.filter((s: any) => s.teacherId === myId.value)
 )
 
 const studentProposals = computed(() =>
-  mySessions.value.filter((s) => s.status === 'pending_teacher')
+  mySessions.value.filter((s: any) => s.status === 'pending_teacher')
 )
 
 const upcomingSessions = computed(() => {
   const now = new Date()
   return mySessions.value
-    .filter((s) => s.status === 'scheduled' && new Date(s.startTime) >= now)
-    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    .filter((s: any) => s.status === 'scheduled' && new Date(s.startTime) >= now)
+    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
     .slice(0, 10)
 })
 
@@ -53,7 +54,7 @@ onMounted(async () => {
 })
 
 const getStudentName = function(id: string): string  {
-  return usersStore.users.find((u) => u.id === id)?.name ?? `Student #${id}`
+  return usersStore.users.find((u: any) => u.id === id)?.name ?? `Student #${id}`
 }
 
 const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {

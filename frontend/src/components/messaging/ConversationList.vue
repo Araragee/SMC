@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useMessagingStore } from '../../stores/messaging'
-import { useAuthStore } from '../../stores/auth'
-import type { Conversation } from '../../types'
+import { useMessagingStore } from '@stores/messaging'
+import { useAuthStore } from '@stores/auth'
+import type { Conversation } from '@types'
 import NewConversationModal from './NewConversationModal.vue'
 
 const emit = defineEmits<{ select: [id: string] }>()

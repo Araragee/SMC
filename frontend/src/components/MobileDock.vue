@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { useNotificationStore } from '../stores/notification'
-import { useMessagingStore } from '../stores/messaging'
-import { useModalStore } from '../stores/modal'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useMessagingStore } from '@stores/messaging'
+import { useModalStore } from '@stores/modal'
 
 const route = useRoute()
 const authStore = useAuthStore()

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { usePaymentsStore } from '../../stores/payments'
-import { useUsersStore } from '../../stores/users'
+  // TODO: Fix remaining TS issues in this file
+  import { onMounted } from 'vue'
+import { usePaymentsStore } from '@stores/payments'
+import { useUsersStore } from '@stores/users'
 
 const paymentsStore = usePaymentsStore()
 const usersStore = useUsersStore()

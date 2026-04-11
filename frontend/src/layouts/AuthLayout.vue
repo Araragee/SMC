@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BlobBackground from '../components/BlobBackground.vue'
+import BlobBackground from '@components/BlobBackground.vue'
 </script>
 
 <template>

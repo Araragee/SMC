@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useAuthStore } from '../../stores/auth'
+  // TODO: Fix remaining TS issues in this file
+  import { computed, onMounted } from 'vue'
+import { useAuthStore } from '@stores/auth'
 import { ref } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useInteractionsStore } from '../../stores/interactions'
-import { useToastStore } from '../../stores/toast'
-import type { Session } from '../../types'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useInteractionsStore } from '@stores/interactions'
+import { useToastStore } from '@stores/toast'
+import type { Session } from '@types'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
 
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()
@@ -34,20 +35,20 @@ onMounted(async () => {
 const myId = computed(() => authStore.currentUser?.id ?? '')
 
 const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.teacherId === myId.value)
+  scheduleStore.allSessions.filter((s: any) => s.teacherId === myId.value)
 )
 
 const todaySessions = computed(() => {
   const today = new Date().toDateString()
   return mySessions.value.filter(
-    (s) => s.startTime && new Date(s.startTime).toDateString() === today
+    (s: any) => s.startTime && new Date(s.startTime).toDateString() === today
   )
 })
 
 const currentSession = computed(() => {
   const now = new Date()
   return (
-    mySessions.value.find((s) => {
+    mySessions.value.find((s: any) => {
       if (s.status !== 'scheduled' || !s.startTime || !s.endTime) return false
       const start = new Date(s.startTime)
       const end = new Date(s.endTime)
@@ -60,14 +61,14 @@ const nextSession = computed(() => {
   const now = new Date()
   return (
     mySessions.value
-      .filter((s) => s.status === 'scheduled' && s.startTime && new Date(s.startTime) > now)
-      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
+      .filter((s: any) => s.status === 'scheduled' && s.startTime && new Date(s.startTime) > now)
+      .sort((a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
     null
   )
 })
 
 const getStudentName = function(studentId: string) {
-  return usersStore.users.find((u) => u.id === studentId)?.name || `Student #${studentId}`
+  return usersStore.users.find((u: any) => u.id === studentId)?.name || `Student #${studentId}`
 }
 
 const openSessionModal = function(session: Session) {
@@ -173,13 +174,13 @@ const submitCounter = async function() {
 const rosterEntries = computed(() => {
   const seen = new Set<string>()
   return mySessions.value
-    .filter((s) => {
+    .filter((s: any) => {
       if (seen.has(s.studentId)) return false
       seen.add(s.studentId)
       return true
     })
-    .map((s) => {
-      const user = usersStore.users.find((u) => u.id === s.studentId)
+    .map((s: any) => {
+      const user = usersStore.users.find((u: any) => u.id === s.studentId)
       return {
         studentId: s.studentId,
         name: user?.name ?? `Student #${s.studentId}`,
@@ -204,7 +205,7 @@ const weekDays = computed(() => {
     const isToday = date.toDateString() === now.toDateString()
     const isWeekend = i >= 5
     const session =
-      mySessions.value.find((s) => {
+      mySessions.value.find((s: any) => {
         if (!s.startTime) return false
         return new Date(s.startTime).toDateString() === date.toDateString()
       }) ?? null
@@ -213,7 +214,7 @@ const weekDays = computed(() => {
 })
 
 const pendingProposals = computed(
-  () => mySessions.value.filter((s) => s.status === 'pending_teacher').length
+  () => mySessions.value.filter((s: any) => s.status === 'pending_teacher').length
 )
 
 const students = computed(() => usersStore.getUsersByRole('student'))
@@ -224,15 +225,15 @@ const openProposeForDate = function(date: Date) {
 }
 
 const openRosterSession = function(studentId: string) {
-  const sessions = mySessions.value.filter((s) => s.studentId === studentId)
+  const sessions = mySessions.value.filter((s: any) => s.studentId === studentId)
   if (sessions.length === 0) return
   const now = new Date()
   const upcoming = sessions
-    .filter((s) => s.startTime && new Date(s.startTime) > now)
-    .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())
+    .filter((s: any) => s.startTime && new Date(s.startTime) > now)
+    .sort((a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())
   const target =
     upcoming[0] ??
-    [...sessions].sort((a, b) => new Date(b.startTime!).getTime() - new Date(a.startTime!).getTime())[0]
+    [...sessions].sort((a: any, b: any) => new Date(b.startTime!).getTime() - new Date(a.startTime!).getTime())[0]
   openSessionModal(target)
 }
 

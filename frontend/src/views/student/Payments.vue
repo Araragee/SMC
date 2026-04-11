@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { usePaymentsStore } from '../../stores/payments'
+import { usePaymentsStore } from '@stores/payments'
 
 const paymentsStore = usePaymentsStore()
 

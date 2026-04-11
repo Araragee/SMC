@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useUsersStore } from '../../stores/users'
-import { useToastStore } from '../../stores/toast'
-import type { User, Role } from '../../types'
-import CreateUserModal from '../../components/CreateUserModal.vue'
+import { useUsersStore } from '@stores/users'
+import { useToastStore } from '@stores/toast'
+import type { User, Role } from '@types'
+import CreateUserModal from '@components/CreateUserModal.vue'
 
 const router = useRouter()
 const route = useRoute()

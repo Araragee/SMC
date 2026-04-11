@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import BaseInput from './BaseInput.vue'
-import { useThemeStore } from '../stores/theme'
+import { useAuthStore } from '@stores/auth'
+import BaseInput from '@components/BaseInput.vue'
+import { useThemeStore } from '@stores/theme'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{

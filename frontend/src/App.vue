@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
-import ToastContainer from './components/ToastContainer.vue'
-import MessagingPanel from './components/messaging/MessagingPanel.vue'
-import { useAuthStore } from './stores/auth'
-import { useMessagingStore } from './stores/messaging'
+import ToastContainer from '@components/ToastContainer.vue'
+import MessagingPanel from '@components/messaging/MessagingPanel.vue'
+import { useAuthStore } from '@stores/auth'
+import { useMessagingStore } from '@stores/messaging'
 
 const auth      = useAuthStore()
 const messaging = useMessagingStore()

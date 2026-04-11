@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { User, Role } from '../types'
-import { useToastStore } from './toast'
-
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+import type { User, Role } from '@types'
+import { useToastStore } from '@stores/toast'
+import { API_URL } from '@typscript/constants'
 
 const savedToken = localStorage.getItem('token')
 const savedUser = localStorage.getItem('user')

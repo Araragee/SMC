@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useUsersStore } from '../../stores/users';
-import { useScheduleStore } from '../../stores/schedule';
+import { useUsersStore } from '@stores/users';
+import { useScheduleStore } from '@stores/schedule';
 
-import BaseCard from '../../components/BaseCard.vue';
-import BaseButton from '../../components/BaseButton.vue';
-import AddPastSessionModal from '../../components/AddPastSessionModal.vue';
-import type { User, Session, InstrumentRecord } from '../../types';
+import BaseCard from '@components/BaseCard.vue';
+import BaseButton from '@components/BaseButton.vue';
+import AddPastSessionModal from '@components/AddPastSessionModal.vue';
+import type { User, Session, InstrumentRecord } from '@types';
 
 const route = useRoute();
 const usersStore = useUsersStore();
@@ -50,7 +50,7 @@ const filteredSessions = computed(() => {
     if (filters.value.status !== 'all' && s.status !== filters.value.status) return false;
     if (filters.value.instrument !== 'all' && s.instrumentId !== Number(filters.value.instrument)) return false;
     return true;
-  }).sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+  }).sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 });
 
 const totalEnrolled = computed(() => student.value?.sessionsEnrolled || 0);

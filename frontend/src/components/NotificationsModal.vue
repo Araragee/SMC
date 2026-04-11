@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Notification } from '../types'
-import { useNotificationStore } from '../stores/notification'
-import { useAuthStore } from '../stores/auth'
+import type { Notification } from '@types'
+import { useNotificationStore } from '@stores/notification'
+import { useAuthStore } from '@stores/auth'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -20,7 +20,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const sortedNotifications = computed(() => {
-  return [...props.notifications].sort((a, b) => {
+  return [...props.notifications].sort((a: any, b: any) => {
     // Unread first, then by date desc
     if (a.isRead !== b.isRead) return a.isRead ? 1 : -1
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

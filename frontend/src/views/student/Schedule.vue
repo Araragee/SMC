@@ -1,14 +1,15 @@
 <script setup lang="ts">
+  // TODO: Fix remaining TS issues in this file
 import { ref, computed, onMounted } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import BaseCalendar from '../../components/BaseCalendar.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useToastStore } from '@stores/toast'
+import BaseCalendar from '@components/BaseCalendar.vue'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -26,13 +27,13 @@ const teachers = computed(() => usersStore.getUsersByRole('teacher'))
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.studentId === myId.value)
+  scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
 )
 
-const confirmedSessions = computed(() => mySessions.value.filter((s) => s.status === 'scheduled'))
+const confirmedSessions = computed(() => mySessions.value.filter((s: any) => s.status === 'scheduled'))
 
 const pendingSessions = computed(() =>
-  mySessions.value.filter((s) => s.status === 'pending_teacher' || s.status === 'pending_admin')
+  mySessions.value.filter((s: any) => s.status === 'pending_teacher' || s.status === 'pending_admin')
 )
 
 const pendingCount = computed(() => pendingSessions.value.length)
@@ -40,8 +41,8 @@ const pendingCount = computed(() => pendingSessions.value.length)
 const upcomingSessions = computed(() => {
   const now = new Date()
   return confirmedSessions.value
-    .filter((s) => new Date(s.startTime) >= now)
-    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    .filter((s: any) => new Date(s.startTime) >= now)
+    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
     .slice(0, 8)
 })
 
@@ -55,7 +56,7 @@ onMounted(async () => {
 })
 
 const getTeacherName = function (id: string): string {
-  return usersStore.users.find((u) => u.id === id)?.name ?? `Teacher #${id}`
+  return usersStore.users.find((u: any) => u.id === id)?.name ?? `Teacher #${id}`
 }
 
 const onDayClick = function ({ date, sessions }: { date: Date; sessions: Session[] }) {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { User, Session } from '../types'
+import type { User, Session } from '@types'
 
 const props = defineProps<{
   isOpen: boolean

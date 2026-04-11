@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { PAGE_SIZE } from "@typscript/constants"
 import { onMounted, computed, ref } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import type { Session } from '../../types'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useToastStore } from '@stores/toast'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -20,7 +21,6 @@ const detailDate = ref<Date | null>(null)
 const detailSessions = ref<Session[]>([])
 const selectedSession = ref<Session | null>(null)
 const sessionPage = ref(0)
-const PAGE_SIZE = 5
 const viewMode = ref<'daily' | 'weekly'>('daily')
 const quickTeacherId = ref('')
 const quickStudentId = ref('')
@@ -63,11 +63,11 @@ const canGoNext = computed(
 
 const stats = computed(() => {
   const sessions = scheduleStore.allSessions
-  const completed = sessions.filter((s) => s.status === 'completed').length
+  const completed = sessions.filter((s: any) => s.status === 'completed').length
   const rate = sessions.length ? Math.round((completed / sessions.length) * 100) : 0
   return {
     totalSessions: sessions.length,
-    scheduledSessions: sessions.filter((s) => s.status === 'scheduled').length,
+    scheduledSessions: sessions.filter((s: any) => s.status === 'scheduled').length,
     completedSessions: completed,
     completionRate: rate,
   }
@@ -75,19 +75,19 @@ const stats = computed(() => {
 
 const topInstruments = computed(() => {
   const counts: Record<string, number> = {}
-  scheduleStore.allSessions.forEach((s) => {
+  scheduleStore.allSessions.forEach((s: any) => {
     const name = s.instrument?.name || 'Theory'
     counts[name] = (counts[name] || 0) + 1
   })
   return Object.entries(counts)
     .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
+    .sort((a: any, b: any) => b.count - a.count)
     .slice(0, 3)
 })
 
 const hourlyDistribution = computed(() => {
   const hours = new Array(8).fill(0) // 9am to 5pm
-  scheduleStore.allSessions.forEach((s) => {
+  scheduleStore.allSessions.forEach((s: any) => {
     const hr = new Date(s.startTime).getHours()
     if (hr >= 9 && hr <= 16) hours[hr - 9]++
   })
@@ -97,7 +97,7 @@ const hourlyDistribution = computed(() => {
 
 const todaySessions = computed(() => {
   const today = new Date().toDateString()
-  return scheduleStore.allSessions.filter((s) => new Date(s.startTime).toDateString() === today)
+  return scheduleStore.allSessions.filter((s: any) => new Date(s.startTime).toDateString() === today)
 })
 
 const weeklySessions = computed(() => {
@@ -110,7 +110,7 @@ const weeklySessions = computed(() => {
     grouped[d.toDateString()] = []
   }
 
-  scheduleStore.allSessions.forEach((s) => {
+  scheduleStore.allSessions.forEach((s: any) => {
     const d = new Date(s.startTime).toDateString()
     if (grouped[d]) grouped[d].push(s)
   })
@@ -118,7 +118,7 @@ const weeklySessions = computed(() => {
   return Object.entries(grouped).map(([date, sessions]) => ({
     date: new Date(date),
     sessions: sessions.sort(
-      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      (a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     ),
   }))
 })
@@ -185,12 +185,12 @@ const refreshDetailSessions = function() {
   if (!detailDate.value) return
   const dateStr = detailDate.value.toDateString()
   detailSessions.value = scheduleStore.allSessions.filter(
-    (s) => new Date(s.startTime).toDateString() === dateStr
+    (s: any) => new Date(s.startTime).toDateString() === dateStr
   )
 }
 
 const handleApproveAdmin = async function(sessionId: string) {
-  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
+  const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
       await scheduleStore.approveAsTeacher(sessionId)
@@ -208,7 +208,7 @@ const handleApproveAdmin = async function(sessionId: string) {
 }
 
 const handleRejectAdmin = async function(sessionId: string) {
-  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
+  const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
       await scheduleStore.rejectAsTeacher(sessionId, 'Decline by Admin')
@@ -808,7 +808,7 @@ const openLiveAnalytics = function() {
                   <td class="py-6 px-2">
                     <span class="text-sm font-black text-on-surface dark:text-on-surface">
                       {{
-                        scheduleStore.allSessions.filter((s) => s.teacherId === teacher.id).length
+                        scheduleStore.allSessions.filter((s: any) => s.teacherId === teacher.id).length
                       }}
                     </span>
                   </td>

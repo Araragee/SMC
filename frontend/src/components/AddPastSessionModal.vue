@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { API_URL } from '@typscript/constants'
 import { ref, computed, watch } from 'vue';
-import { useUsersStore } from '../stores/users';
-import BaseCard from './BaseCard.vue';
-import BaseButton from './BaseButton.vue';
-import BaseInput from './BaseInput.vue';
-import type { User } from '../types';
+import { useUsersStore } from '@stores/users';
+import BaseCard from '@components/BaseCard.vue';
+import BaseButton from '@components/BaseButton.vue';
+import BaseInput from '@components/BaseInput.vue';
+import type { User } from '@types';
 import axios from 'axios';
 
 const props = defineProps<{
@@ -18,7 +19,6 @@ const emit = defineEmits<{
 }>();
 
 const usersStore = useUsersStore();
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const isSubmitting = ref(false);
 

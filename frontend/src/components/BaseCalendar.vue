@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Session } from '../types'
+import type { Session } from '@types'
 
 interface DayData {
   label: string
@@ -52,8 +52,8 @@ const weekDays = computed<DayData[]>(() => {
     const isWeekend = i >= 5
 
     const daySessions = props.sessions
-      .filter((s) => new Date(s.startTime).toDateString() === iso)
-      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+      .filter((s: any) => new Date(s.startTime).toDateString() === iso)
+      .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
 
     return { label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions }
   })

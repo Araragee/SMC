@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import type { Enrollment } from '../types';
-import { useScheduleStore } from './schedule';
-import { useToastStore } from './toast';
-import { useAuthStore } from './auth';
-
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+import type { Enrollment } from '@types';
+import { useScheduleStore } from '@stores/schedule';
+import { useToastStore } from '@stores/toast';
+import { useAuthStore } from '@stores/auth';
+import { API_URL } from '@typscript/constants';
 
 const authHeaders = function() {
   const auth = useAuthStore();

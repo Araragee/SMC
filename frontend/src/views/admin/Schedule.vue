@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import BaseCalendar from '../../components/BaseCalendar.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useToastStore } from '@stores/toast'
+import BaseCalendar from '@components/BaseCalendar.vue'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -35,10 +35,10 @@ const pendingSessions = computed(() => scheduleStore.pendingSessions)
 
 const filteredSessions = computed(() => {
   const all = [...scheduleStore.allSessions].sort(
-    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    (a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
   )
   if (!filterStatus.value) return all
-  return all.filter((s) => s.status === filterStatus.value)
+  return all.filter((s: any) => s.status === filterStatus.value)
 })
 
 onMounted(async () => {
@@ -62,7 +62,7 @@ onMounted(async () => {
 })
 
 const getUserName = function(id: string): string  {
-  return usersStore.users.find((u) => u.id === id)?.name ?? `User #${id}`
+  return usersStore.users.find((u: any) => u.id === id)?.name ?? `User #${id}`
 }
 
 const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
@@ -75,7 +75,7 @@ const onSessionClick = function(session: Session) {
 }
 
 const handleApprove = async function(sessionId: string) {
-  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
+  const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
       await scheduleStore.approveAsTeacher(sessionId)
@@ -122,7 +122,7 @@ const openReject = function(sessionId: string) {
 }
 
 const confirmReject = async function() {
-  const session = scheduleStore.allSessions.find((s) => s.id === rejectModal.value.sessionId)
+  const session = scheduleStore.allSessions.find((s: any) => s.id === rejectModal.value.sessionId)
   try {
     if (session?.status === 'pending_teacher') {
       await scheduleStore.rejectAsTeacher(rejectModal.value.sessionId, rejectModal.value.notes)

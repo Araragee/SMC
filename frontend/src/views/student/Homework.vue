@@ -1,11 +1,12 @@
 <script setup lang="ts">
+  // TODO: Fix remaining TS issues in this file
 import { ref, onMounted, computed } from 'vue'
+import { API_URL } from '@typscript/constants'
 import axios from 'axios'
-import { useAuthStore } from '../../stores/auth'
-import { useToastStore } from '../../stores/toast'
-import type { Homework } from '../../types'
+import { useAuthStore } from '@stores/auth'
+import { useToastStore } from '@stores/toast'
+import type { Homework } from '@types'
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 const authStore = useAuthStore()
 const toast = useToastStore()
 

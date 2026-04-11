@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { useNotificationStore } from '../stores/notification'
-import type { Notification } from '../types'
-import NotificationsModal from './NotificationsModal.vue'
-import NotificationDetailModal from './NotificationDetailModal.vue'
-import UserSettingsModal from './UserSettingsModal.vue'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import type { Notification } from '@types'
+import NotificationsModal from '@components/NotificationsModal.vue'
+import NotificationDetailModal from '@components/NotificationDetailModal.vue'
+import UserSettingsModal from '@components/UserSettingsModal.vue'
 
 // Directive for clicking outside
 const vClickOutside = {

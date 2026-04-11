@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import { useAuthStore } from './auth'
-import type { Conversation, ChatMessage } from '../types'
+import { useAuthStore } from '@stores/auth'
+import type { ChatMessage, Conversation } from '@types'
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+import { API_URL } from '@typscript/constants'
 const WS_URL  = (import.meta.env.VITE_WS_BASE_URL  || 'ws://localhost:8000')
 
 const authHeaders = function() {
@@ -78,7 +78,7 @@ export const useMessagingStore = defineStore('messaging', {
       Object.values(state.unreadCounts).reduce((s, n) => s + n, 0),
 
     sortedConversations: (state): Conversation[] =>
-      [...state.conversations].sort((a, b) => {
+      [...state.conversations].sort((a: any, b: any) => {
         const ta = a.lastMessage?.createdAt ?? a.createdAt
         const tb = b.lastMessage?.createdAt ?? b.createdAt
         return new Date(tb).getTime() - new Date(ta).getTime()

@@ -1,11 +1,12 @@
 <script setup lang="ts">
+  // TODO: Fix remaining TS issues in this file
 import { onMounted, computed, ref, reactive } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useToastStore } from '../../stores/toast'
-import { useInteractionsStore } from '../../stores/interactions'
-import type { Session } from '../../types'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useToastStore } from '@stores/toast'
+import { useInteractionsStore } from '@stores/interactions'
+import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -21,7 +22,7 @@ const selectedSessionId = ref<string | null>(null)
 // Always derive the live session object from the store (so status changes reflect immediately)
 const selectedSession = computed(() =>
   selectedSessionId.value
-    ? (scheduleStore.allSessions.find((s) => s.id === selectedSessionId.value) ?? null)
+    ? (scheduleStore.allSessions.find((s: any) => s.id === selectedSessionId.value) ?? null)
     : null
 )
 const showProofViewer = ref(false)
@@ -45,14 +46,14 @@ onMounted(async () => {
 const myId = computed(() => authStore.currentUser?.id ?? '')
 
 const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.studentId === myId.value)
+  scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
 )
 
 const nextSession = computed(
   () =>
     mySessions.value
-      .filter((s) => s.status === 'scheduled' && s.startTime)
-      .sort((a, b) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
+      .filter((s: any) => s.status === 'scheduled' && s.startTime)
+      .sort((a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
     null
 )
 
@@ -66,16 +67,16 @@ const nextSessionCountdown = computed(() => {
 })
 
 const overdueSessions = computed(() =>
-  mySessions.value.filter((s) => ['overdue', 'overdue_rejected'].includes(s.status))
+  mySessions.value.filter((s: any) => ['overdue', 'overdue_rejected'].includes(s.status))
 )
 
 const pendingHomework = computed(
-  () => mySessions.value.find((s) => s.homeworkAssigned && !s.homeworkCompleted) ?? null
+  () => mySessions.value.find((s: any) => s.homeworkAssigned && !s.homeworkCompleted) ?? null
 )
 
 const sessionProgress = computed(() => {
   const totalSessions = interactionsStore.enrollments[0]?.sessionsPurchased || 10
-  const used = mySessions.value.filter((s) => s.status === 'completed').length
+  const used = mySessions.value.filter((s: any) => s.status === 'completed').length
   return Math.min((used / totalSessions) * 100, 100)
 })
 
@@ -177,7 +178,7 @@ const handleGenericProofSelection = function(event: Event) {
 }
 
 const handleGenericProofUpload = async function() {
-  const firstScheduled = mySessions.value.find((s) => s.status === 'scheduled')
+  const firstScheduled = mySessions.value.find((s: any) => s.status === 'scheduled')
   if (!firstScheduled) {
     toast.warning('No session to attach to', 'You need an active scheduled session.')
     return
@@ -600,7 +601,7 @@ const stopCountering = () => {
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
                 <span class="text-4xl font-black text-on-surface dark:text-on-surface">
-                  {{ mySessions.filter((s) => s.status === 'completed').length }} /
+                  {{ mySessions.filter((s: any) => s.status === 'completed').length }} /
                   {{ authStore.currentUser?.sessionsLeft || 10 }}
                 </span>
                 <span class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1"

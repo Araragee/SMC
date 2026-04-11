@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import SidebarNav from '../components/SidebarNav.vue'
-import MobileDock from '../components/MobileDock.vue'
-import BlobBackground from '../components/BlobBackground.vue'
+import SidebarNav from '@components/SidebarNav.vue'
+import MobileDock from '@components/MobileDock.vue'
+import BlobBackground from '@components/BlobBackground.vue'
 </script>
 
 <template>
