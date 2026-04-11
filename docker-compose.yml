@@ -10,16 +10,18 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=sqlite:////app/backend/sql_app.db
+      - SECRET_KEY=smc-music-school-super-secret-jwt-key-change-in-production-2024
+      - PROJECT_NAME=Sernan's Music Clinic API
     restart: always
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE_URL=http://localhost:8000
     ports:
       - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
     depends_on:
       - backend
     restart: always

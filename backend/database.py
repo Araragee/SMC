@@ -2,18 +2,13 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
-import platform
+from .config import settings
+
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
 if not SQLALCHEMY_DATABASE_URL:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DB_PATH = os.path.join(BASE_DIR, "sql_app.db")
-    if platform.system() == "Windows":
-        SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
-    else:
-        # Default fallback to backend/sql_app.db
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        DB_PATH = os.path.join(BASE_DIR, "sql_app.db")
-        SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
+    SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 
 connect_args = {}
