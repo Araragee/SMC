@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PAGE_SIZE } from "@typscript/constants"
+import { PAGE_SIZE } from '@typscript/constants'
 import { onMounted, computed, ref } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
@@ -26,7 +26,9 @@ const quickTeacherId = ref('')
 const quickStudentId = ref('')
 const isQuickAssigning = ref(false)
 const quickDate = ref(new Date().toISOString().split('T')[0])
-const quickTime = ref(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }))
+const quickTime = ref(
+  new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+)
 const teacherSearch = ref('')
 const showTeacherSearch = ref(false)
 
@@ -97,7 +99,9 @@ const hourlyDistribution = computed(() => {
 
 const todaySessions = computed(() => {
   const today = new Date().toDateString()
-  return scheduleStore.allSessions.filter((s: any) => new Date(s.startTime).toDateString() === today)
+  return scheduleStore.allSessions.filter(
+    (s: any) => new Date(s.startTime).toDateString() === today
+  )
 })
 
 const weeklySessions = computed(() => {
@@ -155,13 +159,15 @@ const borderColor = (status: string) => ({
 
 const iconClass = (status: string) => ({
   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
-  'bg-orange-500/10 text-orange-400 border-orange-500/20': status === 'scheduled' || status === 'pending_student',
-  'bg-amber-500/10 text-amber-400 border-amber-500/20': status === 'pending_teacher' || status === 'ongoing',
+  'bg-orange-500/10 text-orange-400 border-orange-500/20':
+    status === 'scheduled' || status === 'pending_student',
+  'bg-amber-500/10 text-amber-400 border-amber-500/20':
+    status === 'pending_teacher' || status === 'ongoing',
   'bg-blue-500/10 text-blue-400 border-blue-500/20': status === 'pending_admin',
   'bg-red-500/10 text-red-400 border-red-500/20': status === 'rejected' || status === 'cancelled',
 })
 
-const onProposeSubmit = async function(session: Session) {
+const onProposeSubmit = async function (session: Session) {
   try {
     await scheduleStore.bookSession({
       teacherId: session.teacherId,
@@ -177,11 +183,11 @@ const onProposeSubmit = async function(session: Session) {
   }
 }
 
-const openSessionDetail = function(session: Session) {
+const openSessionDetail = function (session: Session) {
   selectedSession.value = session
 }
 
-const refreshDetailSessions = function() {
+const refreshDetailSessions = function () {
   if (!detailDate.value) return
   const dateStr = detailDate.value.toDateString()
   detailSessions.value = scheduleStore.allSessions.filter(
@@ -189,7 +195,7 @@ const refreshDetailSessions = function() {
   )
 }
 
-const handleApproveAdmin = async function(sessionId: string) {
+const handleApproveAdmin = async function (sessionId: string) {
   const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -207,7 +213,7 @@ const handleApproveAdmin = async function(sessionId: string) {
   }
 }
 
-const handleRejectAdmin = async function(sessionId: string) {
+const handleRejectAdmin = async function (sessionId: string) {
   const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -222,7 +228,7 @@ const handleRejectAdmin = async function(sessionId: string) {
   }
 }
 
-const handleCompleteAdmin = async function(sessionId: string) {
+const handleCompleteAdmin = async function (sessionId: string) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session Completed', 'The session has been successfully finalized.')
@@ -233,8 +239,8 @@ const handleCompleteAdmin = async function(sessionId: string) {
   }
 }
 
-const handleRejectProofAdmin = async function(sessionId: string) {
-  const reason = window.prompt("Enter a reason for rejecting this proof:")
+const handleRejectProofAdmin = async function (sessionId: string) {
+  const reason = window.prompt('Enter a reason for rejecting this proof:')
   if (!reason) return
   try {
     await scheduleStore.rejectProof(sessionId, reason)
@@ -246,7 +252,7 @@ const handleRejectProofAdmin = async function(sessionId: string) {
   }
 }
 
-const confirmQuickAssign = async function() {
+const confirmQuickAssign = async function () {
   if (!quickTeacherId.value || !quickStudentId.value) return
   isQuickAssigning.value = true
   try {
@@ -270,7 +276,7 @@ const confirmQuickAssign = async function() {
   }
 }
 
-const handleDeleteTeacher = async function(teacher: any) {
+const handleDeleteTeacher = async function (teacher: any) {
   if (!window.confirm(`Are you sure you want to deactivate ${teacher.name}?`)) return
   try {
     await usersStore.deleteUser(teacher.id)
@@ -280,17 +286,17 @@ const handleDeleteTeacher = async function(teacher: any) {
   }
 }
 
-const handleMarkRead = async function(notifId: string) {
+const handleMarkRead = async function (notifId: string) {
   await notifStore.markAsRead(notifId)
 }
 
-const handleClearAll = async function() {
+const handleClearAll = async function () {
   if (authStore.currentUser?.id) {
     await notifStore.markAllAsRead(authStore.currentUser.id)
   }
 }
 
-const openLiveAnalytics = function() {
+const openLiveAnalytics = function () {
   detailDate.value = new Date()
   detailSessions.value = todaySessions.value
 }
@@ -340,7 +346,7 @@ const openLiveAnalytics = function() {
             <div
               v-for="(h, i) in hourlyDistribution"
               :key="i"
-              class="w-2 bg-primary/20 rounded-t-sm transition-all "
+              class="w-2 bg-primary/20 rounded-t-sm transition-all"
               :style="{
                 height: `${h}%`,
                 backgroundColor: h > 70 ? 'var(--md-sys-color-primary)' : '',
@@ -711,8 +717,8 @@ const openLiveAnalytics = function() {
                   placeholder="Search faculty..."
                   class="pl-10 pr-4 py-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/50 w-48 transition-all"
                   @keyup.esc="
-                    showTeacherSearch = false;
-                    teacherSearch = '';
+                    showTeacherSearch = false
+                    teacherSearch = ''
                   "
                 />
                 <span
@@ -808,7 +814,8 @@ const openLiveAnalytics = function() {
                   <td class="py-6 px-2">
                     <span class="text-sm font-black text-on-surface dark:text-on-surface">
                       {{
-                        scheduleStore.allSessions.filter((s: any) => s.teacherId === teacher.id).length
+                        scheduleStore.allSessions.filter((s: any) => s.teacherId === teacher.id)
+                          .length
                       }}
                     </span>
                   </td>
@@ -996,10 +1003,13 @@ const openLiveAnalytics = function() {
                   </option>
                 </select>
               </div>
-              
+
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Date</label>
+                  <label
+                    class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                    >Date</label
+                  >
                   <input
                     v-model="quickDate"
                     type="date"
@@ -1007,7 +1017,10 @@ const openLiveAnalytics = function() {
                   />
                 </div>
                 <div>
-                  <label class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2">Time</label>
+                  <label
+                    class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                    >Time</label
+                  >
                   <input
                     v-model="quickTime"
                     type="time"
@@ -1017,7 +1030,7 @@ const openLiveAnalytics = function() {
               </div>
               <button
                 :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
-                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all  uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="confirmQuickAssign"
               >
                 {{ isQuickAssigning ? 'Scheduling...' : 'Confirm Schedule' }}
@@ -1036,17 +1049,72 @@ const openLiveAnalytics = function() {
     :current-user-id="authStore.currentUser?.id ?? ''"
     :users="allUsers"
     @close="selectedSession = null"
-  @approve-admin="(id: string) => { handleApproveAdmin(id); selectedSession = null }"
-  @reject-admin="(id: string) => { handleRejectAdmin(id); selectedSession = null }"
-  @complete-admin="(id: string) => { handleCompleteAdmin(id); selectedSession = null }"
-  @reject-proof-admin="(id: string) => { handleRejectProofAdmin(id); selectedSession = null }"
-  @approve-teacher="(id: string) => { handleApproveAdmin(id); selectedSession = null }"
-  @reject-teacher="(id: string) => { handleRejectAdmin(id); selectedSession = null }"
-  @counter-teacher="(s: any) => { handleApproveAdmin(s.id); selectedSession = null }"
-  @approve-student="(id: string) => { handleApproveAdmin(id); selectedSession = null }"
-  @counter-student="(s: any) => { handleApproveAdmin(s.id); selectedSession = null }"
-    @edit-admin="() => { selectedSession = null; showAddSessionModal = true; }"
-  @nudge="(id: string) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+    @approve-admin="
+      (id: string) => {
+        handleApproveAdmin(id)
+        selectedSession = null
+      }
+    "
+    @reject-admin="
+      (id: string) => {
+        handleRejectAdmin(id)
+        selectedSession = null
+      }
+    "
+    @complete-admin="
+      (id: string) => {
+        handleCompleteAdmin(id)
+        selectedSession = null
+      }
+    "
+    @reject-proof-admin="
+      (id: string) => {
+        handleRejectProofAdmin(id)
+        selectedSession = null
+      }
+    "
+    @approve-teacher="
+      (id: string) => {
+        handleApproveAdmin(id)
+        selectedSession = null
+      }
+    "
+    @reject-teacher="
+      (id: string) => {
+        handleRejectAdmin(id)
+        selectedSession = null
+      }
+    "
+    @counter-teacher="
+      (s: any) => {
+        handleApproveAdmin(s.id)
+        selectedSession = null
+      }
+    "
+    @approve-student="
+      (id: string) => {
+        handleApproveAdmin(id)
+        selectedSession = null
+      }
+    "
+    @counter-student="
+      (s: any) => {
+        handleApproveAdmin(s.id)
+        selectedSession = null
+      }
+    "
+    @edit-admin="
+      () => {
+        selectedSession = null
+        showAddSessionModal = true
+      }
+    "
+    @nudge="
+      (id: string) => {
+        scheduleStore.nudgeSession(id)
+        selectedSession = null
+      }
+    "
   />
 
   <!-- Add Session Modal -->
