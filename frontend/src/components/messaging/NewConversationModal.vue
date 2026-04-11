@@ -4,7 +4,7 @@ import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
 import { useMessagingStore } from '@stores/messaging'
 
-const emit = defineEmits<{ close: []; created: [id: string] }>()
+const emit = defineEmits<{ close: []; created: [id: number] }>()
 
 const usersStore = useUsersStore()
 const authStore  = useAuthStore()
@@ -13,8 +13,8 @@ const store      = useMessagingStore()
 const tab       = ref<'dm' | 'group'>('dm')
 const search    = ref('')
 const groupName = ref('')
-const selectedDM  = ref<string | null>(null)
-const selectedGroup = ref<string[]>([])
+const selectedDM  = ref<number | null>(null)
+const selectedGroup = ref<number[]>([])
 const isSubmitting = ref(false)
 
 // Exclude self from list
@@ -29,7 +29,7 @@ const filtered = computed(() =>
   )
 )
 
-const toggleGroup = function(id: string) {
+const toggleGroup = function(id: number) {
   const idx = selectedGroup.value.indexOf(id)
   if (idx >= 0) selectedGroup.value.splice(idx, 1)
   else selectedGroup.value.push(id)
@@ -39,7 +39,7 @@ const confirm = async function() {
   if (isSubmitting.value) return
   isSubmitting.value = true
   try {
-    let id: string
+    let id: number
     if (tab.value === 'dm') {
       if (!selectedDM.value) return
       id = await store.startDM(selectedDM.value)

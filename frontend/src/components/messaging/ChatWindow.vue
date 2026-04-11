@@ -4,7 +4,7 @@ import { useMessagingStore } from '@stores/messaging'
 import { useAuthStore } from '@stores/auth'
 import MessageBubble from './MessageBubble.vue'
 
-const props = defineProps<{ conversationId: string }>()
+const props = defineProps<{ conversationId: number }>()
 
 const store   = useMessagingStore()
 const auth    = useAuthStore()
@@ -129,7 +129,7 @@ const getConvLabel = function(): string  {
         v-for="msg in msgs"
         :key="msg.id"
         :message="msg"
-        :is-mine="msg.senderId === String(auth.currentUser?.id)"
+        :is-mine="msg.senderId === auth.currentUser?.id"
         :show-sender="isGroup"
       />
 

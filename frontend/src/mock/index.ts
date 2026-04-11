@@ -2,21 +2,21 @@ import type { User, Session, Schedule, Notification } from '../types';
 
 export const mockUsers: User[] = [
   {
-    id: 'admin-1',
+    id: 1,
     name: 'Alice Admin',
     email: 'admin@musicschool.com',
     role: 'admin',
     avatarUrl: 'https://i.pravatar.cc/150?u=admin',
   },
   {
-    id: 'teacher-1',
+    id: 2,
     name: 'Trevor Teacher',
     email: 'trevor@musicschool.com',
     role: 'teacher',
     avatarUrl: 'https://i.pravatar.cc/150?u=teacher',
   },
   {
-    id: 'student-1',
+    id: 3,
     name: 'Sam Student',
     email: 'sam@musicschool.com',
     role: 'student',
@@ -27,9 +27,9 @@ export const mockUsers: User[] = [
 
 export const mockSessions: Session[] = [
   {
-    id: 'session-1',
-    studentId: 'student-1',
-    teacherId: 'teacher-1',
+    id: 101,
+    studentId: 3,
+    teacherId: 2,
     startTime: '2023-10-25T10:00:00Z',
     endTime: '2023-10-25T11:00:00Z',
     status: 'scheduled',
@@ -37,9 +37,9 @@ export const mockSessions: Session[] = [
     homeworkCompleted: false,
   },
   {
-    id: 'session-2',
-    studentId: 'student-1',
-    teacherId: 'teacher-1',
+    id: 102,
+    studentId: 3,
+    teacherId: 2,
     startTime: '2023-10-20T10:00:00Z',
     endTime: '2023-10-20T11:00:00Z',
     status: 'completed',
@@ -51,21 +51,21 @@ export const mockSessions: Session[] = [
 
 export const mockSchedules: Schedule[] = [
   {
-    id: 'schedule-student-1',
-    userId: 'student-1',
-    sessions: mockSessions.filter(s => s.studentId === 'student-1'),
+    id: 201,
+    userId: 3,
+    sessions: mockSessions.filter(s => s.studentId === 3),
   },
   {
-    id: 'schedule-teacher-1',
-    userId: 'teacher-1',
-    sessions: mockSessions.filter(s => s.teacherId === 'teacher-1'),
+    id: 202,
+    userId: 2,
+    sessions: mockSessions.filter(s => s.teacherId === 2),
   },
 ];
 
 export const mockNotifications: Notification[] = [
   {
-    id: 'notification-1',
-    userId: 'student-1',
+    id: 301,
+    userId: 3,
     title: 'Upcoming Session',
     message: 'You have a piano lesson with Trevor tomorrow at 10 AM.',
     type: 'info',
@@ -73,8 +73,8 @@ export const mockNotifications: Notification[] = [
     createdAt: '2023-10-24T09:00:00Z',
   },
   {
-    id: 'notification-2',
-    userId: 'admin-1',
+    id: 302,
+    userId: 1,
     title: 'New Student Enrollment',
     message: 'Sam Student has just enrolled for 5 sessions.',
     type: 'success',

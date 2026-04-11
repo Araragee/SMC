@@ -22,38 +22,6 @@ app = FastAPI(title=settings.PROJECT_NAME)
 @app.on_event("startup")
 def startup_event():
     db = SessionLocal()
-
-    # Run SQLite migration: Add new columns if they don't exist
-    columns = [
-        ("users", "username", "VARCHAR"),
-        ("users", "contact_number", "VARCHAR"),
-        ("users", "home_address", "VARCHAR"),
-        ("users", "birthday", "VARCHAR"),
-        ("users", "age", "INTEGER"),
-        ("users", "school", "VARCHAR"),
-        ("users", "parent_name", "VARCHAR"),
-        ("users", "parent_contact", "VARCHAR"),
-        ("users", "sessions_enrolled", "INTEGER"),
-        ("sessions", "instrument_id", "INTEGER REFERENCES instruments(id)"),
-        ("sessions", "is_manual_entry", "BOOLEAN DEFAULT 0"),
-        ("sessions", "session_number", "INTEGER"),
-        ("sessions", "notified_24h", "BOOLEAN DEFAULT 0"),
-        ("sessions", "notified_12h", "BOOLEAN DEFAULT 0"),
-        ("sessions", "proof_justification", "VARCHAR"),
-        ("sessions", "rejection_reason", "VARCHAR"),
-        ("sessions", "is_force_completed", "BOOLEAN DEFAULT 0"),
-        ("homework", "file_url", "VARCHAR"),
-        ("session_proofs", "uploader_id", "INTEGER REFERENCES users(id)"),
-        ("session_proofs", "uploader_role", "VARCHAR")
-    ]
-    
-    for table, col, col_type in columns:
-        try:
-            db.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
-            db.commit()
-        except Exception:
-            db.rollback() # Ignore errors if columns already exist
-
     try:
         # Create default roles if they don't exist
         for role_name in ["admin", "teacher", "student"]:

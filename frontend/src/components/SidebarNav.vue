@@ -103,7 +103,7 @@ const isActive = (path: string) => {
 
 onMounted(() => {
   if (authStore.currentUser?.id) {
-    notifStore.fetchNotifications(String(authStore.currentUser.id))
+    notifStore.fetchNotifications(authStore.currentUser.id)
   }
   messagingStore.fetchConversations()
 })

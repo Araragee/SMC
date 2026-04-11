@@ -7,22 +7,22 @@ import type { User, Session } from '@types'
 const props = defineProps<{
   session: Session | null
   userRole: 'admin' | 'teacher' | 'student'
-  currentUserId: string
+  currentUserId: number
   users: User[]
 }>()
 
 const emit = defineEmits<{
   close: []
-  'approve-teacher': [sessionId: string]
-  'reject-teacher': [sessionId: string]
+  'approve-teacher': [sessionId: number]
+  'reject-teacher': [sessionId: number]
   'counter-teacher': [session: Session]
-  'approve-student': [sessionId: string]
+  'approve-student': [sessionId: number]
   'counter-student': [session: Session]
-  'approve-admin': [sessionId: string]
-  'reject-admin': [sessionId: string]
+  'approve-admin': [sessionId: number]
+  'reject-admin': [sessionId: number]
   'edit-admin': [session: Session]
-  'complete-admin': [sessionId: string]
-  'reject-proof-admin': [sessionId: string]
+  'complete-admin': [sessionId: number]
+  'reject-proof-admin': [sessionId: number]
 }>()
 
 const toast = useToastStore()
@@ -30,18 +30,18 @@ const showProofViewer = ref<string | null>(null)
 
 // ── Nudge cooldown (1 hour per session, persisted in localStorage) ─────────
 
-function getNudgeKey(sessionId: string) {
+function getNudgeKey(sessionId: number) {
   return `nudge_last_${sessionId}`
 }
 
-function getNudgeCooldownLeft(sessionId: string): number {
+function getNudgeCooldownLeft(sessionId: number): number {
   const last = localStorage.getItem(getNudgeKey(sessionId))
   if (!last) return 0
   const elapsed = Date.now() - Number(last)
   return Math.max(0, NUDGE_COOLDOWN_MS - elapsed)
 }
 
-function nudgeCooldownLabel(sessionId: string): string {
+function nudgeCooldownLabel(sessionId: number): string {
   const ms = getNudgeCooldownLeft(sessionId)
   if (ms <= 0) return ''
   const mins = Math.ceil(ms / 60000)
@@ -49,11 +49,11 @@ function nudgeCooldownLabel(sessionId: string): string {
   return `${mins}m cooldown`
 }
 
-function isNudgeOnCooldown(sessionId: string): boolean {
+function isNudgeOnCooldown(sessionId: number): boolean {
   return getNudgeCooldownLeft(sessionId) > 0
 }
 
-function sendNudge(sessionId: string) {
+function sendNudge(sessionId: number) {
   if (isNudgeOnCooldown(sessionId)) return
   localStorage.setItem(getNudgeKey(sessionId), String(Date.now()))
   const remaining = '1 hour'
@@ -61,7 +61,7 @@ function sendNudge(sessionId: string) {
   emit('close')
 }
 
-const getUser = function(id: string): string  {
+const getUser = function(id: number): string  {
   return props.users.find((u: any) => u.id === id)?.name ?? `User #${id}`
 }
 

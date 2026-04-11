@@ -5,7 +5,7 @@ import type { User, Session } from '@types'
 const props = defineProps<{
   isOpen: boolean
   userRole: 'admin' | 'teacher' | 'student'
-  currentUserId: string
+  currentUserId: number
   teachers: User[]
   students: User[]
   initialDate?: Date
@@ -19,8 +19,8 @@ const emit = defineEmits<{
 const todayStr = new Date().toISOString().split('T')[0]
 
 const form = ref({
-  teacherId: props.userRole === 'teacher' ? props.currentUserId : '',
-  studentId: props.userRole === 'student' ? props.currentUserId : '',
+  teacherId: props.userRole === 'teacher' ? (props.currentUserId as number | null) : null as number | null,
+  studentId: props.userRole === 'student' ? (props.currentUserId as number | null) : null as number | null,
   date: props.initialDate ? props.initialDate.toISOString().split('T')[0] : todayStr,
   time: '10:00',
   durationHours: '1',
@@ -60,9 +60,9 @@ const submit = async function() {
     const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
 
     emit('submitted', {
-      id: '',
-      teacherId: form.value.teacherId,
-      studentId: form.value.studentId,
+      id: 0,
+      teacherId: Number(form.value.teacherId),
+      studentId: Number(form.value.studentId),
       startTime: startDt.toISOString(),
       endTime: endDt.toISOString(),
       status: 'scheduled',
@@ -111,7 +111,7 @@ const submit = async function() {
                 v-model="form.teacherId"
                 class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
               >
-                <option value="" disabled class="bg-surface-container">Select a teacher</option>
+                <option :value="null" disabled class="bg-surface-container">Select a teacher</option>
                 <option v-for="t in teachers" :key="t.id" :value="t.id" class="bg-surface-container">{{ t.name }}</option>
               </select>
             </div>
@@ -123,7 +123,7 @@ const submit = async function() {
                 v-model="form.studentId"
                 class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
               >
-                <option value="" disabled class="bg-surface-container">Select a student</option>
+                <option :value="null" disabled class="bg-surface-container">Select a student</option>
                 <option v-for="s in students" :key="s.id" :value="s.id" class="bg-surface-container">{{ s.name }}</option>
               </select>
             </div>

@@ -24,8 +24,8 @@ const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 const filterStatus = ref('')
 
-const rejectModal = ref({ open: false, sessionId: '', notes: '' })
-const editModal = ref({ open: false, sessionId: '', date: '', time: '', notes: '' })
+const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
+const editModal = ref({ open: false, sessionId: 0, date: '', time: '', notes: '' })
 
 const teachers = computed(() => usersStore.getUsersByRole('teacher'))
 const students = computed(() => usersStore.getUsersByRole('student'))
@@ -45,11 +45,11 @@ onMounted(async () => {
   await Promise.all([
     scheduleStore.fetchAllSessions(),
     usersStore.fetchUsers(),
-    notifStore.fetchNotifications(authStore.currentUser?.id ?? ''),
+    notifStore.fetchNotifications(authStore.currentUser?.id ?? 0),
   ])
 
   if (route.query.session_id) {
-    const sId = route.query.session_id as string
+    const sId = Number(route.query.session_id)
     const sessionToOpen = scheduleStore.allSessions.find(s => s.id === sId)
     if (sessionToOpen) {
       selectedDate.value = new Date(sessionToOpen.startTime)
@@ -61,7 +61,7 @@ onMounted(async () => {
   }
 })
 
-const getUserName = function(id: string): string  {
+const getUserName = function(id: number): string  {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `User #${id}`
 }
 
@@ -74,7 +74,7 @@ const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
-const handleApprove = async function(sessionId: string) {
+const handleApprove = async function(sessionId: number) {
   const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -92,7 +92,7 @@ const handleApprove = async function(sessionId: string) {
   }
 }
 
-const handleCompleteAdmin = async function(sessionId: string) {
+const handleCompleteAdmin = async function(sessionId: number) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session Completed', 'The session has been successfully finalized.')
@@ -103,7 +103,7 @@ const handleCompleteAdmin = async function(sessionId: string) {
   }
 }
 
-const handleRejectProofAdmin = async function(sessionId: string) {
+const handleRejectProofAdmin = async function(sessionId: number) {
   const reason = window.prompt("Enter a reason for rejecting this proof:")
   if (!reason) return
   try {
@@ -116,7 +116,7 @@ const handleRejectProofAdmin = async function(sessionId: string) {
   }
 }
 
-const openReject = function(sessionId: string) {
+const openReject = function(sessionId: number) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
 }
@@ -551,20 +551,20 @@ const statusBadgeClass = function(status: string): string  {
     <SessionDetailModal
       :session="selectedSession"
       user-role="admin"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
-    @approve-admin="(id: string) => { handleApprove(id); selectedSession = null }"
-    @reject-admin="(id: string) => { openReject(id); selectedSession = null }"
-    @complete-admin="(id: string) => { handleCompleteAdmin(id); selectedSession = null }"
-    @reject-proof-admin="(id: string) => { handleRejectProofAdmin(id); selectedSession = null }"
-    @approve-teacher="(id: string) => { handleApprove(id); selectedSession = null }"
-    @reject-teacher="(id: string) => { openReject(id); selectedSession = null }"
-    @counter-teacher="(s: any) => { handleApprove(s.id); selectedSession = null }"
-    @approve-student="(id: string) => { handleApprove(id); selectedSession = null }"
-    @counter-student="(s: any) => { handleApprove(s.id); selectedSession = null }"
-    @edit-admin="(s: any) => { openEdit(s); selectedSession = null }"
-    @nudge="(id: string) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+    @approve-admin="(id: number) => { handleApprove(id); selectedSession = null }"
+    @reject-admin="(id: number) => { openReject(id); selectedSession = null }"
+    @complete-admin="(id: number) => { handleCompleteAdmin(id); selectedSession = null }"
+    @reject-proof-admin="(id: number) => { handleRejectProofAdmin(id); selectedSession = null }"
+    @approve-teacher="(id: number) => { handleApprove(id); selectedSession = null }"
+    @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
+    @counter-teacher="(s: Session) => { handleApprove(s.id); selectedSession = null }"
+    @approve-student="(id: number) => { handleApprove(id); selectedSession = null }"
+    @counter-student="(s: Session) => { handleApprove(s.id); selectedSession = null }"
+    @edit-admin="(s: Session) => { openEdit(s); selectedSession = null }"
+    @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->
@@ -572,7 +572,7 @@ const statusBadgeClass = function(status: string): string  {
       v-if="showProposeModal"
       :is-open="showProposeModal"
       user-role="admin"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :teachers="teachers"
       :students="students"
       :initial-date="selectedDate ?? undefined"

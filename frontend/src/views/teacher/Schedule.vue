@@ -21,10 +21,10 @@ const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
 const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
-const rejectModal = ref({ open: false, sessionId: '', notes: '' })
-const counterModal = ref({ open: false, sessionId: '', startTime: '', endTime: '', notes: '' })
+const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
+const counterModal = ref({ open: false, sessionId: 0, startTime: '', endTime: '', notes: '' })
 
-const myId = computed(() => authStore.currentUser?.id ?? '')
+const myId = computed(() => authStore.currentUser?.id ?? 0)
 const students = computed(() => usersStore.getUsersByRole('student'))
 const allUsers = computed(() => usersStore.users)
 
@@ -53,7 +53,7 @@ onMounted(async () => {
   ])
 })
 
-const getStudentName = function(id: string): string  {
+const getStudentName = function(id: number): string  {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Student #${id}`
 }
 
@@ -66,7 +66,7 @@ const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
-const handleApproveStudent = async function(sessionId: string) {
+const handleApproveStudent = async function(sessionId: number) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Request approved!', 'Forwarded to admin for final approval.')
@@ -77,7 +77,7 @@ const handleApproveStudent = async function(sessionId: string) {
   }
 }
 
-const openReject = function(sessionId: string) {
+const openReject = function(sessionId: number) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
 }
@@ -436,20 +436,20 @@ const formatDay = function(iso: string): string  {
     <SessionDetailModal
       :session="selectedSession"
       user-role="teacher"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
-    @approve-teacher="(id: string) => { handleApproveStudent(id); selectedSession = null }"
-    @reject-teacher="(id: string) => { openReject(id); selectedSession = null }"
-    @counter-teacher="(s: any) => { openCounter(s); selectedSession = null }"
-    @nudge="(id: string) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+    @approve-teacher="(id: number) => { handleApproveStudent(id); selectedSession = null }"
+    @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
+    @counter-teacher="(s: Session) => { openCounter(s); selectedSession = null }"
+    @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->
     <ProposeSessionModal :is-open="showProposeModal"
       v-if="showProposeModal"
       user-role="teacher"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :teachers="[]"
       :students="students"
       :initial-date="selectedDate ?? undefined"

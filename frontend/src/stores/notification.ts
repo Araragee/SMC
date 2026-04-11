@@ -24,25 +24,25 @@ export const useNotificationStore = defineStore('notification', {
   }),
   getters: {
     getNotificationsByUserId: (state) => {
-      return (userId: string) => state.notifications.filter(n => n.userId === userId || n.userId === null);
+      return (userId: number) => state.notifications.filter(n => n.userId === userId || n.userId === null);
     },
     unreadNotifications: (state): Notification[] =>
       state.notifications.filter(n => !n.isRead),
     unreadCount: (state): number =>
       state.notifications.filter(n => !n.isRead).length,
     getUnreadCount: (state) => {
-      return (userId: string) => state.notifications.filter(n => (n.userId === userId || n.userId === null) && !n.isRead).length;
+      return (userId: number) => state.notifications.filter(n => (n.userId === userId || n.userId === null) && !n.isRead).length;
     },
   },
   actions: {
-    async fetchNotifications(userId: string) {
+    async fetchNotifications(userId: number) {
       this.isLoading = true;
       this.error = null;
       try {
         const response = await axios.get(`${API_URL}/notifications/user/${userId}`, { headers: authHeaders() });
         const userNotifs: Notification[] = response.data.map((n: any) => ({
-          id: String(n.id),
-          userId: String(n.user_id),
+          id: Number(n.id),
+          userId: Number(n.user_id),
           title: 'Notification',
           message: n.message,
           link: n.link,
@@ -60,7 +60,7 @@ export const useNotificationStore = defineStore('notification', {
       }
     },
 
-    async markAsRead(notificationId: string) {
+    async markAsRead(notificationId: number) {
       try {
         await axios.patch(`${API_URL}/notifications/${notificationId}/read`, {}, { headers: authHeaders() });
         const notification = this.notifications.find(n => n.id === notificationId);
@@ -70,7 +70,7 @@ export const useNotificationStore = defineStore('notification', {
       }
     },
 
-    async markAllAsRead(userId: string) {
+    async markAllAsRead(userId: number) {
       try {
         await axios.patch(`${API_URL}/notifications/user/${userId}/read-all`, {}, { headers: authHeaders() });
         this.notifications.forEach(n => { n.isRead = true; });
@@ -86,12 +86,12 @@ export const useNotificationStore = defineStore('notification', {
         if (notificationData.userId) {
           const response = await axios.post(`${API_URL}/notifications/`, {
             message: notificationData.message,
-            user_id: parseInt(notificationData.userId),
+            user_id: Number(notificationData.userId),
             link: notificationData.link,
           });
           const newNotification: Notification = {
-            id: String(response.data.id),
-            userId: String(response.data.user_id),
+            id: Number(response.data.id),
+            userId: Number(response.data.user_id),
             title: notificationData.title,
             message: response.data.message,
             link: response.data.link,

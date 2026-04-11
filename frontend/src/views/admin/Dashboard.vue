@@ -195,7 +195,7 @@ const refreshDetailSessions = function () {
   )
 }
 
-const handleApproveAdmin = async function (sessionId: string) {
+const handleApproveAdmin = async function (sessionId: number) {
   const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -213,7 +213,7 @@ const handleApproveAdmin = async function (sessionId: string) {
   }
 }
 
-const handleRejectAdmin = async function (sessionId: string) {
+const handleRejectAdmin = async function (sessionId: number) {
   const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
@@ -228,7 +228,7 @@ const handleRejectAdmin = async function (sessionId: string) {
   }
 }
 
-const handleCompleteAdmin = async function (sessionId: string) {
+const handleCompleteAdmin = async function (sessionId: number) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session Completed', 'The session has been successfully finalized.')
@@ -239,7 +239,7 @@ const handleCompleteAdmin = async function (sessionId: string) {
   }
 }
 
-const handleRejectProofAdmin = async function (sessionId: string) {
+const handleRejectProofAdmin = async function (sessionId: number) {
   const reason = window.prompt('Enter a reason for rejecting this proof:')
   if (!reason) return
   try {
@@ -261,8 +261,8 @@ const confirmQuickAssign = async function () {
     const startTime = new Date(y, m - 1, d, hr, min)
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000) // 1hr
     await scheduleStore.bookSession({
-      teacherId: quickTeacherId.value,
-      studentId: quickStudentId.value,
+      teacherId: Number(quickTeacherId.value),
+      studentId: Number(quickStudentId.value),
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
     })
@@ -286,7 +286,7 @@ const handleDeleteTeacher = async function (teacher: any) {
   }
 }
 
-const handleMarkRead = async function (notifId: string) {
+const handleMarkRead = async function (notifId: number) {
   await notifStore.markAsRead(notifId)
 }
 
@@ -1043,41 +1043,41 @@ const openLiveAnalytics = function () {
   <SessionDetailModal
     :session="selectedSession"
     user-role="admin"
-    :current-user-id="authStore.currentUser?.id ?? ''"
+    :current-user-id="authStore.currentUser?.id ?? 0"
     :users="allUsers"
     @close="selectedSession = null"
     @approve-admin="
-      (id: string) => {
+      (id: number) => {
         handleApproveAdmin(id)
         selectedSession = null
       }
     "
     @reject-admin="
-      (id: string) => {
+      (id: number) => {
         handleRejectAdmin(id)
         selectedSession = null
       }
     "
     @complete-admin="
-      (id: string) => {
+      (id: number) => {
         handleCompleteAdmin(id)
         selectedSession = null
       }
     "
     @reject-proof-admin="
-      (id: string) => {
+      (id: number) => {
         handleRejectProofAdmin(id)
         selectedSession = null
       }
     "
     @approve-teacher="
-      (id: string) => {
+      (id: number) => {
         handleApproveAdmin(id)
         selectedSession = null
       }
     "
     @reject-teacher="
-      (id: string) => {
+      (id: number) => {
         handleRejectAdmin(id)
         selectedSession = null
       }
@@ -1089,7 +1089,7 @@ const openLiveAnalytics = function () {
       }
     "
     @approve-student="
-      (id: string) => {
+      (id: number) => {
         handleApproveAdmin(id)
         selectedSession = null
       }
@@ -1107,7 +1107,7 @@ const openLiveAnalytics = function () {
       }
     "
     @nudge="
-      (id: string) => {
+      (id: number) => {
         scheduleStore.nudgeSession(id)
         selectedSession = null
       }
@@ -1119,7 +1119,7 @@ const openLiveAnalytics = function () {
     v-if="showAddSessionModal"
     :is-open="showAddSessionModal"
     user-role="admin"
-    :current-user-id="authStore.currentUser?.id ?? ''"
+    :current-user-id="authStore.currentUser?.id ?? 0"
     :teachers="teachers"
     :students="students"
     @close="showAddSessionModal = false"

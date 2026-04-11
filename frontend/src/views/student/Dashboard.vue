@@ -15,10 +15,10 @@ const toast = useToastStore()
 const interactionsStore = useInteractionsStore()
 
 const showRequestModal = ref(false)
-const requestForm = reactive({ teacherId: '', startTime: '' })
+const requestForm = reactive({ teacherId: null as number | null, startTime: '' })
 
 // ID of the selected session — we store the ID so `selectedSession` always reflects latest store data
-const selectedSessionId = ref<string | null>(null)
+const selectedSessionId = ref<number | null>(null)
 // Always derive the live session object from the store (so status changes reflect immediately)
 const selectedSession = computed(() =>
   selectedSessionId.value
@@ -43,7 +43,7 @@ onMounted(async () => {
   }
 })
 
-const myId = computed(() => authStore.currentUser?.id ?? '')
+const myId = computed(() => authStore.currentUser?.id ?? 0)
 
 const mySessions = computed(() =>
   scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
@@ -115,13 +115,13 @@ const submitRequest = async function() {
       'Your teacher will review and forward to admin for approval.'
     )
     showRequestModal.value = false
-    Object.assign(requestForm, { teacherId: '', startTime: '' })
+    Object.assign(requestForm, { teacherId: null, startTime: '' })
   } catch {
     toast.error('Request failed', 'Please try again or contact your teacher.')
   }
 }
 
-const markHomeworkDone = async function(sessionId: string) {
+const markHomeworkDone = async function(sessionId: number) {
   await interactionsStore.completeHomework(sessionId)
   toast.success('Homework submitted!', 'Great work — keep it up.')
 }
@@ -157,7 +157,7 @@ const closeSessionModal = function() {
 
 const approvalJustification = ref('')
 
-const submitApprovalRequest = async function(sessionId: string) {
+const submitApprovalRequest = async function(sessionId: number) {
   try {
     await scheduleStore.requestApproval(sessionId, approvalJustification.value)
     toast.success('Approval Requested', 'Your proof has been submitted for review.')
@@ -222,7 +222,7 @@ const submitStudentCounter = async function() {
     isCountering.value = false
     // Don't close: let the computed session update to show new status (pending_teacher)
     // Re-fetch to get any extra server-side updates
-    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? '');
+    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? 0);
   } catch {
     toast.error('Failed to send counter')
   }
@@ -234,7 +234,7 @@ const approveCounter = async function() {
     await scheduleStore.approveAsStudent(selectedSession.value.id)
     toast.success('Proposal accepted!', 'Forwarded to admin for final confirmation.')
     // Don't close immediately: let selectedSession computed reactively show new status (pending_admin)
-    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? '');
+    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? 0);
   } catch {
     toast.error('Failed to accept proposal')
   }
@@ -254,7 +254,7 @@ const resolveOverdue = () => {
   }
 }
 
-const selectSession = (id: string) => {
+const selectSession = (id: number) => {
   selectedSessionId.value = id
 }
 
@@ -1089,7 +1089,7 @@ const stopCountering = () => {
                 required
                 class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
               >
-                <option value="">Select a teacher...</option>
+                <option :value="null">Select a teacher...</option>
                 <option v-for="t in allTeachers" :key="t.id" :value="t.id">{{ t.name }}</option>
               </select>
             </div>

@@ -48,12 +48,10 @@ export const useAuthStore = defineStore('auth', {
         const user = data.user
 
         this.user = {
-          id: String(user.id),
+          id: Number(user.id),
           name: user.name,
           email: user.email,
-          role: typeof user.role === 'string'
-            ? user.role.toLowerCase() as Role
-            : (user.role?.name?.toLowerCase() || 'student') as Role,
+          role: (user.role?.name?.toLowerCase() || 'student') as Role,
           avatarUrl: user.avatar_url,
           sessionsLeft: user.sessions_left
         }
@@ -106,6 +104,7 @@ export const useAuthStore = defineStore('auth', {
           ...this.user,
           name: updatedUser.name,
           email: updatedUser.email,
+          role: (updatedUser.role?.name?.toLowerCase() || this.user.role) as Role,
           avatarUrl: updatedUser.avatar_url
         }
         localStorage.setItem('user', JSON.stringify(this.user))

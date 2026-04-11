@@ -32,8 +32,8 @@ onMounted(async () => {
   }
   
   if (route.query.edit) {
-    const userId = String(route.query.edit)
-    const user = usersStore.users.find(u => String(u.id) === userId)
+    const userId = Number(route.query.edit)
+    const user = usersStore.users.find(u => u.id === userId)
     if (user) {
       openEditModal(user)
     }
@@ -61,7 +61,7 @@ const handleUserCreated = (user: User) => {
   toast.success('User created', `${user.name} was successfully created.`)
 }
 
-const navigateToRecords = (userId: string) => {
+const navigateToRecords = (userId: number) => {
   router.push(`/admin/students/${userId}/records`)
 }
 

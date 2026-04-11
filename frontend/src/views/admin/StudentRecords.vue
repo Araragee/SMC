@@ -13,7 +13,7 @@ const route = useRoute();
 const usersStore = useUsersStore();
 const scheduleStore = useScheduleStore();
 
-const studentId = route.params.id as string;
+const studentId = Number(route.params.id);
 const student = ref<User | null>(null);
 const isLoading = ref(true);
 
@@ -28,7 +28,7 @@ const fetchStudent = async () => {
   if (usersStore.users.length === 0) {
     await usersStore.fetchUsers();
   }
-  student.value = usersStore.users.find((u: User) => String(u.id) === studentId) || null;
+  student.value = usersStore.users.find((u: User) => u.id === studentId) || null;
 };
 
 const fetchSessions = async () => {
@@ -67,8 +67,8 @@ const getInstrumentName = (id?: number) => {
   return usersStore.instruments.find((i: InstrumentRecord) => i.id === id)?.name || 'Unknown';
 };
 
-const getTeacherName = (id: string) => {
-  return usersStore.users.find((u: User) => String(u.id) === id)?.name || 'Unknown';
+const getTeacherName = (id: number) => {
+  return usersStore.users.find((u: User) => u.id === id)?.name || 'Unknown';
 };
 
 const formatDate = (dateStr: string) => {

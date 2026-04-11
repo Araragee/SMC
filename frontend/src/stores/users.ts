@@ -36,7 +36,7 @@ export const useUsersStore = defineStore('users', {
       try {
         const response = await axios.get(`${API_URL}/users/`);
         this.users = response.data.map((user: any) => ({
-          id: String(user.id),
+          id: Number(user.id),
           name: user.name,
           email: user.email,
           role: user.role?.name?.toLowerCase() as Role || 'student',
@@ -69,7 +69,7 @@ export const useUsersStore = defineStore('users', {
       try {
         const response = await axios.get(`${API_URL}/users/role/${roleName}`, { headers: authHeaders() });
         const newUsers = response.data.map((user: any) => ({
-          id: String(user.id),
+          id: Number(user.id),
           name: user.name,
           email: user.email,
           role: user.role?.name?.toLowerCase() as Role || role,
@@ -146,7 +146,7 @@ export const useUsersStore = defineStore('users', {
         const { user: newUser, access_token } = response.data;
 
         const frontendUser: User = {
-          id: String(newUser.id),
+          id: Number(newUser.id),
           name: newUser.name,
           email: newUser.email,
           role: (newUser.role?.name?.toLowerCase() || roleName) as Role,
@@ -183,7 +183,7 @@ export const useUsersStore = defineStore('users', {
       }
     },
 
-    async updateUser(userId: string, updateData: Partial<User>) {
+    async updateUser(userId: number, updateData: Partial<User>) {
       this.isLoading = true;
       this.error = null;
       try {
@@ -213,10 +213,10 @@ export const useUsersStore = defineStore('users', {
             if (role) payload.role_id = role.id;
         }
 
-        const response = await axios.put(`${API_URL}/users/${userId}`, payload, { headers: authHeaders() });
+        const response = await axios.put(`${API_URL}/users/${Number(userId)}`, payload, { headers: authHeaders() });
         const updatedUser = response.data;
 
-        const index = this.users.findIndex(u => u.id === userId);
+        const index = this.users.findIndex(u => u.id === Number(userId));
         if (index !== -1) {
           this.users[index] = {
             ...this.users[index],
@@ -246,7 +246,7 @@ export const useUsersStore = defineStore('users', {
       }
     },
 
-    async deleteUser(userId: string) {
+    async deleteUser(userId: number) {
       this.isLoading = true;
       this.error = null;
       try {

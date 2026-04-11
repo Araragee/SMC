@@ -5,7 +5,7 @@ import { useAuthStore } from '@stores/auth'
 import type { Conversation } from '@types'
 import NewConversationModal from './NewConversationModal.vue'
 
-const emit = defineEmits<{ select: [id: string] }>()
+const emit = defineEmits<{ select: [id: number] }>()
 
 const store = useMessagingStore()
 const auth  = useAuthStore()
@@ -36,7 +36,7 @@ const formatTime = function(iso: string | null | undefined): string  {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const onCreated = function(id: string) {
+const onCreated = function(id: number) {
   showNew.value = false
   emit('select', id)
 }

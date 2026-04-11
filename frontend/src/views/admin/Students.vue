@@ -197,12 +197,12 @@ function statusLabel(status: string) {
   return map[status] ?? status
 }
 
-function getTeacherName(id: string) {
+function getTeacherName(id: number) {
   return usersStore.users.find(u => u.id === id)?.name ?? `Teacher #${id}`
 }
 
 // ── admin session actions ─────────────────────────────────────────────────────
-async function handleApprove(sessionId: string) {
+async function handleApprove(sessionId: number) {
   const session = scheduleStore.allSessions.find(s => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') await scheduleStore.approveAsTeacher(sessionId)
@@ -214,7 +214,7 @@ async function handleApprove(sessionId: string) {
   } catch { toast.error('Action failed') }
 }
 
-async function handleComplete(sessionId: string) {
+async function handleComplete(sessionId: number) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session completed')
@@ -223,7 +223,7 @@ async function handleComplete(sessionId: string) {
   } catch (e: any) { toast.error('Failed', e.message) }
 }
 
-async function handleRejectProof(sessionId: string) {
+async function handleRejectProof(sessionId: number) {
   const reason = window.prompt('Reason for rejecting proof:')
   if (!reason) return
   try {
@@ -526,7 +526,7 @@ async function handleRejectProof(sessionId: string) {
     <SessionDetailModal
       :session="selectedSession"
       user-role="admin"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
       @approve-admin="(id) => handleApprove(id)"

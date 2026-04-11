@@ -219,7 +219,7 @@ function statusLabel(status: string) {
 }
 
 // ── teacher session actions ───────────────────────────────────────────────────
-async function handleApproveTeacher(sessionId: string) {
+async function handleApproveTeacher(sessionId: number) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Session approved')
@@ -227,9 +227,9 @@ async function handleApproveTeacher(sessionId: string) {
   } catch { toast.error('Action failed') }
 }
 
-function handleRejectTeacher(_sessionId: string) { selectedSession.value = null }
+function handleRejectTeacher(_sessionId: number) { selectedSession.value = null }
 
-async function handleApproveStudent(sessionId: string) {
+async function handleApproveStudent(sessionId: number) {
   try {
     await scheduleStore.approveAsStudent(sessionId)
     toast.success('Approved on student behalf')
@@ -522,7 +522,7 @@ async function handleApproveStudent(sessionId: string) {
     <SessionDetailModal
       :session="selectedSession"
       user-role="teacher"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
       @approve-teacher="(id) => handleApproveTeacher(id)"

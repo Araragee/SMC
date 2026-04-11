@@ -12,21 +12,21 @@ const authHeaders = function() {
 
 const mapSession = function(session: any): Session  {
   return {
-    id: String(session.id),
-    studentId: String(session.student_id),
-    teacherId: String(session.teacher_id),
+    id: Number(session.id),
+    studentId: Number(session.student_id),
+    teacherId: Number(session.teacher_id),
     startTime: session.start_time,
     endTime: session.end_time,
     status: session.status,
-    proposedBy: session.proposed_by ? String(session.proposed_by) : undefined,
+    proposedBy: session.proposed_by ? Number(session.proposed_by) : undefined,
     notes: session.notes || undefined,
     imageProofUrl: session.proof_image_url,
     proofs: session.proofs ? session.proofs.map((p: any) => ({
-      id: String(p.id),
-      sessionId: String(p.session_id),
+      id: Number(p.id),
+      sessionId: Number(p.session_id),
       imageUrl: p.image_url,
       uploadedAt: p.uploaded_at,
-      uploaderId: p.uploader_id ? String(p.uploader_id) : undefined,
+      uploaderId: p.uploader_id ? Number(p.uploader_id) : undefined,
       uploaderRole: p.uploader_role,
     })) : [],
     homeworkAssigned: session.homework_assigned,
@@ -57,13 +57,13 @@ export const useScheduleStore = defineStore('schedule', {
   }),
   getters: {
     getScheduleByUserId: (state) => {
-      return (userId: string) => state.schedules.find(s => s.userId === userId);
+      return (userId: number) => state.schedules.find(s => s.userId === userId);
     },
     getSessionsByTeacherId: (state) => {
-      return (teacherId: string) => state.allSessions.filter(s => s.teacherId === teacherId);
+      return (teacherId: number) => state.allSessions.filter(s => s.teacherId === teacherId);
     },
     getSessionsByStudentId: (state) => {
-      return (studentId: string) => state.allSessions.filter(s => s.studentId === studentId);
+      return (studentId: number) => state.allSessions.filter(s => s.studentId === studentId);
     },
     pendingSessions: (state): Session[] =>
       state.allSessions.filter(s => s.status === 'pending_teacher' || s.status === 'pending_admin'),
@@ -92,7 +92,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async fetchUserSessions(userId: string) {
+    async fetchUserSessions(userId: number) {
       this.isLoading = true;
       this.error = null;
       try {
@@ -130,8 +130,8 @@ export const useScheduleStore = defineStore('schedule', {
       this.error = null;
       try {
         const payload = {
-          teacher_id: parseInt(sessionData.teacherId),
-          student_id: parseInt(sessionData.studentId),
+          teacher_id: Number(sessionData.teacherId),
+          student_id: Number(sessionData.studentId),
           start_time: sessionData.startTime,
           end_time: sessionData.endTime,
           status: 'scheduled',
@@ -152,14 +152,14 @@ export const useScheduleStore = defineStore('schedule', {
 
     /** Student proposes a session → pending_teacher */
     async proposeSessionAsStudent(data: {
-      teacherId: string; studentId: string; startTime: string; endTime: string; notes?: string;
+      teacherId: number; studentId: number; startTime: string; endTime: string; notes?: string;
     }) {
       this.isLoading = true;
       this.error = null;
       try {
         const payload = {
-          teacher_id: parseInt(data.teacherId),
-          student_id: parseInt(data.studentId),
+          teacher_id: Number(data.teacherId),
+          student_id: Number(data.studentId),
           start_time: data.startTime,
           end_time: data.endTime,
           notes: data.notes || null,
@@ -179,14 +179,14 @@ export const useScheduleStore = defineStore('schedule', {
 
     /** Teacher proposes a session → pending_admin */
     async proposeSessionAsTeacher(data: {
-      teacherId: string; studentId: string; startTime: string; endTime: string; notes?: string;
+      teacherId: number; studentId: number; startTime: string; endTime: string; notes?: string;
     }) {
       this.isLoading = true;
       this.error = null;
       try {
         const payload = {
-          teacher_id: parseInt(data.teacherId),
-          student_id: parseInt(data.studentId),
+          teacher_id: Number(data.teacherId),
+          student_id: Number(data.studentId),
           start_time: data.startTime,
           end_time: data.endTime,
           notes: data.notes || null,
@@ -204,7 +204,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async approveAsTeacher(sessionId: string) {
+    async approveAsTeacher(sessionId: number) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/approve/teacher`, {}, { headers: authHeaders() });
@@ -217,7 +217,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async rejectAsTeacher(sessionId: string, notes?: string) {
+    async rejectAsTeacher(sessionId: number, notes?: string) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/reject/teacher`, { notes }, { headers: authHeaders() });
@@ -230,7 +230,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async approveAsAdmin(sessionId: string) {
+    async approveAsAdmin(sessionId: number) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/approve/admin`, {}, { headers: authHeaders() });
@@ -243,7 +243,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async rejectAsAdmin(sessionId: string, notes?: string) {
+    async rejectAsAdmin(sessionId: number, notes?: string) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/reject/admin`, { notes }, { headers: authHeaders() });
@@ -256,14 +256,14 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async editSession(sessionId: string, data: Partial<{
-      teacherId: string; studentId: string; startTime: string; endTime: string; notes: string;
+    async editSession(sessionId: number, data: Partial<{
+      teacherId: number; studentId: number; startTime: string; endTime: string; notes: string;
     }>) {
       this.isLoading = true;
       try {
         const payload: any = {};
-        if (data.teacherId) payload.teacher_id = parseInt(data.teacherId);
-        if (data.studentId) payload.student_id = parseInt(data.studentId);
+        if (data.teacherId) payload.teacher_id = Number(data.teacherId);
+        if (data.studentId) payload.student_id = Number(data.studentId);
         if (data.startTime) payload.start_time = data.startTime;
         if (data.endTime) payload.end_time = data.endTime;
         if (data.notes !== undefined) payload.notes = data.notes;
@@ -277,7 +277,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async counterAsTeacher(sessionId: string, data: { startTime: string; endTime: string; notes?: string }) {
+    async counterAsTeacher(sessionId: number, data: { startTime: string; endTime: string; notes?: string }) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/counter/teacher`, {
@@ -294,7 +294,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async counterAsStudent(sessionId: string, data: { startTime: string; endTime: string; notes?: string }) {
+    async counterAsStudent(sessionId: number, data: { startTime: string; endTime: string; notes?: string }) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/counter/student`, {
@@ -311,7 +311,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async approveAsStudent(sessionId: string) {
+    async approveAsStudent(sessionId: number) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/approve/student`, {}, { headers: authHeaders() });
@@ -324,7 +324,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async completeSession(sessionId: string) {
+    async completeSession(sessionId: number) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/complete`, {}, { headers: authHeaders() });
@@ -337,7 +337,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async requestApproval(sessionId: string, justification?: string) {
+    async requestApproval(sessionId: number, justification?: string) {
       this.isLoading = true;
       try {
         const response = await axios.post(
@@ -354,7 +354,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async rejectProof(sessionId: string, reason: string) {
+    async rejectProof(sessionId: number, reason: string) {
       this.isLoading = true;
       try {
         const response = await axios.post(
@@ -371,7 +371,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async nudgeSession(sessionId: string) {
+    async nudgeSession(sessionId: number) {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/nudge`, {}, { headers: authHeaders() });
@@ -384,7 +384,7 @@ export const useScheduleStore = defineStore('schedule', {
       }
     },
 
-    async fetchStudentRecords(studentId: string) {
+    async fetchStudentRecords(studentId: number) {
       this.isLoading = true;
       this.error = null;
       try {

@@ -22,7 +22,7 @@ const selectedDaySessions = ref<Session[]>([])
 const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 
-const myId = computed(() => authStore.currentUser?.id ?? '')
+const myId = computed(() => authStore.currentUser?.id ?? 0)
 const teachers = computed(() => usersStore.getUsersByRole('teacher'))
 const allUsers = computed(() => usersStore.users)
 
@@ -55,7 +55,7 @@ onMounted(async () => {
   ])
 })
 
-const getTeacherName = function (id: string): string {
+const getTeacherName = function (id: number): string {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Teacher #${id}`
 }
 
@@ -277,7 +277,7 @@ const formatDay = function (iso: string): string {
     <SessionDetailModal
       :session="selectedSession"
       user-role="student"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
       @approve-student="
@@ -294,7 +294,7 @@ const formatDay = function (iso: string): string {
         }
       "
       @nudge="
-        (id: any) => {
+        (id: number) => {
           scheduleStore.nudgeSession(id)
           selectedSession = null
         }
@@ -306,7 +306,7 @@ const formatDay = function (iso: string): string {
       :is-open="showProposeModal"
       v-if="showProposeModal"
       user-role="student"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :teachers="teachers"
       :students="[]"
       :initial-date="selectedDate ?? undefined"

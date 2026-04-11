@@ -32,7 +32,7 @@ onMounted(async () => {
   }
 })
 
-const myId = computed(() => authStore.currentUser?.id ?? '')
+const myId = computed(() => authStore.currentUser?.id ?? 0)
 
 const mySessions = computed(() =>
   scheduleStore.allSessions.filter((s: any) => s.teacherId === myId.value)
@@ -67,7 +67,7 @@ const nextSession = computed(() => {
   )
 })
 
-const getStudentName = function(studentId: string) {
+const getStudentName = function(studentId: number) {
   return usersStore.users.find((u: any) => u.id === studentId)?.name || `Student #${studentId}`
 }
 
@@ -113,7 +113,7 @@ const saveSessionChanges = async function() {
   }
 }
 
-const handleApprove = async function(sessionId: string) {
+const handleApprove = async function(sessionId: number) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Approved!', 'The session is now awaiting admin confirmation.')
@@ -124,7 +124,7 @@ const handleApprove = async function(sessionId: string) {
   }
 }
 
-const handleReject = async function(sessionId: string, notes?: string) {
+const handleReject = async function(sessionId: number, notes?: string) {
   try {
     await scheduleStore.rejectAsTeacher(sessionId, notes)
     toast.success('Declined', 'The student has been notified.')
@@ -172,7 +172,7 @@ const submitCounter = async function() {
 
 // Build unique student entries for the roster
 const rosterEntries = computed(() => {
-  const seen = new Set<string>()
+  const seen = new Set<number>()
   return mySessions.value
     .filter((s: any) => {
       if (seen.has(s.studentId)) return false
@@ -224,7 +224,7 @@ const openProposeForDate = function(date: Date) {
   showProposeModal.value = true
 }
 
-const openRosterSession = function(studentId: string) {
+const openRosterSession = function(studentId: number) {
   const sessions = mySessions.value.filter((s: any) => s.studentId === studentId)
   if (sessions.length === 0) return
   const now = new Date()
@@ -483,7 +483,7 @@ const formatTime = (dt: string | undefined) => {
                   {{ formatTime(day.session.startTime) }}
                 </p>
                 <p class="text-xs font-bold text-on-surface dark:text-on-surface truncate">
-                  S#{{ day.session.studentId.slice(-4) }}
+                  S#{{ day.session.studentId }}
                 </p>
                 <p
                   class="text-[9px] font-bold mt-0.5"
