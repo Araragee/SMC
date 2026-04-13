@@ -147,3 +147,44 @@ export interface Conversation {
   lastMessage:  ChatMessage | null
   unreadCount:  number
 }
+
+// ── Shop ──────────────────────────────────────────────────────────────────────
+
+export interface InstrumentProduct {
+  id: number
+  name: string
+  description?: string
+  priceCents: number
+  stock: number
+  imageUrl?: string
+  categoryId?: number
+  category?: InstrumentRecord
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type OrderStatus = 'pending' | 'approved' | 'fulfilled' | 'rejected' | 'cancelled'
+
+export interface OrderItem {
+  id: number
+  productId: number
+  quantity: number
+  priceCentsAtPurchase: number
+  product?: InstrumentProduct
+}
+
+export interface Order {
+  id: number
+  userId: number
+  user?: User
+  status: OrderStatus
+  notes?: string
+  totalCents: number
+  items: OrderItem[]
+  approvedBy?: number
+  approvedAt?: string
+  rejectionReason?: string
+  createdAt: string
+  updatedAt: string
+}

@@ -4,6 +4,8 @@ from sqlalchemy.orm import sessionmaker
 
 from backend.main import app
 from backend.database import Base, get_db
+from backend.dependencies import require_admin
+from backend.models import User, Role
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -32,7 +34,11 @@ def override_get_db():
     finally:
         db.close()
 
+def override_require_admin():
+    return User(id=1, username="admin", role_id=1, role=Role(id=1, name="admin"))
+
 app.dependency_overrides[get_db] = override_get_db
+app.dependency_overrides[require_admin] = override_require_admin
 
 client = TestClient(app)
 

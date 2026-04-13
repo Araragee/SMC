@@ -43,12 +43,14 @@ const navItems = computed(() => {
     items.push(
       { label: 'Students', icon: 'group', path: '/teacher/students' },
       { label: 'Payments', icon: 'payments', path: '/teacher/payments' },
-      { label: 'Instruments', icon: 'piano', path: '/teacher/instruments' }
+      { label: 'Instruments', icon: 'piano', path: '/teacher/instruments' },
+      { label: 'Shop', icon: 'storefront', path: '/teacher/shop' }
     )
   } else if (role === 'student') {
     items.push(
       { label: 'Homework', icon: 'menu_book', path: '/student/homework' },
-      { label: 'Ledger', icon: 'payments', path: '/student/ledger' }
+      { label: 'Ledger', icon: 'payments', path: '/student/ledger' },
+      { label: 'Shop', icon: 'storefront', path: '/student/shop' }
     )
   }
 

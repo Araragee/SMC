@@ -168,6 +168,52 @@ class Notification(Base):
 
     user = relationship("User", back_populates="notifications")
 
+class InstrumentProduct(Base):
+    __tablename__ = "instrument_products"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, index=True)
+    description = Column(String, nullable=True)
+    price_cents = Column(Integer, nullable=False, default=0)
+    stock = Column(Integer, nullable=False, default=0)
+    image_url = Column(String, nullable=True)
+    category_id = Column(Integer, ForeignKey("instruments.id"), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow,
+                        onupdate=datetime.datetime.utcnow)
+
+    category = relationship("Instrument")
+
+class Order(Base):
+    __tablename__ = "orders"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    status = Column(String, nullable=False, default="pending", index=True)
+    # pending | approved | fulfilled | rejected | cancelled
+    notes = Column(String, nullable=True)
+    total_cents = Column(Integer, nullable=False, default=0)
+    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    rejection_reason = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow,
+                        onupdate=datetime.datetime.utcnow)
+
+    user = relationship("User", foreign_keys=[user_id])
+    approver = relationship("User", foreign_keys=[approved_by])
+    items = relationship("OrderItem", back_populates="order",
+                         cascade="all, delete-orphan")
+
+class OrderItem(Base):
+    __tablename__ = "order_items"
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("instrument_products.id"), nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
+    price_cents_at_purchase = Column(Integer, nullable=False)
+
+    order = relationship("Order", back_populates="items")
+    product = relationship("InstrumentProduct")
 
 # ── Messaging ──────────────────────────────────────────────────────────────────
 

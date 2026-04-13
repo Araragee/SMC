@@ -281,3 +281,70 @@ class User(UserBase):
     role: Optional[Role] = None
     instruments: List[Instrument] = []
     model_config = {"from_attributes": True}
+
+# ── Shop Schemas ──────────────────────────────────────────────────────────────
+
+class InstrumentProductBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price_cents: int
+    stock: int
+    image_url: Optional[str] = None
+    category_id: Optional[int] = None
+    is_active: bool = True
+
+class InstrumentProductCreate(InstrumentProductBase):
+    pass
+
+class InstrumentProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price_cents: Optional[int] = None
+    stock: Optional[int] = None
+    image_url: Optional[str] = None
+    category_id: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class InstrumentProduct(InstrumentProductBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    category: Optional[Instrument] = None
+    model_config = {"from_attributes": True}
+
+class OrderItemBase(BaseModel):
+    product_id: int
+    quantity: int
+
+class OrderItemCreate(OrderItemBase):
+    pass
+
+class OrderItem(OrderItemBase):
+    id: int
+    price_cents_at_purchase: int
+    product: Optional[InstrumentProduct] = None
+    model_config = {"from_attributes": True}
+
+class OrderBase(BaseModel):
+    notes: Optional[str] = None
+
+class OrderCreate(OrderBase):
+    items: List[OrderItemCreate]
+
+class OrderStatusUpdate(BaseModel):
+    status: str
+    rejection_reason: Optional[str] = None
+
+class Order(OrderBase):
+    id: int
+    user_id: int
+    status: str
+    total_cents: int
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    user: Optional[User] = None
+    items: List[OrderItem] = []
+    model_config = {"from_attributes": True}

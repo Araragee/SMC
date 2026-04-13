@@ -16,7 +16,7 @@ from ..dependencies import (
 router = APIRouter()
 
 @router.get("/debug/users")
-def debug_users(db: Session = Depends(get_db)):
+def debug_users(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     users = db.query(models.User).all()
     return [{"email": u.email, "role": u.role.name if u.role else None} for u in users]
 
@@ -46,7 +46,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": access_token, "token_type": "bearer", "user": schemas.User.model_validate(user)}
 
 @router.post("/users/")
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user_email:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -69,6 +69,9 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         password = f"{first_name}{age_str}SMC"
     elif not password:
         password = "password123"
+
+    if len(password.encode()) > 72:
+        raise HTTPException(status_code=400, detail="Password too long (max 72 bytes)")
 
     hashed_password = pwd_context.hash(password[:72])
 
@@ -111,7 +114,10 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
 
     update_data = user.model_dump(exclude_unset=True)
     if "password" in update_data:
-        update_data["hashed_password"] = pwd_context.hash(update_data.pop("password")[:72])
+        pwd = update_data.pop("password")
+        if len(pwd.encode()) > 72:
+            raise HTTPException(status_code=400, detail="Password too long (max 72 bytes)")
+        update_data["hashed_password"] = pwd_context.hash(pwd[:72])
 
     instrument_ids = update_data.pop("instrument_ids", None)
 
@@ -173,7 +179,7 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.
     return db_user
 
 @router.get("/instruments/", response_model=list[schemas.Instrument])
-def get_instruments(db: Session = Depends(get_db)):
+def get_instruments(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     instruments = db.query(models.Instrument).all()
     return instruments
 
@@ -211,7 +217,7 @@ def unassign_teacher_student(assignment_id: int, db: Session = Depends(get_db), 
     return {"message": "Assignment deleted successfully"}
 
 @router.post("/roles/", response_model=schemas.Role)
-def create_role(role: schemas.RoleCreate, db: Session = Depends(get_db)):
+def create_role(role: schemas.RoleCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     db_role = models.Role(name=role.name)
     db.add(db_role)
     db.commit()
