@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useShopStore } from '@stores/shop'
 import OrderStatusBadge from '@components/shop/OrderStatusBadge.vue'
+import { API_URL } from '@typescript/constants'
 
 const shopStore = useShopStore()
 const activeTab = ref<'catalog' | 'orders'>('catalog')
@@ -156,8 +157,8 @@ const updateOrderStatus = async function(id: number, status: any) {
     <!-- Catalog View -->
     <div v-if="activeTab === 'catalog'" class="grid grid-cols-1 gap-4">
       <div v-for="product in shopStore.products" :key="product.id" class="glass-thin rounded-[2rem] p-6 border border-white/5 flex flex-col md:flex-row items-center gap-6">
-        <div class="w-24 h-24 rounded-2xl bg-black/20 overflow-hidden shrink-0 border border-white/5">
-          <img v-if="product.imageUrl" :src="product.imageUrl" class="w-full h-full object-cover" />
+        <div class="w-24 h-24 rounded-2xl bg-black/20 dark:bg-black/40 overflow-hidden shrink-0 border border-white/5">
+          <img v-if="product.imageUrl" :src="product.imageUrl.startsWith('http') ? product.imageUrl : `${API_URL}${product.imageUrl}`" class="w-full h-full object-cover" />
           <div v-else class="w-full h-full flex items-center justify-center text-white/10">
             <span class="material-symbols-outlined">image</span>
           </div>
@@ -226,7 +227,7 @@ const updateOrderStatus = async function(id: number, status: any) {
               class="w-full h-48 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer overflow-hidden relative group"
               @click="triggerFileInput"
             >
-              <img v-if="previewImage" :src="previewImage" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                <img v-if="previewImage" :src="previewImage.startsWith('blob:') || previewImage.startsWith('http') ? previewImage : `${API_URL}${previewImage}`" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
               <div v-else class="flex flex-col items-center text-white/40 group-hover:text-white/60 transition-colors">
                 <span class="material-symbols-outlined text-4xl mb-2">add_a_photo</span>
                 <span class="text-xs font-bold uppercase tracking-widest">Upload Photo</span>
@@ -288,8 +289,8 @@ const updateOrderStatus = async function(id: number, status: any) {
             <div class="space-y-3">
               <div v-for="item in selectedOrder.items" :key="item.id" class="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                 <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-xl bg-black/20 overflow-hidden">
-                    <img v-if="item.product?.imageUrl" :src="item.product.imageUrl" class="w-full h-full object-cover" />
+                  <div class="w-10 h-10 rounded-xl bg-black/20 dark:bg-black/40 overflow-hidden">
+                    <img v-if="item.product?.imageUrl" :src="item.product.imageUrl.startsWith('http') ? item.product.imageUrl : `${API_URL}${item.product.imageUrl}`" class="w-full h-full object-cover" />
                   </div>
                   <div>
                     <p class="font-black text-on-surface text-sm">{{ item.product?.name }}</p>
