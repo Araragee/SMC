@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { InstrumentProduct, Order, OrderStatus } from '../types'
 import { useToastStore } from './toast'
+import { API_URL } from '@typescript/constants'
 
 export const useShopStore = defineStore('shop', {
   state: () => ({
@@ -31,7 +32,7 @@ export const useShopStore = defineStore('shop', {
     async fetchProducts() {
       this.isLoading = true
       try {
-        const response = await axios.get('/shop/products')
+        const response = await axios.get(`${API_URL}/shop/products`)
         this.products = response.data.map(mapProduct)
       } catch (error) {
         console.error('Error fetching products:', error)
@@ -42,7 +43,7 @@ export const useShopStore = defineStore('shop', {
 
     async fetchProduct(id: number) {
       try {
-        const response = await axios.get(`/shop/products/${id}`)
+        const response = await axios.get(`${API_URL}/shop/products/${id}`)
         const product = mapProduct(response.data)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index] = product
@@ -56,7 +57,7 @@ export const useShopStore = defineStore('shop', {
     async createProduct(data: Partial<InstrumentProduct>) {
       const toast = useToastStore()
       try {
-        const response = await axios.post('/shop/products', data)
+        const response = await axios.post(`${API_URL}/shop/products`, data)
         const product = mapProduct(response.data)
         this.products.unshift(product)
         toast.success('Product created', 'Product created successfully')
@@ -70,7 +71,7 @@ export const useShopStore = defineStore('shop', {
     async updateProduct(id: number, data: Partial<InstrumentProduct>) {
       const toast = useToastStore()
       try {
-        const response = await axios.put(`/shop/products/${id}`, data)
+        const response = await axios.put(`${API_URL}/shop/products/${id}`, data)
         const product = mapProduct(response.data)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index] = product
@@ -85,7 +86,7 @@ export const useShopStore = defineStore('shop', {
     async deleteProduct(id: number) {
       const toast = useToastStore()
       try {
-        await axios.delete(`/shop/products/${id}`)
+        await axios.delete(`${API_URL}/shop/products/${id}`)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index].isActive = false
         toast.success('Product deactivated', 'Product has been deactivated')
@@ -99,7 +100,7 @@ export const useShopStore = defineStore('shop', {
       const formData = new FormData()
       formData.append('file', file)
       try {
-        const response = await axios.post(`/shop/products/${id}/image`, formData)
+        const response = await axios.post(`${API_URL}/shop/products/${id}/image`, formData)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index].imageUrl = response.data.url
         return response.data.url
@@ -152,7 +153,7 @@ export const useShopStore = defineStore('shop', {
       if (this.cart.length === 0) return
 
       try {
-        const response = await axios.post('/shop/orders', {
+        const response = await axios.post(`${API_URL}/shop/orders`, {
           notes,
           items: this.cart.map(item => ({
             product_id: item.productId,
@@ -173,7 +174,7 @@ export const useShopStore = defineStore('shop', {
 
     async fetchMyOrders() {
       try {
-        const response = await axios.get('/shop/orders/me')
+        const response = await axios.get(`${API_URL}/shop/orders/me`)
         this.myOrders = response.data.map(mapOrder)
       } catch (error) {
         console.error('Error fetching my orders:', error)
@@ -182,7 +183,7 @@ export const useShopStore = defineStore('shop', {
 
     async fetchAllOrders(status?: string) {
       try {
-        const response = await axios.get('/shop/orders', { params: { status } })
+        const response = await axios.get(`${API_URL}/shop/orders`, { params: { status } })
         this.orders = response.data.map(mapOrder)
       } catch (error) {
         console.error('Error fetching all orders:', error)
@@ -192,7 +193,7 @@ export const useShopStore = defineStore('shop', {
     async updateOrderStatus(id: number, status: OrderStatus, rejectionReason?: string) {
       const toast = useToastStore()
       try {
-        const response = await axios.patch(`/shop/orders/${id}/status`, {
+        const response = await axios.patch(`${API_URL}/shop/orders/${id}/status`, {
           status,
           rejection_reason: rejectionReason
         })
@@ -217,7 +218,7 @@ export const useShopStore = defineStore('shop', {
     async cancelMyOrder(id: number) {
       const toast = useToastStore()
       try {
-        const response = await axios.patch(`/shop/orders/${id}/status`, {
+        const response = await axios.patch(`${API_URL}/shop/orders/${id}/status`, {
           status: 'cancelled'
         })
         const updated = mapOrder(response.data)

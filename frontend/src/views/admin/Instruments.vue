@@ -10,6 +10,11 @@ const selectedProduct = ref<any>(null)
 const selectedOrder = ref<any>(null)
 const isOrderDetailOpen = ref(false)
 
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const imageFile = ref<File | null>(null)
+const previewImage = ref<string | null>(null)
+const displayPricePHP = ref<number>(0)
+
 onMounted(async () => {
   await Promise.all([
     shopStore.fetchProducts(),
@@ -35,7 +40,18 @@ const formatDate = function(dateStr: string) {
 }
 
 const openEditor = function(product: any = null) {
-  selectedProduct.value = product ? { ...product } : {
+  imageFile.value = null
+  previewImage.value = product?.imageUrl || null
+  displayPricePHP.value = product ? (product.priceCents / 100) : 0
+
+  selectedProduct.value = product ? {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    price_cents: product.priceCents,
+    stock: product.stock,
+    is_active: product.isActive
+  } : {
     name: '',
     description: '',
     price_cents: 0,
@@ -47,16 +63,35 @@ const openEditor = function(product: any = null) {
 
 const saveProduct = async function() {
   try {
-    if (selectedProduct.value.id) {
-      await shopStore.updateProduct(selectedProduct.value.id, selectedProduct.value)
+    const payload = { ...selectedProduct.value, price_cents: Math.round(displayPricePHP.value * 100) }
+    let savedProduct: any;
+    if (payload.id) {
+      savedProduct = await shopStore.updateProduct(payload.id, payload)
     } else {
-      await shopStore.createProduct(selectedProduct.value)
+      savedProduct = await shopStore.createProduct(payload)
     }
+
+    const targetId = savedProduct?.id || payload.id
+    if (imageFile.value && targetId) {
+      await shopStore.uploadProductImage(targetId, imageFile.value)
+    }
+
     isEditorOpen.value = false
     await shopStore.fetchProducts()
   } catch (error) {
     console.error('Error saving product:', error)
   }
+}
+
+const triggerFileInput = () => {
+  fileInputRef.value?.click()
+}
+
+const onFileSelected = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  imageFile.value = file
+  previewImage.value = URL.createObjectURL(file)
 }
 
 const handleFileUpload = async function(event: Event, productId: number) {
@@ -186,6 +221,20 @@ const updateOrderStatus = async function(id: number, status: any) {
 
         <div class="space-y-6">
           <div>
+            <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2 block">Product Image</label>
+            <div 
+              class="w-full h-48 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors cursor-pointer overflow-hidden relative group"
+              @click="triggerFileInput"
+            >
+              <img v-if="previewImage" :src="previewImage" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+              <div v-else class="flex flex-col items-center text-white/40 group-hover:text-white/60 transition-colors">
+                <span class="material-symbols-outlined text-4xl mb-2">add_a_photo</span>
+                <span class="text-xs font-bold uppercase tracking-widest">Upload Photo</span>
+              </div>
+              <input ref="fileInputRef" type="file" class="hidden" @change="onFileSelected" accept="image/*" />
+            </div>
+          </div>
+          <div>
             <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2 block">Name</label>
             <input v-model="selectedProduct.name" type="text" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold text-on-surface outline-none focus:ring-2 focus:ring-orange-500/50" />
           </div>
@@ -195,8 +244,8 @@ const updateOrderStatus = async function(id: number, status: any) {
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2 block">Price (Cents)</label>
-              <input v-model.number="selectedProduct.price_cents" type="number" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold text-on-surface outline-none focus:ring-2 focus:ring-orange-500/50" />
+              <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2 block">Price (PHP)</label>
+              <input v-model.number="displayPricePHP" type="number" step="0.01" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm font-bold text-on-surface outline-none focus:ring-2 focus:ring-orange-500/50" />
             </div>
             <div>
               <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2 block">Stock</label>
