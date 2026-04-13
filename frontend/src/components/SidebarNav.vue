@@ -37,7 +37,7 @@ const navItems = computed(() => {
       { label: 'Students', icon: 'group', path: '/admin/students' },
       { label: 'Teachers', icon: 'person', path: '/admin/teachers' },
       { label: 'Ledger', icon: 'payments', path: '/admin/payments' },
-      { label: 'Instruments', icon: 'piano', path: '/admin/instruments' }
+      { label: 'Shop', icon: 'storefront', path: '/admin/instruments' }
     )
   } else if (role === 'teacher') {
     items.push(

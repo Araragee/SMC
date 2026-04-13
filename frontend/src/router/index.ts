@@ -21,15 +21,20 @@ const AdminUsers = () => import('@views/admin/Users.vue')
 const AdminStudentRecords = () => import('@views/admin/StudentRecords.vue')
 const AdminStudents = () => import('@views/admin/Students.vue')
 const AdminTeachers = () => import('@views/admin/Teachers.vue')
+const AdminInstruments = () => import('@views/admin/Instruments.vue')
 
 // Teacher Views
 const TeacherStudents = () => import('@views/teacher/Students.vue')
 const TeacherInstruments = () => import('@views/teacher/Instruments.vue')
 const TeacherPayments = () => import('@views/teacher/Payments.vue')
+const TeacherShop = () => import('@views/teacher/Shop.vue')
 
 // Schedule views
 const AdminSchedule = () => import('@views/admin/Schedule.vue')
 const TeacherSchedule = () => import('@views/teacher/Schedule.vue')
+
+// Student Views
+const StudentShop = () => import('@views/student/Shop.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -57,6 +62,7 @@ const router = createRouter({
         { path: 'users', name: 'admin-users', component: AdminUsers },
         { path: 'students', name: 'admin-students', component: AdminStudents },
         { path: 'teachers', name: 'admin-teachers', component: AdminTeachers },
+        { path: 'instruments', name: 'admin-instruments', component: AdminInstruments },
         { path: 'students/:id/records', name: 'admin-student-records', component: AdminStudentRecords },
         { path: ':module', component: PlaceholderView }
       ]
@@ -72,6 +78,7 @@ const router = createRouter({
         { path: 'students', name: 'teacher-students', component: TeacherStudents },
         { path: 'instruments', name: 'teacher-instruments', component: TeacherInstruments },
         { path: 'payments', name: 'teacher-payments', component: TeacherPayments },
+        { path: 'shop', name: 'teacher-shop', component: TeacherShop },
         { path: ':module', component: PlaceholderView }
       ]
     },
@@ -85,6 +92,7 @@ const router = createRouter({
         { path: 'schedule', name: 'student-schedule', component: StudentSchedule },
         { path: 'homework', name: 'student-homework', component: StudentHomework },
         { path: 'payments', name: 'student-payments', component: StudentPayments },
+        { path: 'shop', name: 'student-shop', component: StudentShop },
         { path: ':module', component: PlaceholderView }
       ]
     },
