@@ -11,7 +11,7 @@ from .config import settings
 
 from . import models, schemas
 from .database import engine, SessionLocal
-from .routers import users, sessions, notifications, messaging, payments
+from .routers import users, sessions, notifications, messaging, payments, shop
 from .routers.sessions import session_checker_task
 
 # Ensure Base metadata creates all tables
@@ -82,6 +82,7 @@ app.include_router(sessions.router)
 app.include_router(notifications.router)
 app.include_router(messaging.router)
 app.include_router(payments.router, prefix="/payments", tags=["payments"])
+app.include_router(shop.router, prefix="/shop", tags=["shop"])
 
 @app.get("/")
 def read_root():

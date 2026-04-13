@@ -49,7 +49,7 @@ const navItems = computed(() => {
   } else if (role === 'student') {
     items.push(
       { label: 'Homework', icon: 'menu_book', path: '/student/homework' },
-      { label: 'Ledger', icon: 'payments', path: '/student/ledger' },
+      { label: 'Payments', icon: 'payments', path: '/student/payments' },
       { label: 'Shop', icon: 'storefront', path: '/student/shop' }
     )
   }

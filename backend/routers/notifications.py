@@ -4,8 +4,31 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
 from ..dependencies import get_current_active_user
+from typing import List, Optional
 
 router = APIRouter()
+
+def notify_users(db: Session, user_ids: List[int], title_or_message: str, message_or_link: Optional[str] = None, link: Optional[str] = None):
+    """
+    Flexible notification helper.
+    - notify_users(db, user_ids, message, link=None)
+    - notify_users(db, user_ids, title, message, link)
+    """
+    if link is not None:
+        # Shop style: (db, ids, title, message, link)
+        title = title_or_message
+        message = message_or_link
+        full_message = f"**{title}**\n{message}"
+        final_link = link
+    else:
+        # Session style: (db, ids, message, link=None)
+        full_message = title_or_message
+        final_link = message_or_link
+
+    for uid in user_ids:
+        if uid:
+            db.add(models.Notification(user_id=uid, message=full_message, link=final_link, is_read=False))
+    db.commit()
 
 @router.post("/notifications/", response_model=schemas.Notification)
 def create_notification(notification: schemas.NotificationCreate, db: Session = Depends(get_db)):

@@ -20,12 +20,7 @@ router = APIRouter()
 def format_dt(dt: datetime) -> str:
     return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
 
-def notify_users(db, user_ids: list, message: str, link: str = None):
-    """Create notifications for a list of user IDs."""
-    for uid in user_ids:
-        if uid:
-            db.add(models.Notification(user_id=uid, message=message, link=link, is_read=False))
-    db.commit()
+from .notifications import notify_users
 
 def get_admin_ids(db) -> list:
     """Return all admin user IDs."""
