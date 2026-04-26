@@ -66,9 +66,13 @@ def upload_product_image(id: int, file: UploadFile = File(...), db: Session = De
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Simple validation
-    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
-        raise HTTPException(status_code=400, detail="Invalid image type")
+    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Allowed: JPEG, PNG, WEBP.")
+    contents = file.file.read()
+    if len(contents) > MAX_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
 
     os.makedirs("uploads/shop", exist_ok=True)
     timestamp = int(datetime.datetime.utcnow().timestamp())
@@ -77,7 +81,7 @@ def upload_product_image(id: int, file: UploadFile = File(...), db: Session = De
     filepath = os.path.join("uploads/shop", filename)
 
     with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(contents)
 
     product.image_url = f"/uploads/shop/{filename}"
     db.commit()

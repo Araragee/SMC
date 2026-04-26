@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload, joinedload
 from datetime import datetime, timedelta
 import asyncio
 import os
@@ -21,6 +21,7 @@ def format_dt(dt: datetime) -> str:
     return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
 
 from .notifications import notify_users
+from .activity import log_activity
 
 def get_admin_ids(db) -> list:
     """Return all admin user IDs."""
@@ -36,6 +37,15 @@ def map_session(db_session: models.Session) -> dict:
     session_dict['homework_assigned'] = db_session.homeworks[0].description if db_session.homeworks else None
     session_dict['homework_completed'] = db_session.homeworks[0].is_completed if db_session.homeworks else False
     return session_dict
+
+
+def _session_eager_options():
+    """Return a consistent set of eager-load options to prevent N+1 queries on bulk session fetches."""
+    return [
+        selectinload(models.Session.proofs),
+        selectinload(models.Session.homeworks),
+        joinedload(models.Session.instrument),
+    ]
 
 async def session_checker_task():
     while True:
@@ -112,14 +122,38 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
+
+    # Update analytics (same logic as complete_session_as_admin)
+    if student.sessions_left is not None and student.sessions_left > 0:
+        student.sessions_left -= 1
+    enrollment = db.query(models.Enrollment).filter(
+        models.Enrollment.student_id == db_session.student_id,
+        models.Enrollment.teacher_id == db_session.teacher_id
+    ).first()
+    if enrollment:
+        enrollment.sessions_used += 1
+    db.commit()
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="session_manual_entry",
+                 description=f"Manual session entry for {student.name} with {teacher.name} on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
+
     return db_session
 
 @router.get("/sessions/student/{student_id}/records", response_model=list[schemas.Session])
 def get_student_records(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role.name.lower() == "student" and current_user.id != student_id:
          raise HTTPException(status_code=403, detail="Not authorized")
-    sessions = db.query(models.Session).filter(models.Session.student_id == student_id).order_by(models.Session.start_time.desc()).all()
-    return sessions
+    sessions = (
+        db.query(models.Session)
+        .options(*_session_eager_options())
+        .filter(models.Session.student_id == student_id)
+        .order_by(models.Session.start_time.desc())
+        .all()
+    )
+    return [map_session(s) for s in sessions]
 
 @router.post("/sessions/", response_model=schemas.Session)
 def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
@@ -147,27 +181,45 @@ def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db)
     dt_str = format_dt(db_session.start_time)
     notify_users(db, [db_session.teacher_id], f"📅 Admin has scheduled a session with {student.name} on {dt_str}.")
     notify_users(db, [db_session.student_id], f"✅ A session has been scheduled for you on {dt_str} with {teacher.name}.")
+    log_activity(db, action_type="session_scheduled",
+                 description=f"Session scheduled for {student.name} with {teacher.name} on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
 
     return map_session(db_session)
 
 @router.get("/sessions/pending", response_model=list[schemas.Session])
 def read_pending_sessions(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     """Admin: get all sessions awaiting approval."""
-    sessions = db.query(models.Session).filter(
-        models.Session.status.in_(["pending_teacher", "pending_admin"])
-    ).all()
+    sessions = (
+        db.query(models.Session)
+        .options(*_session_eager_options())
+        .filter(models.Session.status.in_(["pending_teacher", "pending_admin"]))
+        .all()
+    )
     return [map_session(s) for s in sessions]
 
 @router.get("/sessions/", response_model=list[schemas.Session])
 def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    sessions = db.query(models.Session).offset(skip).limit(limit).all()
+    sessions = (
+        db.query(models.Session)
+        .options(*_session_eager_options())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     return [map_session(s) for s in sessions]
 
 @router.get("/sessions/user/{user_id}", response_model=list[schemas.Session])
 def read_user_sessions(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    sessions = db.query(models.Session).filter(
-        (models.Session.teacher_id == user_id) | (models.Session.student_id == user_id)
-    ).offset(skip).limit(limit).all()
+    sessions = (
+        db.query(models.Session)
+        .options(*_session_eager_options())
+        .filter((models.Session.teacher_id == user_id) | (models.Session.student_id == user_id))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
     return [map_session(s) for s in sessions]
 
 @router.put("/sessions/{session_id}", response_model=schemas.Session)
@@ -588,6 +640,11 @@ def complete_session_as_admin(
     if is_force:
         msg = f"⚠️ Session from {dt_str} has been force completed by admin."
     notify_users(db, [db_session.teacher_id, db_session.student_id], msg)
+    action = "session_force_completed" if is_force else "session_completed"
+    log_activity(db, action_type=action,
+                 description=msg.replace("✅ ", "").replace("⚠️ ", ""),
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=session_id)
 
     return map_session(db_session)
 
@@ -656,13 +713,21 @@ def upload_homework_file(
     if current_user.role.name.lower() == "student" and session.student_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
+    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Allowed: JPEG, PNG, WEBP.")
+    contents = file.file.read()
+    if len(contents) > MAX_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
+
     os.makedirs("uploads/homework", exist_ok=True)
     file_extension = file.filename.split(".")[-1]
     file_name = f"hw_{homework_id}_{int(datetime.utcnow().timestamp())}.{file_extension}"
     file_path = f"uploads/homework/{file_name}"
-    
+
     with open(file_path, "wb") as f:
-        f.write(file.file.read())
+        f.write(contents)
         
     db_homework.file_url = f"/uploads/homework/{file_name}"
     db_homework.is_completed = True
@@ -683,13 +748,21 @@ def create_session_proof(
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Allowed: JPEG, PNG, WEBP.")
+    contents = file.file.read()
+    if len(contents) > MAX_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
+
     file_extension = file.filename.split(".")[-1]
     file_name = f"session_{session_id}_{int(datetime.utcnow().timestamp())}.{file_extension}"
     file_path = f"uploads/{file_name}"
 
     os.makedirs("uploads", exist_ok=True)
     with open(file_path, "wb") as f:
-        f.write(file.file.read())
+        f.write(contents)
 
     image_url = f"/uploads/{file_name}"
 

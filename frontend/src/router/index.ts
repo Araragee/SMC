@@ -22,6 +22,8 @@ const AdminStudentRecords = () => import('@views/admin/StudentRecords.vue')
 const AdminStudents = () => import('@views/admin/Students.vue')
 const AdminTeachers = () => import('@views/admin/Teachers.vue')
 const AdminInstruments = () => import('@views/admin/Instruments.vue')
+const AdminPayments = () => import('@views/admin/Payments.vue')
+const AdminActivityLog = () => import('@views/admin/ActivityLog.vue')
 
 // Teacher Views
 const TeacherStudents = () => import('@views/teacher/Students.vue')
@@ -63,6 +65,8 @@ const router = createRouter({
         { path: 'students', name: 'admin-students', component: AdminStudents },
         { path: 'teachers', name: 'admin-teachers', component: AdminTeachers },
         { path: 'instruments', name: 'admin-instruments', component: AdminInstruments },
+        { path: 'payments', name: 'admin-payments', component: AdminPayments },
+        { path: 'activity-log', name: 'admin-activity-log', component: AdminActivityLog },
         { path: 'students/:id/records', name: 'admin-student-records', component: AdminStudentRecords },
         { path: ':module', component: PlaceholderView }
       ]

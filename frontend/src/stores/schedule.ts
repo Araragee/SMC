@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { useAuthStore } from '@stores/auth';
+import { useUsersStore } from '@stores/users';
 import type { Session, Schedule } from '@types';
 
 import { API_URL } from '@typescript/constants'
@@ -328,7 +329,15 @@ export const useScheduleStore = defineStore('schedule', {
       this.isLoading = true;
       try {
         const response = await axios.post(`${API_URL}/sessions/${sessionId}/complete`, {}, { headers: authHeaders() });
-        this._upsertSession(mapSession(response.data));
+        const session = mapSession(response.data);
+        this._upsertSession(session);
+        // Decrement sessionsLeft on the student in the users store so the
+        // displayed counter is immediately accurate without a full page refresh.
+        const usersStore = useUsersStore();
+        const student = usersStore.users.find((u) => u.id === session.studentId);
+        if (student && student.sessionsLeft != null && student.sessionsLeft > 0) {
+          student.sessionsLeft -= 1;
+        }
       } catch (err: any) {
         this.error = err.message;
         throw err;

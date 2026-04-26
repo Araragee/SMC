@@ -951,13 +951,14 @@ const openLiveAnalytics = function () {
               />
             </div>
           </div>
-          <button
+          <RouterLink
             v-if="notifStore.notifications.length > 5"
-            class="w-full mt-8 py-4 text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 transition-all uppercase tracking-[0.2em]"
-            @click="toast.info('Roadmap Item', 'The Full Activity Log is planned for Phase 3.')"
+            to="/admin/activity-log"
+            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase tracking-[0.2em]"
           >
+            <span class="material-symbols-outlined text-base">history</span>
             View All Activity
-          </button>
+          </RouterLink>
         </section>
 
         <!-- Quick Assign -->

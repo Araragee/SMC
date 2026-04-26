@@ -272,3 +272,19 @@ class SessionThread(Base):
 
     session      = relationship("Session")
     conversation = relationship("Conversation", back_populates="session_thread")
+
+
+class ActivityLog(Base):
+    """Admin-facing audit trail of key system events."""
+    __tablename__ = "activity_logs"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    action_type = Column(String, nullable=False, index=True)   # e.g. 'session_completed'
+    actor_id    = Column(Integer, ForeignKey("users.id"), nullable=True)
+    actor_name  = Column(String, nullable=True)                # snapshot at time of action
+    target_type = Column(String, nullable=True)                # 'session' | 'payment' | 'user' …
+    target_id   = Column(Integer, nullable=True)
+    description = Column(String, nullable=False)
+    created_at  = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+
+    actor = relationship("User", foreign_keys=[actor_id])

@@ -7,10 +7,15 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    
+
+    # Default admin credentials (override in .env — never leave as defaults in production)
+    DEFAULT_ADMIN_PASSWORD: str = "changeme_on_first_boot"
+    DEFAULT_ADMIN_EMAIL: str = "admin@smc.edu"
+    DEFAULT_ADMIN_USERNAME: str = "admin"
+
     # Database
     DATABASE_URL: str | None = None
-    
+
     # CORS
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",

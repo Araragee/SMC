@@ -11,11 +11,12 @@ from .config import settings
 
 from . import models, schemas
 from .database import engine, SessionLocal
-from .routers import users, sessions, notifications, messaging, payments, shop
+from .routers import users, sessions, notifications, messaging, payments, shop, activity
 from .routers.sessions import session_checker_task
 
-# Ensure Base metadata creates all tables
-models.Base.metadata.create_all(bind=engine)
+# NOTE: Table creation is managed by Alembic migrations.
+# Run `alembic upgrade head` before starting the app.
+# Do NOT call models.Base.metadata.create_all() here — it bypasses Alembic versioning.
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -40,14 +41,16 @@ def startup_event():
 
         # Create default admin if none exists
         admin_role = db.query(models.Role).filter(models.Role.name == "admin").first()
-        admin_user = db.query(models.User).filter((models.User.email == "admin@smc.edu") | (models.User.username == "admin")).first()
+        admin_user = db.query(models.User).filter(
+            (models.User.email == settings.DEFAULT_ADMIN_EMAIL) |
+            (models.User.username == settings.DEFAULT_ADMIN_USERNAME)
+        ).first()
         if not admin_user and admin_role:
-            # We need to import pwd_context here for the initial admin
             from .dependencies import pwd_context
-            hashed_password = pwd_context.hash("password123")
+            hashed_password = pwd_context.hash(settings.DEFAULT_ADMIN_PASSWORD)
             new_admin = models.User(
-                email="admin@smc.edu",
-                username="admin",
+                email=settings.DEFAULT_ADMIN_EMAIL,
+                username=settings.DEFAULT_ADMIN_USERNAME,
                 name="System Admin",
                 hashed_password=hashed_password,
                 role_id=admin_role.id,
@@ -55,7 +58,7 @@ def startup_event():
             )
             db.add(new_admin)
             db.commit()
-            print("Default admin user created: admin / password123")
+            print(f"Default admin user created: {settings.DEFAULT_ADMIN_USERNAME} / [see DEFAULT_ADMIN_PASSWORD in .env]")
         elif admin_user and not admin_user.username:
             admin_user.username = "admin"
             db.commit()
@@ -83,6 +86,7 @@ app.include_router(notifications.router)
 app.include_router(messaging.router)
 app.include_router(payments.router, prefix="/payments", tags=["payments"])
 app.include_router(shop.router, prefix="/shop", tags=["shop"])
+app.include_router(activity.router, prefix="/activity-log", tags=["activity"])
 
 @app.get("/")
 def read_root():

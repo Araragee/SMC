@@ -92,6 +92,7 @@ class PaymentCreate(PaymentBase):
 class Payment(PaymentBase):
     id: int
     date: datetime
+    student_name: Optional[str] = None
     model_config = {"from_attributes": True}
 
 class SessionBase(BaseModel):
@@ -347,4 +348,17 @@ class Order(OrderBase):
     updated_at: datetime
     user: Optional[User] = None
     items: List[OrderItem] = []
+    model_config = {"from_attributes": True}
+
+# ── Activity Log ──────────────────────────────────────────────────────────────
+
+class ActivityLogEntry(BaseModel):
+    id: int
+    action_type: str
+    actor_id: Optional[int] = None
+    actor_name: Optional[str] = None
+    target_type: Optional[str] = None
+    target_id: Optional[int] = None
+    description: str
+    created_at: datetime
     model_config = {"from_attributes": True}
