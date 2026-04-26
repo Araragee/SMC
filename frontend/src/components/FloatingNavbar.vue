@@ -11,21 +11,21 @@ type NavItem = { path: string; icon: string; label: string }
 const navsByRole: Record<string, NavItem[]> = {
   admin: [
     { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
-    { path: '/admin/users', icon: 'group', label: 'Users' },
+    { path: '/admin/users', icon: 'manage_accounts', label: 'Users' },
     { path: '/admin/schedule', icon: 'calendar_month', label: 'Schedule' },
+    { path: '/admin/students', icon: 'group', label: 'Students' },
   ],
   teacher: [
     { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },
     { path: '/teacher/schedule', icon: 'calendar_month', label: 'Schedule' },
     { path: '/teacher/students', icon: 'group', label: 'Students' },
-    { path: '/teacher/instruments', icon: 'piano', label: 'Instruments' },
     { path: '/teacher/payments', icon: 'payments', label: 'Payments' },
-    { path: '/teacher/messages', icon: 'chat', label: 'Messages' },
   ],
   student: [
     { path: '/student', icon: 'dashboard', label: 'Dashboard' },
     { path: '/student/schedule', icon: 'calendar_today', label: 'Schedule' },
     { path: '/student/homework', icon: 'school', label: 'Homework' },
+    { path: '/student/payments', icon: 'payments', label: 'Payments' },
   ],
 }
 
@@ -60,14 +60,5 @@ const isActive = (path: string) => route.path === path
     </nav>
 
     <div class="h-5 w-px bg-outline-variant dark:bg-outline-variant mx-1"></div>
-
-    <div class="relative flex items-center">
-      <span class="material-symbols-outlined absolute left-3 text-on-surface-variant dark:text-on-surface-variant text-sm">search</span>
-      <input
-        type="text"
-        placeholder="Quick find..."
-        class="bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-full pl-9 pr-4 py-1.5 text-xs text-on-surface dark:text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-orange-500/50 w-36"
-      />
-    </div>
   </header>
 </template>

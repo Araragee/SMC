@@ -24,6 +24,46 @@ const newPayment = ref({
   notes: '',
 })
 const isSaving = ref(false)
+const isUpdating = ref(false)
+
+// ── edit payment modal ────────────────────────────────────────────────────────
+const showEditModal = ref(false)
+const editingPayment = ref<any>(null)
+
+function openEditModal(pay: any) {
+  editingPayment.value = {
+    id: pay.id,
+    student_id: pay.student_id,
+    amount: (pay.amount / 100).toFixed(2),
+    method: pay.method,
+    status: pay.status,
+    notes: pay.notes || '',
+  }
+  showEditModal.value = true
+}
+
+async function submitUpdate() {
+  if (!editingPayment.value.amount) {
+    toast.error('Missing amount', 'Please provide a valid amount.')
+    return
+  }
+  isUpdating.value = true
+  try {
+    await paymentsStore.updatePayment(editingPayment.value.id, {
+      amount: Math.round(Number(editingPayment.value.amount) * 100),
+      method: editingPayment.value.method,
+      status: editingPayment.value.status,
+      notes: editingPayment.value.notes || undefined,
+    })
+    toast.success('Payment updated', 'The record has been updated successfully.')
+    showEditModal.value = false
+    editingPayment.value = null
+  } catch (err: any) {
+    toast.error('Failed to update', err?.response?.data?.detail || err.message)
+  } finally {
+    isUpdating.value = false
+  }
+}
 
 onMounted(async () => {
   await Promise.all([paymentsStore.fetchPayments(), usersStore.fetchUsers()])
@@ -292,19 +332,20 @@ async function submitPayment() {
       <div v-else class="space-y-3">
         <!-- Header row (hidden on mobile) -->
         <div
-          class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
+          class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_100px_40px] gap-4 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
         >
           <span>Student</span>
           <span>Date</span>
           <span>Method</span>
           <span>Amount</span>
           <span>Status</span>
+          <span class="text-right">Edit</span>
         </div>
 
         <div
           v-for="pay in filteredPayments"
           :key="pay.id"
-          class="glass-heavy rounded-3xl px-6 py-5 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
+          class="glass-heavy rounded-3xl px-6 py-5 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_40px] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
         >
           <!-- Student -->
           <div class="flex items-center gap-3">
@@ -343,6 +384,14 @@ async function submitPayment() {
           >
             {{ pay.status }}
           </span>
+
+          <!-- Actions -->
+          <button
+            class="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-on-surface-variant transition-colors"
+            @click="openEditModal(pay)"
+          >
+            <span class="material-symbols-outlined text-xl">edit_note</span>
+          </button>
         </div>
       </div>
 
@@ -470,6 +519,113 @@ async function submitPayment() {
         >
           <span v-if="isSaving">Saving…</span>
           <span v-else>Save Payment</span>
+        </button>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Edit Payment Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showEditModal"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      @click.self="showEditModal = false"
+    >
+      <div
+        class="w-full max-w-md glass-heavy rounded-[2rem] border border-outline-variant/30 shadow-2xl p-6 space-y-5"
+      >
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-black text-on-surface">Edit Payment</h2>
+          <button
+            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
+            @click="showEditModal = false"
+          >
+            <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
+          </button>
+        </div>
+
+        <div v-if="editingPayment" class="space-y-4">
+          <!-- Student (Read-only in edit) -->
+          <div>
+            <label
+              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              >Student</label
+            >
+            <div class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-black/5">
+              {{ students.find(s => s.id === editingPayment.student_id)?.name || 'Unknown Student' }}
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div>
+            <label
+              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              >Amount (USD) *</label
+            >
+            <input
+              v-model="editingPayment.amount"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="e.g. 150.00"
+              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
+            />
+          </div>
+
+          <!-- Method -->
+          <div>
+            <label
+              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              >Method</label
+            >
+            <select
+              v-model="editingPayment.method"
+              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
+            >
+              <option value="cash">Cash</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="card">Card</option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label
+              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              >Status</label
+            >
+            <select
+              v-model="editingPayment.status"
+              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
+            >
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label
+              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              >Notes (optional)</label
+            >
+            <input
+              v-model="editingPayment.notes"
+              type="text"
+              placeholder="e.g. January enrollment fee"
+              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
+            />
+          </div>
+        </div>
+
+        <button
+          :disabled="isUpdating"
+          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all"
+          @click="submitUpdate"
+        >
+          <span v-if="isUpdating">Updating…</span>
+          <span v-else>Update Payment</span>
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
   // TODO: Fix remaining TS issues in this file
+import { useRouter } from 'vue-router'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
@@ -8,6 +9,7 @@ import { useToastStore } from '@stores/toast'
 import { useInteractionsStore } from '@stores/interactions'
 import type { Session } from '@types'
 
+const router = useRouter()
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
@@ -602,7 +604,7 @@ const stopCountering = () => {
               <div class="absolute inset-0 flex flex-col items-center justify-center">
                 <span class="text-4xl font-black text-on-surface dark:text-on-surface">
                   {{ mySessions.filter((s: any) => s.status === 'completed').length }} /
-                  {{ authStore.currentUser?.sessionsLeft || 10 }}
+                  {{ authStore.currentUser?.sessionsLeft ?? 0 }}
                 </span>
                 <span class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1"
                   >Sessions Used</span
@@ -625,6 +627,7 @@ const stopCountering = () => {
             </div>
             <button
               class="w-full py-3 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 transition-all active:scale-95"
+              @click="router.push('/student/payments')"
             >
               Manage Subscription
             </button>

@@ -45,6 +45,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     return {"access_token": access_token, "token_type": "bearer", "user": schemas.User.model_validate(user)}
 
+from .activity import log_activity
+
 @router.post("/users/")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
@@ -90,6 +92,11 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current
             db.add(db_user_instrument)
         db.commit()
         db.refresh(db_user)
+
+    log_activity(db, action_type="user_created",
+                 description=f"Admin {current_user.name} created user {db_user.name} ({role.name if role else 'No Role'})",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="user", target_id=db_user.id)
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

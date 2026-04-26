@@ -20,18 +20,21 @@ type NavItem = { path: string; icon: string; label: string }
 const navsByRole: Record<string, NavItem[]> = {
   admin: [
     { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/admin/users', icon: 'manage_accounts', label: 'Users' },
     { path: '/admin/schedule', icon: 'calendar_month', label: 'Schedule' },
-    { path: '/admin/instruments', icon: 'storefront', label: 'Shop' },
+    { path: '/admin/students', icon: 'group', label: 'Students' },
   ],
   teacher: [
     { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },
     { path: '/teacher/schedule', icon: 'calendar_month', label: 'Schedule' },
-    { path: '/teacher/shop', icon: 'storefront', label: 'Shop' },
+    { path: '/teacher/students', icon: 'group', label: 'Students' },
+    { path: '/teacher/payments', icon: 'payments', label: 'Payments' },
   ],
   student: [
     { path: '/student', icon: 'dashboard', label: 'Dashboard' },
     { path: '/student/schedule', icon: 'calendar_today', label: 'Schedule' },
-    { path: '/student/shop', icon: 'storefront', label: 'Shop' },
+    { path: '/student/homework', icon: 'school', label: 'Homework' },
+    { path: '/student/payments', icon: 'payments', label: 'Payments' },
   ],
 }
 

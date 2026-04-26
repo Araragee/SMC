@@ -34,6 +34,7 @@ const navItems = computed(() => {
 
   if (role === 'admin') {
     items.push(
+      { label: 'Users', icon: 'manage_accounts', path: '/admin/users' },
       { label: 'Students', icon: 'group', path: '/admin/students' },
       { label: 'Teachers', icon: 'person', path: '/admin/teachers' },
       { label: 'Ledger', icon: 'payments', path: '/admin/payments' },
@@ -42,8 +43,8 @@ const navItems = computed(() => {
   } else if (role === 'teacher') {
     items.push(
       { label: 'Students', icon: 'group', path: '/teacher/students' },
-      { label: 'Payments', icon: 'payments', path: '/teacher/payments' },
       { label: 'Instruments', icon: 'piano', path: '/teacher/instruments' },
+      { label: 'Payments', icon: 'payments', path: '/teacher/payments' },
       { label: 'Shop', icon: 'storefront', path: '/teacher/shop' }
     )
   } else if (role === 'student') {

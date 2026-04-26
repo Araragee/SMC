@@ -1,5 +1,6 @@
 <script setup lang="ts">
   // TODO: Fix remaining TS issues in this file
+  import { useRouter } from 'vue-router'
   import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@stores/auth'
 import { ref } from 'vue'
@@ -10,6 +11,7 @@ import { useToastStore } from '@stores/toast'
 import type { Session } from '@types'
 import ProposeSessionModal from '@components/ProposeSessionModal.vue'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -360,6 +362,7 @@ const formatTime = (dt: string | undefined) => {
             </h3>
             <button
               class="text-orange-500 font-bold text-sm hover:underline tracking-wide uppercase"
+              @click="router.push('/teacher/students')"
             >
               View All Roster
             </button>

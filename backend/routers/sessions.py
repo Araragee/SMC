@@ -333,6 +333,11 @@ def approve_session_as_teacher(
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="session_teacher_approved",
+                 description=f"Teacher {current_user.name} approved session with {db_session.student.name} on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
+
     notify_users(db, get_admin_ids(db),
         f"✅ {current_user.name} approved a session request from {db_session.student.name} on {dt_str}. Awaiting your final approval.")
 
@@ -359,6 +364,12 @@ def reject_session_as_teacher(
         db_session.notes = approval.notes
     db.commit()
     db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="session_teacher_rejected",
+                 description=f"Teacher {current_user.name} rejected session with {db_session.student.name} on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
 
     dt_str = format_dt(db_session.start_time)
     reason = f" Reason: {approval.notes}" if approval.notes else ""
@@ -472,6 +483,12 @@ def approve_session_as_admin(
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="session_approved",
+                 description=f"Admin {current_user.name} approved session with {db_session.student.name} and {db_session.teacher.name} on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
+
+    dt_str = format_dt(db_session.start_time)
     notify_users(db, [db_session.teacher_id],
         f"✅ Session on {dt_str} with {db_session.student.name} has been approved and confirmed.")
     notify_users(db, [db_session.student_id],
@@ -498,6 +515,12 @@ def reject_session_as_admin(
         db_session.notes = approval.notes
     db.commit()
     db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="session_rejected",
+                 description=f"Admin {current_user.name} rejected session with {db_session.student.name} and {db_session.teacher.name} on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
 
     dt_str = format_dt(db_session.start_time)
     reason = f" Reason: {approval.notes}" if approval.notes else ""
@@ -538,6 +561,12 @@ def request_session_approval(
 
     db.commit()
     db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="proof_submitted",
+                 description=f"Student {current_user.name} submitted proof for session on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
 
     dt_str = format_dt(db_session.start_time)
 
@@ -592,6 +621,12 @@ def reject_session_proof(
 
     db.commit()
     db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(db, action_type="proof_rejected",
+                 description=f"Admin {current_user.name} rejected proof for session on {dt_str}. Reason: {rejection.reason}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
 
     dt_str = format_dt(db_session.start_time)
     notify_users(db, [db_session.student_id, db_session.teacher_id], f"❌ The proof submitted for the session on {dt_str} was rejected. Reason: {rejection.reason}. Please review and re-submit.")
