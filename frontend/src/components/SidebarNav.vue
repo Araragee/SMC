@@ -9,6 +9,15 @@ import NotificationsModal from '@components/NotificationsModal.vue'
 import NotificationDetailModal from '@components/NotificationDetailModal.vue'
 import UserSettingsModal from '@components/UserSettingsModal.vue'
 
+// ── click-outside directive ───────────────────────────────────────────────────
+const vClickOutside = {
+  mounted(el: any, binding: any) {
+    el._co = (e: Event) => { if (!el.contains(e.target)) binding.value(e) }
+    document.addEventListener('click', el._co)
+  },
+  unmounted(el: any) { document.removeEventListener('click', el._co) },
+}
+
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -38,7 +47,8 @@ const navItems = computed(() => {
       { label: 'Students', icon: 'group', path: '/admin/students' },
       { label: 'Teachers', icon: 'person', path: '/admin/teachers' },
       { label: 'Ledger', icon: 'payments', path: '/admin/payments' },
-      { label: 'Shop', icon: 'storefront', path: '/admin/instruments' }
+      { label: 'Shop', icon: 'storefront', path: '/admin/instruments' },
+      { label: 'Activity', icon: 'history', path: '/admin/activity-log' }
     )
   } else if (role === 'teacher') {
     items.push(

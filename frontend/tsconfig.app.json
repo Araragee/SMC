@@ -13,7 +13,8 @@
       "@types": ["./src/types/index.ts"],
       "@types/*": ["./src/types/*"],
       "@layouts/*": ["./src/layouts/*"],
-      "@assets/*": ["./src/assets/*"]
+      "@assets/*": ["./src/assets/*"],
+      "@composables/*": ["./src/composables/*"]
     },
 
     /* Linting */

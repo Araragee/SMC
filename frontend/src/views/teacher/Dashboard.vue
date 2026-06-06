@@ -1,7 +1,6 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
-  import { useRouter } from 'vue-router'
-  import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@stores/auth'
 import { ref } from 'vue'
 import { useScheduleStore } from '@stores/schedule'

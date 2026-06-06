@@ -5,11 +5,13 @@ import { useUsersStore } from '@stores/users'
 import { useToastStore } from '@stores/toast'
 import type { User, Role } from '@types'
 import CreateUserModal from '@components/CreateUserModal.vue'
+import { useDialog } from '@composables/useDialog'
 
 const router = useRouter()
 const route = useRoute()
 const usersStore = useUsersStore()
 const toast = useToastStore()
+const dialog = useDialog()
 
 const showAddModal = ref(false)
 const isSubmitting = ref(false)
@@ -86,7 +88,11 @@ const handleUpdateUser = async () => {
 }
 
 const handleDeleteUser = async (user: User) => {
-  if (!window.confirm(`Are you sure you want to deactivate ${user.name}?`)) return
+  const ok = await dialog.confirm(`Deactivate ${user.name}? They will lose access immediately.`, {
+    title: 'Deactivate User',
+    destructive: true
+  })
+  if (!ok) return
   try {
     await usersStore.deleteUser(user.id)
     toast.success('User deactivated', `${user.name} was removed.`)

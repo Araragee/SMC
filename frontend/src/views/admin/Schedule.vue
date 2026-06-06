@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { API_URL } from '@typescript/constants'
 import { useRoute } from 'vue-router'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
@@ -9,19 +11,23 @@ import { useToastStore } from '@stores/toast'
 import BaseCalendar from '@components/BaseCalendar.vue'
 import SessionDetailModal from '@components/SessionDetailModal.vue'
 import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import RecurringSessionModal from '@components/RecurringSessionModal.vue'
 import type { Session } from '@types'
+import { useDialog } from '@composables/useDialog'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
+const dialog = useDialog()
 const route = useRoute()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
 const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
+const showRecurringModal = ref(false)
 const filterStatus = ref('')
 
 const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
@@ -74,6 +80,31 @@ const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
+const exportingIcs = ref(false)
+const exportIcs = async function() {
+  if (exportingIcs.value) return
+  exportingIcs.value = true
+  try {
+    const res = await axios.get(`${API_URL}/sessions/export.ics`, {
+      headers: { Authorization: `Bearer ${authStore.token}` },
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(res.data as Blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'smc-schedule.ics'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success('Calendar exported')
+  } catch {
+    toast.error('Export failed')
+  } finally {
+    exportingIcs.value = false
+  }
+}
+
 const handleApprove = async function(sessionId: number) {
   const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
@@ -104,7 +135,10 @@ const handleCompleteAdmin = async function(sessionId: number) {
 }
 
 const handleRejectProofAdmin = async function(sessionId: number) {
-  const reason = window.prompt("Enter a reason for rejecting this proof:")
+  const reason = await dialog.prompt('Enter a reason for rejecting this proof:', {
+    title: 'Reject Proof',
+    placeholder: 'e.g. Image is unclear or incorrect session'
+  })
   if (!reason) return
   try {
     await scheduleStore.rejectProof(sessionId, reason)
@@ -234,6 +268,21 @@ const statusBadgeClass = function(status: string): string  {
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">Manage all sessions — approve, edit, and schedule.</p>
       </div>
       <div class="shrink-0 flex items-start gap-4">
+        <button
+          class="px-5 py-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+          :disabled="exportingIcs"
+          @click="exportIcs"
+        >
+          <span class="material-symbols-outlined text-lg">calendar_month</span>
+          {{ exportingIcs ? 'Exporting…' : 'Export .ics' }}
+        </button>
+        <button
+          class="px-5 py-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          @click="showRecurringModal = true"
+        >
+          <span class="material-symbols-outlined text-lg">repeat</span>
+          Recurring
+        </button>
         <button
           class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
@@ -562,6 +611,7 @@ const statusBadgeClass = function(status: string): string  {
     @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
     @counter-teacher="(s: Session) => { handleApprove(s.id); selectedSession = null }"
     @approve-student="(id: number) => { handleApprove(id); selectedSession = null }"
+    @reject-student="async (id: number) => { try { await scheduleStore.rejectAsStudent(id); await scheduleStore.fetchAllSessions() } catch { toast.error('Action failed') }; selectedSession = null }"
     @counter-student="(s: Session) => { handleApprove(s.id); selectedSession = null }"
     @edit-admin="(s: Session) => { openEdit(s); selectedSession = null }"
     @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
@@ -578,6 +628,14 @@ const statusBadgeClass = function(status: string): string  {
       :initial-date="selectedDate ?? undefined"
       @close="showProposeModal = false"
       @submitted="onProposeSubmit"
+    />
+    <RecurringSessionModal
+      v-if="showRecurringModal"
+      :is-open="showRecurringModal"
+      :teachers="teachers"
+      :students="students"
+      @close="showRecurringModal = false"
+      @created="scheduleStore.fetchAllSessions()"
     />
   </div>
 </template>

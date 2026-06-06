@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { User, Session } from '@types'
+import type { User, Session, InstrumentRecord } from '@types'
 
 const props = defineProps<{
   isOpen: boolean
@@ -8,6 +8,7 @@ const props = defineProps<{
   currentUserId: number
   teachers: User[]
   students: User[]
+  instruments?: InstrumentRecord[]
   initialDate?: Date
 }>()
 
@@ -25,6 +26,7 @@ const form = ref({
   time: '10:00',
   durationHours: '1',
   notes: '',
+  instrumentId: null as number | null,
 })
 
 const isSubmitting = ref(false)
@@ -67,6 +69,7 @@ const submit = async function() {
       endTime: endDt.toISOString(),
       status: 'scheduled',
       notes: form.value.notes || undefined,
+      instrumentId: form.value.instrumentId ?? undefined,
       homeworkCompleted: false,
     })
   } finally {
@@ -160,6 +163,20 @@ const submit = async function() {
                 <option value="1" class="bg-surface-container">1 hour</option>
                 <option value="1.5" class="bg-surface-container">1.5 hours</option>
                 <option value="2" class="bg-surface-container">2 hours</option>
+              </select>
+            </div>
+
+            <!-- Instrument (optional, shown if instruments list is provided) -->
+            <div v-if="instruments && instruments.length > 0">
+              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">
+                Instrument <span class="normal-case font-medium">(optional)</span>
+              </label>
+              <select
+                v-model="form.instrumentId"
+                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+              >
+                <option :value="null" class="bg-surface-container">No specific instrument</option>
+                <option v-for="inst in instruments" :key="inst.id" :value="inst.id" class="bg-surface-container">{{ inst.name }}</option>
               </select>
             </div>
 

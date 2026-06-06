@@ -1,26 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, Query
-from sqlalchemy.orm import Session
-import jwt
 import json
-from datetime import datetime
-from typing import Dict, List as TList
+from datetime import datetime, timezone
+
+import jwt
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from sqlalchemy.orm import Session
 
 from .. import models, schemas
-from ..database import get_db, SessionLocal
-from ..dependencies import (
-    get_current_active_user,
-    SECRET_KEY,
-    ALGORITHM
-)
+from ..database import SessionLocal, get_db
+from ..dependencies import ALGORITHM, SECRET_KEY, get_current_active_user
 
 router = APIRouter()
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[int, TList[WebSocket]] = {}
+        self.active_connections: dict[int, list[WebSocket]] = {}
 
-    async def connect(self, user_id: int, websocket: WebSocket):
-        await websocket.accept()
+    async def connect(self, user_id: int, websocket: WebSocket, subprotocol: str | None = None):
+        # Echo back the accepted subprotocol so the browser's WebSocket
+        # opens cleanly (it requires the server to confirm one of the
+        # protocols it offered, or none).
+        if subprotocol:
+            await websocket.accept(subprotocol=subprotocol)
+        else:
+            await websocket.accept()
         self.active_connections.setdefault(user_id, []).append(websocket)
 
     def disconnect(self, user_id: int, websocket: WebSocket):
@@ -134,7 +136,7 @@ async def _ws_handle_mark_read(user_id: int, data: dict, db):
     ).first()
     if not part:
         return
-    part.last_read_at = datetime.utcnow()
+    part.last_read_at = datetime.now(timezone.utc)
     db.commit()
     await ws_manager.send_to_user(user_id, {
         "type": "unread_update", "conversation_id": conv_id, "count": 0,
@@ -153,9 +155,26 @@ async def _ws_handle_typing(user_id: int, data: dict, db):
     }, exclude_user_id=user_id)
 
 @router.websocket("/ws/{user_id}")
-async def websocket_endpoint(user_id: int, websocket: WebSocket, token: str = Query(...)):
+async def websocket_endpoint(user_id: int, websocket: WebSocket, token: str | None = Query(default=None)):
+    # Prefer the Sec-WebSocket-Protocol subprotocol header so the JWT
+    # doesn't leak into URLs / server logs. Fall back to the legacy
+    # `?token=...` query param for clients that haven't migrated yet.
+    accepted_protocol: str | None = None
+    auth_token: str | None = token
+    proto_header = websocket.headers.get("sec-websocket-protocol")
+    if proto_header:
+        # Browser sends comma-separated list, in order, e.g. "jwt, <token>"
+        parts = [p.strip() for p in proto_header.split(",") if p.strip()]
+        if len(parts) >= 2 and parts[0] == "jwt":
+            auth_token = parts[1]
+            accepted_protocol = "jwt"
+
+    if not auth_token:
+        await websocket.close(code=4001)
+        return
+
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(auth_token, SECRET_KEY, algorithms=[ALGORITHM])
         token_user_id: int = payload.get("user_id")
         if token_user_id != user_id:
             await websocket.close(code=4001)
@@ -164,7 +183,7 @@ async def websocket_endpoint(user_id: int, websocket: WebSocket, token: str = Qu
         await websocket.close(code=4001)
         return
 
-    await ws_manager.connect(user_id, websocket)
+    await ws_manager.connect(user_id, websocket, subprotocol=accepted_protocol)
     db = SessionLocal()
     try:
         while True:
@@ -255,8 +274,8 @@ def create_group(
 @router.get("/conversations/{conversation_id}/messages")
 def get_messages(
     conversation_id: int,
-    cursor: int = None,
-    limit: int = 50,
+    cursor: int = Query(default=None, ge=1),
+    limit: int = Query(default=50, ge=1, le=200),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user),
 ):
@@ -386,6 +405,6 @@ def mark_conversation_read(
     ).first()
     if not part:
         raise HTTPException(status_code=403, detail="Not a participant")
-    part.last_read_at = datetime.utcnow()
+    part.last_read_at = datetime.now(timezone.utc)
     db.commit()
     return {"unread_count": 0}

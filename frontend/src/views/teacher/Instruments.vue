@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
-          import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'

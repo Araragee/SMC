@@ -3,10 +3,10 @@ Seed script using raw sqlite3 — guaranteed to work regardless of import contex
 Run from SMC/ root:
   ./backend/venv/bin/python3 backend/seed_data.py
 """
-import sqlite3
-import pathlib
 import datetime
 import hashlib
+import pathlib
+import sqlite3
 import sys
 
 # Try to use bcrypt from the venv
@@ -80,7 +80,7 @@ def get_role_id(name):
 def upsert_user(name, email, role_id, sessions_left=0, username=None):
     if not username:
         username = email.split("@")[0] if email else name.replace(" ", "").lower()
-    
+
     cur.execute("SELECT id FROM users WHERE email=? OR username=?", (email, username))
     row = cur.fetchone()
     if row:
@@ -164,7 +164,7 @@ def seed():
                     is_done = 1 if random.random() > 0.3 else 0
                     cur.execute(
                         "INSERT INTO homework (session_id, description, is_completed, created_at) VALUES (?,?,?,?)",
-                        (sess_id, hw, is_done, datetime.datetime.utcnow().isoformat())
+                        (sess_id, hw, is_done, datetime.datetime.now(datetime.timezone.utc).isoformat())
                     )
                     conn.commit()
                     hw_count += 1

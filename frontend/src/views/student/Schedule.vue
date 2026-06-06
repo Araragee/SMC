@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
 import { ref, computed, onMounted } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
@@ -51,6 +50,7 @@ onMounted(async () => {
     scheduleStore.fetchUserSessions(myId.value),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
+    usersStore.fetchInstruments(),
     notifStore.fetchNotifications(myId.value),
   ])
 })
@@ -76,6 +76,7 @@ const onProposeSubmit = async function (session: Session) {
       startTime: session.startTime,
       endTime: session.endTime,
       notes: session.notes,
+      instrumentId: session.instrumentId ?? null,
     })
     toast.success('Request submitted!', 'Your teacher will review it and forward to admin.')
     showProposeModal.value = false
@@ -287,6 +288,13 @@ const formatDay = function (iso: string): string {
           await scheduleStore.fetchUserSessions(myId)
         }
       "
+      @reject-student="
+        async (id) => {
+          await scheduleStore.rejectAsStudent(id)
+          selectedSession = null
+          await scheduleStore.fetchUserSessions(myId)
+        }
+      "
       @counter-student="
         () => {
           selectedSession = null
@@ -309,6 +317,7 @@ const formatDay = function (iso: string): string {
       :current-user-id="authStore.currentUser?.id ?? 0"
       :teachers="teachers"
       :students="[]"
+      :instruments="usersStore.instruments"
       :initial-date="selectedDate ?? undefined"
       @close="showProposeModal = false"
       @submitted="onProposeSubmit"

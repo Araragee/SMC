@@ -1,6 +1,7 @@
 import passlib.hash
-from .database import SessionLocal, engine
+
 from . import models
+from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 

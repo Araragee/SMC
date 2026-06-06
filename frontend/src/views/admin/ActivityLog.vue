@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
 import { API_URL } from '@typescript/constants'
@@ -15,24 +15,59 @@ interface ActivityEntry {
   created_at: string
 }
 
+const PAGE_SIZE = 25
+
 const authStore = useAuthStore()
 const authHeaders = () =>
   authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {}
 
 const entries = ref<ActivityEntry[]>([])
+const totalCount = ref(0)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const search = ref('')
 const actionFilter = ref('all')
+const currentPage = ref(1)
+const isExporting = ref(false)
+
+// Debounce timer for search input
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => fetchLog())
+
+// Re-fetch when filters or page changes
+watch([actionFilter, currentPage], () => fetchLog())
+watch(search, () => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    currentPage.value = 1
+    fetchLog()
+  }, 350)
+})
 
 async function fetchLog() {
   isLoading.value = true
   error.value = null
+  const params: Record<string, unknown> = {
+    skip: (currentPage.value - 1) * PAGE_SIZE,
+    limit: PAGE_SIZE,
+  }
+  if (actionFilter.value !== 'all') params.action_type = actionFilter.value
+  if (search.value.trim()) params.search = search.value.trim()
+
   try {
-    const res = await axios.get(`${API_URL}/activity-log/`, { headers: authHeaders() })
-    entries.value = res.data
+    const [dataRes, countRes] = await Promise.all([
+      axios.get(`${API_URL}/activity-log/`, { headers: authHeaders(), params }),
+      axios.get(`${API_URL}/activity-log/count`, {
+        headers: authHeaders(),
+        params: {
+          action_type: actionFilter.value !== 'all' ? actionFilter.value : undefined,
+          search: search.value.trim() || undefined,
+        },
+      }),
+    ])
+    entries.value = dataRes.data
+    totalCount.value = countRes.data.count
   } catch (err: any) {
     error.value = err?.response?.data?.detail || err.message || 'Failed to load activity log.'
   } finally {
@@ -40,28 +75,48 @@ async function fetchLog() {
   }
 }
 
-// ── filter & search ───────────────────────────────────────────────────────────
-const uniqueActions = computed(() => {
-  const types = [...new Set(entries.value.map((e) => e.action_type))]
-  return types.sort()
-})
+function resetPage() {
+  currentPage.value = 1
+}
 
-const filtered = computed(() => {
-  let list = entries.value
-  if (actionFilter.value !== 'all') {
-    list = list.filter((e) => e.action_type === actionFilter.value)
+async function exportCsv() {
+  isExporting.value = true
+  try {
+    const params: Record<string, unknown> = {}
+    if (actionFilter.value !== 'all') params.action_type = actionFilter.value
+    if (search.value.trim()) params.search = search.value.trim()
+
+    const res = await axios.get(`${API_URL}/activity-log/export.csv`, {
+      headers: authHeaders(),
+      params,
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+    const a = document.createElement('a')
+    a.href = url
+    const date = new Date().toISOString().slice(0, 10)
+    a.download = `activity-log-${date}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    // silently ignore — user will notice no download
+  } finally {
+    isExporting.value = false
   }
-  if (search.value.trim()) {
-    const q = search.value.toLowerCase()
-    list = list.filter(
-      (e) =>
-        e.description.toLowerCase().includes(q) ||
-        (e.actor_name || '').toLowerCase().includes(q) ||
-        (e.target_type || '').toLowerCase().includes(q),
-    )
-  }
-  return list
-})
+}
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
+
+// Known action types for the filter dropdown
+const ACTION_TYPES = [
+  'session_proposed', 'session_approved', 'session_completed', 'session_rejected',
+  'session_cancelled', 'session_overdue', 'session_force_completed',
+  'payment_recorded', 'payment_updated',
+  'user_created', 'user_updated', 'user_deleted',
+  'enrollment_created', 'enrollment_deleted',
+  'order_approved', 'order_fulfilled', 'order_cancelled', 'order_rejected',
+  'low_stock_alert',
+]
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function actionLabel(type: string) {
@@ -133,20 +188,33 @@ function timeAgo(dateStr: string) {
             A chronological record of all administrative actions in the system.
           </p>
         </div>
-        <button
-          class="flex items-center gap-2 px-5 py-3 glass-medium border border-outline-variant/30 hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-black text-sm text-on-surface transition-all"
-          @click="fetchLog"
-        >
-          <span class="material-symbols-outlined text-lg">refresh</span>
-          Refresh
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class="flex items-center gap-2 px-5 py-3 glass-medium border border-outline-variant/30 hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-black text-sm text-on-surface transition-all"
+            :disabled="isExporting"
+            @click="exportCsv"
+          >
+            <span
+              class="material-symbols-outlined text-lg"
+              :class="isExporting ? 'animate-spin' : ''"
+            >{{ isExporting ? 'progress_activity' : 'download' }}</span>
+            {{ isExporting ? 'Exporting…' : 'Export CSV' }}
+          </button>
+          <button
+            class="flex items-center gap-2 px-5 py-3 glass-medium border border-outline-variant/30 hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-black text-sm text-on-surface transition-all"
+            @click="fetchLog"
+          >
+            <span class="material-symbols-outlined text-lg">refresh</span>
+            Refresh
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- Summary strip -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="glass-heavy rounded-3xl p-4 border border-outline-variant/30 text-center">
-        <p class="text-2xl font-black text-on-surface">{{ entries.length }}</p>
+        <p class="text-2xl font-black text-on-surface">{{ totalCount }}</p>
         <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mt-1">
           Total Events
         </p>
@@ -185,16 +253,18 @@ function timeAgo(dateStr: string) {
         <span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
         <input
           v-model="search"
+          @input="resetPage"
           placeholder="Search descriptions, actors…"
           class="bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
         />
       </div>
       <select
         v-model="actionFilter"
+        @change="resetPage"
         class="glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface outline-none bg-transparent cursor-pointer"
       >
         <option value="all">All Actions</option>
-        <option v-for="a in uniqueActions" :key="a" :value="a">{{ actionLabel(a) }}</option>
+        <option v-for="a in ACTION_TYPES" :key="a" :value="a">{{ actionLabel(a) }}</option>
       </select>
     </div>
 
@@ -223,7 +293,7 @@ function timeAgo(dateStr: string) {
 
       <!-- Empty -->
       <div
-        v-else-if="filtered.length === 0"
+        v-else-if="entries.length === 0"
         class="glass-medium rounded-[3rem] p-20 text-center border-dashed border-2 border-outline-variant/30"
       >
         <span class="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4 block"
@@ -244,7 +314,7 @@ function timeAgo(dateStr: string) {
 
         <div class="space-y-3">
           <div
-            v-for="entry in filtered"
+            v-for="entry in entries"
             :key="entry.id"
             class="glass-heavy rounded-3xl px-5 py-4 border border-outline-variant/30 flex gap-4 items-start hover:border-violet-500/20 transition-all sm:ml-12"
           >
@@ -307,11 +377,47 @@ function timeAgo(dateStr: string) {
         </div>
       </div>
 
+      <!-- Pagination -->
+      <div v-if="totalCount > PAGE_SIZE" class="flex items-center justify-between mt-6 gap-3 flex-wrap">
+        <p class="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">
+          {{ totalCount }} event{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} of {{ totalPages }}
+        </p>
+        <div class="flex items-center gap-2">
+          <button
+            :disabled="currentPage === 1"
+            @click="currentPage--"
+            class="w-9 h-9 rounded-2xl glass-medium border border-outline-variant/30 flex items-center justify-center text-on-surface transition-all hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <span class="material-symbols-outlined text-base">chevron_left</span>
+          </button>
+          <template v-for="p in totalPages" :key="p">
+            <button
+              v-if="p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1"
+              @click="currentPage = p"
+              class="w-9 h-9 rounded-2xl text-xs font-black transition-all border"
+              :class="p === currentPage
+                ? 'bg-violet-500 text-white border-violet-500 shadow-lg shadow-violet-500/20'
+                : 'glass-medium border-outline-variant/30 text-on-surface-variant hover:bg-black/5 dark:hover:bg-white/5'"
+            >{{ p }}</button>
+            <span
+              v-else-if="p === currentPage - 2 || p === currentPage + 2"
+              class="text-on-surface-variant/40 text-xs px-1"
+            >…</span>
+          </template>
+          <button
+            :disabled="currentPage === totalPages"
+            @click="currentPage++"
+            class="w-9 h-9 rounded-2xl glass-medium border border-outline-variant/30 flex items-center justify-center text-on-surface transition-all hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <span class="material-symbols-outlined text-base">chevron_right</span>
+          </button>
+        </div>
+      </div>
       <p
-        v-if="filtered.length > 0"
+        v-else-if="totalCount > 0"
         class="text-center text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mt-6"
       >
-        {{ filtered.length }} event{{ filtered.length !== 1 ? 's' : '' }} shown
+        {{ totalCount }} event{{ totalCount !== 1 ? 's' : '' }} shown
       </p>
     </section>
   </div>

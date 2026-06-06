@@ -1,6 +1,7 @@
-from typing import List, Optional, Any
 from datetime import datetime
-from pydantic import BaseModel, computed_field, field_validator
+from typing import Annotated, Any, List, Literal
+
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 
 class RoleBase(BaseModel):
@@ -38,7 +39,7 @@ class TeacherStudent(TeacherStudentBase):
 class NotificationBase(BaseModel):
     message: str
     is_read: bool = False
-    link: Optional[str] = None
+    link: str | None = None
 
 class NotificationCreate(NotificationBase):
     user_id: int
@@ -46,7 +47,7 @@ class NotificationCreate(NotificationBase):
 class Notification(NotificationBase):
     id: int
     user_id: int
-    link: Optional[str] = None
+    link: str | None = None
     created_at: datetime
     model_config = {"from_attributes": True}
 
@@ -54,7 +55,7 @@ class Notification(NotificationBase):
 class HomeworkBase(BaseModel):
     description: str
     is_completed: bool = False
-    file_url: Optional[str] = None
+    file_url: str | None = None
 
 class HomeworkCreate(HomeworkBase):
     pass
@@ -75,16 +76,18 @@ class SessionProof(SessionProofBase):
     id: int
     session_id: int
     uploaded_at: datetime
-    uploader_id: Optional[int] = None
-    uploader_role: Optional[str] = None
+    uploader_id: int | None = None
+    uploader_role: str | None = None
     model_config = {"from_attributes": True}
+
+PaymentMethod = Literal["cash", "bank_transfer", "card", "gcash", "maya"]
 
 class PaymentBase(BaseModel):
     student_id: int
-    amount: int
-    method: str
+    amount: int = Field(gt=0, lt=10_000_000)
+    method: PaymentMethod
     status: str = "completed"
-    notes: Optional[str] = None
+    notes: str | None = None
 
 class PaymentCreate(PaymentBase):
     pass
@@ -92,7 +95,7 @@ class PaymentCreate(PaymentBase):
 class Payment(PaymentBase):
     id: int
     date: datetime
-    student_name: Optional[str] = None
+    student_name: str | None = None
     model_config = {"from_attributes": True}
 
 class SessionBase(BaseModel):
@@ -101,16 +104,17 @@ class SessionBase(BaseModel):
     start_time: datetime
     end_time: datetime
     status: str = "scheduled"
-    proposed_by: Optional[int] = None
-    notes: Optional[str] = None
-    instrument_id: Optional[int] = None
+    proposed_by: int | None = None
+    notes: str | None = None
+    instrument_id: int | None = None
     is_manual_entry: bool = False
-    session_number: Optional[int] = None
+    session_number: int | None = None
     notified_24h: bool = False
     notified_12h: bool = False
-    proof_justification: Optional[str] = None
-    rejection_reason: Optional[str] = None
+    proof_justification: str | None = None
+    rejection_reason: str | None = None
     is_force_completed: bool = False
+    version: int = 0
 
     @field_validator('is_manual_entry', 'notified_24h', 'notified_12h', 'is_force_completed', mode='before')
     @classmethod
@@ -127,44 +131,50 @@ class SessionPropose(BaseModel):
     teacher_id: int
     student_id: int
     start_time: datetime
-    end_time: datetime
-    notes: Optional[str] = None
+    end_time: datetime | None = None  # defaults to start_time + 1h if omitted
+    notes: str | None = None
+    instrument_id: int | None = None
 
 # Used by admin to edit a session
 class SessionEdit(BaseModel):
-    teacher_id: Optional[int] = None
-    student_id: Optional[int] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    notes: Optional[str] = None
-    instrument_id: Optional[int] = None
-    is_manual_entry: Optional[bool] = None
-    session_number: Optional[int] = None
+    teacher_id: int | None = None
+    student_id: int | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    notes: str | None = None
+    instrument_id: int | None = None
+    is_manual_entry: bool | None = None
+    session_number: int | None = None
+    version: int | None = None  # optimistic lock; reject with 409 if stale
 
 # Used for approve/reject actions with optional reason
 class SessionApproval(BaseModel):
-    notes: Optional[str] = None
+    notes: str | None = None
+    version: int | None = None  # optimistic lock; reject with 409 if stale
 
 class SessionRequestApproval(BaseModel):
-    justification: Optional[str] = None
+    justification: str | None = None
+    version: int | None = None
 
 class SessionRejectProof(BaseModel):
     reason: str
+    version: int | None = None
 
 # Used for counter-proposals
 class SessionCounter(BaseModel):
     start_time: datetime
     end_time: datetime
-    notes: Optional[str] = None
+    notes: str | None = None
+    version: int | None = None
 
 class Session(SessionBase):
     id: int
-    homeworks: List[Homework] = []
-    proofs: List[SessionProof] = []
-    proof_image_url: Optional[str] = None
-    homework_assigned: Optional[str] = None
+    homeworks: list[Homework] = []
+    proofs: list[SessionProof] = []
+    proof_image_url: str | None = None
+    homework_assigned: str | None = None
     homework_completed: bool = False
-    instrument: Optional[Instrument] = None
+    instrument: Instrument | None = None
 
     model_config = {"from_attributes": True}
 
@@ -197,23 +207,23 @@ class MessageOut(BaseModel):
     body:            str
     created_at:      datetime
     is_deleted:      bool
-    sender_name:     Optional[str] = None
+    sender_name:     str | None = None
     model_config = {"from_attributes": True}
 
 class ParticipantOut(BaseModel):
     user_id:      int
     joined_at:    datetime
-    last_read_at: Optional[datetime] = None
-    name:         Optional[str] = None
+    last_read_at: datetime | None = None
+    name:         str | None = None
     model_config = {"from_attributes": True}
 
 class ConversationOut(BaseModel):
     id:           int
     type:         str
-    name:         Optional[str] = None
+    name:         str | None = None
     created_at:   datetime
-    participants: List[ParticipantOut] = []
-    last_message: Optional[MessageOut] = None
+    participants: list[ParticipantOut] = []
+    last_message: MessageOut | None = None
     unread_count: int = 0
     model_config = {"from_attributes": True}
 
@@ -222,7 +232,7 @@ class CreateDMRequest(BaseModel):
 
 class CreateGroupRequest(BaseModel):
     name:            str
-    participant_ids: List[int]
+    participant_ids: list[int]
 
 class AddParticipantRequest(BaseModel):
     user_id: int
@@ -231,8 +241,8 @@ class CreateMessageRequest(BaseModel):
     body: str
 
 class MessageCursorPage(BaseModel):
-    messages:    List[MessageOut]
-    next_cursor: Optional[int] = None
+    messages:    list[MessageOut]
+    next_cursor: int | None = None
 
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -241,76 +251,186 @@ class UserBase(BaseModel):
     email: str
     name: str
     role_id: int
-    avatar_url: Optional[str] = None
-    sessions_left: Optional[int] = 0
-    username: Optional[str] = None
-    contact_number: Optional[str] = None
-    home_address: Optional[str] = None
+    avatar_url: str | None = None
+    sessions_left: int | None = 0
+    username: str | None = None
+    contact_number: str | None = None
+    home_address: str | None = None
 
     # Student specific
-    birthday: Optional[str] = None
-    age: Optional[int] = None
-    school: Optional[str] = None
-    parent_name: Optional[str] = None
-    parent_contact: Optional[str] = None
-    sessions_enrolled: Optional[int] = None
+    birthday: str | None = None
+    age: int | None = None
+    school: str | None = None
+    parent_name: str | None = None
+    parent_contact: str | None = None
+    sessions_enrolled: int | None = None
 
 class UserCreate(UserBase):
-    password: Optional[str] = None
-    instrument_ids: Optional[List[int]] = None
+    password: str | None = None
+    instrument_ids: list[int] | None = None
 
 class UserUpdate(BaseModel):
-    email: Optional[str] = None
-    name: Optional[str] = None
-    avatar_url: Optional[str] = None
-    password: Optional[str] = None
-    username: Optional[str] = None
-    contact_number: Optional[str] = None
-    home_address: Optional[str] = None
-    birthday: Optional[str] = None
-    age: Optional[int] = None
-    school: Optional[str] = None
-    parent_name: Optional[str] = None
-    parent_contact: Optional[str] = None
-    sessions_enrolled: Optional[int] = None
-    sessions_left: Optional[int] = None
-    instrument_ids: Optional[List[int]] = None
+    email: str | None = None
+    name: str | None = None
+    avatar_url: str | None = None
+    password: str | None = None
+    username: str | None = None
+    contact_number: str | None = None
+    home_address: str | None = None
+    birthday: str | None = None
+    age: int | None = None
+    school: str | None = None
+    parent_name: str | None = None
+    parent_contact: str | None = None
+    sessions_enrolled: int | None = None
+    sessions_left: int | None = None
+    instrument_ids: list[int] | None = None
 
 class User(UserBase):
     id: int
     is_active: bool
-    role: Optional[Role] = None
-    instruments: List[Instrument] = []
+    email_verified: bool = False
+    totp_enabled: bool = False
+    role: Role | None = None
+    instruments: list[Instrument] = []
     model_config = {"from_attributes": True}
+
+
+# ── Auth schemas (refresh, password reset, email verify, 2FA) ─────────────────
+
+# Password rule: min 8, at least 1 letter + 1 digit.
+def _validate_password_strength(v: str) -> str:
+    if len(v) < 8:
+        raise ValueError("Password must be at least 8 characters")
+    if not any(c.isalpha() for c in v):
+        raise ValueError("Password must contain at least one letter")
+    if not any(c.isdigit() for c in v):
+        raise ValueError("Password must contain at least one digit")
+    return v
+
+
+StrongPassword = Annotated[str, Field(min_length=8, max_length=128)]
+
+
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int  # seconds
+    user: User
+
+
+class LoginChallenge(BaseModel):
+    """Returned when user has 2FA enabled — frontend must then POST /auth/2fa/verify."""
+    requires_2fa: bool = True
+    challenge_token: str
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: StrongPassword
+
+    @field_validator("new_password")
+    @classmethod
+    def _strength(cls, v: str) -> str:
+        return _validate_password_strength(v)
+
+
+class TwoFASetupResponse(BaseModel):
+    secret: str
+    provisioning_uri: str
+    qr_code_png_base64: str
+
+
+class TwoFAEnableRequest(BaseModel):
+    code: Annotated[str, Field(min_length=6, max_length=10)]
+
+
+class TwoFADisableRequest(BaseModel):
+    password: str
+    code: Annotated[str, Field(min_length=6, max_length=10)]
+
+
+class TwoFAVerifyRequest(BaseModel):
+    challenge_token: str
+    code: Annotated[str, Field(min_length=6, max_length=10)]
+
+
+class SimpleOK(BaseModel):
+    ok: bool = True
+    detail: str | None = None
+
+
+# ── Recurring lesson series ──────────────────────────────────────────────────
+
+class RecurringSessionCreate(BaseModel):
+    """Bulk-create a recurring lesson series."""
+    teacher_id: int
+    student_id: int
+    start_time: datetime
+    end_time: datetime
+    cadence: Literal["weekly", "biweekly", "monthly"] = "weekly"
+    occurrences: Annotated[int, Field(ge=2, le=52)] = 4
+    notes: str | None = None
+    instrument_id: int | None = None
+    skip_dates: List[datetime] = []
+
+
+class RecurringSessionResult(BaseModel):
+    created_count: int
+    skipped_count: int
+    session_ids: List[int]
+
+
+# ── Push notification subscription ───────────────────────────────────────────
+
+class PushSubscriptionIn(BaseModel):
+    endpoint: str
+    keys_p256dh: str
+    keys_auth: str
+    user_agent: str | None = None
+
 
 # ── Shop Schemas ──────────────────────────────────────────────────────────────
 
 class InstrumentProductBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     price_cents: int
     stock: int
-    image_url: Optional[str] = None
-    category_id: Optional[int] = None
+    image_url: str | None = None
+    category_id: int | None = None
     is_active: bool = True
 
 class InstrumentProductCreate(InstrumentProductBase):
     pass
 
 class InstrumentProductUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    price_cents: Optional[int] = None
-    stock: Optional[int] = None
-    image_url: Optional[str] = None
-    category_id: Optional[int] = None
-    is_active: Optional[bool] = None
+    name: str | None = None
+    description: str | None = None
+    price_cents: int | None = None
+    stock: int | None = None
+    image_url: str | None = None
+    category_id: int | None = None
+    is_active: bool | None = None
 
 class InstrumentProduct(InstrumentProductBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    category: Optional[Instrument] = None
+    category: Instrument | None = None
     model_config = {"from_attributes": True}
 
 class OrderItemBase(BaseModel):
@@ -323,31 +443,31 @@ class OrderItemCreate(OrderItemBase):
 class OrderItem(OrderItemBase):
     id: int
     price_cents_at_purchase: int
-    product: Optional[InstrumentProduct] = None
+    product: InstrumentProduct | None = None
     model_config = {"from_attributes": True}
 
 class OrderBase(BaseModel):
-    notes: Optional[str] = None
+    notes: str | None = None
 
 class OrderCreate(OrderBase):
-    items: List[OrderItemCreate]
+    items: list[OrderItemCreate]
 
 class OrderStatusUpdate(BaseModel):
     status: str
-    rejection_reason: Optional[str] = None
+    rejection_reason: str | None = None
 
 class Order(OrderBase):
     id: int
     user_id: int
     status: str
     total_cents: int
-    approved_by: Optional[int] = None
-    approved_at: Optional[datetime] = None
-    rejection_reason: Optional[str] = None
+    approved_by: int | None = None
+    approved_at: datetime | None = None
+    rejection_reason: str | None = None
     created_at: datetime
     updated_at: datetime
-    user: Optional[User] = None
-    items: List[OrderItem] = []
+    user: User | None = None
+    items: list[OrderItem] = []
     model_config = {"from_attributes": True}
 
 # ── Activity Log ──────────────────────────────────────────────────────────────
@@ -355,10 +475,10 @@ class Order(OrderBase):
 class ActivityLogEntry(BaseModel):
     id: int
     action_type: str
-    actor_id: Optional[int] = None
-    actor_name: Optional[str] = None
-    target_type: Optional[str] = None
-    target_id: Optional[int] = None
+    actor_id: int | None = None
+    actor_name: str | None = None
+    target_type: str | None = None
+    target_id: int | None = None
     description: str
     created_at: datetime
     model_config = {"from_attributes": True}

@@ -10,7 +10,7 @@ const props = defineProps<{
 const shopStore = useShopStore()
 
 const formatPrice = function(cents: number) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-PH', {
     style: 'currency',
     currency: 'PHP'
   }).format(cents / 100)

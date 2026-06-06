@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
-  import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useScheduleStore } from '@stores/schedule'
 import { useAuthStore } from '@stores/auth'
@@ -234,6 +233,14 @@ async function handleApproveStudent(sessionId: number) {
     await scheduleStore.approveAsStudent(sessionId)
     toast.success('Approved on student behalf')
     selectedSession.value = scheduleStore.allSessions.find(s => s.id === sessionId) ?? null
+  } catch { toast.error('Action failed') }
+}
+
+async function handleRejectStudent(sessionId: number) {
+  try {
+    await scheduleStore.rejectAsStudent(sessionId)
+    toast.success('Session declined on student behalf')
+    selectedSession.value = null
   } catch { toast.error('Action failed') }
 }
 </script>
@@ -528,6 +535,7 @@ async function handleApproveStudent(sessionId: number) {
       @approve-teacher="(id) => handleApproveTeacher(id)"
       @reject-teacher="(id) => handleRejectTeacher(id)"
       @approve-student="(id) => handleApproveStudent(id)"
+      @reject-student="(id) => handleRejectStudent(id)"
     />
   </div>
 </template>

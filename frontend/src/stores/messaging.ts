@@ -4,7 +4,11 @@ import { useAuthStore } from '@stores/auth'
 import type { ChatMessage, Conversation } from '@types'
 
 import { API_URL } from '@typescript/constants'
-const WS_URL  = (import.meta.env.VITE_WS_BASE_URL  || 'ws://localhost:8000')
+const WS_URL = (import.meta.env.VITE_WS_BASE_URL || (() => {
+  if (import.meta.env.DEV) return 'ws://localhost:8000'
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  return `${proto}//${window.location.host}`
+})())
 
 const authHeaders = function() {
   const auth = useAuthStore()
@@ -99,7 +103,10 @@ export const useMessagingStore = defineStore('messaging', {
 
       this.wsStatus = 'connecting'
       const userId = auth.currentUser.id
-      const ws = new WebSocket(`${WS_URL}/ws/${userId}?token=${auth.token}`)
+      // Pass the JWT via the Sec-WebSocket-Protocol header instead of the URL
+      // so the token never lands in server access logs / referer headers.
+      // Backend reads it from `websocket.headers['sec-websocket-protocol']`.
+      const ws = new WebSocket(`${WS_URL}/ws/${userId}`, ['jwt', auth.token])
       this._ws = ws
 
       ws.onopen = () => {
@@ -139,7 +146,7 @@ export const useMessagingStore = defineStore('messaging', {
     },
 
     _handleIncoming(event: MessageEvent) {
-      let data: any
+      let data: { type?: string; message?: unknown; [k: string]: unknown }
       try { data = JSON.parse(event.data) } catch { return }
 
       if (data.type === 'new_message') {
@@ -154,9 +161,9 @@ export const useMessagingStore = defineStore('messaging', {
 
       } else if (data.type === 'unread_update') {
         const cid = Number(data.conversation_id)
-        this.unreadCounts[cid] = data.count
+        this.unreadCounts[cid] = Number(data.count)
         const conv = this.conversations.find(c => c.id === cid)
-        if (conv) conv.unreadCount = data.count
+        if (conv) conv.unreadCount = Number(data.count)
 
       } else if (data.type === 'typing') {
         const cid = Number(data.conversation_id)

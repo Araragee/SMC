@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { NUDGE_COOLDOWN_MS } from '@typescript/constants'
+import { NUDGE_COOLDOWN_MS, API_URL } from '@typescript/constants'
 import { ref, computed } from 'vue'
 import { useToastStore } from '@stores/toast'
+import { useScheduleStore } from '@stores/schedule'
 import type { User, Session } from '@types'
 
 const props = defineProps<{
@@ -17,6 +18,7 @@ const emit = defineEmits<{
   'reject-teacher': [sessionId: number]
   'counter-teacher': [session: Session]
   'approve-student': [sessionId: number]
+  'reject-student': [sessionId: number]
   'counter-student': [session: Session]
   'approve-admin': [sessionId: number]
   'reject-admin': [sessionId: number]
@@ -26,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const toast = useToastStore()
+const scheduleStore = useScheduleStore()
 const showProofViewer = ref<string | null>(null)
 
 // ── Nudge cooldown (1 hour per session, persisted in localStorage) ─────────
@@ -53,12 +56,16 @@ function isNudgeOnCooldown(sessionId: number): boolean {
   return getNudgeCooldownLeft(sessionId) > 0
 }
 
-function sendNudge(sessionId: number) {
+async function sendNudge(sessionId: number) {
   if (isNudgeOnCooldown(sessionId)) return
-  localStorage.setItem(getNudgeKey(sessionId), String(Date.now()))
-  const remaining = '1 hour'
-  toast.info('Nudge sent!', `The other participant has been notified. You can nudge again in ${remaining}.`)
-  emit('close')
+  try {
+    await scheduleStore.nudgeSession(sessionId)
+    localStorage.setItem(getNudgeKey(sessionId), String(Date.now()))
+    toast.info('Nudge sent!', 'The other participant has been notified. You can nudge again in 1 hour.')
+    emit('close')
+  } catch {
+    toast.error('Nudge failed', 'Could not send the nudge. Please try again.')
+  }
 }
 
 const getUser = function(id: number): string  {
@@ -240,9 +247,9 @@ const statusContext = computed(() => {
                   v-for="proof in session.proofs"
                   :key="proof.id"
                   class="flex-1 aspect-video rounded-xl overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative group"
-                  @click="showProofViewer = proof.imageUrl"
+                  @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
                 >
-                  <img :src="proof.imageUrl" class="w-full h-full object-cover" />
+                  <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
                   <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span class="material-symbols-outlined text-white text-2xl">zoom_in</span>
                   </div>
@@ -341,9 +348,9 @@ const statusContext = computed(() => {
                     v-for="proof in session.proofs"
                     :key="proof.id"
                     class="w-12 h-12 rounded-lg overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative shrink-0"
-                    @click="showProofViewer = proof.imageUrl"
+                    @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
                   >
-                    <img :src="proof.imageUrl" class="w-full h-full object-cover" />
+                    <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
                     <div class="absolute bottom-0 inset-x-0 bg-black/50 text-[7px] text-white font-bold text-center py-0.5">
                       {{ proof.uploaderRole === 'teacher' ? 'T' : 'S' }}
                     </div>
@@ -391,7 +398,7 @@ const statusContext = computed(() => {
                 </div>
               </template>
 
-              <!-- Student: approve time / suggest other -->
+              <!-- Student: approve time / suggest other / decline -->
               <template
                 v-if="
                   (userRole === 'student' && session.status === 'pending_student' && session.studentId === currentUserId) ||
@@ -404,6 +411,9 @@ const statusContext = computed(() => {
                   </button>
                   <button class="flex-1 py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-student', session)">
                     <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest Other
+                  </button>
+                  <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-student', session.id)">
+                    <span class="material-symbols-outlined text-base">cancel</span> Decline
                   </button>
                 </div>
               </template>

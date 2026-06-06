@@ -6,15 +6,19 @@ import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
 import { useNotificationStore } from '@stores/notification'
 import { useToastStore } from '@stores/toast'
+import { usePaymentsStore } from '@stores/payments'
 import ProposeSessionModal from '@components/ProposeSessionModal.vue'
 import SessionDetailModal from '@components/SessionDetailModal.vue'
 import type { Session } from '@types'
+import { useDialog } from '@composables/useDialog'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
+const paymentsStore = usePaymentsStore()
+const dialog = useDialog()
 
 const showAddSessionModal = ref(false)
 const detailDate = ref<Date | null>(null)
@@ -38,6 +42,7 @@ onMounted(async () => {
     scheduleStore.fetchPendingSessions(),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
+    paymentsStore.fetchPayments(),
   ])
   if (authStore.currentUser?.id) {
     notifStore.fetchNotifications(authStore.currentUser.id)
@@ -67,13 +72,34 @@ const stats = computed(() => {
   const sessions = scheduleStore.allSessions
   const completed = sessions.filter((s: any) => s.status === 'completed').length
   const rate = sessions.length ? Math.round((completed / sessions.length) * 100) : 0
+  const pendingStatuses = ['pending_teacher', 'pending_student', 'pending_admin', 'pending_verification']
   return {
     totalSessions: sessions.length,
     scheduledSessions: sessions.filter((s: any) => s.status === 'scheduled').length,
     completedSessions: completed,
     completionRate: rate,
+    overdueSessions: sessions.filter((s: any) => s.status === 'overdue' || s.status === 'overdue_rejected').length,
+    pendingSessions: sessions.filter((s: any) => pendingStatuses.includes(s.status)).length,
+    awaitingAdmin: sessions.filter((s: any) => s.status === 'pending_admin' || s.status === 'pending_verification').length,
   }
 })
+
+const thisMonthRevenue = computed(() => {
+  const now = new Date()
+  return paymentsStore.payments
+    .filter((p) => {
+      const d = new Date(p.date)
+      return (
+        p.status === 'completed' &&
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear()
+      )
+    })
+    .reduce((s, p) => s + p.amount, 0)
+})
+
+const formatRevenue = (cents: number) =>
+  new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(cents / 100)
 
 const topInstruments = computed(() => {
   const counts: Record<string, number> = {}
@@ -240,7 +266,10 @@ const handleCompleteAdmin = async function (sessionId: number) {
 }
 
 const handleRejectProofAdmin = async function (sessionId: number) {
-  const reason = window.prompt('Enter a reason for rejecting this proof:')
+  const reason = await dialog.prompt('Enter a reason for rejecting this proof:', {
+    title: 'Reject Proof',
+    placeholder: 'e.g. Image is unclear or incorrect session'
+  })
   if (!reason) return
   try {
     await scheduleStore.rejectProof(sessionId, reason)
@@ -277,7 +306,11 @@ const confirmQuickAssign = async function () {
 }
 
 const handleDeleteTeacher = async function (teacher: any) {
-  if (!window.confirm(`Are you sure you want to deactivate ${teacher.name}?`)) return
+  const ok = await dialog.confirm(`Deactivate ${teacher.name}? They will lose access immediately.`, {
+    title: 'Deactivate Teacher',
+    destructive: true
+  })
+  if (!ok) return
   try {
     await usersStore.deleteUser(teacher.id)
     toast.success('Member deactivated', `${teacher.name} has been removed from active faculty.`)
@@ -339,7 +372,9 @@ const openLiveAnalytics = function () {
               {{ stats.scheduledSessions }} Active Today
             </h2>
             <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-1">
-              Real-time occupancy across departments
+              Real-time occupancy ·
+              <span v-if="stats.awaitingAdmin > 0" class="text-amber-400 font-bold">{{ stats.awaitingAdmin }} awaiting admin</span>
+              <span v-else class="opacity-60">all clear</span>
             </p>
           </div>
           <div class="flex gap-1 h-8 items-end">
@@ -477,6 +512,65 @@ const openLiveAnalytics = function () {
           class="text-on-surface-variant dark:text-on-surface-variant text-xs font-bold group-hover:text-amber-500 transition-colors mt-6"
         >
           Review →
+        </p>
+      </RouterLink>
+
+      <!-- Monthly Revenue -->
+      <RouterLink
+        to="/admin/payments"
+        class="liquid-glass p-4 rounded-3xl border border-emerald-500/20 flex flex-col justify-between hover:bg-emerald-500/5 transition-all group"
+      >
+        <div>
+          <span class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]"
+            >Monthly Revenue</span
+          >
+          <div
+            v-if="paymentsStore.isLoading"
+            class="h-14 w-24 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+          />
+          <h2
+            v-else
+            class="text-3xl font-black mt-2 tracking-tighter text-emerald-400 leading-none"
+          >
+            {{ formatRevenue(thisMonthRevenue) }}
+          </h2>
+        </div>
+        <p
+          class="text-on-surface-variant dark:text-on-surface-variant text-xs font-bold group-hover:text-emerald-500 transition-colors mt-6"
+        >
+          View Ledger →
+        </p>
+      </RouterLink>
+
+      <!-- Overdue Sessions -->
+      <RouterLink
+        to="/admin/schedule"
+        class="liquid-glass p-4 rounded-3xl border border-rose-500/20 flex flex-col justify-between hover:bg-rose-500/5 transition-all group"
+      >
+        <div>
+          <span class="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em]"
+            >Overdue</span
+          >
+          <div
+            v-if="scheduleStore.isLoading"
+            class="h-14 w-16 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+          />
+          <h2
+            v-else
+            class="text-5xl font-black mt-2 tracking-tighter"
+            :class="
+              stats.overdueSessions > 0
+                ? 'text-rose-400'
+                : 'text-on-surface dark:text-on-surface'
+            "
+          >
+            {{ stats.overdueSessions }}
+          </h2>
+        </div>
+        <p
+          class="text-on-surface-variant dark:text-on-surface-variant text-xs font-bold group-hover:text-rose-500 transition-colors mt-6"
+        >
+          Action Required →
         </p>
       </RouterLink>
     </section>
@@ -952,7 +1046,6 @@ const openLiveAnalytics = function () {
             </div>
           </div>
           <RouterLink
-            v-if="notifStore.notifications.length > 5"
             to="/admin/activity-log"
             class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase tracking-[0.2em]"
           >
@@ -1092,6 +1185,12 @@ const openLiveAnalytics = function () {
     @approve-student="
       (id: number) => {
         handleApproveAdmin(id)
+        selectedSession = null
+      }
+    "
+    @reject-student="
+      async (id: number) => {
+        try { await scheduleStore.rejectAsStudent(id); await scheduleStore.fetchAllSessions() } catch { toast.error('Action failed') }
         selectedSession = null
       }
     "

@@ -1,33 +1,62 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import UTC, datetime, timedelta
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
-from datetime import timedelta
 
 from .. import models, schemas
+from ..config import settings
 from ..database import get_db
 from ..dependencies import (
-    pwd_context,
-    create_access_token,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
     get_current_active_user,
-    require_admin
+    pwd_context,
+    require_admin,
 )
+from ..services.notifier import safe_notify
 
 router = APIRouter()
 
-@router.get("/debug/users")
+# Local Limiter handle for decorator use. The same key_func is configured on the
+# app-level limiter in main.py; slowapi keys by remote address regardless.
+limiter = Limiter(key_func=get_remote_address)
+
+# Account lockout policy: after N consecutive failures, lock for LOCKOUT_MINUTES.
+MAX_FAILED_LOGINS = 5
+LOCKOUT_MINUTES = 15
+
+@router.get("/debug/users", include_in_schema=settings.DEBUG)
 def debug_users(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    if not settings.DEBUG:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     users = db.query(models.User).all()
     return [{"email": u.email, "role": u.role.name if u.role else None} for u in users]
 
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(
         (models.User.username == form_data.username) |
         (models.User.email == form_data.username)
     ).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+
+    now = datetime.now(UTC)
+
+    # Reject early if the account is currently locked.
+    if user.locked_until is not None:
+        locked_until = user.locked_until
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=UTC)
+        if locked_until > now:
+            retry_after = max(1, int((locked_until - now).total_seconds()))
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail="Account temporarily locked due to too many failed login attempts",
+                headers={"Retry-After": str(retry_after)},
+            )
 
     is_valid_hash = False
     try:
@@ -36,16 +65,38 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         pass
 
     if not is_valid_hash:
+        # Track failed attempt and possibly lock the account.
+        user.failed_login_count = (user.failed_login_count or 0) + 1
+        if user.failed_login_count >= MAX_FAILED_LOGINS:
+            user.locked_until = now + timedelta(minutes=LOCKOUT_MINUTES)
+            db.commit()
+            retry_after = LOCKOUT_MINUTES * 60
+            raise HTTPException(
+                status_code=status.HTTP_423_LOCKED,
+                detail="Account temporarily locked due to too many failed login attempts",
+                headers={"Retry-After": str(retry_after)},
+            )
+        db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username or user.email, "user_id": user.id}, expires_delta=access_token_expires
-    )
+    # Success: clear lockout state.
+    if user.failed_login_count or user.locked_until is not None:
+        user.failed_login_count = 0
+        user.locked_until = None
+        db.commit()
 
-    return {"access_token": access_token, "token_type": "bearer", "user": schemas.User.model_validate(user)}
+    # If 2FA enabled, return challenge instead of full tokens.
+    if user.totp_enabled:
+        from .auth import issue_2fa_challenge
+        return {"requires_2fa": True, "challenge_token": issue_2fa_challenge(user.id)}
+
+    from .auth import build_token_pair
+    pair = build_token_pair(db, user)
+    return pair.model_dump()
 
 from .activity import log_activity
+from ..utils.uploads import save_upload
+
 
 @router.post("/users/")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
@@ -98,20 +149,14 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current
                  actor_id=current_user.id, actor_name=current_user.name,
                  target_type="user", target_id=db_user.id)
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": db_user.username, "user_id": db_user.id},
-        expires_delta=access_token_expires
-    )
+    safe_notify("send_welcome", db_user, password)
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": schemas.User.model_validate(db_user)
-    }
+    from .auth import build_token_pair
+    return build_token_pair(db, db_user).model_dump()
 
 @router.put("/users/{user_id}", response_model=schemas.User)
-def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+@limiter.limit("10/minute")
+def update_user(request: Request, user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.id != user_id and current_user.role.name.lower() != "admin":
         raise HTTPException(status_code=403, detail="Not authorized to update this user")
 
@@ -138,6 +183,13 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
 
     db.commit()
     db.refresh(db_user)
+
+    if current_user.role.name.lower() == "admin" and current_user.id != user_id:
+        log_activity(db, action_type="user_updated",
+                     description=f"Admin {current_user.name} updated profile for {db_user.name}",
+                     actor_id=current_user.id, actor_name=current_user.name,
+                     target_type="user", target_id=db_user.id)
+
     return db_user
 
 @router.delete("/users/{user_id}")
@@ -159,24 +211,49 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: model
         # Perform soft delete by deactivating
         db_user.is_active = False
         db.commit()
+        log_activity(db, action_type="user_deactivated",
+                     description=f"Admin {current_user.name} deactivated user {db_user.name} (has linked records)",
+                     actor_id=current_user.id, actor_name=current_user.name,
+                     target_type="user", target_id=db_user.id)
         return {"message": "User has linked records and was deactivated instead of deleted"}
 
     db.delete(db_user)
     db.commit()
+    log_activity(db, action_type="user_deleted",
+                 description=f"Admin {current_user.name} permanently deleted user {db_user.name}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="user", target_id=user_id)
     return {"message": "User deleted successfully"}
 
 @router.get("/users/role/{role_name}", response_model=list[schemas.User])
-def read_users_by_role(role_name: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+def read_users_by_role(
+    role_name: str,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=500, le=1000),
+    include_inactive: bool = False,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
     role = db.query(models.Role).filter(models.Role.name == role_name).first()
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
-    users = db.query(models.User).filter(models.User.role_id == role.id).offset(skip).limit(limit).all()
-    return users
+    q = db.query(models.User).filter(models.User.role_id == role.id)
+    if not include_inactive:
+        q = q.filter(models.User.is_active == True)
+    return q.offset(skip).limit(limit).all()
 
 @router.get("/users/", response_model=list[schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    users = db.query(models.User).offset(skip).limit(limit).all()
-    return users
+def read_users(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=500, le=1000),
+    include_inactive: bool = False,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    q = db.query(models.User)
+    if not include_inactive:
+        q = q.filter(models.User.is_active == True)
+    return q.offset(skip).limit(limit).all()
 
 @router.get("/users/{user_id}", response_model=schemas.User)
 def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
@@ -206,6 +283,14 @@ def assign_teacher_student(assignment: schemas.TeacherStudentCreate, db: Session
     db.add(new_assignment)
     db.commit()
     db.refresh(new_assignment)
+
+    teacher = db.query(models.User).filter(models.User.id == assignment.teacher_id).first()
+    student = db.query(models.User).filter(models.User.id == assignment.student_id).first()
+    log_activity(db, action_type="student_assigned",
+                 description=f"Admin {current_user.name} assigned student {student.name if student else assignment.student_id} to teacher {teacher.name if teacher else assignment.teacher_id}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="teacher_student", target_id=new_assignment.id)
+
     return new_assignment
 
 @router.get("/teacher-students/teacher/{teacher_id}", response_model=list[schemas.TeacherStudent])
@@ -219,8 +304,14 @@ def unassign_teacher_student(assignment_id: int, db: Session = Depends(get_db), 
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
+    teacher = db.query(models.User).filter(models.User.id == assignment.teacher_id).first()
+    student = db.query(models.User).filter(models.User.id == assignment.student_id).first()
     db.delete(assignment)
     db.commit()
+    log_activity(db, action_type="student_unassigned",
+                 description=f"Admin {current_user.name} unassigned student {student.name if student else '?'} from teacher {teacher.name if teacher else '?'}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="teacher_student", target_id=assignment_id)
     return {"message": "Assignment deleted successfully"}
 
 @router.post("/roles/", response_model=schemas.Role)
@@ -232,6 +323,6 @@ def create_role(role: schemas.RoleCreate, db: Session = Depends(get_db), current
     return db_role
 
 @router.get("/roles/", response_model=list[schemas.Role])
-def read_roles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+def read_roles(skip: int = Query(default=0, ge=0), limit: int = Query(default=100, le=500), db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     roles = db.query(models.Role).offset(skip).limit(limit).all()
     return roles

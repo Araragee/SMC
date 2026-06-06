@@ -2,6 +2,7 @@
 import { onMounted, watch } from 'vue'
 import ToastContainer from '@components/ToastContainer.vue'
 import MessagingPanel from '@components/messaging/MessagingPanel.vue'
+import AppDialogHost from '@components/AppDialogHost.vue'
 import { useAuthStore } from '@stores/auth'
 import { useMessagingStore } from '@stores/messaging'
 
@@ -23,6 +24,7 @@ watch(() => auth.isAuthenticated, (v) => {
     <RouterView />
     <ToastContainer />
     <MessagingPanel />
+    <AppDialogHost />
   </div>
 </template>
 

@@ -26,4 +26,69 @@ themeStore.applyTheme(themeStore.isDarkMode)
 
 app.use(router)
 
+// Global 401 handler: attempt silent token refresh, then retry original request.
+// Falls back to logout + redirect if the refresh token is also rejected.
+// Dynamic import of the store avoids a circular dep (auth store imports axios).
+let isRefreshing = false
+let refreshQueue: Array<(token: string | null) => void> = []
+
+const drainQueue = (token: string | null) => {
+  refreshQueue.forEach(cb => cb(token))
+  refreshQueue = []
+}
+
+axios.interceptors.response.use(
+  (r) => r,
+  async (error) => {
+    const originalRequest = error.config
+
+    // Only intercept 401s that haven't already been retried and aren't the
+    // refresh endpoint itself (infinite-loop guard).
+    if (
+      error.response?.status !== 401 ||
+      originalRequest?._refreshRetry ||
+      originalRequest?.url?.includes('/auth/refresh')
+    ) {
+      return Promise.reject(error)
+    }
+
+    originalRequest._refreshRetry = true
+
+    if (isRefreshing) {
+      // Another refresh is already in flight — queue this request
+      return new Promise((resolve, reject) => {
+        refreshQueue.push((token) => {
+          if (token) {
+            originalRequest.headers['Authorization'] = `Bearer ${token}`
+            resolve(axios(originalRequest))
+          } else {
+            reject(error)
+          }
+        })
+      })
+    }
+
+    isRefreshing = true
+    try {
+      const { useAuthStore } = await import('@stores/auth')
+      const auth = useAuthStore()
+      const ok = await auth.refreshAccessToken()
+
+      if (ok && auth.token) {
+        drainQueue(auth.token)
+        originalRequest.headers['Authorization'] = `Bearer ${auth.token}`
+        return axios(originalRequest)
+      } else {
+        drainQueue(null)
+        if (router.currentRoute.value.path !== '/login') {
+          router.push('/login')
+        }
+        return Promise.reject(error)
+      }
+    } finally {
+      isRefreshing = false
+    }
+  }
+)
+
 app.mount('#app')

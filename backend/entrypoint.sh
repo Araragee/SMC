@@ -1,13 +1,10 @@
 #!/bin/bash
 set -e
 
-echo "==> Initializing database tables..."
-python -c "
-from backend.database import engine
-from backend import models
-models.Base.metadata.create_all(bind=engine)
-print('Tables ready.')
-"
+echo "==> Applying database migrations (Alembic owns the schema)..."
+# Run migrations from the backend dir so alembic.ini / script_location resolve.
+(cd /app/backend && alembic upgrade head)
+echo "Migrations applied."
 
 echo "==> Checking if seeding is needed..."
 NEEDS_SEED=$(python -c "

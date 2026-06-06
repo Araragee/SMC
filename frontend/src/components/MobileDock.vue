@@ -43,7 +43,13 @@ const navItems = computed<NavItem[]>(() => {
   return navsByRole[role] ?? []
 })
 
-const isActive = (path: string) => route.path === path
+const isActive = (path: string) => {
+  // Dashboard routes require exact match to avoid matching all sub-paths
+  if (path === '/admin' || path === '/teacher' || path === '/student') {
+    return route.path === path
+  }
+  return route.path.startsWith(path)
+}
 
 const handleScroll = function() {
   const currentScrollY = window.scrollY

@@ -1,7 +1,6 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -10,8 +9,8 @@ from alembic import context
 config = context.config
 
 from backend.config import settings
-from backend.models import Base
 from backend.database import SQLALCHEMY_DATABASE_URL
+from backend.models import Base
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

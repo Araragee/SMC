@@ -6,6 +6,7 @@ import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
 import SessionDetailModal from '@components/SessionDetailModal.vue'
 import type { User, Session } from '@types'
+import { useDialog } from '@composables/useDialog'
 
 // ── click-outside directive ────────────────────────────────────────────────────
 const vClickOutside = {
@@ -20,6 +21,7 @@ const usersStore  = useUsersStore()
 const scheduleStore = useScheduleStore()
 const authStore   = useAuthStore()
 const toast       = useToastStore()
+const dialog      = useDialog()
 
 // ── list-level state ──────────────────────────────────────────────────────────
 const search       = ref('')
@@ -224,7 +226,10 @@ async function handleComplete(sessionId: number) {
 }
 
 async function handleRejectProof(sessionId: number) {
-  const reason = window.prompt('Reason for rejecting proof:')
+  const reason = await dialog.prompt('Enter a reason for rejecting this proof:', {
+    title: 'Reject Proof',
+    placeholder: 'e.g. Image is unclear or incorrect session'
+  })
   if (!reason) return
   try {
     await scheduleStore.rejectProof(sessionId, reason)
@@ -536,6 +541,7 @@ async function handleRejectProof(sessionId: number) {
       @approve-teacher="(id) => handleApprove(id)"
       @reject-teacher="() => { selectedSession = null }"
       @approve-student="(id) => handleApprove(id)"
+      @reject-student="async (id) => { try { await scheduleStore.rejectAsStudent(id); toast.success('Session declined'); selectedSession = null; await scheduleStore.fetchAllSessions() } catch { toast.error('Action failed') } }"
       @edit-admin="() => { selectedSession = null }"
     />
   </div>

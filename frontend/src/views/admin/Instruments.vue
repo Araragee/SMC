@@ -3,12 +3,13 @@ import { ref, onMounted } from 'vue'
 import { useShopStore } from '@stores/shop'
 import OrderStatusBadge from '@components/shop/OrderStatusBadge.vue'
 import { API_URL } from '@typescript/constants'
+import type { OrderStatus, InstrumentProduct, Order } from '@types'
 
 const shopStore = useShopStore()
 const activeTab = ref<'catalog' | 'orders'>('catalog')
 const isEditorOpen = ref(false)
-const selectedProduct = ref<any>(null)
-const selectedOrder = ref<any>(null)
+const selectedProduct = ref<InstrumentProduct | null>(null)
+const selectedOrder = ref<Order | null>(null)
 const isOrderDetailOpen = ref(false)
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -49,15 +50,20 @@ const openEditor = function(product: any = null) {
     id: product.id,
     name: product.name,
     description: product.description,
-    price_cents: product.priceCents,
+    priceCents: product.priceCents,
     stock: product.stock,
-    is_active: product.isActive
+    isActive: product.isActive,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
   } : {
+    id: 0,
     name: '',
     description: '',
-    price_cents: 0,
+    priceCents: 0,
     stock: 0,
-    is_active: true
+    isActive: true,
+    createdAt: '',
+    updatedAt: '',
   }
   isEditorOpen.value = true
 }
@@ -74,11 +80,13 @@ const saveProduct = async function() {
 
     const targetId = savedProduct?.id || payload.id
     if (imageFile.value && targetId) {
+      // uploadProductImage already upserts the product in the store; no full re-fetch needed
       await shopStore.uploadProductImage(targetId, imageFile.value)
     }
 
     isEditorOpen.value = false
-    await shopStore.fetchProducts()
+    // createProduct/updateProduct already upsert the local store list,
+    // so a full re-fetch is redundant — skip it to avoid the extra round-trip.
   } catch (error) {
     console.error('Error saving product:', error)
   }
@@ -106,7 +114,7 @@ const viewOrder = function(order: any) {
   isOrderDetailOpen.value = true
 }
 
-const updateOrderStatus = async function(id: number, status: any) {
+const updateOrderStatus = async function(id: number, status: OrderStatus) {
   await shopStore.updateOrderStatus(id, status)
   isOrderDetailOpen.value = false
 }
@@ -215,7 +223,7 @@ const updateOrderStatus = async function(id: number, status: any) {
     </div>
 
     <!-- Product Editor Modal -->
-    <div v-if="isEditorOpen" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div v-if="isEditorOpen && selectedProduct" class="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="isEditorOpen = false"></div>
       <div class="relative w-full max-w-lg glass-thin rounded-[3rem] border border-white/10 p-10">
         <h2 class="text-3xl font-black text-on-surface mb-8">{{ selectedProduct?.id ? 'Edit' : 'New' }} Product</h2>
@@ -263,7 +271,7 @@ const updateOrderStatus = async function(id: number, status: any) {
     </div>
 
     <!-- Order Detail Modal -->
-    <div v-if="isOrderDetailOpen" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+    <div v-if="isOrderDetailOpen && selectedOrder" class="fixed inset-0 z-50 flex items-center justify-center p-6">
       <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="isOrderDetailOpen = false"></div>
       <div class="relative w-full max-w-2xl glass-thin rounded-[3rem] border border-white/10 p-10 max-h-[90vh] overflow-y-auto scrollbar-hide">
         <div class="flex items-center justify-between mb-8">

@@ -1,12 +1,34 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import { usePaymentsStore } from '@stores/payments'
 import { useUsersStore } from '@stores/users'
 import { useToastStore } from '@stores/toast'
+import { useAuthStore } from '@stores/auth'
+import { useDialog } from '@composables/useDialog'
+import { API_URL } from '@typescript/constants'
 
 const paymentsStore = usePaymentsStore()
 const usersStore = useUsersStore()
 const toast = useToastStore()
+const authStore = useAuthStore()
+const dialog = useDialog()
+
+async function printReceipt(paymentId: number) {
+  try {
+    const res = await axios.get(`${API_URL}/payments/${paymentId}/receipt.html`, {
+      headers: authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {},
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/html' }))
+    const win = window.open(url, '_blank', 'noopener,noreferrer')
+    // Revoke the blob URL after a short delay so memory is freed
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    if (!win) toast.error('Popup blocked', 'Please allow popups to view the receipt.')
+  } catch {
+    toast.error('Receipt unavailable', 'Could not load the receipt. Please try again.')
+  }
+}
 
 // ── filters & search ──────────────────────────────────────────────────────────
 const search = ref('')
@@ -134,7 +156,7 @@ const thisMonthRevenue = computed(() => {
 
 // ── formatters ────────────────────────────────────────────────────────────────
 function formatCurrency(cents: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
+  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(cents / 100)
 }
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -165,6 +187,9 @@ function methodIcon(method: string) {
       return 'account_balance'
     case 'card':
       return 'credit_card'
+    case 'gcash':
+    case 'maya':
+      return 'smartphone'
     default:
       return 'receipt'
   }
@@ -287,6 +312,8 @@ async function submitPayment() {
         <option value="cash">Cash</option>
         <option value="bank_transfer">Bank Transfer</option>
         <option value="card">Card</option>
+        <option value="gcash">GCash</option>
+        <option value="maya">Maya</option>
       </select>
 
       <select
@@ -332,20 +359,20 @@ async function submitPayment() {
       <div v-else class="space-y-3">
         <!-- Header row (hidden on mobile) -->
         <div
-          class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_100px_40px] gap-4 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
+          class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-4 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
         >
           <span>Student</span>
           <span>Date</span>
           <span>Method</span>
           <span>Amount</span>
           <span>Status</span>
-          <span class="text-right">Edit</span>
+          <span class="text-right">Actions</span>
         </div>
 
         <div
           v-for="pay in filteredPayments"
           :key="pay.id"
-          class="glass-heavy rounded-3xl px-6 py-5 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_40px] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
+          class="glass-heavy rounded-3xl px-6 py-5 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
         >
           <!-- Student -->
           <div class="flex items-center gap-3">
@@ -386,12 +413,29 @@ async function submitPayment() {
           </span>
 
           <!-- Actions -->
-          <button
-            class="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-on-surface-variant transition-colors"
-            @click="openEditModal(pay)"
-          >
-            <span class="material-symbols-outlined text-xl">edit_note</span>
-          </button>
+          <div class="flex items-center gap-1 justify-end">
+            <button
+              class="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-on-surface-variant transition-colors"
+              title="Print receipt"
+              @click="printReceipt(pay.id)"
+            >
+              <span class="material-symbols-outlined text-xl">receipt_long</span>
+            </button>
+            <button
+              class="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-on-surface-variant transition-colors"
+              title="Edit payment"
+              @click="openEditModal(pay)"
+            >
+              <span class="material-symbols-outlined text-xl">edit_note</span>
+            </button>
+            <button
+              class="p-2 rounded-xl hover:bg-rose-500/10 text-on-surface-variant hover:text-rose-500 transition-colors"
+              title="Delete payment"
+              @click="async () => { if (await dialog.confirm('Delete this payment record? This cannot be undone.', { title: 'Delete Payment', destructive: true })) { try { await paymentsStore.deletePayment(pay.id); toast.success('Deleted', 'Payment record removed.') } catch (e: any) { toast.error('Failed', (e as any)?.response?.data?.detail || (e as any).message) } } }"
+            >
+              <span class="material-symbols-outlined text-xl">delete</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -453,7 +497,7 @@ async function submitPayment() {
           <div>
             <label
               class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
-              >Amount (USD) *</label
+              >Amount (PHP) *</label
             >
             <input
               v-model="newPayment.amount"
@@ -478,6 +522,8 @@ async function submitPayment() {
               <option value="cash">Cash</option>
               <option value="bank_transfer">Bank Transfer</option>
               <option value="card">Card</option>
+              <option value="gcash">GCash</option>
+              <option value="maya">Maya</option>
             </select>
           </div>
 
@@ -560,7 +606,7 @@ async function submitPayment() {
           <div>
             <label
               class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
-              >Amount (USD) *</label
+              >Amount (PHP) *</label
             >
             <input
               v-model="editingPayment.amount"
@@ -585,6 +631,8 @@ async function submitPayment() {
               <option value="cash">Cash</option>
               <option value="bank_transfer">Bank Transfer</option>
               <option value="card">Card</option>
+              <option value="gcash">GCash</option>
+              <option value="maya">Maya</option>
             </select>
           </div>
 

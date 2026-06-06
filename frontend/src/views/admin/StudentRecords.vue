@@ -3,15 +3,19 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUsersStore } from '@stores/users';
 import { useScheduleStore } from '@stores/schedule';
+import { useInteractionsStore } from '@stores/interactions';
 
 import BaseCard from '@components/BaseCard.vue';
 import BaseButton from '@components/BaseButton.vue';
 import AddPastSessionModal from '@components/AddPastSessionModal.vue';
-import type { User, Session, InstrumentRecord } from '@types';
+import type { User, Session, InstrumentRecord, Enrollment } from '@types';
+import { useDialog } from '@composables/useDialog';
 
 const route = useRoute();
 const usersStore = useUsersStore();
 const scheduleStore = useScheduleStore();
+const interactionsStore = useInteractionsStore();
+const dialog = useDialog();
 
 const studentId = Number(route.params.id);
 const student = ref<User | null>(null);
@@ -40,6 +44,7 @@ onMounted(async () => {
   await Promise.all([
     fetchStudent(),
     fetchSessions(),
+    interactionsStore.fetchStudentEnrollments(studentId),
     usersStore.instruments.length === 0 ? usersStore.fetchInstruments() : Promise.resolve()
   ]);
   isLoading.value = false;
@@ -79,7 +84,23 @@ const formatDate = (dateStr: string) => {
 
 const handleSessionAdded = () => {
   fetchSessions();
-  // We'd ideally update user's sessionsLeft here, but for now we just refetch
+};
+
+const handleDeleteEnrollment = async (enrollment: Enrollment) => {
+  const teacherName = usersStore.users.find((u: User) => u.id === enrollment.teacherId)?.name || `Teacher #${enrollment.teacherId}`;
+  const ok = await dialog.confirm(
+    `Remove this enrollment with ${teacherName}? Unused sessions (${enrollment.sessionsPurchased - enrollment.sessionsUsed}) will be rolled back from the student's balance.`,
+    { title: 'Delete Enrollment', destructive: true }
+  );
+  if (!ok) return;
+  await interactionsStore.deleteEnrollment(enrollment.id);
+  await interactionsStore.fetchStudentEnrollments(studentId);
+  await fetchStudent();
+};
+
+const handleRecalculate = async () => {
+  const result = await interactionsStore.recalculateSessions(studentId);
+  if (result !== null) await fetchStudent();
 };
 </script>
 
@@ -123,8 +144,48 @@ const handleSessionAdded = () => {
              <span class="text-xs text-white/50">Sessions Left</span>
              <span class="text-xl font-black text-primary">{{ student.sessionsLeft || 0 }}</span>
           </div>
+          <button
+            class="w-full mt-1 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-primary border border-white/10 hover:border-primary/30 rounded-xl py-2 transition-all"
+            :disabled="interactionsStore.isLoading"
+            @click="handleRecalculate"
+          >
+            <span class="material-symbols-outlined text-sm">sync</span>
+            Recalculate Balance
+          </button>
         </div>
       </BaseCard>
+    </section>
+
+    <!-- Enrollments -->
+    <section v-if="interactionsStore.enrollments.length > 0">
+      <h2 class="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-3">Enrollments</h2>
+      <div class="space-y-2">
+        <BaseCard
+          v-for="enrollment in interactionsStore.enrollments"
+          :key="enrollment.id"
+          class="p-4 liquid-glass border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary/70 text-lg">school</span>
+            <div>
+              <p class="font-bold text-sm text-white">
+                {{ usersStore.users.find((u: User) => u.id === enrollment.teacherId)?.name || `Teacher #${enrollment.teacherId}` }}
+              </p>
+              <p class="text-xs text-white/50 mt-0.5">
+                {{ enrollment.sessionsUsed }} used · {{ enrollment.sessionsPurchased - enrollment.sessionsUsed }} remaining of {{ enrollment.sessionsPurchased }} purchased
+              </p>
+            </div>
+          </div>
+          <button
+            class="flex items-center gap-1.5 text-xs font-bold text-error/70 hover:text-error border border-error/20 hover:border-error/40 rounded-xl px-3 py-1.5 transition-all shrink-0"
+            :disabled="interactionsStore.isLoading"
+            @click="handleDeleteEnrollment(enrollment)"
+          >
+            <span class="material-symbols-outlined text-sm">delete</span>
+            Remove
+          </button>
+        </BaseCard>
+      </div>
     </section>
 
     <!-- Controls -->

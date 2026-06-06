@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@stores/auth'
 import Login from '@views/Login.vue'
-import PlaceholderView from '@components/PlaceholderView.vue'
+import NotFoundView from '@components/NotFoundView.vue'
 
 // Role-based layouts
 const AdminLayout = () => import('@layouts/AdminLayout.vue')
@@ -68,7 +68,7 @@ const router = createRouter({
         { path: 'payments', name: 'admin-payments', component: AdminPayments },
         { path: 'activity-log', name: 'admin-activity-log', component: AdminActivityLog },
         { path: 'students/:id/records', name: 'admin-student-records', component: AdminStudentRecords },
-        { path: ':module', component: PlaceholderView }
+        { path: ':module', component: NotFoundView }
       ]
     },
     // Teacher Routes
@@ -83,7 +83,7 @@ const router = createRouter({
         { path: 'instruments', name: 'teacher-instruments', component: TeacherInstruments },
         { path: 'payments', name: 'teacher-payments', component: TeacherPayments },
         { path: 'shop', name: 'teacher-shop', component: TeacherShop },
-        { path: ':module', component: PlaceholderView }
+        { path: ':module', component: NotFoundView }
       ]
     },
     // Student Routes
@@ -97,7 +97,7 @@ const router = createRouter({
         { path: 'homework', name: 'student-homework', component: StudentHomework },
         { path: 'payments', name: 'student-payments', component: StudentPayments },
         { path: 'shop', name: 'student-shop', component: StudentShop },
-        { path: ':module', component: PlaceholderView }
+        { path: ':module', component: NotFoundView }
       ]
     },
     // General redirection

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
 import { useRouter } from 'vue-router'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -77,7 +76,10 @@ const pendingHomework = computed(
 )
 
 const sessionProgress = computed(() => {
-  const totalSessions = interactionsStore.enrollments[0]?.sessionsPurchased || 10
+  const totalSessions = interactionsStore.enrollments.reduce(
+    (sum, e) => sum + (e.sessionsPurchased || 0), 0
+  )
+  if (!totalSessions) return 0
   const used = mySessions.value.filter((s: any) => s.status === 'completed').length
   return Math.min((used / totalSessions) * 100, 100)
 })

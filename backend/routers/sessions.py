@@ -1,27 +1,69 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session, selectinload, joinedload
-from datetime import datetime, timedelta
 import asyncio
-import os
+import logging
+from datetime import datetime, timedelta, timezone
+
+logger = logging.getLogger(__name__)
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from fastapi.responses import Response
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from sqlalchemy import text
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from .. import models, schemas
-from ..database import get_db, SessionLocal
-from ..dependencies import (
-    get_current_active_user,
-    require_admin,
-    require_teacher,
-    require_student
-)
+from ..config import settings
+from ..database import SessionLocal, get_db
+from ..dependencies import get_current_active_user, require_admin, require_student, require_teacher
+from ..services.notifier import safe_notify
+from ..utils.uploads import save_upload
 
 router = APIRouter()
+
+# Per-(IP, session_id) rate-limit key for nudge — scopes the limit per session so
+# a user cannot spam one session's participants while still being able to nudge others.
+def _nudge_key(request: Request) -> str:
+    ip = get_remote_address(request)
+    session_id = request.path_params.get("session_id", "unknown")
+    return f"nudge:{ip}:{session_id}"
+
+_limiter = Limiter(key_func=_nudge_key)
 
 # --- Helpers ---
 
 def format_dt(dt: datetime) -> str:
     return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
 
-from .notifications import notify_users
 from .activity import log_activity
+from .notifications import notify_users
+
+
+def _check_version(db_session: models.Session, expected: int | None) -> None:
+    """Reject the request with 409 if the caller's view of the session is stale.
+
+    Pass ``expected`` from the client request body. ``None`` means the caller
+    opted out of optimistic locking (legacy clients) and we let it through —
+    this keeps the change backwards-compatible while new clients get safety.
+    """
+    if expected is None:
+        return
+    if db_session.version != expected:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Session was modified by someone else "
+                f"(expected version {expected}, got {db_session.version}). "
+                "Reload and try again."
+            ),
+        )
+
+
+def _bump_version(db_session: models.Session) -> None:
+    """Increment session version. Call before commit on every status transition.
+    Also clears stale_reminded_at so the reminder clock restarts after any action."""
+    db_session.version = (db_session.version or 0) + 1
+    db_session.stale_reminded_at = None
+
 
 def get_admin_ids(db) -> list:
     """Return all admin user IDs."""
@@ -30,6 +72,33 @@ def get_admin_ids(db) -> list:
         return []
     admins = db.query(models.User).filter(models.User.role_id == admin_role.id).all()
     return [a.id for a in admins]
+
+
+_OVERLAP_ACTIVE_STATUSES = [
+    "scheduled", "pending_teacher", "pending_student", "pending_admin",
+    "overdue", "pending_verification", "overdue_rejected",
+]
+
+def _check_overlap(db, teacher_id: int, student_id: int, start: datetime, end: datetime, exclude_session_id: int | None = None) -> None:
+    """Raise 409 if either participant already has an active session that overlaps [start, end)."""
+    q = db.query(models.Session).filter(
+        models.Session.status.in_(_OVERLAP_ACTIVE_STATUSES),
+        models.Session.start_time < end,
+        models.Session.end_time > start,
+        (
+            (models.Session.teacher_id == teacher_id) |
+            (models.Session.student_id == student_id)
+        ),
+    )
+    if exclude_session_id is not None:
+        q = q.filter(models.Session.id != exclude_session_id)
+    conflict = q.first()
+    if conflict:
+        role = "teacher" if conflict.teacher_id == teacher_id else "student"
+        raise HTTPException(
+            status_code=409,
+            detail=f"Scheduling conflict: the {role} already has an active session overlapping this time slot (Session #{conflict.id}).",
+        )
 
 def map_session(db_session: models.Session) -> dict:
     session_dict = schemas.Session.model_validate(db_session).model_dump()
@@ -47,53 +116,148 @@ def _session_eager_options():
         joinedload(models.Session.instrument),
     ]
 
+_last_token_purge: datetime | None = None
+
 async def session_checker_task():
+    global _last_token_purge
     while True:
+        # Off-hours back-off: 00:00–06:00 UTC → 5 min intervals to reduce DB churn.
+        _hour = datetime.now(timezone.utc).hour
+        sleep_interval = 300 if _hour < 6 else 60
+
+        db = SessionLocal()
         try:
-            db = SessionLocal()
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
-            # Check for 24h notifications
-            target_24h = now + timedelta(hours=24)
-            sessions_24h = db.query(models.Session).filter(
-                models.Session.status == "scheduled",
-                models.Session.start_time <= target_24h,
-                models.Session.start_time > now,
-                models.Session.notified_24h == False
+            # ── Daily token purge ─────────────────────────────────────────────
+            if _last_token_purge is None or (now - _last_token_purge).total_seconds() >= 86400:
+                from .. import models as _m
+                deleted_refresh = (
+                    db.query(_m.RefreshToken)
+                    .filter((_m.RefreshToken.revoked == True) | (_m.RefreshToken.expires_at < now))
+                    .delete(synchronize_session=False)
+                )
+                deleted_reset = (
+                    db.query(_m.PasswordResetToken)
+                    .filter(_m.PasswordResetToken.expires_at < now)
+                    .delete(synchronize_session=False)
+                )
+                db.commit()
+                _last_token_purge = now
+                if deleted_refresh or deleted_reset:
+                    logger.info("Daily token purge: removed %d refresh, %d reset token(s).", deleted_refresh, deleted_reset)
+                else:
+                    logger.info("Daily token purge: nothing to remove.")
+
+            # ── Stale-state reminders ─────────────────────────────────────────
+            # Always run, regardless of whether any "scheduled" sessions exist,
+            # because pending_verification / overdue_rejected sessions are
+            # independent of the scheduled-only gate below.
+            STALE_THRESHOLD_HOURS = settings.STALE_THRESHOLD_HOURS
+            stale_cutoff = now - timedelta(hours=STALE_THRESHOLD_HOURS)
+            REMINDER_COOLDOWN_HOURS = settings.REMINDER_COOLDOWN_HOURS
+
+            stale_sessions = db.query(models.Session).filter(
+                models.Session.status.in_(["pending_verification", "overdue_rejected"]),
+                models.Session.updated_at < stale_cutoff,
+                # Only send if we haven't reminded within the cooldown window
+                (
+                    (models.Session.stale_reminded_at == None) |
+                    (models.Session.stale_reminded_at < now - timedelta(hours=REMINDER_COOLDOWN_HOURS))
+                ),
             ).all()
-            for s in sessions_24h:
-                dt_str = format_dt(s.start_time)
-                notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session scheduled in ~24h on {dt_str}.")
-                s.notified_24h = True
 
-            # Check for 12h notifications
-            target_12h = now + timedelta(hours=12)
-            sessions_12h = db.query(models.Session).filter(
-                models.Session.status == "scheduled",
-                models.Session.start_time <= target_12h,
-                models.Session.start_time > now,
-                models.Session.notified_12h == False
-            ).all()
-            for s in sessions_12h:
+            for s in stale_sessions:
                 dt_str = format_dt(s.start_time)
-                notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session schedule nearing! ~12h left for {dt_str}.")
-                s.notified_12h = True
+                if s.status == "pending_verification":
+                    notify_users(
+                        db,
+                        [s.teacher_id, s.student_id],
+                        f"Reminder: Session proof for {dt_str} has been waiting for admin review for over {STALE_THRESHOLD_HOURS}h. An admin will action it soon.",
+                    )
+                    # Also ping admins so they know a proof is waiting
+                    notify_users(
+                        db,
+                        get_admin_ids(db),
+                        f"Action Required: Session #{s.id} ({dt_str}) proof has been pending your review for over {STALE_THRESHOLD_HOURS}h.",
+                    )
+                elif s.status == "overdue_rejected":
+                    notify_users(
+                        db,
+                        [s.teacher_id, s.student_id],
+                        f"Reminder: Session proof for {dt_str} was rejected over {STALE_THRESHOLD_HOURS}h ago. Please re-upload your proof.",
+                    )
 
-            # Check for overdue sessions (end_time in the past)
-            overdue_sessions = db.query(models.Session).filter(
-                models.Session.status == "scheduled",
-                models.Session.end_time < now
-            ).all()
-            for s in overdue_sessions:
-                dt_str = format_dt(s.start_time)
-                s.status = "overdue"
-                notify_users(db, [s.teacher_id, s.student_id], f"Action Required: Session from {dt_str} is overdue. Please upload proofs or mark complete.")
+                s.stale_reminded_at = now
 
-            db.commit()
-            db.close()
+            if stale_sessions:
+                db.commit()
+
+            # ── Scheduled-session reminders & overdue transition ──────────────
+            # Short-circuit: skip these queries when there are no "scheduled"
+            # sessions — avoids unnecessary DB load when the calendar is empty.
+            has_scheduled = db.query(
+                db.query(models.Session).filter(
+                    models.Session.status == "scheduled"
+                ).exists()
+            ).scalar()
+
+            if has_scheduled:
+                # Check for 24h notifications
+                target_24h = now + timedelta(hours=24)
+                sessions_24h = db.query(models.Session).filter(
+                    models.Session.status == "scheduled",
+                    models.Session.start_time <= target_24h,
+                    models.Session.start_time > now,
+                    models.Session.notified_24h == False
+                ).all()
+                for s in sessions_24h:
+                    dt_str = format_dt(s.start_time)
+                    notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session scheduled in ~24h on {dt_str}.")
+                    s.notified_24h = True
+                    # Don't bump version for notification-only updates — avoids spurious 409s
+                    # on active frontend tabs when the checker loop runs.
+
+                # Check for 12h notifications
+                target_12h = now + timedelta(hours=12)
+                sessions_12h = db.query(models.Session).filter(
+                    models.Session.status == "scheduled",
+                    models.Session.start_time <= target_12h,
+                    models.Session.start_time > now,
+                    models.Session.notified_12h == False
+                ).all()
+                for s in sessions_12h:
+                    dt_str = format_dt(s.start_time)
+                    notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session schedule nearing! ~12h left for {dt_str}.")
+                    s.notified_12h = True
+                    # Don't bump version — notification-only update, same reasoning as 24h block.
+
+                # Check for overdue sessions (end_time in the past)
+                overdue_sessions = db.query(models.Session).filter(
+                    models.Session.status == "scheduled",
+                    models.Session.end_time < now
+                ).all()
+                for s in overdue_sessions:
+                    dt_str = format_dt(s.start_time)
+                    s.status = "overdue"
+                    _bump_version(s)
+                    notify_users(db, [s.teacher_id, s.student_id], f"Action Required: Session from {dt_str} is overdue. Please upload proofs or mark complete.")
+                    log_activity(
+                        db,
+                        action_type="session_overdue",
+                        description=f"Session #{s.id} on {dt_str} automatically marked overdue.",
+                        target_type="session",
+                        target_id=s.id,
+                    )
+
+                db.commit()
+
         except Exception as e:
-            print(f"Error in background task: {e}")
-        await asyncio.sleep(60)
+            logger.error("Error in session_checker_task: %s", e, exc_info=True)
+            db.rollback()
+        finally:
+            db.close()
+        await asyncio.sleep(sleep_interval)
 
 # --- Endpoints ---
 
@@ -123,9 +287,14 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     db.commit()
     db.refresh(db_session)
 
-    # Update analytics (same logic as complete_session_as_admin)
-    if student.sessions_left is not None and student.sessions_left > 0:
-        student.sessions_left -= 1
+    # Update analytics — atomic decrement to prevent going negative
+    db.execute(
+        text(
+            "UPDATE users SET sessions_left = sessions_left - 1 "
+            "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
+        ),
+        {"uid": db_session.student_id},
+    )
     enrollment = db.query(models.Enrollment).filter(
         models.Enrollment.student_id == db_session.student_id,
         models.Enrollment.teacher_id == db_session.teacher_id
@@ -133,6 +302,22 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     if enrollment:
         enrollment.sessions_used += 1
     db.commit()
+    # Re-query student so sessions_left reflects the DB value after the raw UPDATE
+    student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
+
+    # Notify student if sessions are running low
+    if student and student.sessions_left is not None:
+        if student.sessions_left == 0:
+            notify_users(db, [student.id],
+                         "You have no sessions left. Please contact admin to top up your sessions.",
+                         title="⚠️ No Sessions Remaining", link="/student/dashboard")
+            notify_users(db, get_admin_ids(db),
+                         f"{student.name} has used all their sessions. Consider scheduling a renewal.",
+                         title="⚠️ Student Out of Sessions", link="/admin/students")
+        elif student.sessions_left == 1:
+            notify_users(db, [student.id],
+                         "You have only 1 session left. Contact admin to book more sessions soon.",
+                         title="⚠️ Last Session Remaining", link="/student/dashboard")
 
     dt_str = format_dt(db_session.start_time)
     log_activity(db, action_type="session_manual_entry",
@@ -140,7 +325,15 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
                  actor_id=current_user.id, actor_name=current_user.name,
                  target_type="session", target_id=db_session.id)
 
-    return db_session
+    # Reload with eager options so map_session can access proofs/homeworks
+    db.refresh(db_session)
+    db_session = (
+        db.query(models.Session)
+        .options(*_session_eager_options())
+        .filter(models.Session.id == db_session.id)
+        .first()
+    )
+    return map_session(db_session)
 
 @router.get("/sessions/student/{student_id}/records", response_model=list[schemas.Session])
 def get_student_records(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
@@ -155,6 +348,74 @@ def get_student_records(student_id: int, db: Session = Depends(get_db), current_
     )
     return [map_session(s) for s in sessions]
 
+@router.post("/sessions/recurring", response_model=schemas.RecurringSessionResult)
+def create_recurring_sessions(
+    payload: schemas.RecurringSessionCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Generate a series of scheduled sessions from a single template."""
+    student = db.query(models.User).filter(models.User.id == payload.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == payload.teacher_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    if payload.end_time <= payload.start_time:
+        raise HTTPException(status_code=400, detail="end_time must be after start_time")
+
+    duration = payload.end_time - payload.start_time
+    step = {
+        "weekly": timedelta(weeks=1),
+        "biweekly": timedelta(weeks=2),
+        "monthly": timedelta(days=28),
+    }[payload.cadence]
+
+    skip_set = {d.replace(microsecond=0) for d in payload.skip_dates}
+    created_ids: list[int] = []
+    skipped = 0
+    occurrence_start = payload.start_time
+
+    for _ in range(payload.occurrences):
+        if occurrence_start.replace(microsecond=0) in skip_set:
+            skipped += 1
+        else:
+            occurrence_end = occurrence_start + duration
+            # Check for scheduling conflicts on each occurrence individually so
+            # the admin sees a clear error rather than silently double-booking.
+            _check_overlap(db, payload.teacher_id, payload.student_id, occurrence_start, occurrence_end)
+            db_session = models.Session(
+                teacher_id=payload.teacher_id,
+                student_id=payload.student_id,
+                start_time=occurrence_start,
+                end_time=occurrence_end,
+                status="scheduled",
+                proposed_by=current_user.id,
+                notes=payload.notes,
+                instrument_id=payload.instrument_id,
+            )
+            db.add(db_session)
+            db.flush()
+            created_ids.append(db_session.id)
+        occurrence_start = occurrence_start + step
+
+    db.commit()
+
+    log_activity(
+        db, action_type="recurring_series_created",
+        description=f"Admin {current_user.name} created {len(created_ids)} recurring sessions ({payload.cadence}) for {student.name} with {teacher.name}",
+        actor_id=current_user.id, actor_name=current_user.name,
+        target_type="session", target_id=created_ids[0] if created_ids else None,
+    )
+    if student:
+        safe_notify("send_session_confirmed", student, type("S", (), {"id": created_ids[0] if created_ids else 0, "start_time": payload.start_time}))
+    return schemas.RecurringSessionResult(
+        created_count=len(created_ids),
+        skipped_count=skipped,
+        session_ids=created_ids,
+    )
+
+
 @router.post("/sessions/", response_model=schemas.Session)
 def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     """Admin creates a session directly — immediately scheduled."""
@@ -164,6 +425,8 @@ def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="Student not found")
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
+
+    _check_overlap(db, session.teacher_id, session.student_id, session.start_time, session.end_time)
 
     db_session = models.Session(
         teacher_id=session.teacher_id,
@@ -200,10 +463,16 @@ def read_pending_sessions(db: Session = Depends(get_db), current_user: models.Us
     return [map_session(s) for s in sessions]
 
 @router.get("/sessions/", response_model=list[schemas.Session])
-def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+def read_sessions(
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=500, le=1000),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
     sessions = (
         db.query(models.Session)
         .options(*_session_eager_options())
+        .order_by(models.Session.start_time.desc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -211,16 +480,25 @@ def read_sessions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
     return [map_session(s) for s in sessions]
 
 @router.get("/sessions/user/{user_id}", response_model=list[schemas.Session])
-def read_user_sessions(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+def read_user_sessions(
+    user_id: int,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=500, le=1000),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
     sessions = (
         db.query(models.Session)
         .options(*_session_eager_options())
         .filter((models.Session.teacher_id == user_id) | (models.Session.student_id == user_id))
+        .order_by(models.Session.start_time.desc())
         .offset(skip)
         .limit(limit)
         .all()
     )
     return [map_session(s) for s in sessions]
+
+TERMINAL_STATUSES = {"completed", "cancelled", "rejected"}
 
 @router.put("/sessions/{session_id}", response_model=schemas.Session)
 def update_session(session_id: int, session: schemas.SessionEdit, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
@@ -228,13 +506,48 @@ def update_session(session_id: int, session: schemas.SessionEdit, db: Session = 
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status in TERMINAL_STATUSES:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Cannot edit a session in terminal status '{db_session.status}'."
+        )
 
     update_data = session.model_dump(exclude_unset=True)
+    expected_version = update_data.pop("version", None)
+    _check_version(db_session, expected_version)
+
+    # If start/end time changes, reset notification flags so the user gets
+    # fresh reminders for the rescheduled slot.
+    time_fields = {"start_time", "end_time"}
+    if time_fields & update_data.keys():
+        update_data["notified_24h"] = False
+        update_data["notified_12h"] = False
+
+    changed_fields = list(update_data.keys())
     for key, value in update_data.items():
         setattr(db_session, key, value)
+    _bump_version(db_session)
 
     db.commit()
-    db.refresh(db_session)
+    # Re-fetch with eager loads so map_session can access proofs/homeworks without lazy queries
+    db_session = (
+        db.query(models.Session)
+        .options(*_session_eager_options())
+        .filter(models.Session.id == session_id)
+        .first()
+    )
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(
+        db,
+        action_type="session_updated",
+        description=f"Admin {current_user.name} edited session #{session_id} ({dt_str}); changed: {', '.join(changed_fields)}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="session",
+        target_id=session_id,
+    )
+
     return map_session(db_session)
 
 @router.delete("/sessions/{session_id}")
@@ -242,6 +555,33 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if db_session is None:
         raise HTTPException(status_code=404, detail="Session not found")
+
+    # Roll back sessions_left and enrollment counter if deleting a completed session
+    student_name = db_session.student.name if db_session.student else f"student #{db_session.student_id}"
+    teacher_name = db_session.teacher.name if db_session.teacher else f"teacher #{db_session.teacher_id}"
+    dt_str = format_dt(db_session.start_time)
+
+    if db_session.status == "completed":
+        student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
+        if student and student.sessions_left is not None:
+            student.sessions_left += 1
+
+        enrollment = db.query(models.Enrollment).filter(
+            models.Enrollment.student_id == db_session.student_id,
+            models.Enrollment.teacher_id == db_session.teacher_id
+        ).first()
+        if enrollment and enrollment.sessions_used > 0:
+            enrollment.sessions_used -= 1
+
+    log_activity(
+        db,
+        action_type="session_deleted",
+        description=f"Admin {current_user.name} deleted session #{session_id} ({dt_str}) between {student_name} and {teacher_name} [status was '{db_session.status}']",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="session",
+        target_id=session_id,
+    )
 
     db.delete(db_session)
     db.commit()
@@ -258,7 +598,24 @@ def propose_session_as_student(
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
+    # Guard: student must be assigned to this teacher
+    assignment = db.query(models.TeacherStudent).filter_by(
+        teacher_id=proposal.teacher_id,
+        student_id=current_user.id
+    ).first()
+    if not assignment:
+        raise HTTPException(status_code=403, detail="You are not assigned to this teacher")
+
+    # Guard: student must have remaining sessions
+    if current_user.sessions_left is not None and current_user.sessions_left <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="No sessions remaining. Please contact admin to enroll in more."
+        )
+
     end_time = proposal.end_time or (proposal.start_time + timedelta(hours=1))
+    _check_overlap(db, proposal.teacher_id, current_user.id, proposal.start_time, end_time)
+
     db_session = models.Session(
         teacher_id=proposal.teacher_id,
         student_id=current_user.id,
@@ -266,13 +623,23 @@ def propose_session_as_student(
         end_time=end_time,
         status="pending_teacher",
         proposed_by=current_user.id,
-        notes=proposal.notes
+        notes=proposal.notes,
+        instrument_id=proposal.instrument_id,
     )
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
+    log_activity(
+        db,
+        action_type="session_proposed",
+        description=f"Student {current_user.name} proposed a session with {teacher.name} on {dt_str}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="session",
+        target_id=db_session.id,
+    )
     notify_users(db, [proposal.teacher_id],
         f"📅 {current_user.name} has requested a session on {dt_str}. Please review and approve or decline.")
     notify_users(db, get_admin_ids(db),
@@ -292,6 +659,8 @@ def propose_session_as_teacher(
         raise HTTPException(status_code=404, detail="Student not found")
 
     end_time = proposal.end_time or (proposal.start_time + timedelta(hours=1))
+    _check_overlap(db, current_user.id, proposal.student_id, proposal.start_time, end_time)
+
     db_session = models.Session(
         teacher_id=current_user.id,
         student_id=proposal.student_id,
@@ -299,13 +668,23 @@ def propose_session_as_teacher(
         end_time=end_time,
         status="pending_admin",
         proposed_by=current_user.id,
-        notes=proposal.notes
+        notes=proposal.notes,
+        instrument_id=proposal.instrument_id,
     )
     db.add(db_session)
     db.commit()
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
+    log_activity(
+        db,
+        action_type="session_proposed",
+        description=f"Teacher {current_user.name} proposed a session with {student.name} on {dt_str}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="session",
+        target_id=db_session.id,
+    )
     notify_users(db, [proposal.student_id],
         f"📅 Your teacher {current_user.name} proposed a session on {dt_str}. It is awaiting admin approval.")
     notify_users(db, get_admin_ids(db),
@@ -329,6 +708,7 @@ def approve_session_as_teacher(
         raise HTTPException(status_code=403, detail="You can only approve sessions assigned to you")
 
     db_session.status = "pending_admin"
+    _bump_version(db_session)
     db.commit()
     db.refresh(db_session)
 
@@ -359,9 +739,11 @@ def reject_session_as_teacher(
     if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
         raise HTTPException(status_code=403, detail="You can only reject sessions assigned to you")
 
+    _check_version(db_session, approval.version)
     db_session.status = "rejected"
     if approval.notes:
         db_session.notes = approval.notes
+    _bump_version(db_session)
     db.commit()
     db.refresh(db_session)
 
@@ -394,12 +776,15 @@ def counter_session_as_teacher(
     if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
+    _check_version(db_session, counter.version)
+    _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter.end_time, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
     db_session.end_time = counter.end_time
     db_session.status = "pending_student"
     db_session.proposed_by = current_user.id
     if counter.notes:
         db_session.notes = counter.notes
+    _bump_version(db_session)
 
     db.commit()
     db.refresh(db_session)
@@ -426,12 +811,15 @@ def counter_session_as_student(
     if db_session.student_id != current_user.id and current_user.role.name.lower() != "admin":
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
+    _check_version(db_session, counter.version)
+    _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter.end_time, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
     db_session.end_time = counter.end_time
     db_session.status = "pending_teacher"
     db_session.proposed_by = current_user.id
     if counter.notes:
         db_session.notes = counter.notes
+    _bump_version(db_session)
 
     db.commit()
     db.refresh(db_session)
@@ -457,11 +845,58 @@ def approve_session_as_student(
         raise HTTPException(status_code=403, detail="You can only approve sessions assigned to you")
 
     db_session.status = "pending_admin"
+    _bump_version(db_session)
     db.commit()
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
+    log_activity(
+        db,
+        action_type="session_student_approved",
+        description=f"Student {current_user.name} accepted counter-proposal for session on {dt_str}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="session",
+        target_id=session_id,
+    )
     notify_users(db, get_admin_ids(db), f"✅ Student {current_user.name} accepted the counter-proposal for {dt_str}. Awaiting your final approval.")
+
+    return map_session(db_session)
+
+@router.post("/sessions/{session_id}/reject/student", response_model=schemas.Session)
+def reject_session_as_student(
+    session_id: int,
+    approval: schemas.SessionApproval = schemas.SessionApproval(),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student)
+):
+    """Student declines a teacher's counter-proposal → rejected."""
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if db_session.status != "pending_student":
+        raise HTTPException(status_code=409, detail="Session is not awaiting student decision")
+    if db_session.student_id != current_user.id and current_user.role.name.lower() != "admin":
+        raise HTTPException(status_code=403, detail="You can only reject sessions assigned to you")
+
+    _check_version(db_session, approval.version)
+    db_session.status = "rejected"
+    if approval.notes:
+        db_session.notes = approval.notes
+    _bump_version(db_session)
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    reason = f" Reason: {approval.notes}" if approval.notes else ""
+    log_activity(db, action_type="session_student_rejected",
+                 description=f"Student {current_user.name} declined counter-proposal for session on {dt_str}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="session", target_id=db_session.id)
+    notify_users(db, [db_session.teacher_id],
+        f"❌ Student {current_user.name} declined your counter-proposal for {dt_str}.{reason}")
+    notify_users(db, get_admin_ids(db),
+        f"❌ Session #{db_session.id} was declined by student {current_user.name} after counter-proposal on {dt_str}.")
 
     return map_session(db_session)
 
@@ -479,6 +914,7 @@ def approve_session_as_admin(
         raise HTTPException(status_code=409, detail="Session is not awaiting admin approval")
 
     db_session.status = "scheduled"
+    _bump_version(db_session)
     db.commit()
     db.refresh(db_session)
 
@@ -510,9 +946,11 @@ def reject_session_as_admin(
     if db_session.status not in ["pending_admin", "pending_teacher"]:
         raise HTTPException(status_code=409, detail="Session is not pending approval")
 
+    _check_version(db_session, approval.version)
     db_session.status = "rejected"
     if approval.notes:
         db_session.notes = approval.notes
+    _bump_version(db_session)
     db.commit()
     db.refresh(db_session)
 
@@ -555,9 +993,11 @@ def request_session_approval(
     if not has_proof:
         raise HTTPException(status_code=400, detail="Must upload proof before requesting approval")
 
+    _check_version(db_session, approval_req.version)
     db_session.status = "pending_verification"
     if approval_req.justification:
         db_session.proof_justification = approval_req.justification
+    _bump_version(db_session)
 
     db.commit()
     db.refresh(db_session)
@@ -570,7 +1010,7 @@ def request_session_approval(
 
     dt_str = format_dt(db_session.start_time)
 
-    notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.", link=f"/teacher/dashboard")
+    notify_users(db, [db_session.teacher_id], f"🔔 {current_user.name} has submitted proof for the overdue session on {dt_str} and requested approval.", link="/teacher/dashboard")
 
     admin_ids = get_admin_ids(db)
     if admin_ids:
@@ -579,7 +1019,9 @@ def request_session_approval(
     return map_session(db_session)
 
 @router.post("/sessions/{session_id}/nudge", response_model=schemas.Session)
+@_limiter.limit("3/minute")
 def nudge_session(
+    request: Request,
     session_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
@@ -616,8 +1058,10 @@ def reject_session_proof(
     if db_session.status != "pending_verification":
         raise HTTPException(status_code=409, detail="Session is not pending verification")
 
+    _check_version(db_session, rejection.version)
     db_session.status = "overdue_rejected"
     db_session.rejection_reason = rejection.reason
+    _bump_version(db_session)
 
     db.commit()
     db.refresh(db_session)
@@ -630,6 +1074,11 @@ def reject_session_proof(
 
     dt_str = format_dt(db_session.start_time)
     notify_users(db, [db_session.student_id, db_session.teacher_id], f"❌ The proof submitted for the session on {dt_str} was rejected. Reason: {rejection.reason}. Please review and re-submit.")
+
+    if db_session.student:
+        safe_notify("send_proof_rejected", db_session.student, db_session, rejection.reason)
+    if db_session.teacher:
+        safe_notify("send_proof_rejected", db_session.teacher, db_session, rejection.reason)
 
     return map_session(db_session)
 
@@ -649,16 +1098,23 @@ def complete_session_as_admin(
     is_force = False
     if db_session.status != "pending_verification":
         target_time = db_session.end_time + timedelta(hours=24)
-        if datetime.utcnow() < target_time:
+        if datetime.now(timezone.utc) < target_time:
             raise HTTPException(status_code=400, detail="Cannot force complete a session until 24 hours after its end time.")
         is_force = True
         db_session.is_force_completed = True
 
     db_session.status = "completed"
+    _bump_version(db_session)
 
-    student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
-    if student and student.sessions_left is not None and student.sessions_left > 0:
-        student.sessions_left -= 1
+    # Atomic decrement: only subtract if sessions_left > 0 to prevent going
+    # negative under concurrent completion requests (race condition guard).
+    db.execute(
+        text(
+            "UPDATE users SET sessions_left = sessions_left - 1 "
+            "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
+        ),
+        {"uid": db_session.student_id},
+    )
 
     enrollment = db.query(models.Enrollment).filter(
         models.Enrollment.student_id == db_session.student_id,
@@ -668,6 +1124,8 @@ def complete_session_as_admin(
         enrollment.sessions_used += 1
 
     db.commit()
+    # Refresh student after the raw UPDATE so ORM object reflects DB value
+    student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
@@ -675,6 +1133,20 @@ def complete_session_as_admin(
     if is_force:
         msg = f"⚠️ Session from {dt_str} has been force completed by admin."
     notify_users(db, [db_session.teacher_id, db_session.student_id], msg)
+
+    # Notify student if sessions are running low (mirrors record_past_session logic)
+    if student and student.sessions_left is not None:
+        if student.sessions_left == 0:
+            notify_users(db, [student.id],
+                         "You have no sessions left. Please contact admin to top up your sessions.",
+                         title="⚠️ No Sessions Remaining", link="/student/dashboard")
+            notify_users(db, get_admin_ids(db),
+                         f"{student.name} has used all their sessions. Consider scheduling a renewal.",
+                         title="⚠️ Student Out of Sessions", link="/admin/students")
+        elif student.sessions_left == 1:
+            notify_users(db, [student.id],
+                         "You have only 1 session left. Contact admin to book more sessions soon.",
+                         title="⚠️ Last Session Remaining", link="/student/dashboard")
     action = "session_force_completed" if is_force else "session_completed"
     log_activity(db, action_type=action,
                  description=msg.replace("✅ ", "").replace("⚠️ ", ""),
@@ -691,12 +1163,107 @@ def create_enrollment(enrollment: schemas.EnrollmentCreate, db: Session = Depend
     db.add(db_enrollment)
     db.commit()
     db.refresh(db_enrollment)
+
+    # Sync sessions_left on the User record so the dashboard counter stays accurate
+    student = db.query(models.User).filter(models.User.id == enrollment.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == enrollment.teacher_id).first()
+    if student is not None:
+        current_left = student.sessions_left or 0
+        student.sessions_left = current_left + enrollment.sessions_purchased
+        db.commit()
+
+    log_activity(
+        db,
+        action_type="enrollment_created",
+        description=(
+            f"Admin {current_user.name} enrolled student "
+            f"{student.name if student else enrollment.student_id} "
+            f"with teacher {teacher.name if teacher else enrollment.teacher_id} "
+            f"({enrollment.sessions_purchased} sessions)"
+        ),
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=db_enrollment.id,
+    )
+
     return db_enrollment
 
 @router.get("/enrollments/student/{student_id}", response_model=list[schemas.Enrollment])
 def read_student_enrollments(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()
     return enrollments
+
+@router.delete("/enrollments/{enrollment_id}", status_code=204)
+def delete_enrollment(
+    enrollment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Admin removes an enrollment and rolls back sessions_left on the student."""
+    enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+
+    remaining = max(0, enrollment.sessions_purchased - enrollment.sessions_used)
+    student = db.query(models.User).filter(models.User.id == enrollment.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == enrollment.teacher_id).first()
+
+    if student is not None and remaining > 0:
+        student.sessions_left = max(0, (student.sessions_left or 0) - remaining)
+
+    log_activity(
+        db,
+        action_type="enrollment_deleted",
+        description=(
+            f"Admin {current_user.name} removed enrollment #{enrollment_id} "
+            f"for student {student.name if student else enrollment.student_id} "
+            f"with teacher {teacher.name if teacher else enrollment.teacher_id} "
+            f"({remaining} unused sessions rolled back)"
+        ),
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=enrollment_id,
+    )
+
+    db.delete(enrollment)
+    db.commit()
+    return None
+
+@router.post("/students/{student_id}/recalculate-sessions", response_model=dict)
+def recalculate_student_sessions(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Recompute a student's sessions_left from enrollment balances to fix counter drift."""
+    student = db.query(models.User).filter(models.User.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()
+    recalculated = sum(
+        max(0, e.sessions_purchased - e.sessions_used) for e in enrollments
+    )
+    old_value = student.sessions_left or 0
+    student.sessions_left = recalculated
+
+    log_activity(
+        db,
+        action_type="sessions_recalculated",
+        description=(
+            f"Admin {current_user.name} recalculated sessions_left for {student.name}: "
+            f"{old_value} → {recalculated}"
+        ),
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="user",
+        target_id=student_id,
+    )
+
+    db.commit()
+    return {"student_id": student_id, "old_sessions_left": old_value, "new_sessions_left": recalculated}
 
 # --- Homework ---
 
@@ -728,7 +1295,7 @@ def get_user_homework(user_id: int, db: Session = Depends(get_db), current_user:
     """Fetch all homework assigned to a student."""
     if current_user.role.name.lower() == "student" and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
-        
+
     return db.query(models.Homework).join(models.Session).filter(models.Session.student_id == user_id).all()
 
 @router.post("/homework/{homework_id}/upload", response_model=schemas.Homework)
@@ -742,29 +1309,15 @@ def upload_homework_file(
     db_homework = db.query(models.Homework).filter(models.Homework.id == homework_id).first()
     if not db_homework:
         raise HTTPException(status_code=404, detail="Homework not found")
-        
+
     # Check if student is the owner
     session = db.query(models.Session).filter(models.Session.id == db_homework.session_id).first()
     if current_user.role.name.lower() == "student" and session.student_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
-    MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Allowed: JPEG, PNG, WEBP.")
-    contents = file.file.read()
-    if len(contents) > MAX_SIZE_BYTES:
-        raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
+    public_url, _ = save_upload(file, "homework", {"jpg", "jpeg", "png", "webp"})
 
-    os.makedirs("uploads/homework", exist_ok=True)
-    file_extension = file.filename.split(".")[-1]
-    file_name = f"hw_{homework_id}_{int(datetime.utcnow().timestamp())}.{file_extension}"
-    file_path = f"uploads/homework/{file_name}"
-
-    with open(file_path, "wb") as f:
-        f.write(contents)
-        
-    db_homework.file_url = f"/uploads/homework/{file_name}"
+    db_homework.file_url = public_url
     db_homework.is_completed = True
     db.commit()
     db.refresh(db_homework)
@@ -783,23 +1336,16 @@ def create_session_proof(
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
-    MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Allowed: JPEG, PNG, WEBP.")
-    contents = file.file.read()
-    if len(contents) > MAX_SIZE_BYTES:
-        raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
+    # Only the teacher or student on this session (or an admin) may upload proof.
+    is_admin = current_user.role and current_user.role.name == "admin"
+    is_party = current_user.id in (db_session.teacher_id, db_session.student_id)
+    if not is_admin and not is_party:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not a participant of this session and cannot upload proof.",
+        )
 
-    file_extension = file.filename.split(".")[-1]
-    file_name = f"session_{session_id}_{int(datetime.utcnow().timestamp())}.{file_extension}"
-    file_path = f"uploads/{file_name}"
-
-    os.makedirs("uploads", exist_ok=True)
-    with open(file_path, "wb") as f:
-        f.write(contents)
-
-    image_url = f"/uploads/{file_name}"
+    image_url, _ = save_upload(file, "proofs", {"jpg", "jpeg", "png", "webp"})
 
     db_proof = models.SessionProof(
         session_id=session_id,
@@ -811,3 +1357,92 @@ def create_session_proof(
     db.commit()
     db.refresh(db_proof)
     return db_proof
+
+
+# ── ICS calendar export ──────────────────────────────────────────────────────
+
+def _ics_escape(s: str) -> str:
+    """Escape per RFC 5545 §3.3.11."""
+    return (
+        s.replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace("\n", "\\n")
+        .replace("\r", "")
+    )
+
+
+def _ics_dt(dt: datetime) -> str:
+    return dt.strftime("%Y%m%dT%H%M%SZ")
+
+
+@router.get("/sessions/export.ics")
+def export_sessions_ics(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Returns a .ics calendar of the user's relevant sessions."""
+    q = db.query(models.Session).options(
+        joinedload(models.Session.teacher),
+        joinedload(models.Session.student),
+        joinedload(models.Session.instrument),
+    ).filter(
+        # Include all active/negotiation statuses; exclude only terminal cancelled/rejected states
+        models.Session.status.in_([
+            "scheduled",
+            "pending_teacher",
+            "pending_student",
+            "pending_admin",
+            "overdue",
+            "pending_verification",
+            "overdue_rejected",
+            "completed",
+        ])
+    )
+    role = (current_user.role.name.lower() if current_user.role else "")
+    if role == "teacher":
+        q = q.filter(models.Session.teacher_id == current_user.id)
+    elif role == "student":
+        q = q.filter(models.Session.student_id == current_user.id)
+    # admin: all sessions
+
+    now_stamp = _ics_dt(datetime.now(timezone.utc))
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//SMC//Music School//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        f"X-WR-CALNAME:SMC Schedule ({_ics_escape(current_user.name or current_user.email)})",
+    ]
+    for s in q.all():
+        if not s.start_time or not s.end_time:
+            continue
+        instrument = s.instrument.name if s.instrument else "Lesson"
+        teacher = s.teacher.name if s.teacher else "?"
+        student = s.student.name if s.student else "?"
+        summary = f"{instrument}: {teacher} vs {student}"
+        desc = f"Status: {s.status}. Teacher: {teacher}. Student: {student}."
+        if s.notes:
+            desc += f" Notes: {s.notes}"
+        lines += [
+            "BEGIN:VEVENT",
+            f"UID:session-{s.id}@smc",
+            f"DTSTAMP:{now_stamp}",
+            f"DTSTART:{_ics_dt(s.start_time)}",
+            f"DTEND:{_ics_dt(s.end_time)}",
+            f"SUMMARY:{_ics_escape(summary)}",
+            f"DESCRIPTION:{_ics_escape(desc)}",
+            f"STATUS:{'COMPLETED' if s.status == 'completed' else 'CONFIRMED' if s.status == 'scheduled' else 'TENTATIVE'}",
+            "END:VEVENT",
+        ]
+    lines.append("END:VCALENDAR")
+    body = "\r\n".join(lines) + "\r\n"
+    return Response(
+        content=body,
+        media_type="text/calendar",
+        headers={
+            "Content-Disposition": 'attachment; filename="smc-schedule.ics"',
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+    )

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
 import { ref, onMounted, computed } from 'vue'
 import { API_URL } from '@typescript/constants'
 import axios from 'axios'
@@ -13,11 +12,6 @@ const toast = useToastStore()
 const homeworks = ref<Homework[]>([])
 const isLoading = ref(false)
 const isUploading = ref<number | null>(null)
-
-
-// Re-check sessions.py router registration
-// app.include_router(sessions.router) -> No prefix!
-// So it is /homework/user/{id}
 
 onMounted(async () => {
   isLoading.value = true

@@ -88,6 +88,9 @@ export interface Session {
   proofJustification?: string;
   rejectionReason?: string;
   isForceCompleted?: boolean;
+  /** Optimistic-lock counter — pass back to write endpoints so the server can
+   *  detect concurrent modifications and respond with HTTP 409. */
+  version?: number;
 }
 
 export interface Schedule {

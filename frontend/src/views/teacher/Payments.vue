@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
-  import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { usePaymentsStore } from '@stores/payments'
 import { useUsersStore } from '@stores/users'
 
@@ -15,12 +14,12 @@ onMounted(async () => {
 })
 
 const getStudentName = (id: number) => {
-  const s = usersStore.users.find(u => String(u.id) === String(id))
+  const s = usersStore.users.find(u => u.id === id)
   return s ? s.name : `Student #${id}`
 }
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount / 100)
+  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount / 100)
 }
 
 const formatDate = (dateStr: string) => {
@@ -37,6 +36,39 @@ const statusClass = (status: string) => {
     default:          return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
   }
 }
+
+// --- Aggregates ---
+const totalCollected = computed(() =>
+  paymentsStore.payments
+    .filter(p => p.status.toLowerCase() === 'completed')
+    .reduce((s, p) => s + p.amount, 0)
+)
+
+const totalPending = computed(() =>
+  paymentsStore.payments
+    .filter(p => p.status.toLowerCase() === 'pending')
+    .reduce((s, p) => s + p.amount, 0)
+)
+
+const pendingCount = computed(() =>
+  paymentsStore.payments.filter(p => p.status.toLowerCase() === 'pending').length
+)
+
+// Monthly breakdown: { label: 'Jan 2025', completed: number, count: number }[]
+const monthlyBreakdown = computed(() => {
+  const map = new Map<string, { label: string; completed: number; count: number; sort: number }>()
+  for (const p of paymentsStore.payments) {
+    if (p.status.toLowerCase() !== 'completed') continue
+    const d = new Date(p.date)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    const entry = map.get(key) ?? { label, completed: 0, count: 0, sort: d.getFullYear() * 100 + d.getMonth() }
+    entry.completed += p.amount
+    entry.count += 1
+    map.set(key, entry)
+  }
+  return [...map.values()].sort((a, b) => b.sort - a.sort)
+})
 </script>
 
 <template>
@@ -56,9 +88,18 @@ const statusClass = (status: string) => {
         </p>
       </div>
       
-      <div class="flex gap-4">
-        <div class="glass-medium rounded-[2rem] px-8 py-4 border border-outline-variant/30 flex flex-col items-center">
-          <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Total Distributed</p>
+      <div class="flex flex-wrap gap-4">
+        <div class="glass-medium rounded-[2rem] px-8 py-4 border border-outline-variant/30 flex flex-col items-center min-w-[160px]">
+          <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Total Collected</p>
+          <p class="text-3xl font-black text-emerald-500">{{ formatCurrency(totalCollected) }}</p>
+        </div>
+        <div class="glass-medium rounded-[2rem] px-8 py-4 border border-outline-variant/30 flex flex-col items-center min-w-[160px]">
+          <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Pending</p>
+          <p class="text-3xl font-black text-amber-500">{{ formatCurrency(totalPending) }}</p>
+          <p class="text-[10px] text-on-surface-variant mt-1">{{ pendingCount }} transaction{{ pendingCount !== 1 ? 's' : '' }}</p>
+        </div>
+        <div class="glass-medium rounded-[2rem] px-8 py-4 border border-outline-variant/30 flex flex-col items-center min-w-[160px]">
+          <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">All Time Total</p>
           <p class="text-3xl font-black text-primary">{{ formatCurrency(paymentsStore.payments.reduce((s, p) => s + p.amount, 0)) }}</p>
         </div>
       </div>
@@ -114,6 +155,32 @@ const statusClass = (status: string) => {
               <td class="py-6 px-8 text-right text-lg font-black text-on-surface">
                 {{ formatCurrency(pay.amount) }}
               </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Monthly Breakdown -->
+    <section v-if="monthlyBreakdown.length > 0" class="glass-heavy rounded-[2.5rem] border border-outline-variant/30 overflow-hidden shadow-2xl shadow-black/5 dark:shadow-black/20">
+      <div class="px-8 py-6 border-b border-outline-variant/10 flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">bar_chart</span>
+        <h2 class="text-sm font-black text-on-surface uppercase tracking-[0.2em]">Monthly Breakdown</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.25em] bg-surface-container-highest/20">
+              <th class="py-4 px-8">Month</th>
+              <th class="py-4 px-8 text-right">Transactions</th>
+              <th class="py-4 px-8 text-right">Collected</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/10">
+            <tr v-for="row in monthlyBreakdown" :key="row.label" class="hover:bg-primary/[0.02] transition-colors">
+              <td class="py-4 px-8 text-sm font-bold text-on-surface">{{ row.label }}</td>
+              <td class="py-4 px-8 text-right text-sm text-on-surface-variant font-medium">{{ row.count }}</td>
+              <td class="py-4 px-8 text-right text-sm font-black text-emerald-500">{{ formatCurrency(row.completed) }}</td>
             </tr>
           </tbody>
         </table>

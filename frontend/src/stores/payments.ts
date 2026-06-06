@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
+import { useToastStore } from '@stores/toast'
 
 import { API_URL } from '@typescript/constants'
 
@@ -42,6 +43,7 @@ export const usePaymentsStore = defineStore('payments', {
         this.payments = response.data
       } catch (err: any) {
         this.error = err.message
+        useToastStore().error('Failed to load payments', err?.response?.data?.detail || err.message || 'Please try again.')
       } finally {
         this.isLoading = false
       }
@@ -68,6 +70,14 @@ export const usePaymentsStore = defineStore('payments', {
         const idx = this.payments.findIndex((p) => p.id === paymentId)
         if (idx !== -1) this.payments[idx] = response.data
         return response.data
+      } catch (err: any) {
+        throw err
+      }
+    },
+    async deletePayment(paymentId: number) {
+      try {
+        await axios.delete(`${API_URL}/payments/${paymentId}`, { headers: authHeaders() })
+        this.payments = this.payments.filter((p) => p.id !== paymentId)
       } catch (err: any) {
         throw err
       }

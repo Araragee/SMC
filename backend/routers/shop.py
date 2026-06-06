@@ -1,22 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy.orm import Session
-from typing import List, Optional
 import datetime
-import os
-import shutil
+from datetime import timezone
 
-from ..database import get_db
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from sqlalchemy import text
+from sqlalchemy.orm import Session, joinedload, selectinload
+
 from .. import models, schemas
+from ..config import settings
+from ..database import get_db
 from ..dependencies import get_current_user, require_admin
+from ..utils.uploads import save_upload
 from .notifications import notify_users
+from .activity import log_activity
 
 router = APIRouter()
 
+# Front-end route that admins see for shop/order management.
+# Update this if the admin instruments/orders route ever moves.
+_ADMIN_SHOP_ROUTE = "/admin/instruments"
+
 # --- Products ---
 
-@router.get("/products", response_model=List[schemas.InstrumentProduct])
+@router.get("/products", response_model=list[schemas.InstrumentProduct])
 def get_products(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    query = db.query(models.InstrumentProduct)
+    query = db.query(models.InstrumentProduct).options(
+        joinedload(models.InstrumentProduct.category)
+    )
     if current_user.role.name != "admin":
         query = query.filter(models.InstrumentProduct.is_active == True)
     return query.all()
@@ -34,6 +43,10 @@ def create_product(product_in: schemas.InstrumentProductCreate, db: Session = De
     db.add(product)
     db.commit()
     db.refresh(product)
+    log_activity(db, action_type="product_created",
+                 description=f"{current_user.name} created product '{product.name}' (stock: {product.stock})",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="product", target_id=product.id)
     return product
 
 @router.put("/products/{id}", response_model=schemas.InstrumentProduct)
@@ -48,6 +61,10 @@ def update_product(id: int, product_in: schemas.InstrumentProductUpdate, db: Ses
 
     db.commit()
     db.refresh(product)
+    log_activity(db, action_type="product_updated",
+                 description=f"{current_user.name} updated product '{product.name}'",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="product", target_id=product.id)
     return product
 
 @router.delete("/products/{id}")
@@ -58,6 +75,10 @@ def delete_product(id: int, db: Session = Depends(get_db), current_user: models.
 
     product.is_active = False
     db.commit()
+    log_activity(db, action_type="product_deactivated",
+                 description=f"{current_user.name} deactivated product '{product.name}'",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="product", target_id=product.id)
     return {"message": "Product deactivated"}
 
 @router.post("/products/{id}/image")
@@ -66,24 +87,9 @@ def upload_product_image(id: int, file: UploadFile = File(...), db: Session = De
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
-    MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(status_code=400, detail=f"Invalid file type '{file.content_type}'. Allowed: JPEG, PNG, WEBP.")
-    contents = file.file.read()
-    if len(contents) > MAX_SIZE_BYTES:
-        raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
+    public_url, _ = save_upload(file, "shop", {"jpg", "jpeg", "png", "webp"})
 
-    os.makedirs("uploads/shop", exist_ok=True)
-    timestamp = int(datetime.datetime.utcnow().timestamp())
-    ext = file.filename.split(".")[-1]
-    filename = f"{id}_{timestamp}.{ext}"
-    filepath = os.path.join("uploads/shop", filename)
-
-    with open(filepath, "wb") as buffer:
-        buffer.write(contents)
-
-    product.image_url = f"/uploads/shop/{filename}"
+    product.image_url = public_url
     db.commit()
     return {"url": product.image_url}
 
@@ -127,33 +133,108 @@ def create_order(order_in: schemas.OrderCreate, db: Session = Depends(get_db), c
     db.commit()
     db.refresh(order)
 
+    log_activity(db, action_type="order_placed",
+                 description=f"{current_user.name} placed order #{order.id} for {total_cents/100:.2f} PHP",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="order", target_id=order.id)
+
     # Notify admins
     admins = db.query(models.User).join(models.Role).filter(models.Role.name == "admin").all()
     admin_ids = [a.id for a in admins]
     notify_users(
         db,
         admin_ids,
-        "New Shop Order",
         f"{current_user.name} placed a new order for {total_cents/100:.2f} PHP",
-        f"/admin/instruments"
+        title="New Shop Order",
+        link=_ADMIN_SHOP_ROUTE,
     )
 
     return order
 
-@router.get("/orders/me", response_model=List[schemas.Order])
+@router.get("/orders/me", response_model=list[schemas.Order])
 def get_my_orders(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return db.query(models.Order).filter(models.Order.user_id == current_user.id).order_by(models.Order.created_at.desc()).all()
+    return (
+        db.query(models.Order)
+        .options(
+            joinedload(models.Order.user),
+            selectinload(models.Order.items).joinedload(models.OrderItem.product),
+        )
+        .filter(models.Order.user_id == current_user.id)
+        .order_by(models.Order.created_at.desc())
+        .all()
+    )
 
-@router.get("/orders", response_model=List[schemas.Order])
-def get_all_orders(status: Optional[str] = None, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    query = db.query(models.Order)
+@router.patch("/orders/{id}/cancel", response_model=schemas.Order)
+def cancel_my_order(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    """Allow a user to cancel their own pending order (no admin required)."""
+    order = db.query(models.Order).filter(models.Order.id == id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to cancel this order")
+    if order.status != "pending":
+        raise HTTPException(status_code=409, detail="Only pending orders can be cancelled by the user")
+
+    order.status = "cancelled"
+    db.commit()
+    db.refresh(order)
+
+    log_activity(
+        db,
+        action_type="order_cancelled",
+        description=f"{current_user.name} cancelled their own order #{order.id}.",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="order",
+        target_id=order.id,
+    )
+
+    # Notify the user who cancelled
+    user_shop_link = "/student/shop" if current_user.role.name.lower() == "student" else "/teacher/shop"
+    notify_users(
+        db,
+        [current_user.id],
+        f"Your order #{order.id} has been successfully cancelled.",
+        title="Order Cancelled",
+        link=user_shop_link,
+    )
+
+    # Notify admins
+    admins = db.query(models.User).join(models.Role).filter(models.Role.name == "admin").all()
+    notify_users(
+        db,
+        [a.id for a in admins],
+        f"{current_user.name} cancelled order #{order.id}.",
+        title="Order Cancelled",
+        link=_ADMIN_SHOP_ROUTE,
+    )
+
+    return order
+
+@router.get("/orders", response_model=list[schemas.Order])
+def get_all_orders(status: str | None = None, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    query = (
+        db.query(models.Order)
+        .options(
+            joinedload(models.Order.user),
+            selectinload(models.Order.items).joinedload(models.OrderItem.product),
+        )
+    )
     if status:
         query = query.filter(models.Order.status == status)
     return query.order_by(models.Order.created_at.desc()).all()
 
 @router.get("/orders/{id}", response_model=schemas.Order)
 def get_order(id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    order = db.query(models.Order).filter(models.Order.id == id).first()
+    order = (
+        db.query(models.Order)
+        .options(
+            joinedload(models.Order.user),
+            selectinload(models.Order.items).joinedload(models.OrderItem.product),
+        )
+        .filter(models.Order.id == id)
+        .first()
+    )
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -182,14 +263,42 @@ def update_order_status(id: int, status_in: schemas.OrderStatusUpdate, db: Sessi
             raise HTTPException(status_code=400, detail=f"Invalid status transition from {old_status} to {new_status}")
 
     # Business Logic: Stock handling
+    LOW_STOCK_THRESHOLD = settings.LOW_STOCK_THRESHOLD
+    low_stock_products: list[models.InstrumentProduct] = []
+
     if old_status == "pending" and new_status == "approved":
-        # Check stock again before transition
+        # Atomically deduct stock using UPDATE ... WHERE stock >= ? to prevent
+        # overselling under concurrent approval requests (race condition guard).
         for item in order.items:
-            if item.product.stock < item.quantity:
-                raise HTTPException(status_code=409, detail=f"Insufficient stock for {item.product.name}")
-            item.product.stock -= item.quantity
+            result = db.execute(
+                text(
+                    "UPDATE instrument_products SET stock = stock - :qty "
+                    "WHERE id = :pid AND stock >= :qty"
+                ),
+                {"qty": item.quantity, "pid": item.product_id},
+            )
+            if result.rowcount == 0:
+                # Another concurrent request already exhausted the stock; roll back
+                db.rollback()
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Insufficient stock for '{item.product.name}' — it may have just sold out.",
+                )
+            # Refresh the ORM object so the in-memory stock reflects the DB change
+            db.refresh(item.product)
+            if item.product.stock < LOW_STOCK_THRESHOLD:
+                low_stock_products.append(item.product)
         order.approved_by = current_user.id
-        order.approved_at = datetime.datetime.utcnow()
+        order.approved_at = datetime.datetime.now(timezone.utc)
+
+    elif old_status == "approved" and new_status == "fulfilled":
+        notify_users(
+            db,
+            [order.user_id],
+            f"✅ Your order #{order.id} has been fulfilled and is ready for pickup!",
+            title="Order Fulfilled",
+            link="/student/shop" if order.user.role.name == "student" else "/teacher/shop",
+        )
 
     elif old_status == "approved" and new_status == "cancelled":
         # Restore stock
@@ -203,13 +312,41 @@ def update_order_status(id: int, status_in: schemas.OrderStatusUpdate, db: Sessi
     db.commit()
     db.refresh(order)
 
+    log_activity(db, action_type=f"order_{new_status}",
+                 description=f"{current_user.name} changed order #{order.id} from {old_status} → {new_status}",
+                 actor_id=current_user.id, actor_name=current_user.name,
+                 target_type="order", target_id=order.id)
+
     # Notify user
     notify_users(
         db,
         [order.user_id],
-        f"Order Update: {new_status.capitalize()}",
         f"Your order #{order.id} is now {new_status}.",
-        f"/student/shop" if order.user.role.name == "student" else "/teacher/shop"
+        title=f"Order Update: {new_status.capitalize()}",
+        link="/student/shop" if order.user.role.name == "student" else "/teacher/shop",
     )
+
+    # Notify admins of any products that are now low on stock
+    if low_stock_products:
+        admins = db.query(models.User).join(models.Role).filter(models.Role.name == "admin").all()
+        admin_ids = [a.id for a in admins]
+        for product in low_stock_products:
+            stock_label = "out of stock" if product.stock == 0 else f"only {product.stock} left"
+            notify_users(
+                db,
+                admin_ids,
+                f"'{product.name}' is running low — {stock_label}. Consider restocking.",
+                title="⚠️ Low Stock Alert",
+                link=_ADMIN_SHOP_ROUTE,
+            )
+            log_activity(
+                db,
+                action_type="low_stock_alert",
+                description=f"Low stock alert: '{product.name}' dropped to {product.stock} unit(s) after order #{order.id} approval.",
+                actor_id=current_user.id,
+                actor_name=current_user.name,
+                target_type="product",
+                target_id=product.id,
+            )
 
     return order

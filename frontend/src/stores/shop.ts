@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { InstrumentProduct, Order, OrderStatus } from '../types'
+import { useAuthStore } from './auth'
 import { useToastStore } from './toast'
 import { API_URL } from '@typescript/constants'
+
+// Explicit auth header helper — consistent with payments.ts / schedule.ts pattern
+const authHeaders = () => {
+  const auth = useAuthStore()
+  return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
+}
 
 export const useShopStore = defineStore('shop', {
   state: () => ({
@@ -30,12 +37,14 @@ export const useShopStore = defineStore('shop', {
 
   actions: {
     async fetchProducts() {
+      const toast = useToastStore()
       this.isLoading = true
       try {
-        const response = await axios.get(`${API_URL}/shop/products`)
+        const response = await axios.get(`${API_URL}/shop/products`, { headers: authHeaders() })
         this.products = response.data.map(mapProduct)
       } catch (error) {
         console.error('Error fetching products:', error)
+        toast.error('Error', 'Failed to load products. Please try again.')
       } finally {
         this.isLoading = false
       }
@@ -43,7 +52,7 @@ export const useShopStore = defineStore('shop', {
 
     async fetchProduct(id: number) {
       try {
-        const response = await axios.get(`${API_URL}/shop/products/${id}`)
+        const response = await axios.get(`${API_URL}/shop/products/${id}`, { headers: authHeaders() })
         const product = mapProduct(response.data)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index] = product
@@ -57,7 +66,7 @@ export const useShopStore = defineStore('shop', {
     async createProduct(data: Partial<InstrumentProduct>) {
       const toast = useToastStore()
       try {
-        const response = await axios.post(`${API_URL}/shop/products`, data)
+        const response = await axios.post(`${API_URL}/shop/products`, data, { headers: authHeaders() })
         const product = mapProduct(response.data)
         this.products.unshift(product)
         toast.success('Product created', 'Product created successfully')
@@ -71,7 +80,7 @@ export const useShopStore = defineStore('shop', {
     async updateProduct(id: number, data: Partial<InstrumentProduct>) {
       const toast = useToastStore()
       try {
-        const response = await axios.put(`${API_URL}/shop/products/${id}`, data)
+        const response = await axios.put(`${API_URL}/shop/products/${id}`, data, { headers: authHeaders() })
         const product = mapProduct(response.data)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index] = product
@@ -86,7 +95,7 @@ export const useShopStore = defineStore('shop', {
     async deleteProduct(id: number) {
       const toast = useToastStore()
       try {
-        await axios.delete(`${API_URL}/shop/products/${id}`)
+        await axios.delete(`${API_URL}/shop/products/${id}`, { headers: authHeaders() })
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index].isActive = false
         toast.success('Product deactivated', 'Product has been deactivated')
@@ -100,7 +109,7 @@ export const useShopStore = defineStore('shop', {
       const formData = new FormData()
       formData.append('file', file)
       try {
-        const response = await axios.post(`${API_URL}/shop/products/${id}/image`, formData)
+        const response = await axios.post(`${API_URL}/shop/products/${id}/image`, formData, { headers: authHeaders() })
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index].imageUrl = response.data.url
         return response.data.url
@@ -159,34 +168,38 @@ export const useShopStore = defineStore('shop', {
             product_id: item.productId,
             quantity: item.quantity
           }))
-        })
+        }, { headers: authHeaders() })
         const order = mapOrder(response.data)
         this.myOrders.unshift(order)
         this.clearCart()
         toast.success('Order placed', 'Order placed successfully!')
         return order
-      } catch (error: any) {
-        const msg = error.response?.data?.detail || 'Failed to place order'
+      } catch (error: unknown) {
+        const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to place order'
         toast.error('Error', msg)
         throw error
       }
     },
 
     async fetchMyOrders() {
+      const toast = useToastStore()
       try {
-        const response = await axios.get(`${API_URL}/shop/orders/me`)
+        const response = await axios.get(`${API_URL}/shop/orders/me`, { headers: authHeaders() })
         this.myOrders = response.data.map(mapOrder)
       } catch (error) {
         console.error('Error fetching my orders:', error)
+        toast.error('Error', 'Failed to load your orders. Please try again.')
       }
     },
 
     async fetchAllOrders(status?: string) {
+      const toast = useToastStore()
       try {
-        const response = await axios.get(`${API_URL}/shop/orders`, { params: { status } })
+        const response = await axios.get(`${API_URL}/shop/orders`, { params: { status }, headers: authHeaders() })
         this.orders = response.data.map(mapOrder)
       } catch (error) {
         console.error('Error fetching all orders:', error)
+        toast.error('Error', 'Failed to load orders. Please try again.')
       }
     },
 
@@ -196,7 +209,7 @@ export const useShopStore = defineStore('shop', {
         const response = await axios.patch(`${API_URL}/shop/orders/${id}/status`, {
           status,
           rejection_reason: rejectionReason
-        })
+        }, { headers: authHeaders() })
         const updated = mapOrder(response.data)
 
         // Update in both lists if present
@@ -207,9 +220,15 @@ export const useShopStore = defineStore('shop', {
         if (myIndex !== -1) this.myOrders[myIndex] = updated
 
         toast.success('Success', `Order ${status} successfully`)
+
+        // Refresh product list so stock counts reflect backend deductions/restorations
+        if (['approved', 'cancelled', 'fulfilled'].includes(status)) {
+          await this.fetchProducts()
+        }
+
         return updated
-      } catch (error: any) {
-        const msg = error.response?.data?.detail || 'Failed to update order'
+      } catch (error: unknown) {
+        const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to update order'
         toast.error('Error', msg)
         throw error
       }
@@ -218,15 +237,16 @@ export const useShopStore = defineStore('shop', {
     async cancelMyOrder(id: number) {
       const toast = useToastStore()
       try {
-        const response = await axios.patch(`${API_URL}/shop/orders/${id}/status`, {
-          status: 'cancelled'
-        })
+        // Uses the user-facing cancel endpoint (not the admin-only /status endpoint)
+        const response = await axios.patch(`${API_URL}/shop/orders/${id}/cancel`, {}, { headers: authHeaders() })
         const updated = mapOrder(response.data)
         const index = this.myOrders.findIndex((o: Order) => o.id === id)
         if (index !== -1) this.myOrders[index] = updated
         toast.success('Cancelled', 'Order cancelled')
-      } catch (error: any) {
-        const msg = error.response?.data?.detail || 'Failed to cancel order'
+        // Stock is restored on cancel — refresh product list to reflect new counts
+        await this.fetchProducts()
+      } catch (error: unknown) {
+        const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to cancel order'
         toast.error('Error', msg)
       }
     }
@@ -241,8 +261,8 @@ const mapProduct = (p: any): InstrumentProduct => ({
   priceCents: p.price_cents,
   stock: p.stock,
   imageUrl: p.image_url,
-  categoryId: p.category_id,
-  category: p.category,
+  categoryId: p.category_id ?? null,
+  category: p.category ?? null,
   isActive: p.is_active,
   createdAt: p.created_at,
   updatedAt: p.updated_at

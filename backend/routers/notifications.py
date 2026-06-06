@@ -1,45 +1,51 @@
-from fastapi import APIRouter, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
-from ..dependencies import get_current_active_user
-from typing import List, Optional
+from ..dependencies import get_current_active_user, require_admin
 
 router = APIRouter()
 
-def notify_users(db: Session, user_ids: List[int], title_or_message: str, message_or_link: Optional[str] = None, link: Optional[str] = None):
+def notify_users(
+    db: Session,
+    user_ids: list[int],
+    message: str,
+    *,
+    title: str | None = None,
+    link: str | None = None,
+) -> None:
     """
-    Flexible notification helper.
-    - notify_users(db, user_ids, message, link=None)
-    - notify_users(db, user_ids, title, message, link)
-    """
-    if link is not None:
-        # Shop style: (db, ids, title, message, link)
-        title = title_or_message
-        message = message_or_link
-        full_message = f"**{title}**\n{message}"
-        final_link = link
-    else:
-        # Session style: (db, ids, message, link=None)
-        full_message = title_or_message
-        final_link = message_or_link
+    Create in-app notifications for a list of users.
 
+    Args:
+        db:        Active database session.
+        user_ids:  List of user IDs to notify (None/falsy values are silently skipped).
+        message:   Notification body text.
+        title:     Optional bold heading prepended to the message (keyword-only).
+        link:      Optional internal route the notification links to (keyword-only).
+    """
+    full_message = f"**{title}**\n{message}" if title else message
     for uid in user_ids:
         if uid:
-            db.add(models.Notification(user_id=uid, message=full_message, link=final_link, is_read=False))
+            db.add(models.Notification(user_id=uid, message=full_message, link=link, is_read=False))
     db.commit()
 
 @router.post("/notifications/", response_model=schemas.Notification)
-def create_notification(notification: schemas.NotificationCreate, db: Session = Depends(get_db)):
-    db_notification = models.Notification(**notification.dict())
+def create_notification(
+    notification: schemas.NotificationCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    db_notification = models.Notification(**notification.model_dump())
     db.add(db_notification)
     db.commit()
     db.refresh(db_notification)
     return db_notification
 
 @router.get("/notifications/user/{user_id}", response_model=list[schemas.Notification])
-def read_user_notifications(user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+def read_user_notifications(user_id: int, skip: int = Query(default=0, ge=0), limit: int = Query(default=100, le=500), db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     notifications = db.query(models.Notification).filter(
         models.Notification.user_id == user_id
     ).order_by(models.Notification.created_at.desc()).offset(skip).limit(limit).all()

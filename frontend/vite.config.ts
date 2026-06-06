@@ -15,6 +15,7 @@ export default defineConfig({
       '@types': fileURLToPath(new URL('./src/types', import.meta.url)),
       '@layouts': fileURLToPath(new URL('./src/layouts', import.meta.url)),
       '@assets': fileURLToPath(new URL('./src/assets', import.meta.url)),
+      '@composables': fileURLToPath(new URL('./src/composables', import.meta.url)),
     }
   },
   plugins: [

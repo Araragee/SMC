@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  // TODO: Fix remaining TS issues in this file
-          import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
@@ -9,6 +8,7 @@ import { useToastStore } from '@stores/toast'
 import BaseCalendar from '@components/BaseCalendar.vue'
 import SessionDetailModal from '@components/SessionDetailModal.vue'
 import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import RecurringSessionModal from '@components/RecurringSessionModal.vue'
 import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
@@ -21,6 +21,7 @@ const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
 const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
+const showRecurringModal = ref(false)
 const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
 const counterModal = ref({ open: false, sessionId: 0, startTime: '', endTime: '', notes: '' })
 
@@ -49,6 +50,7 @@ onMounted(async () => {
     scheduleStore.fetchUserSessions(myId.value),
     usersStore.fetchUsersByRole('student'),
     usersStore.fetchUsersByRole('teacher'),
+    usersStore.fetchInstruments(),
     notifStore.fetchNotifications(myId.value),
   ])
 })
@@ -186,6 +188,13 @@ const formatDay = function(iso: string): string  {
         </p>
       </div>
       <div class="shrink-0 flex items-start gap-4">
+        <button
+          class="px-6 py-3 bg-surface-container border border-black/[0.08] dark:border-white/10 text-on-surface font-bold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          @click="showRecurringModal = true"
+        >
+          <span class="material-symbols-outlined text-lg">repeat</span>
+          Recurring
+        </button>
         <button
           class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
@@ -455,6 +464,16 @@ const formatDay = function(iso: string): string  {
       :initial-date="selectedDate ?? undefined"
       @close="showProposeModal = false"
       @submitted="onProposeSubmit"
+    />
+
+    <!-- Recurring Session Modal -->
+    <RecurringSessionModal
+      v-if="showRecurringModal"
+      :is-open="showRecurringModal"
+      :teachers="[]"
+      :students="students"
+      @close="showRecurringModal = false"
+      @created="scheduleStore.fetchUserSessions(myId)"
     />
   </div>
 </template>

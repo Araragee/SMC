@@ -40,6 +40,7 @@ export const useInteractionsStore = defineStore('interactions', {
         }));
       } catch (err: any) {
         this.error = err.message || 'Failed to fetch student enrollments';
+        useToastStore().error('Load failed', this.error ?? undefined);
         console.error(err);
       } finally {
         this.isLoading = false;
@@ -70,6 +71,7 @@ export const useInteractionsStore = defineStore('interactions', {
         return newEnrollment;
       } catch (err: any) {
         this.error = err.message || 'Failed to create enrollment';
+        useToastStore().error('Enrollment failed', this.error ?? undefined);
         console.error(err);
         throw err;
       } finally {
@@ -93,6 +95,7 @@ export const useInteractionsStore = defineStore('interactions', {
         }
       } catch (err: any) {
         this.error = err.message || 'Failed to assign homework';
+        useToastStore().error('Homework failed', this.error ?? undefined);
         console.error(err);
       } finally {
         this.isLoading = false;
@@ -144,6 +147,50 @@ export const useInteractionsStore = defineStore('interactions', {
       }
     },
 
+    async deleteEnrollment(enrollmentId: number) {
+      this.isLoading = true;
+      this.error = null;
+      const toast = useToastStore();
+      try {
+        await axios.delete(`${API_URL}/enrollments/${enrollmentId}`, { headers: authHeaders() });
+        this.enrollments = this.enrollments.filter(e => e.id !== enrollmentId);
+        toast.success('Enrollment removed', 'The enrollment has been deleted and unused sessions rolled back.');
+      } catch (err: any) {
+        this.error = err.message || 'Failed to delete enrollment';
+        toast.error('Delete failed', this.error || undefined);
+        console.error(err);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async recalculateSessions(studentId: number): Promise<{ old: number; new: number } | null> {
+      this.isLoading = true;
+      this.error = null;
+      const toast = useToastStore();
+      try {
+        const response = await axios.post(
+          `${API_URL}/students/${studentId}/recalculate-sessions`,
+          {},
+          { headers: authHeaders() }
+        );
+        const { old_sessions_left, new_sessions_left } = response.data;
+        toast.success(
+          'Sessions recalculated',
+          `sessions_left updated: ${old_sessions_left} → ${new_sessions_left}`
+        );
+        return { old: old_sessions_left, new: new_sessions_left };
+      } catch (err: any) {
+        this.error = err.message || 'Failed to recalculate sessions';
+        toast.error('Recalculate failed', this.error || undefined);
+        console.error(err);
+        return null;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async completeHomework(sessionId: number) {
       this.isLoading = true;
       this.error = null;
@@ -163,6 +210,7 @@ export const useInteractionsStore = defineStore('interactions', {
         }
       } catch (err: any) {
         this.error = err.message || 'Failed to complete homework';
+        useToastStore().error('Update failed', this.error ?? undefined);
         console.error(err);
       } finally {
         this.isLoading = false;
