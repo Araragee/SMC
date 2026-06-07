@@ -7,8 +7,9 @@ from sqlalchemy import DateTime as _NaiveDateTime
 # All timestamp columns use timezone-aware DateTime so that PostgreSQL comparisons
 # work correctly (SQLite silently accepts naive datetimes, but Postgres raises
 # "can't compare offset-naive and offset-aware datetimes" without this flag).
-def DateTime(timezone: bool = True, **kw):  # noqa: N802 — intentional shadow
-    return _NaiveDateTime(timezone=timezone, **kw)
+class DateTime(_NaiveDateTime):  # noqa: N801 — intentional shadow
+    def __init__(self, timezone: bool = True, **kw):
+        super().__init__(timezone=timezone, **kw)
 from sqlalchemy.orm import relationship
 
 from .database import Base
