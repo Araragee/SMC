@@ -40,6 +40,7 @@ onMounted(async () => {
   await Promise.all([
     scheduleStore.fetchAllSessions(),
     scheduleStore.fetchPendingSessions(),
+    scheduleStore.fetchStats(),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
     paymentsStore.fetchPayments(),
@@ -69,18 +70,14 @@ const canGoNext = computed(
 )
 
 const stats = computed(() => {
-  const sessions = scheduleStore.allSessions
-  const completed = sessions.filter((s: any) => s.status === 'completed').length
-  const rate = sessions.length ? Math.round((completed / sessions.length) * 100) : 0
-  const pendingStatuses = ['pending_teacher', 'pending_student', 'pending_admin', 'pending_verification']
-  return {
-    totalSessions: sessions.length,
-    scheduledSessions: sessions.filter((s: any) => s.status === 'scheduled').length,
-    completedSessions: completed,
-    completionRate: rate,
-    overdueSessions: sessions.filter((s: any) => s.status === 'overdue' || s.status === 'overdue_rejected').length,
-    pendingSessions: sessions.filter((s: any) => pendingStatuses.includes(s.status)).length,
-    awaitingAdmin: sessions.filter((s: any) => s.status === 'pending_admin' || s.status === 'pending_verification').length,
+  return scheduleStore.stats || {
+    totalSessions: 0,
+    scheduledSessions: 0,
+    completedSessions: 0,
+    completionRate: 0,
+    overdueSessions: 0,
+    pendingSessions: 0,
+    awaitingAdmin: 0,
   }
 })
 

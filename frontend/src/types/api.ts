@@ -49,6 +49,7 @@ export interface UserResponse {
   parent_name?: string | null
   parent_contact?: string | null
   sessions_enrolled?: number | null
+  totp_enabled?: boolean
 }
 
 /** Backend `Role` enum (mirrors `Role` union in domain types). */

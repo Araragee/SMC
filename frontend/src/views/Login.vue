@@ -2,14 +2,31 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@stores/auth'
+import TwoFAVerifyModal from '@components/TwoFAVerifyModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const username = ref('')
 const password = ref('')
+const isTwoFAModalOpen = ref(false)
 
 const handleLogin = async () => {
-    await authStore.login(username.value, password.value)
+    try {
+        const res = await authStore.login(username.value, password.value)
+        if (res && res.requires2FA) {
+            isTwoFAModalOpen.value = true
+            return
+        }
+        if (authStore.isAuthenticated && authStore.user) {
+            router.push(`/${authStore.user.role || 'student'}`)
+        }
+    } catch {
+        // error handled by store toast
+    }
+}
+
+const on2FAVerified = () => {
+    isTwoFAModalOpen.value = false
     if (authStore.isAuthenticated && authStore.user) {
         router.push(`/${authStore.user.role || 'student'}`)
     }
@@ -59,4 +76,10 @@ const handleLogin = async () => {
       </div>
     </div>
   </main>
+
+  <TwoFAVerifyModal
+    :is-open="isTwoFAModalOpen"
+    @close="isTwoFAModalOpen = false"
+    @verified="on2FAVerified"
+  />
 </template>

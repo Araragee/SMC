@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useShopStore } from '@stores/shop'
 import OrderStatusBadge from '@components/shop/OrderStatusBadge.vue'
 import { API_URL } from '@typescript/constants'
 import type { OrderStatus, InstrumentProduct, Order } from '@types'
+import { useDialog } from '@composables/useDialog'
 
 const shopStore = useShopStore()
+const dialog = useDialog()
 const activeTab = ref<'catalog' | 'orders'>('catalog')
 const isEditorOpen = ref(false)
 const selectedProduct = ref<InstrumentProduct | null>(null)
 const selectedOrder = ref<Order | null>(null)
 const isOrderDetailOpen = ref(false)
+
+const orderFilter = ref<string>('all')
+const filteredOrders = computed(() => {
+  if (orderFilter.value === 'all') {
+    return shopStore.orders
+  }
+  return shopStore.orders.filter(order => order.status === orderFilter.value)
+})
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const imageFile = ref<File | null>(null)
@@ -115,8 +125,29 @@ const viewOrder = function(order: any) {
 }
 
 const updateOrderStatus = async function(id: number, status: OrderStatus) {
-  await shopStore.updateOrderStatus(id, status)
-  isOrderDetailOpen.value = false
+  let actionText = ''
+  let isDestructive = false
+  if (status === 'approved') {
+    actionText = 'approve this order and deduct stock'
+  } else if (status === 'rejected') {
+    actionText = 'reject this order'
+    isDestructive = true
+  } else if (status === 'fulfilled') {
+    actionText = 'mark this order as fulfilled'
+  }
+
+  const ok = await dialog.confirm(`Are you sure you want to ${actionText}?`, {
+    title: `${status.charAt(0).toUpperCase() + status.slice(1)} Order`,
+    destructive: isDestructive
+  })
+  if (!ok) return
+
+  try {
+    await shopStore.updateOrderStatus(id, status)
+    isOrderDetailOpen.value = false
+  } catch (error) {
+    console.error('Error updating order status:', error)
+  }
 }
 </script>
 
@@ -177,7 +208,9 @@ const updateOrderStatus = async function(id: number, status: OrderStatus) {
           <p class="text-sm font-bold text-on-surface-variant line-clamp-1">{{ product.description }}</p>
           <div class="flex flex-wrap justify-center md:justify-start gap-4 mt-2">
             <span class="text-xs font-black text-orange-500 uppercase tracking-widest">{{ formatPrice(product.priceCents) }}</span>
-            <span class="text-xs font-black text-white/40 uppercase tracking-widest">Stock: {{ product.stock }}</span>
+            <span class="text-xs font-black uppercase tracking-widest" :class="product.stock <= 3 ? 'text-rose-500 font-extrabold animate-pulse' : 'text-white/40'">
+              Stock: {{ product.stock }} {{ product.stock <= 3 ? '[Low Stock]' : '' }}
+            </span>
             <span :class="product.isActive ? 'text-emerald-500' : 'text-rose-500'" class="text-xs font-black uppercase tracking-widest">
               {{ product.isActive ? 'Active' : 'Hidden' }}
             </span>
@@ -201,7 +234,20 @@ const updateOrderStatus = async function(id: number, status: OrderStatus) {
 
     <!-- Orders View -->
     <div v-else class="space-y-4">
-      <div v-for="order in shopStore.orders" :key="order.id" @click="viewOrder(order)" class="glass-thin rounded-[2rem] p-6 border border-white/5 hover:border-orange-500/30 transition-all cursor-pointer group flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- Order Status Filter Tabs -->
+      <div class="flex flex-wrap gap-2 mb-6 bg-white/5 p-1.5 rounded-2xl border border-white/5 max-w-max">
+        <button
+          v-for="status in ['all', 'pending', 'approved', 'fulfilled', 'rejected']"
+          :key="status"
+          @click="orderFilter = status"
+          class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+          :class="orderFilter === status ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-on-surface-variant hover:text-on-surface'"
+        >
+          {{ status }}
+        </button>
+      </div>
+
+      <div v-for="order in filteredOrders" :key="order.id" @click="viewOrder(order)" class="glass-thin rounded-[2rem] p-6 border border-white/5 hover:border-orange-500/30 transition-all cursor-pointer group flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
             <span class="material-symbols-outlined">receipt_long</span>
@@ -280,15 +326,29 @@ const updateOrderStatus = async function(id: number, status: OrderStatus) {
         </div>
 
         <div class="space-y-8">
-          <div class="grid grid-cols-2 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-white/5 pb-6">
             <div>
-              <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Customer</p>
-              <p class="font-black text-on-surface">{{ selectedOrder.user?.name }}</p>
+              <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Customer Info</p>
+              <p class="font-black text-on-surface">{{ selectedOrder.user?.name }} ({{ selectedOrder.user?.role }})</p>
               <p class="text-xs font-bold text-on-surface-variant">{{ selectedOrder.user?.email }}</p>
+              <p v-if="selectedOrder.user?.contactNumber" class="text-xs font-bold text-on-surface-variant mt-1">Phone: {{ selectedOrder.user?.contactNumber }}</p>
             </div>
             <div>
-              <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Date</p>
-              <p class="font-black text-on-surface">{{ formatDate(selectedOrder.createdAt) }}</p>
+              <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Order Details</p>
+              <p class="text-sm font-bold text-on-surface">Order ID: #{{ selectedOrder.id }}</p>
+              <p class="text-xs font-bold text-on-surface-variant mt-1">Placed: {{ formatDate(selectedOrder.createdAt) }}</p>
+            </div>
+          </div>
+
+          <!-- Parent Contact Info if available -->
+          <div v-if="selectedOrder.user?.parentName || selectedOrder.user?.parentContact" class="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-white/5 pb-6">
+            <div v-if="selectedOrder.user?.parentName">
+              <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Parent/Guardian Name</p>
+              <p class="text-sm font-bold text-on-surface">{{ selectedOrder.user?.parentName }}</p>
+            </div>
+            <div v-if="selectedOrder.user?.parentContact">
+              <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Parent/Guardian Contact</p>
+              <p class="text-sm font-bold text-on-surface">{{ selectedOrder.user?.parentContact }}</p>
             </div>
           </div>
 

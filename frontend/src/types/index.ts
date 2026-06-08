@@ -39,6 +39,7 @@ export interface User {
   contactNumber?: string;
   homeAddress?: string;
   instruments?: InstrumentRecord[];
+  totpEnabled?: boolean;
 
   // Specific to students
   sessionsLeft?: number;

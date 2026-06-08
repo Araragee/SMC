@@ -482,3 +482,21 @@ class ActivityLogEntry(BaseModel):
     description: str
     created_at: datetime
     model_config = {"from_attributes": True}
+
+
+# ── Bulk Session Action & Stats ───────────────────────────────────────────────
+
+class BulkActionRequest(BaseModel):
+    session_ids: list[int]
+    action: Literal["approve", "cancel", "complete"]
+
+
+class SessionStatsResponse(BaseModel):
+    total_sessions: int
+    scheduled_sessions: int
+    completed_sessions: int
+    completion_rate: int
+    overdue_sessions: int
+    pending_sessions: int
+    awaiting_admin: int
+

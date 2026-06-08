@@ -3,22 +3,43 @@ import { ref, onMounted, computed } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
+import { useShopStore } from '@stores/shop'
+import OrderStatusBadge from '@components/shop/OrderStatusBadge.vue'
+import { API_URL } from '@typescript/constants'
 import type { InstrumentRecord } from '@types'
 
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const toast = useToastStore()
+const shopStore = useShopStore()
 
 const isSaving = ref(false)
 const searchQuery = ref('')
+const activeTab = ref<'my-instruments' | 'order-history'>('my-instruments')
 
 onMounted(async () => {
   await Promise.all([
     usersStore.fetchInstruments(),
+    shopStore.fetchMyOrders(),
     // Refresh current user to get latest instruments
     authStore.currentUser?.id ? usersStore.fetchUsersByRole('teacher') : Promise.resolve()
   ])
 })
+
+const formatPrice = function(cents: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'PHP'
+  }).format(cents / 100)
+}
+
+const formatDate = function(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
 
 const currentTeacher = computed(() => {
   return usersStore.users.find(u => u.id === authStore.currentUser?.id) || authStore.currentUser
@@ -92,7 +113,25 @@ async function removeInstrument(instrumentId: string | number) {
       </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <!-- Tabs -->
+    <div class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-white/5 pb-4">
+      <button
+        @click="activeTab = 'my-instruments'"
+        class="px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all"
+        :class="activeTab === 'my-instruments' ? 'text-orange-500 bg-orange-500/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
+      >
+        My Certified Instruments
+      </button>
+      <button
+        @click="activeTab = 'order-history'"
+        class="px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all"
+        :class="activeTab === 'order-history' ? 'text-orange-500 bg-orange-500/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
+      >
+        Order History
+      </button>
+    </div>
+
+    <div v-if="activeTab === 'my-instruments'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
       <!-- Currently Teaching -->
       <section class="lg:col-span-8 space-y-6">
@@ -199,6 +238,79 @@ async function removeInstrument(instrumentId: string | number) {
         </div>
       </section>
 
+    </div>
+
+    <!-- Order History View -->
+    <div v-else class="space-y-6">
+      <div v-if="shopStore.myOrders.length > 0" class="grid gap-4">
+        <div
+          v-for="order in shopStore.myOrders"
+          :key="order.id"
+          class="glass-heavy rounded-[2rem] p-6 border border-outline-variant/20 dark:border-white/5 hover:border-orange-500/30 transition-all group"
+        >
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                <span class="material-symbols-outlined">receipt_long</span>
+              </div>
+              <div>
+                <h4 class="font-black text-on-surface dark:text-on-surface">Order #{{ order.id }}</h4>
+                <p class="text-xs font-bold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest">
+                  Placed on {{ formatDate(order.createdAt) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+              <div class="text-right hidden sm:block">
+                <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1">Total Amount</p>
+                <p class="text-lg font-black text-on-surface dark:text-on-surface">{{ formatPrice(order.totalCents) }}</p>
+              </div>
+
+              <OrderStatusBadge :status="order.status" />
+
+              <button
+                v-if="order.status === 'pending'"
+                @click="shopStore.cancelMyOrder(order.id)"
+                class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 text-xs font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- Order Items Preview -->
+          <div class="mt-6 pt-6 border-t border-outline-variant/20 dark:border-white/5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div
+              v-for="item in order.items"
+              :key="item.id"
+              class="flex items-center gap-3 px-4 py-2 bg-black/5 dark:bg-black/20 rounded-2xl border border-outline-variant/20 dark:border-white/5 shrink-0"
+            >
+              <div class="w-8 h-8 rounded-lg overflow-hidden bg-black/10 dark:bg-black/40">
+                <img v-if="item.product?.imageUrl" :src="item.product.imageUrl.startsWith('http') ? item.product.imageUrl : `${API_URL}${item.product.imageUrl}`" class="w-full h-full object-cover" />
+                <div v-else class="w-full h-full flex items-center justify-center text-white/10">
+                  <span class="material-symbols-outlined text-xs">image</span>
+                </div>
+              </div>
+              <span class="text-xs font-bold text-on-surface dark:text-on-surface">{{ item.quantity }}x {{ item.product?.name || 'Product' }}</span>
+            </div>
+          </div>
+
+          <!-- Rejection Reason -->
+          <div v-if="order.status === 'rejected' && order.rejectionReason" class="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-bold">
+            Rejection Reason: {{ order.rejectionReason }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Orders -->
+      <div v-else class="flex flex-col items-center justify-center py-20 glass-heavy rounded-[3rem] border border-outline-variant/20 dark:border-white/5 bg-surface-container-low/50 dark:bg-transparent">
+        <div class="w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mb-6 shadow-inner">
+          <span class="material-symbols-outlined text-4xl">history</span>
+        </div>
+        <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-2">No orders yet</h3>
+        <p class="text-on-surface-variant dark:text-on-surface-variant font-bold">Your order history will appear here.</p>
+      </div>
     </div>
   </div>
 </template>

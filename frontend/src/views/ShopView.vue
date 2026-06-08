@@ -157,6 +157,11 @@ const handleAddToCart = function(product: any) {
               <span class="text-xs font-bold text-on-surface dark:text-on-surface">{{ item.quantity }}x {{ item.product?.name || 'Product' }}</span>
             </div>
           </div>
+
+          <!-- Rejection Reason -->
+          <div v-if="order.status === 'rejected' && order.rejectionReason" class="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-bold">
+            Rejection Reason: {{ order.rejectionReason }}
+          </div>
         </div>
       </div>
 

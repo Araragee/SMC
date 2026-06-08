@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useAuthStore } from '@stores/auth'
 import BaseInput from '@components/BaseInput.vue'
 import { useThemeStore } from '@stores/theme'
 import { useRouter } from 'vue-router'
+import TwoFASetupModal from '@components/TwoFASetupModal.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -16,6 +17,14 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 const router = useRouter()
+
+const isTwoFASetupOpen = ref(false)
+const showDisableConfirm = ref(false)
+const disableError = ref('')
+const disableForm = reactive({
+  password: '',
+  code: '',
+})
 
 const form = reactive({
   name: '',
@@ -33,6 +42,10 @@ watch(
       form.email = authStore.user.email || ''
       form.avatar_url = authStore.user.avatarUrl || ''
       form.password = ''
+      showDisableConfirm.value = false
+      disableForm.password = ''
+      disableForm.code = ''
+      disableError.value = ''
     }
   },
   { immediate: true }
@@ -50,6 +63,20 @@ const handleSave = async () => {
   const success = await authStore.updateProfile(payload)
   if (success) {
     emit('close')
+  }
+}
+
+const handleDisable2FA = async () => {
+  disableError.value = ''
+  try {
+    const success = await authStore.disable2FA(disableForm.password, disableForm.code)
+    if (success) {
+      showDisableConfirm.value = false
+      disableForm.password = ''
+      disableForm.code = ''
+    }
+  } catch (err: any) {
+    disableError.value = err.response?.data?.detail || err.message || 'Deactivation failed'
   }
 }
 
@@ -191,6 +218,90 @@ const handleLogout = () => {
                   must be at least 8 characters long.
                 </p>
               </div>
+
+              <!-- Two-Factor Authentication Sub-block -->
+              <div class="bg-surface-container-low dark:bg-surface-container-low border border-outline-variant dark:border-outline-variant rounded-3xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-on-surface dark:text-on-surface font-bold text-sm">Two-Factor Authentication</h4>
+                    <p class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1">
+                      Secure your account with a secondary TOTP code.
+                    </p>
+                  </div>
+                  <div>
+                    <span
+                      v-if="authStore.user?.totpEnabled"
+                      class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
+                    >
+                      Active
+                    </span>
+                    <span
+                      v-else
+                      class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-zinc-500/20 border border-zinc-500/30 text-zinc-400"
+                    >
+                      Inactive
+                    </span>
+                  </div>
+                </div>
+
+                <div v-if="authStore.user?.totpEnabled" class="space-y-4">
+                  <button
+                    v-if="!showDisableConfirm"
+                    type="button"
+                    class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-black rounded-2xl text-xs uppercase tracking-widest transition-all"
+                    @click="showDisableConfirm = true"
+                  >
+                    Deactivate 2FA
+                  </button>
+                  
+                  <!-- Disable Confirmation Form -->
+                  <div v-else class="space-y-4 pt-4 border-t border-outline-variant/10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <BaseInput
+                        v-model="disableForm.password"
+                        label="Account Password"
+                        type="password"
+                        placeholder="Confirm password"
+                        icon-left="lock"
+                      />
+                      <BaseInput
+                        v-model="disableForm.code"
+                        label="Authenticator Code"
+                        type="text"
+                        placeholder="000000"
+                        icon-left="pin"
+                      />
+                    </div>
+                    <p v-if="disableError" class="text-error text-xs font-bold">{{ disableError }}</p>
+                    <div class="flex gap-2 justify-end">
+                      <button
+                        type="button"
+                        class="px-4 py-2 text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors"
+                        @click="showDisableConfirm = false"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        class="px-4 py-2 bg-red-500 text-white text-xs font-black rounded-xl uppercase tracking-widest hover:bg-red-600 transition-all"
+                        @click="handleDisable2FA"
+                      >
+                        Confirm Deactivation
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else>
+                  <button
+                    type="button"
+                    class="w-full py-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-500 font-black rounded-2xl text-xs uppercase tracking-widest transition-all"
+                    @click="isTwoFASetupOpen = true"
+                  >
+                    Set Up Authenticator
+                  </button>
+                </div>
+              </div>
             </section>
 
             <!-- Appearance Section -->
@@ -287,4 +398,11 @@ const handleLogout = () => {
       </div>
     </Transition>
   </Teleport>
+
+  <TwoFASetupModal
+    v-if="isTwoFASetupOpen"
+    :is-open="isTwoFASetupOpen"
+    @close="isTwoFASetupOpen = false"
+    @success="isTwoFASetupOpen = false"
+  />
 </template>

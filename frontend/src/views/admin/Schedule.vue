@@ -29,6 +29,7 @@ const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 const showRecurringModal = ref(false)
 const filterStatus = ref('')
+const selectedSessionIds = ref<number[]>([])
 
 const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
 const editModal = ref({ open: false, sessionId: 0, date: '', time: '', notes: '' })
@@ -46,6 +47,30 @@ const filteredSessions = computed(() => {
   if (!filterStatus.value) return all
   return all.filter((s: any) => s.status === filterStatus.value)
 })
+
+const toggleSelectAll = () => {
+  if (selectedSessionIds.value.length === filteredSessions.value.length) {
+    selectedSessionIds.value = []
+  } else {
+    selectedSessionIds.value = filteredSessions.value.map(s => s.id)
+  }
+}
+
+const handleBulkAction = async (action: 'approve' | 'cancel' | 'complete') => {
+  const count = selectedSessionIds.value.length
+  const ok = await dialog.confirm(`Are you sure you want to bulk ${action} ${count} selected session(s)?`, {
+    title: `Bulk ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+    destructive: action === 'cancel'
+  })
+  if (!ok) return
+  try {
+    await scheduleStore.bulkAction(selectedSessionIds.value, action)
+    selectedSessionIds.value = []
+    await scheduleStore.fetchAllSessions()
+  } catch {
+    // Error notification handled by store
+  }
+}
 
 onMounted(async () => {
   await Promise.all([
@@ -395,6 +420,14 @@ const statusBadgeClass = function(status: string): string  {
           All Sessions
         </h3>
         <div class="flex items-center gap-3">
+          <button
+            v-if="filteredSessions.length > 0"
+            type="button"
+            class="text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-on-surface px-4 py-2 bg-black/[0.04] dark:bg-white/5 rounded-2xl border border-black/[0.08] dark:border-white/10 transition-all"
+            @click="toggleSelectAll"
+          >
+            {{ selectedSessionIds.length === filteredSessions.length ? 'Deselect All' : 'Select All' }}
+          </button>
           <select
             v-model="filterStatus"
             class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-2 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-1 focus:ring-orange-500/50"
@@ -415,6 +448,12 @@ const statusBadgeClass = function(status: string): string  {
           :key="session.id"
           class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 border border-black/[0.04] dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 transition-all"
         >
+          <input
+            type="checkbox"
+            :value="session.id"
+            v-model="selectedSessionIds"
+            class="w-4 h-4 rounded border-black/20 dark:border-white/20 text-orange-500 focus:ring-orange-500/50 bg-black/10 dark:bg-white/5 cursor-pointer accent-orange-500 shrink-0"
+          />
           <div class="w-1 h-10 rounded-full shrink-0" :class="statusBarClass(session.status)"></div>
           <div class="flex-1 min-w-0">
             <p class="text-on-surface dark:text-on-surface font-bold text-sm">{{ formatDateTime(session.startTime) }}</p>
@@ -637,5 +676,50 @@ const statusBadgeClass = function(status: string): string  {
       @close="showRecurringModal = false"
       @created="scheduleStore.fetchAllSessions()"
     />
+
+    <!-- Floating Bulk Action Bar -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-300 ease-out transform"
+        enter-from-class="translate-y-12 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in transform"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-12 opacity-0"
+      >
+        <div
+          v-if="selectedSessionIds.length > 0"
+          class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4 px-6 py-4 rounded-full liquid-glass border border-black/10 dark:border-white/10 shadow-2xl backdrop-blur-xl animate-bounce-subtle"
+        >
+          <span class="text-xs font-black uppercase tracking-widest text-on-surface dark:text-on-surface">
+            {{ selectedSessionIds.length }} Selected
+          </span>
+          <div class="w-px h-6 bg-black/10 dark:bg-white/10"></div>
+          <div class="flex items-center gap-2">
+            <button
+              class="px-4 py-2 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleBulkAction('approve')"
+            >
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              Approve
+            </button>
+            <button
+              class="px-4 py-2 rounded-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleBulkAction('complete')"
+            >
+              <span class="material-symbols-outlined text-sm">done_all</span>
+              Complete
+            </button>
+            <button
+              class="px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleBulkAction('cancel')"
+            >
+              <span class="material-symbols-outlined text-sm">cancel</span>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>

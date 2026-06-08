@@ -8,11 +8,13 @@ echo "Migrations applied."
 
 echo "==> Checking if seeding is needed..."
 NEEDS_SEED=$(python -c "
-import sqlite3, sys
+import sys
 try:
-    conn = sqlite3.connect('/app/backend/sql_app.db')
-    count = conn.execute(\"SELECT COUNT(*) FROM users\").fetchone()[0]
-    conn.close()
+    from backend.database import SessionLocal
+    from backend.models import User
+    db = SessionLocal()
+    count = db.query(User).count()
+    db.close()
     print('skip' if count > 3 else 'seed')
 except Exception as e:
     print('seed')

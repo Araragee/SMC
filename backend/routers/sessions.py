@@ -1446,3 +1446,147 @@ def export_sessions_ics(
             "Cache-Control": "no-cache, no-store, must-revalidate",
         },
     )
+
+
+# ── Bulk Session Action & Stats ───────────────────────────────────────────────
+
+@router.post("/sessions/bulk-action", response_model=list[schemas.Session])
+def bulk_session_action(
+    req: schemas.BulkActionRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    """Admin performs a bulk action (approve, cancel, complete) on multiple sessions."""
+    sessions = db.query(models.Session).filter(models.Session.id.in_(req.session_ids)).all()
+    if len(sessions) != len(req.session_ids):
+        found_ids = {s.id for s in sessions}
+        missing_ids = set(req.session_ids) - found_ids
+        raise HTTPException(status_code=404, detail=f"Sessions not found: {list(missing_ids)}")
+    
+    updated_sessions = []
+    
+    for s in sessions:
+        if req.action == "approve":
+            if s.status != "pending_admin":
+                raise HTTPException(status_code=409, detail=f"Session #{s.id} is not pending admin approval (status is '{s.status}')")
+            s.status = "scheduled"
+            _bump_version(s)
+            
+            dt_str = format_dt(s.start_time)
+            log_activity(db, action_type="session_approved",
+                         description=f"Admin {current_user.name} approved session #{s.id} with {s.student.name} and {s.teacher.name} on {dt_str} (bulk)",
+                         actor_id=current_user.id, actor_name=current_user.name,
+                         target_type="session", target_id=s.id)
+            notify_users(db, [s.teacher_id], f"✅ Session on {dt_str} with {s.student.name} has been approved and confirmed.")
+            notify_users(db, [s.student_id], f"🎵 Great news! Your session on {dt_str} with {s.teacher.name} is confirmed.")
+            
+        elif req.action == "complete":
+            if s.status not in ["scheduled", "overdue", "overdue_rejected", "pending_verification"]:
+                raise HTTPException(status_code=409, detail=f"Session #{s.id} cannot be completed from status '{s.status}'")
+            
+            is_force = False
+            if s.status != "pending_verification":
+                target_time = s.end_time + timedelta(hours=24)
+                if datetime.now(timezone.utc) < target_time.replace(tzinfo=timezone.utc) if target_time.tzinfo is None else target_time:
+                    raise HTTPException(status_code=400, detail=f"Cannot force complete session #{s.id} until 24 hours after its end time.")
+                is_force = True
+                s.is_force_completed = True
+            
+            s.status = "completed"
+            _bump_version(s)
+            
+            db.execute(
+                text(
+                    "UPDATE users SET sessions_left = sessions_left - 1 "
+                    "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
+                ),
+                {"uid": s.student_id},
+            )
+            
+            enrollment = db.query(models.Enrollment).filter(
+                models.Enrollment.student_id == s.student_id,
+                models.Enrollment.teacher_id == s.teacher_id
+              ).first()
+            if enrollment:
+                enrollment.sessions_used += 1
+            
+            dt_str = format_dt(s.start_time)
+            msg = f"Session from {dt_str} has been marked complete by admin."
+            if is_force:
+                msg = f"Session from {dt_str} has been force completed by admin."
+            notify_users(db, [s.teacher_id, s.student_id], ("✅ " if not is_force else "⚠️ ") + msg)
+            
+            # Notify student if low sessions
+            student = db.query(models.User).filter(models.User.id == s.student_id).first()
+            if student and student.sessions_left is not None:
+                if student.sessions_left == 0:
+                    notify_users(db, [student.id], "You have no sessions left. Please contact admin to top up your sessions.", title="⚠️ No Sessions Remaining", link="/student/dashboard")
+                    notify_users(db, get_admin_ids(db), f"{student.name} has used all their sessions. Consider scheduling a renewal.", title="⚠️ Student Out of Sessions", link="/admin/students")
+                elif student.sessions_left == 1:
+                    notify_users(db, [student.id], "You have only 1 session left. Contact admin to book more sessions soon.", title="⚠️ Last Session Remaining", link="/student/dashboard")
+            
+            action = "session_force_completed" if is_force else "session_completed"
+            log_activity(db, action_type=action,
+                         description=msg,
+                         actor_id=current_user.id, actor_name=current_user.name,
+                         target_type="session", target_id=s.id)
+                         
+        elif req.action == "cancel":
+            if s.status in TERMINAL_STATUSES and s.status != "completed":
+                raise HTTPException(status_code=409, detail=f"Session #{s.id} is already in terminal status '{s.status}'")
+            
+            if s.status == "completed":
+                student = db.query(models.User).filter(models.User.id == s.student_id).first()
+                if student and student.sessions_left is not None:
+                    student.sessions_left += 1
+                enrollment = db.query(models.Enrollment).filter(
+                    models.Enrollment.student_id == s.student_id,
+                    models.Enrollment.teacher_id == s.teacher_id
+                ).first()
+                if enrollment and enrollment.sessions_used > 0:
+                    enrollment.sessions_used -= 1
+            
+            s.status = "cancelled"
+            _bump_version(s)
+            
+            dt_str = format_dt(s.start_time)
+            log_activity(db, action_type="session_cancelled",
+                         description=f"Admin {current_user.name} cancelled session #{s.id} ({dt_str}) (bulk)",
+                         actor_id=current_user.id, actor_name=current_user.name,
+                         target_type="session", target_id=s.id)
+            notify_users(db, [s.teacher_id, s.student_id], f"❌ Session on {dt_str} has been cancelled by admin.")
+        
+        updated_sessions.append(s)
+    
+    db.commit()
+    return [map_session(s) for s in updated_sessions]
+
+
+@router.get("/sessions/stats", response_model=schemas.SessionStatsResponse)
+def get_sessions_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin)
+):
+    """Get aggregated session status counts and rate for the dashboard."""
+    total = db.query(models.Session).count()
+    completed = db.query(models.Session).filter(models.Session.status == "completed").count()
+    scheduled = db.query(models.Session).filter(models.Session.status == "scheduled").count()
+    overdue = db.query(models.Session).filter(models.Session.status.in_(["overdue", "overdue_rejected"])).count()
+    
+    pending_statuses = ["pending_teacher", "pending_student", "pending_admin", "pending_verification"]
+    pending = db.query(models.Session).filter(models.Session.status.in_(pending_statuses)).count()
+    
+    awaiting_admin = db.query(models.Session).filter(models.Session.status.in_(["pending_admin", "pending_verification"])).count()
+    
+    rate = round((completed / total) * 100) if total > 0 else 0
+    
+    return schemas.SessionStatsResponse(
+        total_sessions=total,
+        scheduled_sessions=scheduled,
+        completed_sessions=completed,
+        completion_rate=rate,
+        overdue_sessions=overdue,
+        pending_sessions=pending,
+        awaiting_admin=awaiting_admin
+    )
+

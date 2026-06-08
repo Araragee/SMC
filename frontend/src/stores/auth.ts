@@ -43,6 +43,8 @@ interface AuthState {
   refreshToken: string | null
   isLoading: boolean
   error: string | null
+  requires2FA: boolean
+  challengeToken: string | null
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -52,6 +54,8 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: initialToken ? savedRefreshToken : null,
     isLoading: false,
     error: null,
+    requires2FA: false,
+    challengeToken: null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -59,10 +63,12 @@ export const useAuthStore = defineStore('auth', {
     currentUser: (state) => state.user,
   },
   actions: {
-    async login(username: string, password: string) {
+    async login(username: string, password: string): Promise<{ requires2FA: boolean }> {
       const toast = useToastStore()
       this.isLoading = true
       this.error = null
+      this.requires2FA = false
+      this.challengeToken = null
       try {
         const formData = new URLSearchParams()
         formData.append('username', username)
@@ -73,15 +79,24 @@ export const useAuthStore = defineStore('auth', {
         })
 
         const data = response.data
-        const user = data.user
 
+        // Handle 2FA login challenge response
+        if (data.requires_2fa) {
+          this.requires2FA = true
+          this.challengeToken = data.challenge_token
+          this.isLoading = false
+          return { requires2FA: true }
+        }
+
+        const user = data.user
         this.user = {
           id: Number(user.id),
           name: user.name,
           email: user.email,
           role: (user.role?.name?.toLowerCase() || 'student') as Role,
           avatarUrl: user.avatar_url,
-          sessionsLeft: user.sessions_left
+          sessionsLeft: user.sessions_left,
+          totpEnabled: user.totp_enabled
         }
         this.token = data.access_token
         this.refreshToken = data.refresh_token ?? null
@@ -94,9 +109,113 @@ export const useAuthStore = defineStore('auth', {
         }
 
         toast.success('Welcome back!', `Signed in as ${this.user?.name}`)
+        return { requires2FA: false }
       } catch (err: any) {
         this.error = err.response?.data?.detail || err.message || 'Login failed'
         toast.error('Login failed', this.error || undefined)
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async verify2FA(code: string) {
+      const toast = useToastStore()
+      this.isLoading = true
+      this.error = null
+      try {
+        if (!this.challengeToken) {
+          throw new Error('No 2FA challenge token found')
+        }
+
+        const response = await axios.post(`${API_URL}/auth/2fa/verify`, {
+          challenge_token: this.challengeToken,
+          code
+        })
+
+        const data = response.data
+        const user = data.user
+
+        this.user = {
+          id: Number(user.id),
+          name: user.name,
+          email: user.email,
+          role: (user.role?.name?.toLowerCase() || 'student') as Role,
+          avatarUrl: user.avatar_url,
+          sessionsLeft: user.sessions_left,
+          totpEnabled: user.totp_enabled
+        }
+        this.token = data.access_token
+        this.refreshToken = data.refresh_token ?? null
+
+        if (this.token && this.user) {
+          localStorage.setItem('token', this.token)
+          localStorage.setItem('user', JSON.stringify(this.user))
+          if (this.refreshToken) localStorage.setItem('refresh_token', this.refreshToken)
+          axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+        }
+
+        this.requires2FA = false
+        this.challengeToken = null
+
+        toast.success('Welcome back!', `Signed in as ${this.user?.name}`)
+        return true
+      } catch (err: any) {
+        this.error = err.response?.data?.detail || err.message || '2FA verification failed'
+        toast.error('Verification failed', this.error || undefined)
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async setup2FA() {
+      this.isLoading = true
+      try {
+        const response = await axios.post(`${API_URL}/auth/2fa/setup`)
+        return response.data // secret, provisioning_uri, qr_code_png_base64
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.detail || 'Failed to setup 2FA'
+        useToastStore().error('Setup failed', errorMsg)
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async enable2FA(code: string) {
+      this.isLoading = true
+      try {
+        await axios.post(`${API_URL}/auth/2fa/enable`, { code })
+        if (this.user) {
+          this.user.totpEnabled = true
+          localStorage.setItem('user', JSON.stringify(this.user))
+        }
+        useToastStore().success('2FA Enabled', 'Two-factor authentication is now active.')
+        return true
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.detail || 'Failed to enable 2FA'
+        useToastStore().error('Activation failed', errorMsg)
+        throw err
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async disable2FA(password: string, code: string) {
+      this.isLoading = true
+      try {
+        await axios.post(`${API_URL}/auth/2fa/disable`, { password, code })
+        if (this.user) {
+          this.user.totpEnabled = false
+          localStorage.setItem('user', JSON.stringify(this.user))
+        }
+        useToastStore().success('2FA Disabled', 'Two-factor authentication has been deactivated.')
+        return true
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.detail || 'Failed to disable 2FA'
+        useToastStore().error('Deactivation failed', errorMsg)
+        throw err
       } finally {
         this.isLoading = false
       }
@@ -141,6 +260,8 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.token = null
       this.refreshToken = null
+      this.requires2FA = false
+      this.challengeToken = null
       localStorage.removeItem('token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
@@ -197,7 +318,8 @@ export const useAuthStore = defineStore('auth', {
           name: updatedUser.name,
           email: updatedUser.email,
           role: (updatedUser.role?.name?.toLowerCase() || this.user.role) as Role,
-          avatarUrl: updatedUser.avatar_url
+          avatarUrl: updatedUser.avatar_url,
+          totpEnabled: updatedUser.totp_enabled !== undefined ? updatedUser.totp_enabled : this.user.totpEnabled
         }
         localStorage.setItem('user', JSON.stringify(this.user))
         toast.success('Profile updated', 'Your changes have been saved.')

@@ -55,6 +55,15 @@ interface ScheduleState {
   allSessions: Session[];
   isLoading: boolean;
   error: string | null;
+  stats: {
+    totalSessions: number;
+    scheduledSessions: number;
+    completedSessions: number;
+    completionRate: number;
+    overdueSessions: number;
+    pendingSessions: number;
+    awaitingAdmin: number;
+  } | null;
 }
 
 export const useScheduleStore = defineStore('schedule', {
@@ -63,6 +72,7 @@ export const useScheduleStore = defineStore('schedule', {
     allSessions: [],
     isLoading: false,
     error: null,
+    stats: null,
   }),
   getters: {
     getScheduleByUserId: (state) => {
@@ -444,6 +454,55 @@ export const useScheduleStore = defineStore('schedule', {
         this.error = errMsg(err) || 'Failed to fetch student records';
         useToastStore().error('Load failed', this.error);
         console.error(err);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchStats() {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await axios.get(`${API_URL}/sessions/stats`, { headers: authHeaders() });
+        const data = response.data;
+        this.stats = {
+          totalSessions: data.total_sessions,
+          scheduledSessions: data.scheduled_sessions,
+          completedSessions: data.completed_sessions,
+          completionRate: data.completion_rate,
+          overdueSessions: data.overdue_sessions,
+          pendingSessions: data.pending_sessions,
+          awaitingAdmin: data.awaiting_admin,
+        };
+      } catch (err: unknown) {
+        this.error = errMsg(err) || 'Failed to fetch session stats';
+        console.error(err);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async bulkAction(sessionIds: number[], action: 'approve' | 'cancel' | 'complete') {
+      const toast = useToastStore();
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await axios.post(`${API_URL}/sessions/bulk-action`, {
+          session_ids: sessionIds,
+          action
+        }, { headers: authHeaders() });
+        
+        const updated = response.data.map(mapSession);
+        for (const s of updated) {
+          this._upsertSession(s);
+        }
+        
+        toast.success('Bulk action successful', `Successfully processed ${sessionIds.length} sessions.`);
+        await this.fetchStats(); // Update dashboard counts
+      } catch (err: unknown) {
+        this.error = errMsg(err) || 'Failed to process bulk action';
+        toast.error('Bulk action failed', this.error);
         throw err;
       } finally {
         this.isLoading = false;
