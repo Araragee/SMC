@@ -173,11 +173,11 @@ const statusClass = (status: string) => ({
 })
 
 const borderColor = (status: string) => ({
-  'border-l-emerald-500': status === 'completed',
-  'border-l-orange-500': status === 'scheduled' || status === 'pending_student',
-  'border-l-amber-500': status === 'pending_teacher' || status === 'ongoing',
-  'border-l-blue-500': status === 'pending_admin',
-  'border-l-red-500': status === 'rejected' || status === 'cancelled',
+  'border-emerald-500 dark:border-emerald-400/20': status === 'completed',
+  'border-orange-500 dark:border-orange-400/20': status === 'scheduled' || status === 'pending_student',
+  'border-amber-500 dark:border-amber-400/20': status === 'pending_teacher' || status === 'ongoing',
+  'border-blue-500 dark:border-blue-400/20': status === 'pending_admin',
+  'border-red-500 dark:border-red-400/20': status === 'rejected' || status === 'cancelled',
 })
 
 const iconClass = (status: string) => ({
@@ -696,7 +696,7 @@ const openLiveAnalytics = function () {
                   >
                 </div>
                 <div
-                  class="col-span-5 bg-black/[0.04] dark:bg-white/5 border-l-4 p-5 rounded-3xl flex items-center justify-between cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/10 transition-colors"
+                  class="col-span-5 bg-black/[0.04] dark:bg-white/5 border-y p-3 rounded-3xl flex items-center justify-between cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/10 transition-colors"
                   :class="borderColor(session.status)"
                   @click="openSessionDetail(session)"
                 >
@@ -716,7 +716,7 @@ const openLiveAnalytics = function () {
                       </p>
                     </div>
                   </div>
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-1.5">
                     <span
                       class="text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider"
                       :class="statusClass(session.status)"
@@ -958,11 +958,11 @@ const openLiveAnalytics = function () {
               </button>
             </div>
           </div>
-          <div class="space-y-4 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+          <div class="space-y-4 max-h-[400px] overflow-y-auto p-1.5 custom-scrollbar">
             <!-- System Status (always show if relevant) -->
             <div
               v-if="stats.scheduledSessions > 0"
-              class="bg-black/[0.04] dark:bg-white/5 p-5 rounded-3xl border-l-4 border-orange-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              class="bg-black/[0.04] dark:bg-white/5 p-3 rounded-3xl border-y border-orange-500/40 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-orange-500 text-xl">warning</span>
@@ -991,11 +991,11 @@ const openLiveAnalytics = function () {
             <div
               v-for="notif in notifStore.notifications"
               :key="notif.id"
-              class="bg-black/[0.04] dark:bg-white/5 p-5 rounded-3xl border-l-4 transition-all hover:bg-black/5 dark:hover:bg-white/10 relative group"
+              class="bg-black/[0.04] dark:bg-white/5 p-3 rounded-3xl border-y transition-all hover:bg-black/5 dark:hover:bg-white/10 relative group"
               :class="[
                 notif.isRead
                   ? 'border-zinc-500 opacity-60'
-                  : 'border-primary ring-1 ring-primary/10 shadow-lg shadow-primary/5',
+                  : 'border-primary/30 ring-1 ring-primary/10 shadow-lg shadow-primary/5',
               ]"
             >
               <div class="flex gap-4">

@@ -14,6 +14,12 @@ trap cleanup EXIT INT TERM
 echo "🐳  Ensuring Postgres container is running..."
 docker compose up -d db
 
+echo "⏳  Waiting for Postgres to accept connections..."
+until docker compose exec db pg_isready -U smc -d smc >/dev/null 2>&1; do
+  sleep 0.5
+done
+echo "✅  Postgres is ready!"
+
 # ── Start Backend ─────────────────────────────────────────────────────────────
 echo "🚀  Starting Backend on http://localhost:8000..."
 "$SCRIPT_DIR/backend/venv/bin/python" -m uvicorn backend.main:app --reload --port 8000 &

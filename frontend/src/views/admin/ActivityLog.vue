@@ -316,11 +316,10 @@ function timeAgo(dateStr: string) {
           <div
             v-for="entry in entries"
             :key="entry.id"
-            class="glass-heavy rounded-3xl px-5 py-4 border border-outline-variant/30 flex gap-4 items-start hover:border-violet-500/20 transition-all sm:ml-12"
+            class="glass-heavy rounded-3xl px-5 py-4 border border-outline-variant/30 flex gap-3 items-start hover:border-violet-500/20 transition-all sm:ml-12"
           >
-            <!-- Icon bubble (positioned over the timeline line) -->
             <div
-              class="hidden sm:flex absolute -left-[3px] w-11 h-11 rounded-full border-2 border-surface-container-low items-center justify-center shrink-0"
+              class="hidden sm:flex w-8 h-8 rounded-full border-2 border-surface-container-low items-center justify-center shrink-0"
               :class="actionColor(entry.action_type)"
             >
               <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1">{{
