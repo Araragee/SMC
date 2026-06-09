@@ -8,6 +8,11 @@ import App from '@/App.vue'
 import router from '@/router'
 import { useThemeStore } from '@stores/theme'
 
+// Phase 2: the refresh token is delivered as an HttpOnly cookie. Cookies
+// only ride along on cross-origin requests when withCredentials is true.
+// Backend CORS already sets allow_credentials=true (backend/main.py).
+axios.defaults.withCredentials = true
+
 // Restore axios auth header from persisted token on every app boot
 const token = localStorage.getItem('token')
 if (token) {

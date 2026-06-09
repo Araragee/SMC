@@ -2,19 +2,20 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import models
 
 # Load .env from the backend directory
 from .config import settings
 from .database import SessionLocal
-from .routers import activity, auth, messaging, notifications, payments, push, sessions, shop, users
+from .routers import activity, auth, messaging, notifications, payments, push, sessions, shop, uploads, users
 from .routers.sessions import session_checker_task
 
 # Rate limiter shared with routers (e.g. login endpoint).
@@ -54,6 +55,9 @@ def _seed_defaults() -> None:
                 hashed_password=hashed_password,
                 role_id=admin_role.id,
                 is_active=True,
+                # Force the operator to rotate the .env default on first login.
+                # Frontend redirects to /change-password whenever this flag is set.
+                must_change_password=True,
             ))
             db.commit()
             print(f"Default admin user created: {settings.DEFAULT_ADMIN_USERNAME} / [see DEFAULT_ADMIN_PASSWORD in .env]")
@@ -111,7 +115,14 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# Public assets only — shop product images are non-sensitive and benefit
+# from StaticFiles' efficient streaming. Sensitive subdirectories
+# (``proofs``, ``homework``) are served by the auth-gated router below,
+# which requires both a valid HMAC-signed URL and an authenticated
+# admin/participant. See backend/routers/uploads.py and
+# backend/utils/signed_urls.py for the full contract.
+os.makedirs("uploads/shop", exist_ok=True)
+app.mount("/uploads/shop", StaticFiles(directory="uploads/shop"), name="uploads_shop")
 
 app.add_middleware(
     CORSMiddleware,
@@ -120,6 +131,52 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept"],
 )
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Attach a baseline set of security headers to every response.
+
+    These don't replace a real reverse-proxy / CDN config but they're the
+    minimum we should ship from the app itself so a misconfigured proxy
+    doesn't leave us completely exposed:
+
+      * X-Content-Type-Options: blocks MIME sniffing (defense against
+        the browser interpreting an uploaded PNG as JS).
+      * X-Frame-Options: forbids embedding in an iframe (clickjacking).
+      * Referrer-Policy: stops the browser from leaking the full app URL
+        (which can include session IDs in query strings) to third parties.
+      * Strict-Transport-Security: when running behind HTTPS, instruct the
+        browser to refuse plaintext. Only emit it if the request actually
+        came in over TLS — otherwise modern browsers warn.
+      * Content-Security-Policy: a conservative starter policy. ``unsafe-inline``
+        is kept on style/script because the SPA still ships inline styles
+        from Vue's runtime; tighten as the front-end is hardened.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        if request.url.scheme == "https":
+            response.headers.setdefault(
+                "Strict-Transport-Security",
+                "max-age=31536000; includeSubDomains",
+            )
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; "
+            "img-src 'self' data: blob:; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "script-src 'self'; "
+            "connect-src 'self' ws: wss:; "
+            "frame-ancestors 'none'",
+        )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Include routers
 app.include_router(users.router)
@@ -131,6 +188,7 @@ app.include_router(shop.router, prefix="/shop", tags=["shop"])
 app.include_router(activity.router, prefix="/activity-log", tags=["activity"])
 app.include_router(auth.router)
 app.include_router(push.router)
+app.include_router(uploads.router)
 
 @app.get("/")
 def read_root():

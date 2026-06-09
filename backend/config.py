@@ -53,6 +53,16 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
+    # Refresh-token cookie (Phase 2).
+    # The refresh token used to live in localStorage on the frontend — any XSS
+    # equalled full account takeover. It now lives in an HttpOnly + SameSite
+    # cookie. In dev (HTTP) Secure must be False or browsers drop the cookie.
+    # Production should set REFRESH_COOKIE_SECURE=true and serve over HTTPS.
+    REFRESH_COOKIE_NAME: str = "smc_rt"
+    REFRESH_COOKIE_PATH: str = "/auth"           # only sent to /auth/* endpoints
+    REFRESH_COOKIE_SECURE: bool = False          # set to True behind HTTPS
+    REFRESH_COOKIE_SAMESITE: str = "lax"         # "lax" | "strict" | "none"
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), ".env"),
         env_file_encoding="utf-8",

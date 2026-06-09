@@ -53,6 +53,44 @@ const router = createRouter({
         }
       ]
     },
+    {
+      // Phase 2 password-reset flow: both pages re-use AuthLayout so they
+      // share the marketing/background chrome but skip the auth gate.
+      path: '/forgot-password',
+      component: () => import('@layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'forgot-password',
+          component: () => import('@views/ForgotPassword.vue'),
+          meta: { requiresAuth: false },
+        },
+      ],
+    },
+    {
+      path: '/reset-password',
+      component: () => import('@layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'reset-password',
+          component: () => import('@views/ResetPassword.vue'),
+          meta: { requiresAuth: false },
+        },
+      ],
+    },
+    {
+      path: '/change-password',
+      component: () => import('@layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'change-password',
+          component: () => import('@views/ChangePassword.vue'),
+          meta: { requiresAuth: true },
+        },
+      ],
+    },
     // Admin Routes
     {
       path: '/admin',
@@ -114,6 +152,21 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore()
+
+  // Phase 2: if the user has the must_change_password flag set, they
+  // cannot navigate anywhere except /change-password (or out via the
+  // public auth flows). This catches the default-admin first-login and
+  // any admin-initiated forced reset.
+  if (
+    auth.isAuthenticated &&
+    auth.user?.mustChangePassword &&
+    to.path !== '/change-password' &&
+    to.path !== '/login' &&
+    to.path !== '/forgot-password' &&
+    to.path !== '/reset-password'
+  ) {
+    return next('/change-password')
+  }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')

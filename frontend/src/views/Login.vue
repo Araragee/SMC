@@ -72,6 +72,14 @@ const on2FAVerified = () => {
               <span class="relative z-10">{{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}</span>
               <div class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>
+            <div class="text-center">
+              <router-link
+                to="/forgot-password"
+                class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors"
+              >
+                Forgot your password?
+              </router-link>
+            </div>
           </form>        </div>
       </div>
     </div>

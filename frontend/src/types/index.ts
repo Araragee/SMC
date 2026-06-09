@@ -40,6 +40,9 @@ export interface User {
   homeAddress?: string;
   instruments?: InstrumentRecord[];
   totpEnabled?: boolean;
+  /** Phase 2: when true, router gate forces the user to /change-password
+   *  before they can navigate to any role dashboard. */
+  mustChangePassword?: boolean;
 
   // Specific to students
   sessionsLeft?: number;

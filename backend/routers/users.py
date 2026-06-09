@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -26,16 +26,26 @@ limiter = Limiter(key_func=get_remote_address)
 MAX_FAILED_LOGINS = 5
 LOCKOUT_MINUTES = 15
 
-@router.get("/debug/users", include_in_schema=settings.DEBUG)
-def debug_users(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    if not settings.DEBUG:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-    users = db.query(models.User).all()
-    return [{"email": u.email, "role": u.role.name if u.role else None} for u in users]
+# NOTE: ``/debug/users`` is conditionally registered below — when DEBUG is
+# False the route never enters the FastAPI routing table at all (used to
+# just be hidden from OpenAPI, which left a working curl-able endpoint).
+if settings.DEBUG:
+    @router.get("/debug/users")
+    def debug_users(
+        db: Session = Depends(get_db),
+        current_user: models.User = Depends(require_admin),
+    ):
+        users = db.query(models.User).all()
+        return [{"email": u.email, "role": u.role.name if u.role else None} for u in users]
 
 @router.post("/login")
 @limiter.limit("10/minute")
-def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    request: Request,
+    response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
     user = db.query(models.User).filter(
         (models.User.username == form_data.username) |
         (models.User.email == form_data.username)
@@ -90,8 +100,11 @@ def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db
         from .auth import issue_2fa_challenge
         return {"requires_2fa": True, "challenge_token": issue_2fa_challenge(user.id)}
 
-    from .auth import build_token_pair
-    pair = build_token_pair(db, user)
+    # Note: build_token_pair_with_cookie sets the HttpOnly refresh cookie on
+    # ``response`` AND returns the token in the body. The body copy remains
+    # for non-browser clients; new browser tabs use the cookie automatically.
+    from .auth import build_token_pair_with_cookie
+    pair = build_token_pair_with_cookie(db, user, response)
     return pair.model_dump()
 
 from .activity import log_activity
@@ -99,7 +112,12 @@ from ..utils.uploads import save_upload
 
 
 @router.post("/users/")
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+def create_user(
+    user: schemas.UserCreate,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
     db_user_email = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user_email:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -151,8 +169,10 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current
 
     safe_notify("send_welcome", db_user, password)
 
-    from .auth import build_token_pair
-    return build_token_pair(db, db_user).model_dump()
+    # New users get the HttpOnly cookie immediately so the SPA never has to
+    # touch the refresh token directly.
+    from .auth import build_token_pair_with_cookie
+    return build_token_pair_with_cookie(db, db_user, response).model_dump()
 
 @router.put("/users/{user_id}", response_model=schemas.User)
 @limiter.limit("10/minute")

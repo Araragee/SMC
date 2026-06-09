@@ -4,8 +4,19 @@ import type { User, Role } from '@types'
 import { useToastStore } from '@stores/toast'
 import { API_URL } from '@typescript/constants'
 
+// Phase 2: refresh token lives in an HttpOnly cookie now. We need
+// axios to send cookies on cross-origin requests, otherwise the browser
+// will strip them. Backend CORS must also have allow_credentials=true
+// (already set in backend/main.py).
+axios.defaults.withCredentials = true
+
 const savedToken = localStorage.getItem('token')
-const savedRefreshToken = localStorage.getItem('refresh_token')
+// Legacy localStorage refresh token — read once at boot for the migration
+// window. New logins do NOT write this; the value here is a vestige from
+// pre-Phase 2 sessions and is naturally retired the next time the user
+// signs in/out. We never SEND it anywhere — the HttpOnly cookie is the
+// source of truth.
+const _legacyRefreshToken = localStorage.getItem('refresh_token')
 const rawSavedUser = localStorage.getItem('user')
 
 // Safely hydrate the persisted user. If JSON is malformed or required
@@ -51,7 +62,9 @@ export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     user: initialUser,
     token: initialToken,
-    refreshToken: initialToken ? savedRefreshToken : null,
+    // Hidden behind the cookie now. Kept as a state slot only so other
+    // store consumers don't break on undefined access during the migration.
+    refreshToken: null,
     isLoading: false,
     error: null,
     requires2FA: false,
@@ -96,15 +109,20 @@ export const useAuthStore = defineStore('auth', {
           role: (user.role?.name?.toLowerCase() || 'student') as Role,
           avatarUrl: user.avatar_url,
           sessionsLeft: user.sessions_left,
-          totpEnabled: user.totp_enabled
+          totpEnabled: user.totp_enabled,
+          mustChangePassword: !!user.must_change_password,
         }
         this.token = data.access_token
-        this.refreshToken = data.refresh_token ?? null
+        // The refresh token is set as an HttpOnly cookie by the server.
+        // We intentionally do NOT persist it in localStorage — that was
+        // the XSS hole this phase closes.
+        this.refreshToken = null
 
         if (this.token && this.user) {
           localStorage.setItem('token', this.token)
           localStorage.setItem('user', JSON.stringify(this.user))
-          if (this.refreshToken) localStorage.setItem('refresh_token', this.refreshToken)
+          // Purge any leftover legacy refresh token from pre-Phase 2 logins.
+          localStorage.removeItem('refresh_token')
           axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
         }
 
@@ -143,10 +161,12 @@ export const useAuthStore = defineStore('auth', {
           role: (user.role?.name?.toLowerCase() || 'student') as Role,
           avatarUrl: user.avatar_url,
           sessionsLeft: user.sessions_left,
-          totpEnabled: user.totp_enabled
+          totpEnabled: user.totp_enabled,
+          mustChangePassword: !!user.must_change_password,
         }
         this.token = data.access_token
-        this.refreshToken = data.refresh_token ?? null
+        // Same story as login(): refresh token lives in the HttpOnly cookie.
+        this.refreshToken = null
 
         if (this.token && this.user) {
           localStorage.setItem('token', this.token)
@@ -224,6 +244,17 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       const toast = useToastStore()
 
+      // Best-effort: tell the server to revoke the refresh token and clear
+      // the cookie. We don't wait long or surface errors here — even if the
+      // server is down we still want to wipe local state.
+      try {
+        await axios.post(
+          `${API_URL}/auth/logout`,
+          {},
+          { withCredentials: true, timeout: 3000, headers: { Authorization: undefined } }
+        )
+      } catch { /* offline / 401 — local cleanup proceeds either way */ }
+
       // Tear down feature stores. Dynamic imports avoid circular deps and
       // keep auth importable from any store. `$reset()` is available on
       // Options-API Pinia stores (all stores here use that style).
@@ -269,27 +300,35 @@ export const useAuthStore = defineStore('auth', {
       toast.info('Signed out', 'See you next time!')
     },
 
-    /** Silently rotate the access token using the stored refresh token.
-     *  Returns true on success, false if the refresh token is missing or rejected. */
+    /** Silently rotate the access token using the HttpOnly refresh cookie.
+     *  Returns true on success, false if the cookie is missing or rejected.
+     *
+     *  No body is sent: the server reads the refresh token from the
+     *  ``smc_rt`` cookie (set on login / 2FA-verify / previous refresh)
+     *  and writes a fresh one on the way back. ``withCredentials`` is the
+     *  axios flag that lets the browser attach the cookie at all. */
     async refreshAccessToken(): Promise<boolean> {
-      if (!this.refreshToken) return false
       try {
         const response = await axios.post(
           `${API_URL}/auth/refresh`,
-          { refresh_token: this.refreshToken },
-          // Skip the default Authorization header — the refresh token IS the credential
-          { headers: { Authorization: undefined } }
+          {},
+          {
+            withCredentials: true,
+            // Skip the stale Authorization header — the cookie IS the credential
+            headers: { Authorization: undefined },
+          }
         )
         this.token = response.data.access_token
-        this.refreshToken = response.data.refresh_token ?? this.refreshToken
+        this.refreshToken = null
         if (this.token) {
           localStorage.setItem('token', this.token)
-          if (this.refreshToken) localStorage.setItem('refresh_token', this.refreshToken)
+          // Make sure no stale localStorage refresh token survives a refresh.
+          localStorage.removeItem('refresh_token')
           axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
         }
         return true
       } catch {
-        // Refresh token revoked / expired — force full logout
+        // Refresh cookie missing / revoked / expired — force full logout
         await this.logout()
         return false
       }
