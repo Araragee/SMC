@@ -173,6 +173,7 @@ class Enrollment(Base):
     teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
     sessions_purchased = Column(Integer, default=0)
     sessions_used = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True, server_default="1")
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
 
     student = relationship("User", foreign_keys=[student_id])

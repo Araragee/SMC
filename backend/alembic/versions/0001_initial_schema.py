@@ -117,6 +117,7 @@ def upgrade() -> None:
         sa.Column('teacher_id', sa.Integer, sa.ForeignKey('users.id'), index=True),
         sa.Column('sessions_purchased', sa.Integer, default=0),
         sa.Column('sessions_used', sa.Integer, default=0),
+        sa.Column('is_active', sa.Boolean, nullable=False, server_default='1'),
         sa.Column('created_at', sa.DateTime),
     )
 

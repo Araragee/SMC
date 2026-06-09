@@ -229,143 +229,192 @@ _last_token_purge: datetime | None = None
 async def session_checker_task():
     global _last_token_purge
     while True:
-        # Off-hours back-off: 00:00–06:00 UTC → 5 min intervals to reduce DB churn.
-        _hour = datetime.now(timezone.utc).hour
-        sleep_interval = 300 if _hour < 6 else 60
-
-        db = SessionLocal()
         try:
-            now = datetime.now(timezone.utc)
+            # Off-hours back-off: 00:00–06:00 UTC → 5 min intervals to reduce DB churn.
+            _hour = datetime.now(timezone.utc).hour
+            sleep_interval = 300 if _hour < 6 else 60
 
-            # ── Daily token purge ─────────────────────────────────────────────
-            if _last_token_purge is None or (now - _last_token_purge).total_seconds() >= 86400:
-                from .. import models as _m
-                deleted_refresh = (
-                    db.query(_m.RefreshToken)
-                    .filter((_m.RefreshToken.revoked == True) | (_m.RefreshToken.expires_at < now))
-                    .delete(synchronize_session=False)
-                )
-                deleted_reset = (
-                    db.query(_m.PasswordResetToken)
-                    .filter(_m.PasswordResetToken.expires_at < now)
-                    .delete(synchronize_session=False)
-                )
-                db.commit()
-                _last_token_purge = now
-                if deleted_refresh or deleted_reset:
-                    logger.info("Daily token purge: removed %d refresh, %d reset token(s).", deleted_refresh, deleted_reset)
-                else:
-                    logger.info("Daily token purge: nothing to remove.")
+            db = SessionLocal()
+            try:
+                now = datetime.now(timezone.utc)
 
-            # ── Stale-state reminders ─────────────────────────────────────────
-            # Always run, regardless of whether any "scheduled" sessions exist,
-            # because pending_verification / overdue_rejected sessions are
-            # independent of the scheduled-only gate below.
-            STALE_THRESHOLD_HOURS = settings.STALE_THRESHOLD_HOURS
-            stale_cutoff = now - timedelta(hours=STALE_THRESHOLD_HOURS)
-            REMINDER_COOLDOWN_HOURS = settings.REMINDER_COOLDOWN_HOURS
-
-            stale_sessions = db.query(models.Session).filter(
-                models.Session.status.in_(["pending_verification", "overdue_rejected"]),
-                models.Session.updated_at < stale_cutoff,
-                # Only send if we haven't reminded within the cooldown window
-                (
-                    (models.Session.stale_reminded_at == None) |
-                    (models.Session.stale_reminded_at < now - timedelta(hours=REMINDER_COOLDOWN_HOURS))
-                ),
-            ).all()
-
-            for s in stale_sessions:
-                dt_str = format_dt(s.start_time)
-                if s.status == "pending_verification":
-                    notify_users(
-                        db,
-                        [s.teacher_id, s.student_id],
-                        f"Reminder: Session proof for {dt_str} has been waiting for admin review for over {STALE_THRESHOLD_HOURS}h. An admin will action it soon.",
+                # ── Daily token and notification purge, and drift recalculation ──────────────────
+                if _last_token_purge is None or (now - _last_token_purge).total_seconds() >= 86400:
+                    from .. import models as _m
+                    deleted_refresh = (
+                        db.query(_m.RefreshToken)
+                        .filter((_m.RefreshToken.revoked == True) | (_m.RefreshToken.expires_at < now))
+                        .delete(synchronize_session=False)
                     )
-                    # Also ping admins so they know a proof is waiting
-                    notify_users(
-                        db,
-                        get_admin_ids(db),
-                        f"Action Required: Session #{s.id} ({dt_str}) proof has been pending your review for over {STALE_THRESHOLD_HOURS}h.",
+                    deleted_reset = (
+                        db.query(_m.PasswordResetToken)
+                        .filter(_m.PasswordResetToken.expires_at < now)
+                        .delete(synchronize_session=False)
                     )
-                elif s.status == "overdue_rejected":
-                    notify_users(
-                        db,
-                        [s.teacher_id, s.student_id],
-                        f"Reminder: Session proof for {dt_str} was rejected over {STALE_THRESHOLD_HOURS}h ago. Please re-upload your proof.",
+                    
+                    # 90-day Notification purge
+                    deleted_notifications = (
+                        db.query(_m.Notification)
+                        .filter(_m.Notification.created_at < now - timedelta(days=90))
+                        .delete(synchronize_session=False)
                     )
 
-                s.stale_reminded_at = now
+                    # Nightly drift recalculation
+                    students = db.query(_m.User).join(_m.Role).filter(_m.Role.name.lower() == "student").all()
+                    drift_detected = False
+                    for student in students:
+                        enrollments = db.query(_m.Enrollment).filter(_m.Enrollment.student_id == student.id, _m.Enrollment.is_active == True).all()
+                        recalculated = sum(max(0, e.sessions_purchased - e.sessions_used) for e in enrollments)
+                        old_value = student.sessions_left or 0
+                        if old_value != recalculated:
+                            student.sessions_left = recalculated
+                            drift_detected = True
+                            log_activity(
+                                db,
+                                action_type="sessions_recalculated",
+                                description=f"System nightly cleanup recalculated sessions_left for {student.name}: {old_value} → {recalculated}",
+                                target_type="user",
+                                target_id=student.id,
+                            )
+                    
+                    db.commit()
+                    _last_token_purge = now
+                    
+                    if deleted_refresh or deleted_reset or deleted_notifications:
+                        logger.info("Daily token purge: removed %d refresh, %d reset token(s), %d notifications.", deleted_refresh, deleted_reset, deleted_notifications)
+                    else:
+                        logger.info("Daily token purge: nothing to remove.")
+                        
+                    if drift_detected:
+                        notify_users(db, get_admin_ids(db), "⚠️ Nightly cleanup detected and resolved session credit drift for one or more students.")
 
-            if stale_sessions:
-                db.commit()
+                # ── Stale-state reminders ─────────────────────────────────────────
+                # Always run, regardless of whether any "scheduled" sessions exist,
+                # because pending_verification / overdue_rejected sessions are
+                # independent of the scheduled-only gate below.
+                STALE_THRESHOLD_HOURS = settings.STALE_THRESHOLD_HOURS
+                stale_cutoff = now - timedelta(hours=STALE_THRESHOLD_HOURS)
+                REMINDER_COOLDOWN_HOURS = settings.REMINDER_COOLDOWN_HOURS
 
-            # ── Scheduled-session reminders & overdue transition ──────────────
-            # Short-circuit: skip these queries when there are no "scheduled"
-            # sessions — avoids unnecessary DB load when the calendar is empty.
-            has_scheduled = db.query(
-                db.query(models.Session).filter(
-                    models.Session.status == "scheduled"
-                ).exists()
-            ).scalar()
-
-            if has_scheduled:
-                # Check for 24h notifications
-                target_24h = now + timedelta(hours=24)
-                sessions_24h = db.query(models.Session).filter(
-                    models.Session.status == "scheduled",
-                    models.Session.start_time <= target_24h,
-                    models.Session.start_time > now,
-                    models.Session.notified_24h == False
+                stale_sessions = db.query(models.Session).filter(
+                    models.Session.status.in_(["pending_verification", "overdue_rejected", "pending_teacher", "pending_student", "pending_admin"]),
+                    models.Session.updated_at < stale_cutoff,
+                    # Only send if we haven't reminded within the cooldown window
+                    (
+                        (models.Session.stale_reminded_at == None) |
+                        (models.Session.stale_reminded_at < now - timedelta(hours=REMINDER_COOLDOWN_HOURS))
+                    ),
                 ).all()
-                for s in sessions_24h:
+
+                for s in stale_sessions:
                     dt_str = format_dt(s.start_time)
-                    notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session scheduled in ~24h on {dt_str}.")
-                    s.notified_24h = True
-                    # Don't bump version for notification-only updates — avoids spurious 409s
-                    # on active frontend tabs when the checker loop runs.
+                    if s.status == "pending_verification":
+                        notify_users(
+                            db,
+                            [s.teacher_id, s.student_id],
+                            f"Reminder: Session proof for {dt_str} has been waiting for admin review for over {STALE_THRESHOLD_HOURS}h. An admin will action it soon.",
+                        )
+                        # Also ping admins so they know a proof is waiting
+                        notify_users(
+                            db,
+                            get_admin_ids(db),
+                            f"Action Required: Session #{s.id} ({dt_str}) proof has been pending your review for over {STALE_THRESHOLD_HOURS}h.",
+                        )
+                    elif s.status == "overdue_rejected":
+                        notify_users(
+                            db,
+                            [s.teacher_id, s.student_id],
+                            f"Reminder: Session proof for {dt_str} was rejected over {STALE_THRESHOLD_HOURS}h ago. Please re-upload your proof.",
+                        )
+                    elif s.status == "pending_teacher":
+                        notify_users(
+                            db,
+                            [s.teacher_id],
+                            f"Reminder: Session request with student for {dt_str} is pending your approval for over {STALE_THRESHOLD_HOURS}h.",
+                        )
+                    elif s.status == "pending_student":
+                        notify_users(
+                            db,
+                            [s.student_id],
+                            f"Reminder: Counter-proposal for session on {dt_str} is pending your response for over {STALE_THRESHOLD_HOURS}h.",
+                        )
+                    elif s.status == "pending_admin":
+                        notify_users(
+                            db,
+                            get_admin_ids(db),
+                            f"Reminder: Session #{s.id} for {dt_str} is pending admin approval for over {STALE_THRESHOLD_HOURS}h.",
+                        )
 
-                # Check for 12h notifications
-                target_12h = now + timedelta(hours=12)
-                sessions_12h = db.query(models.Session).filter(
-                    models.Session.status == "scheduled",
-                    models.Session.start_time <= target_12h,
-                    models.Session.start_time > now,
-                    models.Session.notified_12h == False
-                ).all()
-                for s in sessions_12h:
-                    dt_str = format_dt(s.start_time)
-                    notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session schedule nearing! ~12h left for {dt_str}.")
-                    s.notified_12h = True
-                    # Don't bump version — notification-only update, same reasoning as 24h block.
+                    s.stale_reminded_at = now
 
-                # Check for overdue sessions (end_time in the past)
-                overdue_sessions = db.query(models.Session).filter(
-                    models.Session.status == "scheduled",
-                    models.Session.end_time < now
-                ).all()
-                for s in overdue_sessions:
-                    dt_str = format_dt(s.start_time)
-                    s.status = "overdue"
-                    _bump_version(s)
-                    notify_users(db, [s.teacher_id, s.student_id], f"Action Required: Session from {dt_str} is overdue. Please upload proofs or mark complete.")
-                    log_activity(
-                        db,
-                        action_type="session_overdue",
-                        description=f"Session #{s.id} on {dt_str} automatically marked overdue.",
-                        target_type="session",
-                        target_id=s.id,
-                    )
+                if stale_sessions:
+                    db.commit()
 
-                db.commit()
+                # ── Scheduled-session reminders & overdue transition ──────────────
+                # Short-circuit: skip these queries when there are no "scheduled"
+                # sessions — avoids unnecessary DB load when the calendar is empty.
+                has_scheduled = db.query(
+                    db.query(models.Session).filter(
+                        models.Session.status == "scheduled"
+                    ).exists()
+                ).scalar()
 
-        except Exception as e:
-            logger.error("Error in session_checker_task: %s", e, exc_info=True)
-            db.rollback()
-        finally:
-            db.close()
-        await asyncio.sleep(sleep_interval)
+                if has_scheduled:
+                    # Check for 24h notifications
+                    target_24h = now + timedelta(hours=24)
+                    sessions_24h = db.query(models.Session).filter(
+                        models.Session.status == "scheduled",
+                        models.Session.start_time <= target_24h,
+                        models.Session.start_time > now,
+                        models.Session.notified_24h == False
+                    ).all()
+                    for s in sessions_24h:
+                        dt_str = format_dt(s.start_time)
+                        notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session scheduled in ~24h on {dt_str}.")
+                        s.notified_24h = True
+
+                    # Check for 12h notifications
+                    target_12h = now + timedelta(hours=12)
+                    sessions_12h = db.query(models.Session).filter(
+                        models.Session.status == "scheduled",
+                        models.Session.start_time <= target_12h,
+                        models.Session.start_time > now,
+                        models.Session.notified_12h == False
+                    ).all()
+                    for s in sessions_12h:
+                        dt_str = format_dt(s.start_time)
+                        notify_users(db, [s.teacher_id, s.student_id], f"Reminder: Session schedule nearing! ~12h left for {dt_str}.")
+                        s.notified_12h = True
+
+                    # Check for overdue sessions (end_time in the past)
+                    overdue_sessions = db.query(models.Session).filter(
+                        models.Session.status == "scheduled",
+                        models.Session.end_time < now
+                    ).all()
+                    for s in overdue_sessions:
+                        dt_str = format_dt(s.start_time)
+                        s.status = "overdue"
+                        _bump_version(s)
+                        notify_users(db, [s.teacher_id, s.student_id], f"Action Required: Session from {dt_str} is overdue. Please upload proofs or mark complete.")
+                        log_activity(
+                            db,
+                            action_type="session_overdue",
+                            description=f"Session #{s.id} on {dt_str} automatically marked overdue.",
+                            target_type="session",
+                            target_id=s.id,
+                        )
+
+                    db.commit()
+
+            except Exception as e:
+                logger.error("Error in session_checker_task iteration: %s", e, exc_info=True)
+                db.rollback()
+            finally:
+                db.close()
+            await asyncio.sleep(sleep_interval)
+        except Exception as outer_e:
+            logger.critical("CRITICAL: session_checker_task crashed: %s. Restarting in 60s.", outer_e, exc_info=True)
+            await asyncio.sleep(60)
 
 # --- Endpoints ---
 
@@ -409,10 +458,18 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     )
     enrollment = db.query(models.Enrollment).filter(
         models.Enrollment.student_id == db_session.student_id,
-        models.Enrollment.teacher_id == db_session.teacher_id
-    ).first()
+        models.Enrollment.teacher_id == db_session.teacher_id,
+        models.Enrollment.is_active == True
+    ).order_by(models.Enrollment.id.desc()).first()
     if enrollment:
-        enrollment.sessions_used += 1
+        db.execute(
+            text(
+                "UPDATE enrollments SET sessions_used = sessions_used + 1 "
+                "WHERE id = :eid"
+            ),
+            {"eid": enrollment.id},
+        )
+        db.expire(enrollment, ["sessions_used"])
     db.commit()
     # Re-query student so sessions_left reflects the DB value after the raw UPDATE
     student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
@@ -685,6 +742,16 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
     dt_str = format_dt(db_session.start_time)
 
     if db_session.status == "completed":
+        now = datetime.now(timezone.utc)
+        start_time = db_session.start_time
+        if start_time.tzinfo is None:
+            start_time = start_time.replace(tzinfo=timezone.utc)
+        if (now - start_time).days >= 30:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot delete completed session older than 30 days. Edit the audit log instead.",
+            )
+
         student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
         if student and student.sessions_left is not None:
             student.sessions_left += 1
@@ -692,9 +759,16 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
         enrollment = db.query(models.Enrollment).filter(
             models.Enrollment.student_id == db_session.student_id,
             models.Enrollment.teacher_id == db_session.teacher_id
-        ).first()
+        ).order_by(models.Enrollment.id.desc()).first()
         if enrollment and enrollment.sessions_used > 0:
-            enrollment.sessions_used -= 1
+            db.execute(
+                text(
+                    "UPDATE enrollments SET sessions_used = sessions_used - 1 "
+                    "WHERE id = :eid AND sessions_used > 0"
+                ),
+                {"eid": enrollment.id},
+            )
+            db.expire(enrollment, ["sessions_used"])
 
     log_activity(
         db,
@@ -1347,10 +1421,18 @@ def complete_session_as_admin(
 
     enrollment = db.query(models.Enrollment).filter(
         models.Enrollment.student_id == db_session.student_id,
-        models.Enrollment.teacher_id == db_session.teacher_id
-    ).first()
+        models.Enrollment.teacher_id == db_session.teacher_id,
+        models.Enrollment.is_active == True
+    ).order_by(models.Enrollment.id.desc()).first()
     if enrollment:
-        enrollment.sessions_used += 1
+        db.execute(
+            text(
+                "UPDATE enrollments SET sessions_used = sessions_used + 1 "
+                "WHERE id = :eid"
+            ),
+            {"eid": enrollment.id},
+        )
+        db.expire(enrollment, ["sessions_used"])
 
     db.commit()
     # Refresh student after the raw UPDATE so ORM object reflects DB value
@@ -1426,6 +1508,7 @@ def read_student_enrollments(student_id: int, db: Session = Depends(get_db), cur
 @router.delete("/enrollments/{enrollment_id}", status_code=204)
 def delete_enrollment(
     enrollment_id: int,
+    force: bool = Query(False),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
@@ -1433,6 +1516,12 @@ def delete_enrollment(
     enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
     if not enrollment:
         raise HTTPException(status_code=404, detail="Enrollment not found")
+
+    if enrollment.sessions_used > 0 and not force:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete enrollment with active usage history. Use force=true to soft-delete."
+        )
 
     remaining = max(0, enrollment.sessions_purchased - enrollment.sessions_used)
     student = db.query(models.User).filter(models.User.id == enrollment.student_id).first()
@@ -1445,7 +1534,7 @@ def delete_enrollment(
         db,
         action_type="enrollment_deleted",
         description=(
-            f"Admin {current_user.name} removed enrollment #{enrollment_id} "
+            f"Admin {current_user.name} {'soft-' if enrollment.sessions_used > 0 else ''}removed enrollment #{enrollment_id} "
             f"for student {student.name if student else enrollment.student_id} "
             f"with teacher {teacher.name if teacher else enrollment.teacher_id} "
             f"({remaining} unused sessions rolled back)"
@@ -1456,7 +1545,10 @@ def delete_enrollment(
         target_id=enrollment_id,
     )
 
-    db.delete(enrollment)
+    if enrollment.sessions_used > 0:
+        enrollment.is_active = False
+    else:
+        db.delete(enrollment)
     db.commit()
     return None
 
@@ -1471,7 +1563,7 @@ def recalculate_student_sessions(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()
+    enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id, models.Enrollment.is_active == True).all()
     recalculated = sum(
         max(0, e.sessions_purchased - e.sessions_used) for e in enrollments
     )
@@ -1753,10 +1845,18 @@ def bulk_session_action(
             
             enrollment = db.query(models.Enrollment).filter(
                 models.Enrollment.student_id == s.student_id,
-                models.Enrollment.teacher_id == s.teacher_id
-              ).first()
+                models.Enrollment.teacher_id == s.teacher_id,
+                models.Enrollment.is_active == True
+            ).order_by(models.Enrollment.id.desc()).first()
             if enrollment:
-                enrollment.sessions_used += 1
+                db.execute(
+                    text(
+                        "UPDATE enrollments SET sessions_used = sessions_used + 1 "
+                        "WHERE id = :eid"
+                    ),
+                    {"eid": enrollment.id},
+                )
+                db.expire(enrollment, ["sessions_used"])
             
             dt_str = format_dt(s.start_time)
             msg = f"Session from {dt_str} has been marked complete by admin."
@@ -1790,9 +1890,16 @@ def bulk_session_action(
                 enrollment = db.query(models.Enrollment).filter(
                     models.Enrollment.student_id == s.student_id,
                     models.Enrollment.teacher_id == s.teacher_id
-                ).first()
+                ).order_by(models.Enrollment.id.desc()).first()
                 if enrollment and enrollment.sessions_used > 0:
-                    enrollment.sessions_used -= 1
+                    db.execute(
+                        text(
+                            "UPDATE enrollments SET sessions_used = sessions_used - 1 "
+                            "WHERE id = :eid AND sessions_used > 0"
+                        ),
+                        {"eid": enrollment.id},
+                    )
+                    db.expire(enrollment, ["sessions_used"])
             
             s.status = "cancelled"
             _bump_version(s)
