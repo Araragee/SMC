@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import type { User, Session, InstrumentRecord } from '@types'
+import { useScheduleStore } from '@stores/schedule'
 
 const props = defineProps<{
   isOpen: boolean
@@ -16,6 +17,8 @@ const emit = defineEmits<{
   close: []
   submitted: [session: Session]
 }>()
+
+const scheduleStore = useScheduleStore()
 
 const todayStr = new Date().toISOString().split('T')[0]
 
@@ -35,6 +38,44 @@ watch(() => props.initialDate, (d) => {
   if (d) form.value.date = d.toISOString().split('T')[0]
 })
 
+watch(() => form.value.teacherId, (newId) => {
+  if (newId) {
+    scheduleStore.fetchTeacherPublicSessions(Number(newId))
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  if (form.value.teacherId) {
+    scheduleStore.fetchTeacherPublicSessions(Number(form.value.teacherId))
+  }
+})
+
+const busySlotsOnSelectedDate = computed(() => {
+  if (!form.value.teacherId || !form.value.date) return []
+  return scheduleStore.teacherBusySlots.filter((slot: any) => {
+    const slotDateStr = slot.startTime.split('T')[0]
+    return slotDateStr === form.value.date
+  })
+})
+
+const formatSlotTime = (iso: string) => {
+  return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+const overlapsWithBusySlot = computed(() => {
+  if (!form.value.teacherId || !form.value.date || !form.value.time) return false
+  const [y, m, d] = form.value.date.split('-').map(Number)
+  const [hr, min] = form.value.time.split(':').map(Number)
+  const startDt = new Date(y, m - 1, d, hr, min)
+  const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
+
+  return scheduleStore.teacherBusySlots.some((slot: any) => {
+    const slotStart = new Date(slot.startTime)
+    const slotEnd = new Date(slot.endTime)
+    return startDt < slotEnd && endDt > slotStart
+  })
+})
+
 const isValid = computed(() => {
   const needsTeacher = props.userRole === 'student' || props.userRole === 'admin'
   const needsStudent = props.userRole === 'teacher' || props.userRole === 'admin'
@@ -42,7 +83,8 @@ const isValid = computed(() => {
     form.value.date &&
     form.value.time &&
     (!needsTeacher || form.value.teacherId) &&
-    (!needsStudent || form.value.studentId)
+    (!needsStudent || form.value.studentId) &&
+    !overlapsWithBusySlot.value
   )
 })
 
@@ -164,6 +206,22 @@ const submit = async function() {
                 <option value="1.5" class="bg-surface-container">1.5 hours</option>
                 <option value="2" class="bg-surface-container">2 hours</option>
               </select>
+            </div>
+
+            <!-- Busy slots helper & overlap warning -->
+            <div v-if="busySlotsOnSelectedDate.length > 0" class="p-3 bg-red-500/5 border border-red-500/20 rounded-2xl">
+              <p class="text-[10px] font-black text-red-500 dark:text-red-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">warning</span>
+                Teacher Busy Slots on this Date:
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-1">
+                <span v-for="slot in busySlotsOnSelectedDate" class="text-[11px] font-bold bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-lg">
+                  {{ formatSlotTime(slot.startTime) }} - {{ formatSlotTime(slot.endTime) }}
+                </span>
+              </div>
+              <p v-if="overlapsWithBusySlot" class="text-xs font-black text-red-600 dark:text-red-400 mt-2">
+                ⚠️ Overlap conflict detected. Please select another time.
+              </p>
             </div>
 
             <!-- Instrument (optional, shown if instruments list is provided) -->

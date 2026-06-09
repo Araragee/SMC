@@ -93,6 +93,7 @@ export interface Session {
   rejectionReason?: string;
   isForceCompleted?: boolean;
   counterCount?: number;
+  conflictSessionId?: number;
   /** Optimistic-lock counter — pass back to write endpoints so the server can
    *  detect concurrent modifications and respond with HTTP 409. */
   version?: number;

@@ -301,6 +301,13 @@ const statusContext = computed(() => {
   if (!props.session) return null
   const { status }  = props.session
   const role = props.userRole
+  if (props.session.conflictSessionId) {
+    return {
+      icon: 'warning',
+      color: 'text-red-500 font-bold',
+      text: `⚠️ Overlap conflict! This session overlaps with scheduled Session #${props.session.conflictSessionId}.`
+    }
+  }
   if (status === 'scheduled') {
     return { icon: 'event_available', color: 'text-teal-400', text: 'This session is confirmed and scheduled.' }
   }
@@ -562,6 +569,21 @@ const statusContext = computed(() => {
                  ACTION BUTTONS
                  ──────────────────────────────────────────────── -->
             <div class="flex flex-col gap-2 pt-1">
+
+              <!-- Conflict resolution for teacher or admin -->
+              <template
+                v-if="
+                  session.conflictSessionId &&
+                  session.status === 'scheduled' &&
+                  ((userRole === 'teacher' && session.teacherId === currentUserId) || userRole === 'admin')
+                "
+              >
+                <div class="flex gap-2 mb-2">
+                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse" @click="$emit('counter-teacher', session)">
+                    <span class="material-symbols-outlined text-base">build</span> Propose New Time (Fix Conflict)
+                  </button>
+                </div>
+              </template>
 
               <!-- Teacher: approve / counter / decline student proposal -->
               <template

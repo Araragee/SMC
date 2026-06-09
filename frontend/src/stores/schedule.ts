@@ -47,6 +47,7 @@ const mapSession = function(session: any): Session  {
     rejectionReason: session.rejection_reason || undefined,
     isForceCompleted: session.is_force_completed || false,
     counterCount: typeof session.counter_count === 'number' ? session.counter_count : 0,
+    conflictSessionId: session.conflict_session_id ? Number(session.conflict_session_id) : undefined,
     version: typeof session.version === 'number' ? session.version : 0,
   };
 }
@@ -65,6 +66,7 @@ interface ScheduleState {
     pendingSessions: number;
     awaitingAdmin: number;
   } | null;
+  teacherBusySlots: { startTime: string; endTime: string }[];
 }
 
 export const useScheduleStore = defineStore('schedule', {
@@ -74,6 +76,7 @@ export const useScheduleStore = defineStore('schedule', {
     isLoading: false,
     error: null,
     stats: null,
+    teacherBusySlots: [],
   }),
   getters: {
     getScheduleByUserId: (state) => {
@@ -128,6 +131,24 @@ export const useScheduleStore = defineStore('schedule', {
         }
       } catch (err: unknown) {
         this.error = errMsg(err) || 'Failed to fetch user sessions';
+        useToastStore().error('Load failed', this.error);
+        console.error(err);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async fetchTeacherPublicSessions(teacherId: number) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const response = await axios.get(`${API_URL}/sessions/teacher/${teacherId}/public`, { headers: authHeaders() });
+        this.teacherBusySlots = response.data.map((s: any) => ({
+          startTime: s.start_time,
+          endTime: s.end_time,
+        }));
+      } catch (err: unknown) {
+        this.error = errMsg(err) || 'Failed to fetch teacher public sessions';
         useToastStore().error('Load failed', this.error);
         console.error(err);
       } finally {

@@ -20,6 +20,10 @@ until docker compose exec db pg_isready -U smc -d smc >/dev/null 2>&1; do
 done
 echo "✅  Postgres is ready!"
 
+# ── Run Migrations ────────────────────────────────────────────────────────────
+echo "⚙️  Running database migrations..."
+PYTHONPATH="$SCRIPT_DIR" "$SCRIPT_DIR/backend/venv/bin/alembic" -c "$SCRIPT_DIR/backend/alembic.ini" upgrade head
+
 # ── Start Backend ─────────────────────────────────────────────────────────────
 echo "🚀  Starting Backend on http://localhost:8000..."
 "$SCRIPT_DIR/backend/venv/bin/python" -m uvicorn backend.main:app --reload --port 8000 &

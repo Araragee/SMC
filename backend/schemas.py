@@ -198,6 +198,14 @@ class SessionCounter(BaseModel):
     notes: OptNote = None
     version: int | None = None
 
+# Public view of busy slots
+class PublicBusySlot(BaseModel):
+    start_time: datetime
+    end_time: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class Session(SessionBase):
     id: int
     homeworks: list[Homework] = []
@@ -206,6 +214,7 @@ class Session(SessionBase):
     homework_assigned: str | None = None
     homework_completed: bool = False
     instrument: Instrument | None = None
+    conflict_session_id: int | None = None
 
     model_config = {"from_attributes": True}
 

@@ -218,8 +218,32 @@ def _signed_or_passthrough(url: str | None) -> str | None:
     return url
 
 
+def get_session_conflict_id(db, session: models.Session) -> int | None:
+    """Return the ID of an overlapping scheduled session if one exists."""
+    if session.status not in _OVERLAP_ACTIVE_STATUSES:
+        return None
+    conflict = db.query(models.Session).filter(
+        models.Session.id != session.id,
+        models.Session.status == "scheduled",
+        models.Session.start_time < session.end_time,
+        models.Session.end_time > session.start_time,
+        (
+            (models.Session.teacher_id == session.teacher_id) |
+            (models.Session.student_id == session.student_id)
+        )
+    ).first()
+    return conflict.id if conflict else None
+
+
 def map_session(db_session: models.Session) -> dict:
+    from sqlalchemy.orm import object_session
     session_dict = schemas.Session.model_validate(db_session).model_dump()
+    db = object_session(db_session)
+    if db:
+        session_dict['conflict_session_id'] = get_session_conflict_id(db, db_session)
+    else:
+        session_dict['conflict_session_id'] = None
+
     # Sign all proof URLs (top-level and nested) so the frontend can
     # render <img src> directly without needing to attach auth headers.
     session_dict['proof_image_url'] = (
@@ -234,6 +258,7 @@ def map_session(db_session: models.Session) -> dict:
     for hw in session_dict.get('homeworks') or []:
         hw['file_url'] = _signed_or_passthrough(hw.get('file_url'))
     return session_dict
+
 
 
 def _session_eager_options():
@@ -280,7 +305,7 @@ async def session_checker_task():
                     )
 
                     # Nightly drift recalculation
-                    students = db.query(_m.User).join(_m.Role).filter(_m.Role.name.lower() == "student").all()
+                    students = db.query(_m.User).join(_m.Role).filter(_m.Role.name.ilike("student")).all()
                     drift_detected = False
                     for student in students:
                         enrollments = db.query(_m.Enrollment).filter(_m.Enrollment.student_id == student.id, _m.Enrollment.is_active == True).all()
@@ -689,6 +714,33 @@ def read_user_sessions(
     )
     return [map_session(s) for s in sessions]
 
+
+@router.get("/sessions/teacher/{teacher_id}/public", response_model=list[schemas.PublicBusySlot])
+def read_teacher_public_sessions(
+    teacher_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Fetch sanitized busy time slots for a specific teacher's active sessions."""
+    if current_user.role.name == "student":
+        assignment = db.query(models.TeacherStudent).filter_by(
+            teacher_id=teacher_id,
+            student_id=current_user.id
+        ).first()
+        if not assignment:
+            raise HTTPException(status_code=403, detail="You are not assigned to this teacher")
+
+    sessions = (
+        db.query(models.Session)
+        .filter(
+            models.Session.teacher_id == teacher_id,
+            models.Session.status.in_(_OVERLAP_ACTIVE_STATUSES)
+        )
+        .all()
+    )
+    return [schemas.PublicBusySlot(start_time=s.start_time, end_time=s.end_time) for s in sessions]
+
+
 TERMINAL_STATUSES = {"completed", "cancelled", "rejected"}
 
 @router.put("/sessions/{session_id}", response_model=schemas.Session)
@@ -1051,12 +1103,16 @@ def counter_session_as_teacher(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_teacher)
 ):
-    """Teacher proposes an alternative time → pending_student."""
+    """Teacher proposes an alternative time → pending_student (or pending_admin if resolving conflict)."""
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
-    if db_session.status != "pending_teacher":
-        raise HTTPException(status_code=409, detail="Only pending_teacher sessions can be countered by teacher")
+    
+    # Check if this session has a conflict with an active scheduled session
+    has_conflict_before = get_session_conflict_id(db, db_session) is not None
+    
+    if db_session.status != "pending_teacher" and not (db_session.status == "scheduled" and has_conflict_before):
+        raise HTTPException(status_code=409, detail="Only pending_teacher or conflicting scheduled sessions can be countered by teacher")
     if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
@@ -1070,7 +1126,8 @@ def counter_session_as_teacher(
         db_session.notes = counter.notes
     db_session.counter_count = (db_session.counter_count or 0) + 1
     
-    if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
+    # If resolving a conflict, bypass student approval and send straight to admin approval
+    if has_conflict_before or db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
         db_session.status = "pending_admin"
     else:
         db_session.status = "pending_student"
@@ -1081,9 +1138,9 @@ def counter_session_as_teacher(
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
-    if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
-        notify_users(db, get_admin_ids(db), f"⚠️ Negotiation deadlock on session #{db_session.id} - counter cap reached. Admin mediation required.")
-        notify_users(db, [db_session.student_id], f"🔄 Session #{db_session.id} has reached the counter-proposal limit. Awaiting admin mediation.")
+    if db_session.status == "pending_admin":
+        notify_users(db, get_admin_ids(db), f"⚠️ Teacher resolved conflict on session #{db_session.id} - counter cap or conflict resolution reached. Admin approval required.")
+        notify_users(db, [db_session.student_id], f"🔄 Session #{db_session.id} has been countered by teacher to resolve conflict and awaits admin approval.")
     else:
         notify_users(db, [db_session.student_id], f"🔄 Teacher {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
         notify_users(db, get_admin_ids(db), f"📋 Session countered by {current_user.name} with a new time: {dt_str}.")
