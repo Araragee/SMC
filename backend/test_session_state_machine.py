@@ -49,7 +49,10 @@ def _iso(dt: datetime) -> str:
 
 
 def _future(hours: float = 24) -> datetime:
-    return datetime.now(timezone.utc) + timedelta(hours=hours)
+    target = datetime.now(timezone.utc) + timedelta(hours=hours)
+    if target.hour < 9 or target.hour >= 21:
+        target = target.replace(hour=10, minute=0, second=0, microsecond=0)
+    return target
 
 
 def _seed_users(client) -> tuple[int, int, int]:

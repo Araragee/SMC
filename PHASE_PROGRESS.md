@@ -15,11 +15,11 @@ Companion docs in the same folder:
 | 1 | Foundation & safety net | **Done** | +16 (29 total) | `.phase1_commit.sh` |
 | 2 | Privacy & auth hardening | **Done** | +21 (50 total) | `.phase2_commit.sh` |
 | 3 | Unblock the user | **Done** | +5 (55 total) | `.phase3_commit.sh` |
-| 4 | Reliability & data integrity | Not started | — | — |
-| 5 | UI/UX polish & accessibility | Not started | — | — |
-| 6 | Stretch & nice-to-haves | Not started | — | — |
+| 4 | Reliability & data integrity | **Done** | +4 (59 total) | `.phase4_commit.sh` |
+| 5 | UI/UX polish & accessibility | **Done** | +1 (60 total) | `.phase5_commit.sh` |
+| 6 | Stretch & nice-to-haves | **Done** | +2 (62 total) | `.phase6_commit.sh` |
 
-**Single Alembic head:** `l9m0n1o2p3q4` (Phase 3 migration). Fresh-DB `alembic upgrade head` and existing-prod stamp both succeed.
+**Single Alembic head:** `m0n1o2p3q4r5` (Phase 4 migration). Fresh-DB `alembic upgrade head` and existing-prod stamp both succeed.
 
 **To commit pending work to the user's machine** (sandbox can't write `.git/`):
 ```bash
@@ -140,6 +140,15 @@ bash .phase3_commit.sh
 - **Teacher Shop View:** Map `/teacher/shop` to render the shared `ShopView.vue` component.
 - **Admin Destructive Guardrails:** Requiring typed name to delete users, displaying price/student name to delete payments, and warning about completed session refunds on bulk cancel.
 - **Tests:** 5 dedicated tests added in `test_phase3_cancel_counter.py`. All tests pass.
+
+### Phase 6 — Stretch & nice-to-haves
+
+**Problem:** Images uploaded by teachers/students could be very large and in inefficient formats (PNG, JPG), wasting bandwidth and storage. Also, students could propose sessions at any arbitrary hours (even late at night or early morning) when the music school is closed.
+
+**What changed:**
+- **Image Normalization & Downscaling:** Integrated Pillow into `backend/utils/uploads.py`. If the uploaded file is an image, it automatically downscales so the longest edge is at most 2000px (preserving aspect ratio) and encodes/saves it as a `.webp` file.
+- **Working Hours Enforcement:** Updated `_validate_session_window` in `backend/routers/sessions.py` to accept an `is_admin` flag. If a non-admin user (student or teacher) tries to propose/counter a session, the server enforces that the session start/end times fall within `settings.WORKING_HOURS_START` and `settings.WORKING_HOURS_END`.
+- **Tests:** Created `backend/test_phase6_stretch.py` to verify downscaling, WebP conversion, and working hours enforcement.
 
 ---
 

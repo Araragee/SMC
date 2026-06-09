@@ -57,6 +57,29 @@ def save_upload(
     if len(contents) > MAX_SIZE_BYTES:
         raise HTTPException(status_code=400, detail="File too large. Maximum allowed size is 10 MB.")
 
+    if ext in {"jpg", "jpeg", "png", "webp"}:
+        import io
+        from PIL import Image
+        try:
+            img = Image.open(io.BytesIO(contents))
+            max_edge = 2000
+            w, h = img.size
+            if w > max_edge or h > max_edge:
+                if w > h:
+                    new_w = max_edge
+                    new_h = int(h * (max_edge / w))
+                else:
+                    new_h = max_edge
+                    new_w = int(w * (max_edge / h))
+                img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            
+            out_bytes = io.BytesIO()
+            img.save(out_bytes, format="WEBP")
+            contents = out_bytes.getvalue()
+            ext = "webp"
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
+
     safe_name = f"{secrets.token_hex(16)}.{ext}"
     dest = Path("uploads") / subdir / safe_name
     dest.parent.mkdir(parents=True, exist_ok=True)

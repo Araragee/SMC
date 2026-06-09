@@ -96,6 +96,7 @@ def _validate_session_window(
     end: datetime | None,
     *,
     allow_past: bool = False,
+    is_admin: bool = False,
 ) -> datetime:
     """Validate a (start, end) window. Returns the resolved ``end`` time.
 
@@ -107,6 +108,7 @@ def _validate_session_window(
       - ``start`` must not be in the past (modulo clock-skew tolerance),
         unless ``allow_past=True`` — used by admin manual-entry endpoints
         that record historic sessions.
+      - Non-admin sessions must fall within school working hours.
 
     Raises HTTPException(400) on any violation; never silently coerces.
     """
@@ -150,7 +152,25 @@ def _validate_session_window(
                 detail="Cannot schedule a session in the past.",
             )
 
+    if not is_admin:
+        if start.date() != end.date():
+            raise HTTPException(
+                status_code=400,
+                detail="Session cannot span across multiple days.",
+            )
+        start_hour_val = start.hour + start.minute / 60.0 + start.second / 3600.0
+        end_hour_val = end.hour + end.minute / 60.0 + end.second / 3600.0
+        if start_hour_val < settings.WORKING_HOURS_START or end_hour_val > settings.WORKING_HOURS_END:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Session must fall within school working hours "
+                    f"({settings.WORKING_HOURS_START}:00 to {settings.WORKING_HOURS_END}:00)."
+                ),
+            )
+
     return end
+
 
 
 def get_admin_ids(db) -> list:
@@ -430,7 +450,7 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
 
     # Past sessions are explicitly allowed here (this endpoint records history),
     # but duration sanity still applies.
-    end_time = _validate_session_window(session.start_time, session.end_time, allow_past=True)
+    end_time = _validate_session_window(session.start_time, session.end_time, allow_past=True, is_admin=True)
 
     db_session = models.Session(
         teacher_id=session.teacher_id,
@@ -532,7 +552,7 @@ def create_recurring_sessions(
         raise HTTPException(status_code=404, detail="Teacher not found")
 
     # Validate the template window; recurring sessions are future-only.
-    _validate_session_window(payload.start_time, payload.end_time)
+    _validate_session_window(payload.start_time, payload.end_time, is_admin=True)
 
     duration = payload.end_time - payload.start_time
     step = {
@@ -596,7 +616,7 @@ def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db)
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    end_time = _validate_session_window(session.start_time, session.end_time)
+    end_time = _validate_session_window(session.start_time, session.end_time, is_admin=True)
     _check_overlap(db, session.teacher_id, session.student_id, session.start_time, end_time)
 
     db_session = models.Session(
@@ -698,7 +718,7 @@ def update_session(session_id: int, session: schemas.SessionEdit, db: Session = 
         # statuses above). For non-terminal statuses we still don't want
         # the admin scheduling into the past — they have manual entry for that.
         update_data["end_time"] = _validate_session_window(
-            new_start, new_end, allow_past=False
+            new_start, new_end, allow_past=False, is_admin=True
         )
         update_data["notified_24h"] = False
         update_data["notified_12h"] = False
@@ -877,7 +897,7 @@ def propose_session_as_student(
             detail="No sessions remaining. Please contact admin to enroll in more."
         )
 
-    end_time = _validate_session_window(proposal.start_time, proposal.end_time)
+    end_time = _validate_session_window(proposal.start_time, proposal.end_time, is_admin=(current_user.role.name == "admin"))
     _check_overlap(db, proposal.teacher_id, current_user.id, proposal.start_time, end_time)
 
     db_session = models.Session(
@@ -922,7 +942,7 @@ def propose_session_as_teacher(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    end_time = _validate_session_window(proposal.start_time, proposal.end_time)
+    end_time = _validate_session_window(proposal.start_time, proposal.end_time, is_admin=(current_user.role.name == "admin"))
     _check_overlap(db, current_user.id, proposal.student_id, proposal.start_time, end_time)
 
     db_session = models.Session(
@@ -1041,7 +1061,7 @@ def counter_session_as_teacher(
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
     _check_version(db_session, counter.version)
-    counter_end = _validate_session_window(counter.start_time, counter.end_time)
+    counter_end = _validate_session_window(counter.start_time, counter.end_time, is_admin=(current_user.role.name == "admin"))
     _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter_end, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
     db_session.end_time = counter_end
@@ -1087,7 +1107,7 @@ def counter_session_as_student(
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
     _check_version(db_session, counter.version)
-    counter_end = _validate_session_window(counter.start_time, counter.end_time)
+    counter_end = _validate_session_window(counter.start_time, counter.end_time, is_admin=(current_user.role.name == "admin"))
     _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter_end, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
     db_session.end_time = counter_end
