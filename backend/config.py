@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     LOW_STOCK_THRESHOLD: int = 5           # Shop stock level that triggers a low-stock notification
     CANCEL_CUTOFF_HOURS: int = 24          # Hours before start_time that a participant can cancel
     COUNTER_PROPOSAL_CAP: int = 3          # Maximum counter proposals allowed before admin mediation
+    WORKING_HOURS_START: int = 8           # Start of school working hours (inclusive hour, e.g. 8 = 08:00)
+    WORKING_HOURS_END: int = 22             # End of school working hours (exclusive hour, e.g. 22 = 22:00)
 
 
     # CORS
