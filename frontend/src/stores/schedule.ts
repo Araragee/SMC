@@ -46,6 +46,7 @@ const mapSession = function(session: any): Session  {
     proofJustification: session.proof_justification || undefined,
     rejectionReason: session.rejection_reason || undefined,
     isForceCompleted: session.is_force_completed || false,
+    counterCount: typeof session.counter_count === 'number' ? session.counter_count : 0,
     version: typeof session.version === 'number' ? session.version : 0,
   };
 }
@@ -503,6 +504,56 @@ export const useScheduleStore = defineStore('schedule', {
       } catch (err: unknown) {
         this.error = errMsg(err) || 'Failed to process bulk action';
         toast.error('Bulk action failed', this.error);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async cancelSession(sessionId: number, notes?: string) {
+      this.isLoading = true;
+      try {
+        const response = await axios.post(
+          `${API_URL}/sessions/${sessionId}/cancel`,
+          { notes, version: this._sessionVersion(sessionId) },
+          { headers: authHeaders() }
+        );
+        this._upsertSession(mapSession(response.data));
+        useToastStore().success('Session Cancelled', 'The session has been cancelled.');
+      } catch (err: unknown) {
+        this.error = errMsg(err) || 'Failed to cancel session';
+        useToastStore().error('Cancellation failed', this.error);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async uploadSessionProof(sessionId: number, file: File) {
+      this.isLoading = true;
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        await axios.post(
+          `${API_URL}/session-proofs/?session_id=${sessionId}`,
+          formData,
+          {
+            headers: {
+              ...authHeaders(),
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        const auth = useAuthStore();
+        if (auth.user?.role === 'admin') {
+          await this.fetchAllSessions();
+        } else if (auth.user?.id) {
+          await this.fetchUserSessions(auth.user.id);
+        }
+        useToastStore().success('Proof Uploaded', 'Your proof has been uploaded successfully.');
+      } catch (err: unknown) {
+        this.error = errMsg(err) || 'Failed to upload proof';
+        useToastStore().error('Upload failed', this.error);
         throw err;
       } finally {
         this.isLoading = false;

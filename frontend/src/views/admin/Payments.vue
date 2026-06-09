@@ -431,7 +431,7 @@ async function submitPayment() {
             <button
               class="p-2 rounded-xl hover:bg-rose-500/10 text-on-surface-variant hover:text-rose-500 transition-colors"
               title="Delete payment"
-              @click="async () => { if (await dialog.confirm('Delete this payment record? This cannot be undone.', { title: 'Delete Payment', destructive: true })) { try { await paymentsStore.deletePayment(pay.id); toast.success('Deleted', 'Payment record removed.') } catch (e: any) { toast.error('Failed', (e as any)?.response?.data?.detail || (e as any).message) } } }"
+              @click="async () => { if (await dialog.confirm(`Delete payment of ${formatCurrency(pay.amount)} for ${pay.student_name || 'student'}? This cannot be undone.`, { title: 'Delete Payment', destructive: true })) { try { await paymentsStore.deletePayment(pay.id); toast.success('Deleted', 'Payment record removed.') } catch (e: any) { toast.error('Failed', (e as any)?.response?.data?.detail || (e as any).message) } } }"
             >
               <span class="material-symbols-outlined text-xl">delete</span>
             </button>

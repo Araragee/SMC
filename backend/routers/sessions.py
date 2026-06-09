@@ -710,6 +710,73 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
     db.commit()
     return {"message": "Session deleted successfully"}
 
+@router.post("/sessions/{session_id}/cancel", response_model=schemas.Session)
+def cancel_session(
+    session_id: int,
+    approval: schemas.SessionApproval = schemas.SessionApproval(),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    is_admin = current_user.role and current_user.role.name.lower() == "admin"
+    is_participant = current_user.id in (db_session.student_id, db_session.teacher_id)
+    if not (is_admin or is_participant):
+        raise HTTPException(status_code=403, detail="You are not authorized to cancel this session")
+
+    # Allowed source statuses: scheduled, pending_teacher, pending_student, pending_admin, overdue, overdue_rejected
+    # Reject completed, cancelled, rejected, pending_verification with 409
+    if db_session.status in ("completed", "cancelled", "rejected", "pending_verification"):
+        raise HTTPException(status_code=409, detail=f"Cannot cancel a session in '{db_session.status}' status")
+
+    _check_version(db_session, approval.version)
+
+    # Cutoff check: if not admin, cannot cancel within CANCEL_CUTOFF_HOURS
+    start_time = db_session.start_time
+    if start_time.tzinfo is None:
+        start_time = start_time.replace(tzinfo=timezone.utc)
+
+    if not is_admin:
+        cutoff_time = start_time - timedelta(hours=settings.CANCEL_CUTOFF_HOURS)
+        if datetime.now(timezone.utc) >= cutoff_time:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Sessions starting in less than {settings.CANCEL_CUTOFF_HOURS} hours must be cancelled by an admin."
+            )
+
+    old_status = db_session.status
+    db_session.status = "cancelled"
+    if approval.notes:
+        db_session.notes = approval.notes
+    _bump_version(db_session)
+    db.commit()
+    db.refresh(db_session)
+
+    dt_str = format_dt(db_session.start_time)
+    log_activity(
+        db,
+        action_type="session_cancelled",
+        description=f"User {current_user.name} cancelled session #{session_id} on {dt_str} [old status was '{old_status}']",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="session",
+        target_id=session_id,
+    )
+
+    notify_ids = set()
+    for uid in (db_session.student_id, db_session.teacher_id):
+        if uid != current_user.id:
+            notify_ids.add(uid)
+    
+    notify_reason = f" Reason: {approval.notes}" if approval.notes else ""
+    if notify_ids:
+        notify_users(db, list(notify_ids), f"❌ Session on {dt_str} has been cancelled by {current_user.name}.{notify_reason}")
+    notify_users(db, get_admin_ids(db), f"❌ Session #{db_session.id} on {dt_str} was cancelled by {current_user.name}.{notify_reason}")
+
+    return map_session(db_session)
+
 @router.post("/sessions/propose/student", response_model=schemas.Session)
 def propose_session_as_student(
     proposal: schemas.SessionPropose,
@@ -904,18 +971,28 @@ def counter_session_as_teacher(
     _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter_end, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
     db_session.end_time = counter_end
-    db_session.status = "pending_student"
     db_session.proposed_by = current_user.id
     if counter.notes:
         db_session.notes = counter.notes
+    db_session.counter_count = (db_session.counter_count or 0) + 1
+    
+    if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
+        db_session.status = "pending_admin"
+    else:
+        db_session.status = "pending_student"
+        
     _bump_version(db_session)
 
     db.commit()
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
-    notify_users(db, [db_session.student_id], f"🔄 Teacher {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
-    notify_users(db, get_admin_ids(db), f"📋 Session countered by {current_user.name} with a new time: {dt_str}.")
+    if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
+        notify_users(db, get_admin_ids(db), f"⚠️ Negotiation deadlock on session #{db_session.id} - counter cap reached. Admin mediation required.")
+        notify_users(db, [db_session.student_id], f"🔄 Session #{db_session.id} has reached the counter-proposal limit. Awaiting admin mediation.")
+    else:
+        notify_users(db, [db_session.student_id], f"🔄 Teacher {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
+        notify_users(db, get_admin_ids(db), f"📋 Session countered by {current_user.name} with a new time: {dt_str}.")
 
     return map_session(db_session)
 
@@ -940,17 +1017,27 @@ def counter_session_as_student(
     _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter_end, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
     db_session.end_time = counter_end
-    db_session.status = "pending_teacher"
     db_session.proposed_by = current_user.id
     if counter.notes:
         db_session.notes = counter.notes
+    db_session.counter_count = (db_session.counter_count or 0) + 1
+    
+    if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
+        db_session.status = "pending_admin"
+    else:
+        db_session.status = "pending_teacher"
+        
     _bump_version(db_session)
 
     db.commit()
     db.refresh(db_session)
 
     dt_str = format_dt(db_session.start_time)
-    notify_users(db, [db_session.teacher_id], f"🔄 Student {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
+    if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
+        notify_users(db, get_admin_ids(db), f"⚠️ Negotiation deadlock on session #{db_session.id} - counter cap reached. Admin mediation required.")
+        notify_users(db, [db_session.teacher_id], f"🔄 Session #{db_session.id} has reached the counter-proposal limit. Awaiting admin mediation.")
+    else:
+        notify_users(db, [db_session.teacher_id], f"🔄 Student {current_user.name} proposed a different time for your session: {dt_str}. Please review.")
 
     return map_session(db_session)
 
@@ -1114,7 +1201,7 @@ def request_session_approval(
     if db_session.status not in ["overdue", "overdue_rejected"]:
         raise HTTPException(status_code=409, detail="Only overdue sessions can request approval")
 
-    has_proof = any(p.uploader_role == 'student' for p in db_session.proofs)
+    has_proof = any(p.uploader_role in ("student", "teacher") for p in db_session.proofs)
     if not has_proof:
         raise HTTPException(status_code=400, detail="Must upload proof before requesting approval")
 

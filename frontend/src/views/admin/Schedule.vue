@@ -58,7 +58,18 @@ const toggleSelectAll = () => {
 
 const handleBulkAction = async (action: 'approve' | 'cancel' | 'complete') => {
   const count = selectedSessionIds.value.length
-  const ok = await dialog.confirm(`Are you sure you want to bulk ${action} ${count} selected session(s)?`, {
+  let message = `Are you sure you want to bulk ${action} ${count} selected session(s)?`
+  
+  if (action === 'cancel') {
+    const completedCount = scheduleStore.allSessions.filter(
+      s => selectedSessionIds.value.includes(s.id) && s.status === 'completed'
+    ).length
+    if (completedCount > 0) {
+      message += ` Warning: ${completedCount} of these are already completed and will be reverted (credits will be refunded).`
+    }
+  }
+
+  const ok = await dialog.confirm(message, {
     title: `Bulk ${action.charAt(0).toUpperCase() + action.slice(1)}`,
     destructive: action === 'cancel'
   })

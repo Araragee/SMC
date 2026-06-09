@@ -14,18 +14,17 @@ Companion docs in the same folder:
 |---|---|---|---|---|
 | 1 | Foundation & safety net | **Done** | +16 (29 total) | `.phase1_commit.sh` |
 | 2 | Privacy & auth hardening | **Done** | +21 (50 total) | `.phase2_commit.sh` |
-| 3 | Unblock the user | Not started | — | — |
+| 3 | Unblock the user | **Done** | +5 (55 total) | `.phase3_commit.sh` |
 | 4 | Reliability & data integrity | Not started | — | — |
 | 5 | UI/UX polish & accessibility | Not started | — | — |
 | 6 | Stretch & nice-to-haves | Not started | — | — |
 
-**Single Alembic head:** `k8l9m0n1o2p3` (Phase 2 migration). Fresh-DB `alembic upgrade head` and existing-prod stamp both succeed.
+**Single Alembic head:** `l9m0n1o2p3q4` (Phase 3 migration). Fresh-DB `alembic upgrade head` and existing-prod stamp both succeed.
 
 **To commit pending work to the user's machine** (sandbox can't write `.git/`):
 ```bash
 cd "/Users/dex/Desktop/Essentials x Coding/SMC"
-bash .phase1_commit.sh       # if not already committed
-bash .phase2_commit.sh
+bash .phase3_commit.sh
 ```
 
 ---
@@ -129,9 +128,22 @@ bash .phase2_commit.sh
 
 **Backend tests now run with sandbox Python 3.10** thanks to `backend/conftest.py` shim (`datetime.UTC`).
 
+### Phase 3 — Unblock the user
+
+**Problem:** Users were unable to self-cancel sessions without admin intervention, even days in advance. Negotiating sessions could end up in endless counter-propose loops without admin mediation. Teachers' uploaded proofs did not count for resolving overdue sessions, and teachers had no shop access. Destructive admin actions lacked confirmation safety.
+
+**What changed:**
+- **Cancel Session Endpoint:** Created `POST /sessions/{id}/cancel` allowing participants and admins to cancel sessions. Non-admins are blocked if start time is within 24 hours (`CANCEL_CUTOFF_HOURS`).
+- **Counter-Proposal Cap:** Added `counter_count` to Session model (migration `l9m0n1o2p3q4`). Teachers and students countering increments the count, forcing status to `pending_admin` on the 3rd counter proposal to request admin mediation.
+- **Teacher Proof Acceptance:** Updated `request-approval` to allow advancing overdue sessions if either the student or the teacher has uploaded a proof.
+- **Frontend Session Detail Modal:** Integrated "Cancel Session" (gated by cutoff) and "Upload My Proof" (with native file picker) directly calling the schedule store.
+- **Teacher Shop View:** Map `/teacher/shop` to render the shared `ShopView.vue` component.
+- **Admin Destructive Guardrails:** Requiring typed name to delete users, displaying price/student name to delete payments, and warning about completed session refunds on bulk cancel.
+- **Tests:** 5 dedicated tests added in `test_phase3_cancel_counter.py`. All tests pass.
+
 ---
 
-## 3. Phase 3 — Unblock the user (next phase)
+## 3. Phase 3 — Unblock the user (Done)
 
 **Goal:** close the "I'm stuck, please contact admin" workflows.
 

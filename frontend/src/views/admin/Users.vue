@@ -88,11 +88,16 @@ const handleUpdateUser = async () => {
 }
 
 const handleDeleteUser = async (user: User) => {
-  const ok = await dialog.confirm(`Deactivate ${user.name}? They will lose access immediately.`, {
+  const entered = await dialog.prompt(`Type "${user.name}" to confirm deactivating this account:`, {
     title: 'Deactivate User',
-    destructive: true
+    placeholder: user.name
   })
-  if (!ok) return
+  if (entered !== user.name) {
+    if (entered !== null) {
+      toast.error('Confirmation failed', 'The typed name did not match.')
+    }
+    return
+  }
   try {
     await usersStore.deleteUser(user.id)
     toast.success('User deactivated', `${user.name} was removed.`)

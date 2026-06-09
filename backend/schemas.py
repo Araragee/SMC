@@ -144,6 +144,7 @@ class SessionBase(BaseModel):
     proof_justification: OptNote = None
     rejection_reason: OptShortNote = None
     is_force_completed: bool = False
+    counter_count: int = 0
     version: int = 0
 
     @field_validator('is_manual_entry', 'notified_24h', 'notified_12h', 'is_force_completed', mode='before')

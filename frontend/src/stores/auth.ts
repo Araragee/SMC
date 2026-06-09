@@ -16,7 +16,6 @@ const savedToken = localStorage.getItem('token')
 // pre-Phase 2 sessions and is naturally retired the next time the user
 // signs in/out. We never SEND it anywhere — the HttpOnly cookie is the
 // source of truth.
-const _legacyRefreshToken = localStorage.getItem('refresh_token')
 const rawSavedUser = localStorage.getItem('user')
 
 // Safely hydrate the persisted user. If JSON is malformed or required

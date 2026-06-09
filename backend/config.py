@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     STALE_THRESHOLD_HOURS: int = 48        # Hours before a pending_verification session is considered stale
     REMINDER_COOLDOWN_HOURS: int = 24      # Minimum hours between repeat stale-proof reminders
     LOW_STOCK_THRESHOLD: int = 5           # Shop stock level that triggers a low-stock notification
+    CANCEL_CUTOFF_HOURS: int = 24          # Hours before start_time that a participant can cancel
+    COUNTER_PROPOSAL_CAP: int = 3          # Maximum counter proposals allowed before admin mediation
+
 
     # CORS
     ALLOWED_ORIGINS: list[str] = [

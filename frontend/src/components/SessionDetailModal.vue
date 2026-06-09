@@ -3,6 +3,7 @@ import { NUDGE_COOLDOWN_MS, API_URL } from '@typescript/constants'
 import { ref, computed } from 'vue'
 import { useToastStore } from '@stores/toast'
 import { useScheduleStore } from '@stores/schedule'
+import { useDialog } from '@composables/useDialog'
 import type { User, Session } from '@types'
 
 const props = defineProps<{
@@ -25,11 +26,82 @@ const emit = defineEmits<{
   'edit-admin': [session: Session]
   'complete-admin': [sessionId: number]
   'reject-proof-admin': [sessionId: number]
+  'cancel-session': [sessionId: number, notes?: string]
+  'upload-proof': [sessionId: number, file: File]
 }>()
 
 const toast = useToastStore()
 const scheduleStore = useScheduleStore()
+const dialog = useDialog()
 const showProofViewer = ref<string | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const CANCEL_CUTOFF_HOURS = 24
+const isWithinCutoff = computed(() => {
+  if (!props.session) return false
+  const start = new Date(props.session.startTime).getTime()
+  const now = new Date().getTime()
+  return (start - now) < (CANCEL_CUTOFF_HOURS * 60 * 60 * 1000)
+})
+
+const canCancel = computed(() => {
+  if (!props.session) return false
+  const is_admin = props.userRole === 'admin'
+  if (is_admin) return true
+  return !isWithinCutoff.value
+})
+
+const showCancelButton = computed(() => {
+  if (!props.session) return false
+  const allowedStatuses = ['scheduled', 'pending_teacher', 'pending_student', 'pending_admin', 'overdue', 'overdue_rejected']
+  if (!allowedStatuses.includes(props.session.status)) return false
+  const is_admin = props.userRole === 'admin'
+  const is_party = props.currentUserId === props.session.teacherId || props.currentUserId === props.session.studentId
+  return is_admin || is_party
+})
+
+const showUploadProofButton = computed(() => {
+  if (!props.session) return false
+  const allowedStatuses = ['scheduled', 'overdue', 'overdue_rejected', 'pending_verification']
+  if (!allowedStatuses.includes(props.session.status)) return false
+  const is_party = props.currentUserId === props.session.teacherId || props.currentUserId === props.session.studentId
+  if (!is_party) return false
+  const role = props.userRole
+  const hasUploaded = props.session.proofs?.some(p => p.uploaderRole === role)
+  return !hasUploaded
+})
+
+async function clickCancel() {
+  if (!props.session) return
+  const reason = await dialog.prompt('Enter cancellation reason (optional):', {
+    title: 'Cancel Session',
+    placeholder: 'Why are you cancelling?'
+  })
+  if (reason !== null) {
+    try {
+      await scheduleStore.cancelSession(props.session.id, reason)
+      emit('close')
+    } catch (err) {
+      console.error(err)
+    }
+  }
+}
+
+function triggerUpload() {
+  fileInput.value?.click()
+}
+
+async function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0] && props.session) {
+    try {
+      await scheduleStore.uploadSessionProof(props.session.id, target.files[0])
+      emit('close')
+    } catch (err) {
+      console.error(err)
+    }
+  }
+}
 
 // ── Nudge cooldown (1 hour per session, persisted in localStorage) ─────────
 
@@ -463,6 +535,37 @@ const statusContext = computed(() => {
               >
                 <span class="material-symbols-outlined text-base">edit</span> Edit Session
               </button>
+
+              <!-- Upload Proof Button (visible to participant who hasn't uploaded) -->
+              <button
+                v-if="showUploadProofButton"
+                class="w-full py-2.5 rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="triggerUpload"
+              >
+                <span class="material-symbols-outlined text-base">upload</span> Upload My Proof
+              </button>
+              <input
+                ref="fileInput"
+                type="file"
+                class="hidden"
+                accept="image/*"
+                @change="handleFileChange"
+              />
+
+              <!-- Cancel Session Button (visible to admin or participant) -->
+              <button
+                v-if="showCancelButton"
+                class="w-full py-2.5 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                :disabled="!canCancel"
+                :title="!canCancel ? 'Non-admins cannot cancel sessions starting in less than 24 hours.' : 'Cancel this session'"
+                @click="clickCancel"
+              >
+                <span class="material-symbols-outlined text-base">cancel</span> Cancel Session
+              </button>
+
+              <div v-if="session.counterCount && session.counterCount > 0" class="text-xs text-on-surface-variant text-center my-1">
+                Counter proposals used: {{ session.counterCount }} / 3
+              </div>
             </div>
           </div>
         </div>

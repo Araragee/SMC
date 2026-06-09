@@ -140,6 +140,7 @@ class Session(Base):
     # Optimistic locking: bumped on every status transition; clients send
     # this back and the server rejects with 409 if it has been incremented
     # by a concurrent request. SQLAlchemy auto-manages via version_id_col.
+    counter_count = Column(Integer, default=0, server_default="0")
     version = Column(Integer, nullable=False, default=0, server_default="0")
 
     __mapper_args__ = {

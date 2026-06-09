@@ -105,6 +105,7 @@ def upgrade() -> None:
         sa.Column('is_force_completed', sa.Boolean, default=False),
         sa.Column('created_at', sa.DateTime),
         sa.Column('updated_at', sa.DateTime),
+        sa.Column('counter_count', sa.Integer, default=0, server_default='0'),
         sa.Column('version', sa.Integer, nullable=False, server_default='0'),
     )
 
