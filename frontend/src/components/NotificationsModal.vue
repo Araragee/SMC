@@ -19,9 +19,43 @@ const notifStore = useNotificationStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
+import { ref } from 'vue'
+
+const activeFilter = ref<'all' | 'unread' | 'sessions' | 'shop' | 'payments' | 'auth'>('all')
+
 const sortedNotifications = computed(() => {
-  return [...props.notifications].sort((a: any, b: any) => {
-    // Unread first, then by date desc
+  let list = props.notifications
+  
+  if (activeFilter.value === 'unread') {
+    list = list.filter(n => !n.isRead)
+  } else if (activeFilter.value === 'sessions') {
+    list = list.filter(n => 
+      n.message?.toLowerCase().includes('session') || 
+      n.title?.toLowerCase().includes('session') ||
+      n.link?.includes('/schedule')
+    )
+  } else if (activeFilter.value === 'shop') {
+    list = list.filter(n => 
+      n.message?.toLowerCase().includes('order') || 
+      n.message?.toLowerCase().includes('shop') ||
+      n.message?.toLowerCase().includes('product') ||
+      n.link?.includes('/shop')
+    )
+  } else if (activeFilter.value === 'payments') {
+    list = list.filter(n => 
+      n.message?.toLowerCase().includes('payment') || 
+      n.message?.toLowerCase().includes('receipt') ||
+      n.link?.includes('/payments')
+    )
+  } else if (activeFilter.value === 'auth') {
+    list = list.filter(n => 
+      n.message?.toLowerCase().includes('password') || 
+      n.message?.toLowerCase().includes('login') ||
+      n.message?.toLowerCase().includes('security')
+    )
+  }
+
+  return [...list].sort((a: any, b: any) => {
     if (a.isRead !== b.isRead) return a.isRead ? 1 : -1
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
@@ -118,6 +152,21 @@ const closeModal = () => {
                 <span class="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="px-6 py-2.5 flex gap-1.5 overflow-x-auto custom-scrollbar shrink-0 border-b border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
+            <button
+              v-for="filter in (['all', 'unread', 'sessions', 'shop', 'payments', 'auth'] as const)"
+              :key="filter"
+              class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
+              :class="activeFilter === filter 
+                ? 'bg-orange-500 text-white shadow-sm' 
+                : 'bg-black/[0.04] dark:bg-white/5 text-on-surface-variant hover:text-on-surface'"
+              @click="activeFilter = filter"
+            >
+              {{ filter }}
+            </button>
           </div>
 
           <!-- Notification List -->

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import text
 from backend.main import app
-from backend.models import Session as SessionModel, User, Enrollment, Notification
+from backend.models import Session as SessionModel, User, Enrollment, Notification, Role
 from backend.test_main import (  # noqa: F401
     TestingSessionLocal,
     as_admin,
@@ -226,3 +226,70 @@ def test_nightly_drift_recalculation_and_purges(client, as_admin):
     s_updated = db.query(User).filter(User.id == s_id).first()
     assert s_updated.sessions_left == 8
     db.close()
+
+def test_session_activity_log_permissions(client, as_admin):
+    # Setup users: admin, teacher, student, and bystander
+    admin_id, t_id, s_id = _seed_users(client)
+    
+    # Create a bystander student
+    db = TestingSessionLocal()
+    bystander = User(
+        name="Bystander",
+        username="bystander",
+        email="bystander@x.com",
+        hashed_password="test",
+        role_id=db.query(Role).filter(Role.name.ilike("student")).first().id
+    )
+    db.add(bystander)
+    db.commit()
+    db.refresh(bystander)
+    bystander_id = bystander.id
+    db.close()
+
+    # Create a session
+    start = _future(48)
+    db = TestingSessionLocal()
+    session = SessionModel(
+        teacher_id=t_id,
+        student_id=s_id,
+        start_time=start.replace(tzinfo=None),
+        end_time=(start + timedelta(hours=1)).replace(tzinfo=None),
+        status="scheduled",
+        version=0,
+    )
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+    sid = session.id
+    db.close()
+
+    # Log an activity for this session
+    db = TestingSessionLocal()
+    from backend.routers.activity import log_activity
+    log_activity(db, action_type="session_created", description="Session created", target_type="session", target_id=sid)
+    db.close()
+
+    # 1. As admin, should be able to view history
+    r = client.get(f"/activity-log/session/{sid}")
+    assert r.status_code == 200
+    assert len(r.json()) > 0
+    assert r.json()[0]["description"] == "Session created"
+
+    # 2. As student participant, should be able to view
+    student_user = _make_user_obj(s_id, "student", "Student")
+    _swap_to_student(student_user)
+    r = client.get(f"/activity-log/session/{sid}")
+    assert r.status_code == 200
+
+    # 3. As teacher participant, should be able to view
+    teacher_user = _make_user_obj(t_id, "teacher", "Teacher")
+    _swap_to_teacher(teacher_user)
+    r = client.get(f"/activity-log/session/{sid}")
+    assert r.status_code == 200
+
+    # 4. As bystander, should get 403 Forbidden
+    bystander_user = _make_user_obj(bystander_id, "student", "Bystander")
+    _swap_to_student(bystander_user)
+    r = client.get(f"/activity-log/session/{sid}")
+    assert r.status_code == 403
+

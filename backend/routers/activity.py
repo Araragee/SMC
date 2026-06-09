@@ -116,3 +116,30 @@ def get_activity_log(
         .limit(limit)
         .all()
     )
+
+
+from fastapi import HTTPException
+from ..dependencies import get_current_active_user
+
+@router.get("/session/{session_id}", response_model=list[schemas.ActivityLogEntry])
+def get_session_activity_log(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Return activity log entries for a specific session. Admins and participants only."""
+    session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    is_admin = current_user.role and current_user.role.name.lower() == "admin"
+    is_participant = current_user.id in (session.student_id, session.teacher_id)
+    if not (is_admin or is_participant):
+        raise HTTPException(status_code=403, detail="Not authorized to view this session's history")
+
+    return (
+        db.query(models.ActivityLog)
+        .filter(models.ActivityLog.target_type == "session", models.ActivityLog.target_id == session_id)
+        .order_by(models.ActivityLog.created_at.desc())
+        .all()
+    )

@@ -30,11 +30,134 @@ const emit = defineEmits<{
   'upload-proof': [sessionId: number, file: File]
 }>()
 
+import { watch, onMounted, onUnmounted } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@stores/auth'
+
 const toast = useToastStore()
 const scheduleStore = useScheduleStore()
+const authStore = useAuthStore()
 const dialog = useDialog()
-const showProofViewer = ref<string | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+// Tabs
+const activeTab = ref<'overview' | 'history'>('overview')
+const historyLogs = ref<any[] | null>(null)
+const isLoadingHistory = ref(false)
+
+const authHeaders = () => {
+  return authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {}
+}
+
+const fetchHistory = async () => {
+  if (!props.session?.id) return
+  isLoadingHistory.value = true
+  try {
+    const res = await axios.get(`${API_URL}/activity-log/session/${props.session.id}`, {
+      headers: authHeaders()
+    })
+    historyLogs.value = res.data
+  } catch (err: any) {
+    console.error('Failed to fetch session history:', err)
+  } finally {
+    isLoadingHistory.value = false
+  }
+}
+
+watch(activeTab, (tab) => {
+  if (tab === 'history' && !historyLogs.value) {
+    fetchHistory()
+  }
+})
+
+watch(() => props.session?.id, () => {
+  activeTab.value = 'overview'
+  historyLogs.value = null
+})
+
+// Proof Lightbox navigation
+const proofUrls = computed(() => {
+  if (!props.session?.proofs) return []
+  return props.session.proofs.map((p: any) => p.imageUrl?.startsWith('http') ? p.imageUrl : `${API_URL}${p.imageUrl}`)
+})
+
+const currentProofIndex = ref<number>(-1)
+const showProofViewer = computed({
+  get: () => currentProofIndex.value >= 0 ? proofUrls.value[currentProofIndex.value] : null,
+  set: (val: string | null) => {
+    if (val === null) {
+      currentProofIndex.value = -1
+    } else {
+      currentProofIndex.value = proofUrls.value.indexOf(val)
+    }
+  }
+})
+
+const prevProof = () => {
+  if (proofUrls.value.length === 0) return
+  currentProofIndex.value = (currentProofIndex.value - 1 + proofUrls.value.length) % proofUrls.value.length
+}
+const nextProof = () => {
+  if (proofUrls.value.length === 0) return
+  currentProofIndex.value = (currentProofIndex.value + 1) % proofUrls.value.length
+}
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (currentProofIndex.value < 0) return
+  if (e.key === 'ArrowLeft') {
+    prevProof()
+  } else if (e.key === 'ArrowRight') {
+    nextProof()
+  } else if (e.key === 'Escape') {
+    currentProofIndex.value = -1
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
+
+// Copy session link
+const copySessionLink = () => {
+  if (!props.session) return
+  const rolePath = props.userRole === 'admin' ? '/admin/schedule' : props.userRole === 'teacher' ? '/teacher/schedule' : '/student/schedule'
+  const link = `${window.location.origin}${rolePath}?session_id=${props.session.id}`
+  navigator.clipboard.writeText(link)
+  toast.success('Session link copied to clipboard!')
+}
+
+// Countdown to Force Complete
+const forceCompleteCountdown = ref('')
+let countdownInterval: any = null
+
+const updateCountdown = () => {
+  if (!props.session) return
+  const end = new Date(props.session.endTime).getTime()
+  const target = end + (24 * 60 * 60 * 1000)
+  const now = new Date().getTime()
+  const diff = target - now
+  if (diff <= 0) {
+    forceCompleteCountdown.value = ''
+  } else {
+    const hours = Math.floor(diff / (60 * 60 * 1000))
+    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000))
+    const seconds = Math.floor((diff % (60 * 1000)) / 1000)
+    forceCompleteCountdown.value = `${hours}h ${minutes}m ${seconds}s remaining`
+  }
+}
+
+watch(() => props.session, () => {
+  if (countdownInterval) clearInterval(countdownInterval)
+  updateCountdown()
+  countdownInterval = setInterval(updateCountdown, 1000)
+}, { immediate: true })
+
+onUnmounted(() => {
+  if (countdownInterval) clearInterval(countdownInterval)
+})
 
 const CANCEL_CUTOFF_HOURS = 24
 const isWithinCutoff = computed(() => {
@@ -261,11 +384,19 @@ const statusContext = computed(() => {
                   {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
                 </p>
               </div>
-              <!-- Status icon + close -->
+              <!-- Status icon + copy + close -->
               <div class="flex items-center gap-2 shrink-0">
                 <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :class="statusConfig.badge">
                   <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1">{{ statusConfig.icon }}</span>
                 </div>
+                <!-- Copy link button -->
+                <button
+                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
+                  title="Copy session link"
+                  @click="copySessionLink"
+                >
+                  <span class="material-symbols-outlined text-lg">link</span>
+                </button>
                 <!-- Universal close button -->
                 <button
                   class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
@@ -280,105 +411,82 @@ const statusContext = computed(() => {
           <!-- Scrollable body -->
           <div class="overflow-y-auto flex-1 p-5 space-y-4 custom-scrollbar">
 
-            <!-- Context message -->
-            <div
-              v-if="statusContext"
-              class="flex items-start gap-2.5 p-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/5"
-            >
-              <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="statusContext.color">{{ statusContext.icon }}</span>
-              <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">{{ statusContext.text }}</p>
+            <!-- Tabs -->
+            <div class="flex bg-black/[0.04] dark:bg-white/5 p-1 rounded-2xl border border-black/[0.06] dark:border-white/10">
+              <button
+                class="flex-1 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                :class="activeTab === 'overview' ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                @click="activeTab = 'overview'"
+              >
+                Overview
+              </button>
+              <button
+                class="flex-1 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                :class="activeTab === 'history' ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                @click="activeTab = 'history'"
+              >
+                History
+              </button>
             </div>
 
-            <!-- Participants -->
-            <div class="grid grid-cols-2 gap-2">
-              <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
-                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Teacher</p>
-                <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.teacherId) }}</p>
-              </div>
-              <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
-                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Student</p>
-                <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.studentId) }}</p>
-              </div>
-            </div>
-
-            <!-- Notes -->
-            <div v-if="session.notes" class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
-              <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Notes</p>
-              <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
-            </div>
-
-            <!-- ────────────────────────────────────────────────
-                 STATUS SECTIONS
-                 ──────────────────────────────────────────────── -->
-
-            <!-- COMPLETED: proof thumbnails -->
-            <div v-if="session.status === 'completed'" class="space-y-3">
-              <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Session Proofs</p>
-              <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-3">
-                <button
-                  v-for="proof in session.proofs"
-                  :key="proof.id"
-                  class="flex-1 aspect-video rounded-xl overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative group"
-                  @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
-                >
-                  <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
-                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span class="material-symbols-outlined text-white text-2xl">zoom_in</span>
-                  </div>
-                  <span class="absolute bottom-1.5 left-2 text-[9px] font-black uppercase text-white/80 bg-black/40 rounded px-1.5 py-0.5 backdrop-blur-sm">
-                    {{ proof.uploaderRole === 'teacher' ? 'Teacher' : 'Student' }}
-                  </span>
-                </button>
-              </div>
-              <div v-else-if="session.isForceCompleted" class="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-center">
-                <p class="text-xs font-bold text-orange-400">Force completed by admin</p>
-                <p class="text-[10px] text-orange-300/70 mt-0.5">Proofs were not required for this completion.</p>
-              </div>
-              <div v-else class="p-3 bg-black/[0.04] dark:bg-white/5 rounded-xl text-center">
-                <p class="text-xs text-on-surface-variant">No proofs attached</p>
-              </div>
-            </div>
-
-            <!-- PENDING status group: show who's still needed -->
-            <div
-              v-if="['pending_teacher', 'pending_student', 'pending_admin'].includes(session.status)"
-              class="rounded-2xl p-4 border space-y-2"
-              :class="statusConfig.cardBg"
-            >
-              <p class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mb-2">Approval Status</p>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-on-surface-variant">Teacher</span>
-                <span class="font-bold" :class="session.status === 'pending_teacher' ? 'text-amber-400' : 'text-emerald-400'">
-                  {{ session.status === 'pending_teacher' ? 'Reviewing…' : '✓ Responded' }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-on-surface-variant">Student</span>
-                <span class="font-bold" :class="session.status === 'pending_student' ? 'text-orange-400' : 'text-emerald-400'">
-                  {{ session.status === 'pending_student' ? 'Countering…' : '✓ Responded' }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-on-surface-variant">Admin</span>
-                <span class="font-bold" :class="session.status === 'pending_admin' ? 'text-blue-400' : 'text-emerald-400'">
-                  {{ session.status === 'pending_admin' ? 'Reviewing…' : (session.status === 'scheduled' ? '✓ Approved' : '—') }}
-                </span>
-              </div>
-            </div>
-
-            <!-- OVERDUE / OVERDUE_REJECTED: proof status -->
-            <div v-if="['overdue', 'overdue_rejected', 'pending_verification', 'scheduled'].includes(session.status)" class="space-y-3">
-              <!-- Rejection notice -->
-              <div v-if="session.status === 'overdue_rejected'" class="p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
-                <p class="text-[9px] font-black uppercase text-red-500 tracking-wider mb-1">Proof Rejected</p>
-                <p class="text-xs text-red-400 font-bold">{{ session.rejectionReason }}</p>
+            <div v-if="activeTab === 'overview'" class="space-y-4">
+              <!-- Context message -->
+              <div
+                v-if="statusContext"
+                class="flex items-start gap-2.5 p-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/5"
+              >
+                <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="statusContext.color">{{ statusContext.icon }}</span>
+                <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">{{ statusContext.text }}</p>
               </div>
 
-              <!-- Proof status row -->
-              <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3.5 border border-black/[0.04] dark:border-white/5">
-                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-3">Session Proofs</p>
-                <div class="space-y-2">
+              <!-- Participants -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
+                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Teacher</p>
+                  <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.teacherId) }}</p>
+                </div>
+                <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
+                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Student</p>
+                  <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.studentId) }}</p>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div v-if="session.notes" class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
+                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Notes</p>
+                <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
+              </div>
+
+              <!-- ────────────────────────────────────────────────
+                   STATUS SECTIONS
+                   ──────────────────────────────────────────────── -->
+
+              <!-- COMPLETED: proof thumbnails -->
+              <div v-if="session.status === 'completed'" class="space-y-3">
+                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Session Proofs</p>
+                <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-3">
+                  <button
+                    v-for="proof in session.proofs"
+                    :key="proof.id"
+                    class="w-16 h-16 rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative shrink-0"
+                    @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
+                  >
+                    <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
+                    <div class="absolute bottom-0 inset-x-0 bg-black/50 text-[8px] text-white font-bold text-center py-0.5">
+                      {{ proof.uploaderRole === 'teacher' ? 'Teacher' : 'Student' }}
+                    </div>
+                  </button>
+                </div>
+                <p v-else class="text-xs text-on-surface-variant">No proofs attached</p>
+              </div>
+
+              <!-- OVERDUE / OVERDUE_REJECTED / PENDING_VERIFICATION: proof status -->
+              <div v-if="['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)" class="space-y-4">
+                <!-- Proof status table -->
+                <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-4 space-y-3">
+                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Proof Status</p>
                   <div class="flex items-center justify-between text-sm">
+                    <span class="text-on-surface-variant">Teacher</span>
                     <div class="flex items-center gap-2">
                       <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
                         {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
@@ -414,25 +522,6 @@ const statusContext = computed(() => {
                     </div>
                   </div>
                 </div>
-                <!-- Proof thumbnails (if any) -->
-                <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-2 mt-3 pt-3 border-t border-black/[0.04] dark:border-white/5">
-                  <button
-                    v-for="proof in session.proofs"
-                    :key="proof.id"
-                    class="w-12 h-12 rounded-lg overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative shrink-0"
-                    @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
-                  >
-                    <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
-                    <div class="absolute bottom-0 inset-x-0 bg-black/50 text-[7px] text-white font-bold text-center py-0.5">
-                      {{ proof.uploaderRole === 'teacher' ? 'T' : 'S' }}
-                    </div>
-                  </button>
-                </div>
-                <!-- Justification note -->
-                <div v-if="session.proofJustification" class="mt-3 pt-3 border-t border-black/[0.04] dark:border-white/5">
-                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-wider mb-1">Student's Note</p>
-                  <p class="text-xs text-on-surface italic">"{{ session.proofJustification }}"</p>
-                </div>
               </div>
 
               <!-- Verif status pill -->
@@ -441,6 +530,30 @@ const statusContext = computed(() => {
                 <div>
                   <p class="text-xs font-bold text-violet-400">Awaiting Admin Review</p>
                   <p class="text-[10px] text-violet-300/70">Your proof has been submitted successfully.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- History Tab -->
+            <div v-else class="space-y-3">
+              <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Activity History</p>
+              <div v-if="isLoadingHistory" class="text-center py-4 text-xs text-on-surface-variant">
+                Loading history...
+              </div>
+              <div v-else-if="!historyLogs || historyLogs.length === 0" class="text-center py-4 text-xs text-on-surface-variant">
+                No activity logged yet.
+              </div>
+              <div v-else class="space-y-2.5">
+                <div
+                  v-for="log in historyLogs"
+                  :key="log.id"
+                  class="bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/5 rounded-2xl p-3 flex flex-col space-y-1"
+                >
+                  <div class="flex items-center justify-between text-[10px] text-on-surface-variant font-bold">
+                    <span>{{ log.actorName || 'System' }}</span>
+                    <span>{{ formatDateLong(log.createdAt) }}</span>
+                  </div>
+                  <p class="text-xs text-on-surface">{{ log.description }}</p>
                 </div>
               </div>
             </div>
@@ -523,7 +636,7 @@ const statusContext = computed(() => {
                   @click="$emit('complete-admin', session.id)"
                 >
                   <span class="material-symbols-outlined text-base">workspace_premium</span>
-                  {{ canForceComplete(session) ? 'Force Complete' : 'Force Complete (available in 24h)' }}
+                  {{ canForceComplete(session) ? 'Force Complete' : 'Force Complete (' + (forceCompleteCountdown || 'available in 24h') + ')' }}
                 </button>
               </template>
 
@@ -592,10 +705,29 @@ const statusContext = computed(() => {
         >
           <span class="material-symbols-outlined">close</span>
         </button>
+
+        <!-- Prev Button -->
+        <button
+          v-if="proofUrls.length > 1"
+          class="absolute left-5 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
+          @click.stop="prevProof"
+        >
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+
         <img
           :src="showProofViewer"
           class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
         />
+
+        <!-- Next Button -->
+        <button
+          v-if="proofUrls.length > 1"
+          class="absolute right-5 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
+          @click.stop="nextProof"
+        >
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
       </div>
     </Transition>
   </Teleport>

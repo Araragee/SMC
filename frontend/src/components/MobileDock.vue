@@ -87,6 +87,7 @@ onUnmounted(() => {
           class="material-symbols-outlined"
           :class="isActive(item.path) ? 'text-white' : 'text-on-surface-variant group-hover:text-on-surface'"
           :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
+          aria-hidden="true"
         >
           {{ item.icon }}
         </span>
@@ -105,7 +106,7 @@ onUnmounted(() => {
         class="relative p-3 rounded-full hover:bg-white/5 group"
         @click="modalStore.openNotifications()"
       >
-        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">notifications</span>
+        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">notifications</span>
         <span 
           v-if="notifStore.unreadCount > 0"
           class="absolute top-2 right-2 w-4 h-4 bg-orange-500 rounded-full border-2 border-surface-container-low text-[8px] font-black text-white flex items-center justify-center"
@@ -119,7 +120,7 @@ onUnmounted(() => {
         class="relative p-3 rounded-full hover:bg-white/5 group"
         @click="messagingStore.isOpen = true"
       >
-        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface">chat</span>
+        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">chat</span>
         <span 
           v-if="messagingStore.totalUnread > 0"
           class="absolute top-2 right-2 w-4 h-4 bg-orange-500 rounded-full border-2 border-surface-container-low text-[8px] font-black text-white flex items-center justify-center"

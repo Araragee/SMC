@@ -116,6 +116,19 @@ const onSessionClick = function(session: Session) {
   selectedSession.value = session
 }
 
+const onReschedule = async function({ session, newStart, newEnd }: { session: Session; newStart: Date; newEnd: Date }) {
+  try {
+    await scheduleStore.editSession(session.id, {
+      startTime: newStart.toISOString(),
+      endTime: newEnd.toISOString(),
+    })
+    toast.success('Session rescheduled successfully')
+  } catch (err: any) {
+    const msg = err.response?.data?.detail || err.message || 'Reschedule failed'
+    toast.error('Reschedule failed', msg)
+  }
+}
+
 const exportingIcs = ref(false)
 const exportIcs = async function() {
   if (exportingIcs.value) return
@@ -418,7 +431,7 @@ const statusBadgeClass = function(status: string): string  {
         </span>
         Weekly Overview
       </h3>
-      <BaseCalendar :sessions="scheduleStore.allSessions" @day-click="onDayClick" @session-click="onSessionClick" />
+      <BaseCalendar :sessions="scheduleStore.allSessions" :is-admin="true" @day-click="onDayClick" @session-click="onSessionClick" @reschedule="onReschedule" />
     </section>
 
     <!-- All Sessions Table -->

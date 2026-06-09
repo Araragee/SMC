@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Session } from '@types'
 
 interface DayData {
@@ -14,49 +14,128 @@ interface DayData {
 
 const props = defineProps<{
   sessions: Session[]
+  isAdmin?: boolean
 }>()
 
 const emit = defineEmits<{
   dayClick: [{ date: Date; sessions: Session[] }]
   sessionClick: [session: Session]
+  reschedule: [{ session: Session; newStart: Date; newEnd: Date }]
 }>()
 
-const weekOffset = ref(0)
+const activeView = ref<'week' | 'month' | 'day'>(
+  (localStorage.getItem('smc_calendar_view') as 'week' | 'month' | 'day') || 'week'
+)
+
+const offset = ref(0)
 const currentDate = ref(new Date())
 
-const displayMonthYear = computed(() => {
-  const d = new Date(currentDate.value)
-  d.setDate(d.getDate() + weekOffset.value * 7)
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+watch(activeView, () => {
+  localStorage.setItem('smc_calendar_view', activeView.value)
+  offset.value = 0 // Reset when changing view
 })
 
-const weekDays = computed<DayData[]>(() => {
+const baseDate = computed(() => {
+  const d = new Date(currentDate.value)
+  d.setHours(0, 0, 0, 0)
+  if (activeView.value === 'day') {
+    d.setDate(d.getDate() + offset.value)
+  } else if (activeView.value === 'week') {
+    d.setDate(d.getDate() + offset.value * 7)
+  } else if (activeView.value === 'month') {
+    d.setMonth(d.getMonth() + offset.value)
+  }
+  return d
+})
+
+const displayMonthYear = computed(() => {
+  const d = baseDate.value
+  if (activeView.value === 'day') {
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  } else {
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  }
+})
+
+const calendarDays = computed<DayData[]>(() => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const baseDate = new Date(currentDate.value)
-  baseDate.setHours(0, 0, 0, 0)
-
-  const dayOfWeek = baseDate.getDay() || 7
-  const monday = new Date(baseDate)
-  monday.setDate(baseDate.getDate() - dayOfWeek + 1 + weekOffset.value * 7)
-
-  const dayLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
-
-  return dayLabels.map((label, i) => {
-    const date = new Date(monday)
-    date.setDate(monday.getDate() + i)
-
+  if (activeView.value === 'day') {
+    const date = new Date(baseDate.value)
     const iso = date.toDateString()
     const isToday = iso === today.toDateString()
-    const isWeekend = i >= 5
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6
+    const dayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+    const label = dayLabels[date.getDay()]
 
     const daySessions = props.sessions
       .filter((s: any) => new Date(s.startTime).toDateString() === iso)
       .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
 
-    return { label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions }
-  })
+    return [{ label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions }]
+  }
+
+  if (activeView.value === 'week') {
+    const d = baseDate.value
+    const dayOfWeek = d.getDay() || 7
+    const monday = new Date(d)
+    monday.setDate(d.getDate() - dayOfWeek + 1)
+
+    const dayLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+    return dayLabels.map((label, i) => {
+      const date = new Date(monday)
+      date.setDate(monday.getDate() + i)
+
+      const iso = date.toDateString()
+      const isToday = iso === today.toDateString()
+      const isWeekend = i >= 5
+
+      const daySessions = props.sessions
+        .filter((s: any) => new Date(s.startTime).toDateString() === iso)
+        .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+
+      return { label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions }
+    })
+  }
+
+  // Month View
+  const d = baseDate.value
+  const year = d.getFullYear()
+  const month = d.getMonth()
+  
+  const firstDay = new Date(year, month, 1)
+  const startDayOfWeek = firstDay.getDay() || 7
+  
+  const gridStart = new Date(firstDay)
+  gridStart.setDate(firstDay.getDate() - startDayOfWeek + 1)
+  
+  const lastDay = new Date(year, month + 1, 0)
+  const endDayOfWeek = lastDay.getDay() || 7
+  
+  const gridEnd = new Date(lastDay)
+  gridEnd.setDate(lastDay.getDate() + (7 - endDayOfWeek))
+  
+  const days: DayData[] = []
+  const current = new Date(gridStart)
+  const dayLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+  
+  while (current <= gridEnd) {
+    const date = new Date(current)
+    const iso = date.toDateString()
+    const isToday = iso === today.toDateString()
+    const dow = date.getDay()
+    const isWeekend = dow === 0 || dow === 6
+    const label = dayLabels[(dow || 7) - 1]
+    
+    const daySessions = props.sessions
+      .filter((s: any) => new Date(s.startTime).toDateString() === iso)
+      .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+      
+    days.push({ label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions })
+    current.setDate(current.getDate() + 1)
+  }
+  return days
 })
 
 const formatTime = function(iso: string) {
@@ -125,9 +204,52 @@ const statusDotColor = function(status: string): string  {
   return map[status] ?? 'bg-zinc-400'
 }
 
-const previousWeek = function() { weekOffset.value-- }
-const nextWeek = function() { weekOffset.value++ }
-const resetToToday = function() { currentDate.value = new Date(); weekOffset.value = 0 }
+const previous = function() { offset.value-- }
+const next = function() { offset.value++ }
+const resetToToday = function() { currentDate.value = new Date(); offset.value = 0 }
+
+// Drag & Drop
+const onDragStart = (event: DragEvent, session: Session) => {
+  if (!props.isAdmin) return
+  event.dataTransfer?.setData('application/json', JSON.stringify(session))
+  event.dataTransfer!.effectAllowed = 'move'
+}
+
+const onDrop = (event: DragEvent, targetDate: Date) => {
+  if (!props.isAdmin) return
+  const rawData = event.dataTransfer?.getData('application/json')
+  if (!rawData) return
+  const session = JSON.parse(rawData) as Session
+  
+  const oldStart = new Date(session.startTime)
+  const oldEnd = new Date(session.endTime)
+  const durationMs = oldEnd.getTime() - oldStart.getTime()
+  
+  const newStart = new Date(targetDate)
+  newStart.setHours(oldStart.getHours(), oldStart.getMinutes(), 0, 0)
+  
+  const newEnd = new Date(newStart.getTime() + durationMs)
+  
+  emit('reschedule', { session, newStart, newEnd })
+}
+
+// Session Overflow Popover
+const overflowOpenDay = ref<string | null>(null)
+const overflowSessions = ref<Session[]>([])
+const toggleOverflow = (dayIso: string, sessions: Session[]) => {
+  if (overflowOpenDay.value === dayIso) {
+    overflowOpenDay.value = null
+  } else {
+    overflowOpenDay.value = dayIso
+    overflowSessions.value = sessions
+  }
+}
+
+// Get sessions up to limit depending on view
+const limitForView = computed(() => {
+  if (activeView.value === 'month') return 3
+  return 4
+})
 </script>
 
 <template>
@@ -137,11 +259,11 @@ const resetToToday = function() { currentDate.value = new Date(); weekOffset.val
     <!-- Calendar Controls -->
     <div class="flex items-center justify-between min-w-[700px]">
       <div class="flex items-center gap-4">
-        <h3 class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tight">
+        <h3 class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tight min-w-[200px]">
           {{ displayMonthYear }}
         </h3>
         <button
-          v-if="weekOffset !== 0"
+          v-if="offset !== 0"
           class="px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-wider hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
           @click="resetToToday"
         >
@@ -149,31 +271,57 @@ const resetToToday = function() { currentDate.value = new Date(); weekOffset.val
         </button>
       </div>
 
-      <div
-        class="flex items-center gap-2 bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant"
-      >
-        <button
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
-          @click="previousWeek"
+      <!-- View Toggle & Navigation -->
+      <div class="flex items-center gap-4">
+        <!-- View Toggle Buttons -->
+        <div class="flex bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant">
+          <button
+            v-for="view in (['day', 'week', 'month'] as const)"
+            :key="view"
+            class="px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+            :class="activeView === view 
+              ? 'bg-orange-500 text-white shadow-md' 
+              : 'text-on-surface-variant hover:text-on-surface'"
+            @click="activeView = view"
+          >
+            {{ view }}
+          </button>
+        </div>
+
+        <div
+          class="flex items-center gap-2 bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant"
         >
-          <span class="material-symbols-outlined text-lg">chevron_left</span>
-        </button>
-        <button
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
-          @click="nextWeek"
-        >
-          <span class="material-symbols-outlined text-lg">chevron_right</span>
-        </button>
+          <button
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+            @click="previous"
+          >
+            <span class="material-symbols-outlined text-lg">chevron_left</span>
+          </button>
+          <button
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+            @click="next"
+          >
+            <span class="material-symbols-outlined text-lg">chevron_right</span>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 gap-3 min-w-[700px] flex-1">
+    <div 
+      class="grid gap-3 min-w-[700px] flex-1"
+      :class="{
+        'grid-cols-1': activeView === 'day',
+        'grid-cols-7': activeView === 'week' || activeView === 'month'
+      }"
+    >
       <div
-        v-for="day in weekDays"
+        v-for="day in calendarDays"
         :key="day.iso"
-        class="flex flex-col h-full bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors group"
+        class="flex flex-col h-full bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors group relative"
         :class="{ 'ring-2 ring-teal-400 border-transparent': day.isToday }"
+        @dragover.prevent
+        @drop="onDrop($event, day.date)"
         @click="emit('dayClick', { date: day.date, sessions: day.sessions })"
       >
         <!-- Day Header -->
@@ -210,12 +358,14 @@ const resetToToday = function() { currentDate.value = new Date(); weekOffset.val
         </div>
 
         <!-- Session List -->
-        <div class="p-1.5 space-y-1.5 flex-1 relative min-h-[120px]">
+        <div class="p-1.5 space-y-1.5 flex-1 relative" :class="activeView === 'month' ? 'min-h-[90px]' : 'min-h-[120px]'">
           <div
-            v-for="session in day.sessions"
+            v-for="session in day.sessions.slice(0, limitForView)"
             :key="session.id"
+            :draggable="isAdmin ? 'true' : 'false'"
             class="px-2 py-1.5 rounded-lg border-l-[3px] shadow-sm cursor-pointer hover:brightness-95 dark:hover:brightness-125 active:scale-95 transition-all select-none"
             :class="themeStatusStyles(session.status)"
+            @dragstart="onDragStart($event, session)"
             @click.stop="emit('sessionClick', session)"
           >
             <div class="flex items-center gap-1 mb-0.5">
@@ -225,6 +375,19 @@ const resetToToday = function() { currentDate.value = new Date(); weekOffset.val
             <p class="text-[9px] font-bold uppercase tracking-wider opacity-75 truncate">
               {{ statusLabel(session.status) }}
             </p>
+          </div>
+
+          <!-- Session Overflow Chip -->
+          <div 
+            v-if="day.sessions.length > limitForView" 
+            class="mt-1"
+          >
+            <button
+              class="w-full text-center py-1 text-[9px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-colors"
+              @click.stop="toggleOverflow(day.iso, day.sessions)"
+            >
+              +{{ day.sessions.length - limitForView }} more
+            </button>
           </div>
 
           <!-- Empty state hover hint -->
@@ -237,6 +400,35 @@ const resetToToday = function() { currentDate.value = new Date(); weekOffset.val
             >
               <span class="material-symbols-outlined text-sm">add</span>
             </span>
+          </div>
+        </div>
+
+        <!-- Overflow Popover -->
+        <div
+          v-if="overflowOpenDay === day.iso"
+          class="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-surface-container-lowest dark:bg-surface-container-lowest border border-outline-variant dark:border-outline-variant rounded-2xl p-3 shadow-2xl space-y-2 max-h-60 overflow-y-auto"
+          @click.stop
+        >
+          <div class="flex items-center justify-between border-b border-outline-variant pb-1.5">
+            <span class="text-xs font-black uppercase tracking-wider text-on-surface">All Sessions</span>
+            <button class="text-on-surface-variant hover:text-on-surface" @click="overflowOpenDay = null">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+          <div
+            v-for="session in day.sessions"
+            :key="session.id"
+            class="px-2 py-1.5 rounded-lg border-l-[3px] shadow-sm cursor-pointer hover:brightness-95 dark:hover:brightness-125 transition-all"
+            :class="themeStatusStyles(session.status)"
+            @click.stop="emit('sessionClick', session); overflowOpenDay = null"
+          >
+            <div class="flex items-center gap-1 mb-0.5">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
+              <span class="font-black text-[10px]">{{ formatTime(session.startTime) }}</span>
+            </div>
+            <p class="text-[9px] font-bold uppercase tracking-wider opacity-75">
+              {{ statusLabel(session.status) }}
+            </p>
           </div>
         </div>
       </div>
