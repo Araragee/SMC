@@ -14,3 +14,4 @@ backend/.env
 # to fully remove it from git history going forward.
 
 STARTUP_DEBUG.md
+TEST_USERS.md
