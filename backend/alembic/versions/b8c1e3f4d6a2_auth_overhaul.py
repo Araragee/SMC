@@ -14,15 +14,44 @@ branch_labels = None
 depends_on = None
 
 
+def _inspect():
+    return sa.inspect(op.get_bind())
+
+
+def _has_table(name: str) -> bool:
+    try:
+        return name in _inspect().get_table_names()
+    except Exception:
+        return False
+
+
+def _has_column(table: str, column: str) -> bool:
+    try:
+        return any(c["name"] == column for c in _inspect().get_columns(table))
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
-    # users: new auth cols
-    with op.batch_alter_table("users") as batch:
-        batch.add_column(sa.Column("email_verified", sa.Boolean(), nullable=False, server_default="0"))
-        batch.add_column(sa.Column("email_verification_token_hash", sa.String(), nullable=True))
-        batch.add_column(sa.Column("totp_secret", sa.String(), nullable=True))
-        batch.add_column(sa.Column("totp_enabled", sa.Boolean(), nullable=False, server_default="0"))
+    # users: new auth cols. Idempotent — 0001 baseline already adds them on
+    # fresh installs.
+    cols_to_add = []
+    if not _has_column("users", "email_verified"):
+        cols_to_add.append(sa.Column("email_verified", sa.Boolean(), nullable=False, server_default="0"))
+    if not _has_column("users", "email_verification_token_hash"):
+        cols_to_add.append(sa.Column("email_verification_token_hash", sa.String(), nullable=True))
+    if not _has_column("users", "totp_secret"):
+        cols_to_add.append(sa.Column("totp_secret", sa.String(), nullable=True))
+    if not _has_column("users", "totp_enabled"):
+        cols_to_add.append(sa.Column("totp_enabled", sa.Boolean(), nullable=False, server_default="0"))
+    if cols_to_add:
+        with op.batch_alter_table("users") as batch:
+            for col in cols_to_add:
+                batch.add_column(col)
 
     # refresh_tokens
+    if _has_table("refresh_tokens"):
+        return
     op.create_table(
         "refresh_tokens",
         sa.Column("id", sa.Integer(), primary_key=True),

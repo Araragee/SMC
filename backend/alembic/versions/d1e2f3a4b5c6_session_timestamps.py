@@ -23,14 +23,25 @@ branch_labels = None
 depends_on = None
 
 
+def _has_column(table: str, column: str) -> bool:
+    try:
+        return any(c["name"] == column for c in sa.inspect(op.get_bind()).get_columns(table))
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
+    # Idempotent: 0001 baseline already adds these columns on fresh installs.
+    cols = []
+    if not _has_column("sessions", "created_at"):
+        cols.append(sa.Column("created_at", sa.DateTime(), nullable=True))
+    if not _has_column("sessions", "updated_at"):
+        cols.append(sa.Column("updated_at", sa.DateTime(), nullable=True))
+    if not cols:
+        return
     with op.batch_alter_table("sessions") as batch:
-        batch.add_column(
-            sa.Column("created_at", sa.DateTime(), nullable=True)
-        )
-        batch.add_column(
-            sa.Column("updated_at", sa.DateTime(), nullable=True)
-        )
+        for c in cols:
+            batch.add_column(c)
 
     # Backfill existing rows: use start_time as a reasonable proxy for
     # when the session record was originally created/last modified.

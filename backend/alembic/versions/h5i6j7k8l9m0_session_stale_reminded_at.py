@@ -17,7 +17,17 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_column(table: str, column: str) -> bool:
+    try:
+        return any(c["name"] == column for c in sa.inspect(op.get_bind()).get_columns(table))
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
+    # Idempotent: 0001 baseline already adds this column on fresh installs.
+    if _has_column("sessions", "stale_reminded_at"):
+        return
     op.add_column(
         'sessions',
         sa.Column('stale_reminded_at', sa.DateTime(), nullable=True)

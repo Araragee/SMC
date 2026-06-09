@@ -17,7 +17,17 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _has_index(table: str, index: str) -> bool:
+    try:
+        return any(ix.get("name") == index for ix in sa.inspect(op.get_bind()).get_indexes(table))
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
+    # Idempotent: 0001 baseline already creates this index on fresh installs.
+    if _has_index("notifications", "ix_notifications_user_unread"):
+        return
     op.create_index(
         "ix_notifications_user_unread",
         "notifications",

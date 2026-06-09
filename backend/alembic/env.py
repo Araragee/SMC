@@ -1,8 +1,16 @@
+import os
+import sys
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+
+# Make the ``versions/`` directory importable so legacy migration scripts
+# can ``from _idempotent import ...`` for shared helpers.
+_VERSIONS_DIR = os.path.join(os.path.dirname(__file__), "versions")
+if _VERSIONS_DIR not in sys.path:
+    sys.path.insert(0, _VERSIONS_DIR)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response
@@ -145,9 +145,9 @@ def read_student_payments(
 
 class PaymentUpdate(BaseModel):
     status: Literal["pending", "completed", "failed"] | None = None
-    notes: str | None = None
+    notes: Annotated[str | None, Field(default=None, max_length=500)] = None
     method: Literal["cash", "bank_transfer", "card", "gcash", "maya"] | None = None
-    amount: int | None = Field(default=None, gt=0, lt=10_000_000)
+    amount: Annotated[int | None, Field(default=None, gt=0, lt=10_000_000)] = None
 
 
 @router.patch("/{payment_id}", response_model=schemas.Payment)

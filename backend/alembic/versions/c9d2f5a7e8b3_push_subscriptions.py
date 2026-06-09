@@ -14,7 +14,17 @@ branch_labels = None
 depends_on = None
 
 
+def _has_table(name: str) -> bool:
+    try:
+        return name in sa.inspect(op.get_bind()).get_table_names()
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
+    # Idempotent: 0001 baseline already has this table on fresh installs.
+    if _has_table("push_subscriptions"):
+        return
     op.create_table(
         "push_subscriptions",
         sa.Column("id", sa.Integer(), primary_key=True),

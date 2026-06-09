@@ -19,8 +19,18 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
+def _has_table(name: str) -> bool:
+    try:
+        return name in sa.inspect(op.get_bind()).get_table_names()
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
     """Create the activity_logs table."""
+    # Idempotent: 0001 baseline already has this table on fresh installs.
+    if _has_table("activity_logs"):
+        return
     op.create_table(
         'activity_logs',
         sa.Column('id', sa.Integer(), nullable=False),

@@ -87,6 +87,13 @@ class User(Base):
     totp_secret = Column(String, nullable=True)
     totp_enabled = Column(Boolean, default=False, nullable=False, server_default="0")
 
+    # Phase 2: force-change-password gate. Set true on the default-admin
+    # seed and after any admin-initiated password reset so the user can't
+    # operate the app until they rotate the credential. The frontend
+    # redirects to /change-password whenever ``user.must_change_password``
+    # is true.
+    must_change_password = Column(Boolean, default=False, nullable=False, server_default="0")
+
     instruments = relationship("Instrument", secondary="user_instruments")
     teachers_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.student_id", back_populates="student")
     students_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.teacher_id", back_populates="teacher")
@@ -149,6 +156,12 @@ class Session(Base):
 
     homeworks = relationship("Homework", back_populates="session", cascade="all, delete-orphan")
     proofs = relationship("SessionProof", back_populates="session", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        # Covers the session_checker_task's overdue query, which filters
+        # WHERE status = 'scheduled' AND end_time < now every loop tick.
+        Index("ix_sessions_status_end_time", "status", "end_time"),
+    )
 
 
 class Enrollment(Base):
@@ -217,6 +230,9 @@ class Notification(Base):
     __table_args__ = (
         # Covers the common "unread count" query: WHERE user_id = ? AND is_read = false
         Index("ix_notifications_user_unread", "user_id", "is_read"),
+        # Supports the 90-day retention purge planned in Phase 4 and
+        # date-range filtering in the notifications UI.
+        Index("ix_notifications_created_at", "created_at"),
     )
 
 class InstrumentProduct(Base):

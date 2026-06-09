@@ -64,6 +64,7 @@ def upgrade() -> None:
         sa.Column('email_verification_token_hash', sa.String, nullable=True),
         sa.Column('totp_secret', sa.String, nullable=True),
         sa.Column('totp_enabled', sa.Boolean, nullable=False, server_default='0'),
+        sa.Column('must_change_password', sa.Boolean, nullable=False, server_default='0'),
     )
 
     # ── user_instruments ──────────────────────────────────────────────────────

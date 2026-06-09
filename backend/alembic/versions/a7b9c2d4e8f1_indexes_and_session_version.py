@@ -61,23 +61,46 @@ _FK_INDEXES: list[tuple[str, str, str]] = [
 ]
 
 
+def _inspect():
+    return sa.inspect(op.get_bind())
+
+
+def _has_column(table: str, column: str) -> bool:
+    try:
+        return any(c["name"] == column for c in _inspect().get_columns(table))
+    except Exception:
+        return False
+
+
+def _has_index(table: str, index: str) -> bool:
+    try:
+        return any(ix.get("name") == index for ix in _inspect().get_indexes(table))
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
     # 1. Optimistic locking column on sessions. batch_alter_table is used for
     #    SQLite compatibility (no native ADD COLUMN with server_default of an
     #    arbitrary expression on every dialect).
-    with op.batch_alter_table("sessions") as batch:
-        batch.add_column(
-            sa.Column(
-                "version",
-                sa.Integer(),
-                nullable=False,
-                server_default="0",
+    # Idempotent: 0001 baseline already added the version column on fresh
+    # installs.
+    if not _has_column("sessions", "version"):
+        with op.batch_alter_table("sessions") as batch:
+            batch.add_column(
+                sa.Column(
+                    "version",
+                    sa.Integer(),
+                    nullable=False,
+                    server_default="0",
+                )
             )
-        )
 
-    # 2. Foreign-key indexes.
+    # 2. Foreign-key indexes. 0001 already declares many of these; only add
+    #    the ones genuinely missing on the current DB.
     for table, column, index_name in _FK_INDEXES:
-        op.create_index(index_name, table, [column], unique=False)
+        if not _has_index(table, index_name):
+            op.create_index(index_name, table, [column], unique=False)
 
 
 def downgrade() -> None:

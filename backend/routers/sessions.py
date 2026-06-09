@@ -16,6 +16,7 @@ from ..config import settings
 from ..database import SessionLocal, get_db
 from ..dependencies import get_current_active_user, require_admin, require_student, require_teacher
 from ..services.notifier import safe_notify
+from ..utils.signed_urls import sign_url
 from ..utils.uploads import save_upload
 
 router = APIRouter()
@@ -44,6 +45,17 @@ def _check_version(db_session: models.Session, expected: int | None) -> None:
     Pass ``expected`` from the client request body. ``None`` means the caller
     opted out of optimistic locking (legacy clients) and we let it through —
     this keeps the change backwards-compatible while new clients get safety.
+
+    Contract: every endpoint that meaningfully transitions a session's state
+    (status change, time change, party change, proof verdict) MUST call
+    ``_check_version`` before mutating and ``_bump_version`` before commit.
+    Background-only updates that do NOT change observable session state for
+    the user (e.g. setting ``notified_24h=True`` in the checker task, or
+    setting ``stale_reminded_at`` after a reminder send) intentionally
+    SKIP the bump. That avoids gratuitous 409s on active frontend tabs whose
+    cached version would otherwise drift behind the server every loop tick.
+    When you add a new field, decide which bucket it falls into and document
+    that at the call site.
     """
     if expected is None:
         return
@@ -60,9 +72,85 @@ def _check_version(db_session: models.Session, expected: int | None) -> None:
 
 def _bump_version(db_session: models.Session) -> None:
     """Increment session version. Call before commit on every status transition.
-    Also clears stale_reminded_at so the reminder clock restarts after any action."""
+    Also clears stale_reminded_at so the reminder clock restarts after any action.
+
+    Do NOT call this for notification-only updates (see ``_check_version``
+    docstring) — the version is part of the user-visible state contract.
+    """
     db_session.version = (db_session.version or 0) + 1
     db_session.stale_reminded_at = None
+
+
+# ── Session-time validation ─────────────────────────────────────────────────
+# Centralized so every create/propose/counter/edit path enforces the same
+# rules. Conservative defaults; widen if a real use case shows up.
+_MIN_SESSION_MINUTES = 15
+_MAX_SESSION_MINUTES = 240
+# Small clock-skew tolerance so a client submitting "now" doesn't get rejected
+# if the server clock is ~1 minute ahead.
+_PAST_CLOCK_SKEW_SECONDS = 60
+
+
+def _validate_session_window(
+    start: datetime,
+    end: datetime | None,
+    *,
+    allow_past: bool = False,
+) -> datetime:
+    """Validate a (start, end) window. Returns the resolved ``end`` time.
+
+    Rules:
+      - Naive datetimes are coerced to UTC (SQLite hands them back naive).
+      - ``end`` defaults to ``start + 1h`` if omitted.
+      - ``end`` must be strictly greater than ``start``.
+      - Duration must be in [_MIN_SESSION_MINUTES, _MAX_SESSION_MINUTES].
+      - ``start`` must not be in the past (modulo clock-skew tolerance),
+        unless ``allow_past=True`` — used by admin manual-entry endpoints
+        that record historic sessions.
+
+    Raises HTTPException(400) on any violation; never silently coerces.
+    """
+    if start.tzinfo is None:
+        start = start.replace(tzinfo=timezone.utc)
+    if end is None:
+        end = start + timedelta(hours=1)
+    elif end.tzinfo is None:
+        end = end.replace(tzinfo=timezone.utc)
+
+    if end <= start:
+        raise HTTPException(
+            status_code=400,
+            detail="Session end time must be after start time.",
+        )
+
+    duration_minutes = (end - start).total_seconds() / 60
+    if duration_minutes < _MIN_SESSION_MINUTES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Session is too short ({int(duration_minutes)} min). "
+                f"Minimum allowed is {_MIN_SESSION_MINUTES} minutes."
+            ),
+        )
+    if duration_minutes > _MAX_SESSION_MINUTES:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Session is too long ({int(duration_minutes)} min). "
+                f"Maximum allowed is {_MAX_SESSION_MINUTES} minutes."
+            ),
+        )
+
+    if not allow_past:
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(seconds=_PAST_CLOCK_SKEW_SECONDS)
+        if start < cutoff:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot schedule a session in the past.",
+            )
+
+    return end
 
 
 def get_admin_ids(db) -> list:
@@ -100,11 +188,31 @@ def _check_overlap(db, teacher_id: int, student_id: int, start: datetime, end: d
             detail=f"Scheduling conflict: the {role} already has an active session overlapping this time slot (Session #{conflict.id}).",
         )
 
+def _signed_or_passthrough(url: str | None) -> str | None:
+    """Sign internal upload URLs; leave anything else (including absolute
+    URLs to external CDNs or already-signed URLs) untouched."""
+    if not url:
+        return url
+    if url.startswith(("/uploads/proofs/", "/uploads/homework/")):
+        return sign_url(url)
+    return url
+
+
 def map_session(db_session: models.Session) -> dict:
     session_dict = schemas.Session.model_validate(db_session).model_dump()
-    session_dict['proof_image_url'] = db_session.proofs[0].image_url if db_session.proofs else None
+    # Sign all proof URLs (top-level and nested) so the frontend can
+    # render <img src> directly without needing to attach auth headers.
+    session_dict['proof_image_url'] = (
+        _signed_or_passthrough(db_session.proofs[0].image_url)
+        if db_session.proofs else None
+    )
+    for proof in session_dict.get('proofs') or []:
+        proof['image_url'] = _signed_or_passthrough(proof.get('image_url'))
     session_dict['homework_assigned'] = db_session.homeworks[0].description if db_session.homeworks else None
     session_dict['homework_completed'] = db_session.homeworks[0].is_completed if db_session.homeworks else False
+    # Sign homework file URLs if exposed in the nested list.
+    for hw in session_dict.get('homeworks') or []:
+        hw['file_url'] = _signed_or_passthrough(hw.get('file_url'))
     return session_dict
 
 
@@ -271,11 +379,15 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
+    # Past sessions are explicitly allowed here (this endpoint records history),
+    # but duration sanity still applies.
+    end_time = _validate_session_window(session.start_time, session.end_time, allow_past=True)
+
     db_session = models.Session(
         teacher_id=session.teacher_id,
         student_id=session.student_id,
         start_time=session.start_time,
-        end_time=session.end_time,
+        end_time=end_time,
         status="completed",
         notes=session.notes,
         proposed_by=current_user.id,
@@ -361,8 +473,9 @@ def create_recurring_sessions(
         raise HTTPException(status_code=404, detail="Student not found")
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
-    if payload.end_time <= payload.start_time:
-        raise HTTPException(status_code=400, detail="end_time must be after start_time")
+
+    # Validate the template window; recurring sessions are future-only.
+    _validate_session_window(payload.start_time, payload.end_time)
 
     duration = payload.end_time - payload.start_time
     step = {
@@ -426,13 +539,14 @@ def create_session(session: schemas.SessionCreate, db: Session = Depends(get_db)
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    _check_overlap(db, session.teacher_id, session.student_id, session.start_time, session.end_time)
+    end_time = _validate_session_window(session.start_time, session.end_time)
+    _check_overlap(db, session.teacher_id, session.student_id, session.start_time, end_time)
 
     db_session = models.Session(
         teacher_id=session.teacher_id,
         student_id=session.student_id,
         start_time=session.start_time,
-        end_time=session.end_time,
+        end_time=end_time,
         status="scheduled",
         proposed_by=current_user.id,
         notes=session.notes
@@ -516,10 +630,19 @@ def update_session(session_id: int, session: schemas.SessionEdit, db: Session = 
     expected_version = update_data.pop("version", None)
     _check_version(db_session, expected_version)
 
-    # If start/end time changes, reset notification flags so the user gets
-    # fresh reminders for the rescheduled slot.
+    # If start/end time changes, validate the new window and reset notification
+    # flags so the user gets fresh reminders for the rescheduled slot.
     time_fields = {"start_time", "end_time"}
     if time_fields & update_data.keys():
+        new_start = update_data.get("start_time", db_session.start_time)
+        new_end = update_data.get("end_time", db_session.end_time)
+        # Admin edits are allowed on past sessions (e.g. fixing a typo on a
+        # completed session before this guard rejects edits of terminal
+        # statuses above). For non-terminal statuses we still don't want
+        # the admin scheduling into the past — they have manual entry for that.
+        update_data["end_time"] = _validate_session_window(
+            new_start, new_end, allow_past=False
+        )
         update_data["notified_24h"] = False
         update_data["notified_12h"] = False
 
@@ -613,7 +736,7 @@ def propose_session_as_student(
             detail="No sessions remaining. Please contact admin to enroll in more."
         )
 
-    end_time = proposal.end_time or (proposal.start_time + timedelta(hours=1))
+    end_time = _validate_session_window(proposal.start_time, proposal.end_time)
     _check_overlap(db, proposal.teacher_id, current_user.id, proposal.start_time, end_time)
 
     db_session = models.Session(
@@ -658,7 +781,7 @@ def propose_session_as_teacher(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    end_time = proposal.end_time or (proposal.start_time + timedelta(hours=1))
+    end_time = _validate_session_window(proposal.start_time, proposal.end_time)
     _check_overlap(db, current_user.id, proposal.student_id, proposal.start_time, end_time)
 
     db_session = models.Session(
@@ -777,9 +900,10 @@ def counter_session_as_teacher(
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
     _check_version(db_session, counter.version)
-    _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter.end_time, exclude_session_id=session_id)
+    counter_end = _validate_session_window(counter.start_time, counter.end_time)
+    _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter_end, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
-    db_session.end_time = counter.end_time
+    db_session.end_time = counter_end
     db_session.status = "pending_student"
     db_session.proposed_by = current_user.id
     if counter.notes:
@@ -812,9 +936,10 @@ def counter_session_as_student(
         raise HTTPException(status_code=403, detail="You can only counter sessions assigned to you")
 
     _check_version(db_session, counter.version)
-    _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter.end_time, exclude_session_id=session_id)
+    counter_end = _validate_session_window(counter.start_time, counter.end_time)
+    _check_overlap(db, db_session.teacher_id, db_session.student_id, counter.start_time, counter_end, exclude_session_id=session_id)
     db_session.start_time = counter.start_time
-    db_session.end_time = counter.end_time
+    db_session.end_time = counter_end
     db_session.status = "pending_teacher"
     db_session.proposed_by = current_user.id
     if counter.notes:
@@ -1031,6 +1156,17 @@ def nudge_session(
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    # Authorization (added Phase 2): only admins or actual participants of
+    # this session can nudge. Previously any authenticated user could
+    # enumerate session IDs and spam every teacher in the school.
+    is_admin = bool(current_user.role and current_user.role.name.lower() == "admin")
+    is_party = current_user.id in (db_session.teacher_id, db_session.student_id)
+    if not (is_admin or is_party):
+        raise HTTPException(
+            status_code=403,
+            detail="Only session participants or admins can nudge.",
+        )
+
     dt_str = format_dt(db_session.start_time)
     teacher_proof = any(p.uploader_role == 'teacher' for p in db_session.proofs)
     student_proof = any(p.uploader_role == 'student' for p in db_session.proofs)
@@ -1097,7 +1233,13 @@ def complete_session_as_admin(
 
     is_force = False
     if db_session.status != "pending_verification":
-        target_time = db_session.end_time + timedelta(hours=24)
+        # SQLite hands back naive datetimes even when the column is tz-aware,
+        # which makes the comparison below blow up with
+        # "can't compare offset-naive and offset-aware". Coerce to UTC.
+        end_time = db_session.end_time
+        if end_time.tzinfo is None:
+            end_time = end_time.replace(tzinfo=timezone.utc)
+        target_time = end_time + timedelta(hours=24)
         if datetime.now(timezone.utc) < target_time:
             raise HTTPException(status_code=400, detail="Cannot force complete a session until 24 hours after its end time.")
         is_force = True
@@ -1267,6 +1409,13 @@ def recalculate_student_sessions(
 
 # --- Homework ---
 
+def _serialize_homework(db_homework: models.Homework) -> dict:
+    """Pydantic-validate a Homework row and sign its file_url for safe rendering."""
+    out = schemas.Homework.model_validate(db_homework).model_dump()
+    out["file_url"] = _signed_or_passthrough(out.get("file_url"))
+    return out
+
+
 @router.post("/homework/", response_model=schemas.Homework)
 def create_homework(session_id: int, homework: schemas.HomeworkCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_teacher)):
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
@@ -1277,7 +1426,7 @@ def create_homework(session_id: int, homework: schemas.HomeworkCreate, db: Sessi
     db.add(db_homework)
     db.commit()
     db.refresh(db_homework)
-    return db_homework
+    return _serialize_homework(db_homework)
 
 @router.put("/homework/{homework_id}", response_model=schemas.Homework)
 def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
@@ -1288,7 +1437,7 @@ def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(
     db_homework.is_completed = is_completed
     db.commit()
     db.refresh(db_homework)
-    return db_homework
+    return _serialize_homework(db_homework)
 
 @router.get("/homework/user/{user_id}", response_model=list[schemas.Homework])
 def get_user_homework(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
@@ -1296,7 +1445,8 @@ def get_user_homework(user_id: int, db: Session = Depends(get_db), current_user:
     if current_user.role.name.lower() == "student" and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    return db.query(models.Homework).join(models.Session).filter(models.Session.student_id == user_id).all()
+    rows = db.query(models.Homework).join(models.Session).filter(models.Session.student_id == user_id).all()
+    return [_serialize_homework(hw) for hw in rows]
 
 @router.post("/homework/{homework_id}/upload", response_model=schemas.Homework)
 def upload_homework_file(
@@ -1321,7 +1471,11 @@ def upload_homework_file(
     db_homework.is_completed = True
     db.commit()
     db.refresh(db_homework)
-    return db_homework
+    # Return a copy with the URL signed so the frontend can render it
+    # immediately without a separate sign step.
+    out = schemas.Homework.model_validate(db_homework).model_dump()
+    out["file_url"] = _signed_or_passthrough(out.get("file_url"))
+    return out
 
 # --- Session Proofs ---
 
@@ -1356,7 +1510,11 @@ def create_session_proof(
     db.add(db_proof)
     db.commit()
     db.refresh(db_proof)
-    return db_proof
+    # Return with the URL signed (route ``GET /uploads/proofs/<name>``
+    # rejects unsigned requests).
+    out = schemas.SessionProof.model_validate(db_proof).model_dump()
+    out["image_url"] = _signed_or_passthrough(out.get("image_url"))
+    return out
 
 
 # ── ICS calendar export ──────────────────────────────────────────────────────
@@ -1486,8 +1644,11 @@ def bulk_session_action(
             
             is_force = False
             if s.status != "pending_verification":
-                target_time = s.end_time + timedelta(hours=24)
-                if datetime.now(timezone.utc) < target_time.replace(tzinfo=timezone.utc) if target_time.tzinfo is None else target_time:
+                end_time = s.end_time
+                if end_time.tzinfo is None:
+                    end_time = end_time.replace(tzinfo=timezone.utc)
+                target_time = end_time + timedelta(hours=24)
+                if datetime.now(timezone.utc) < target_time:
                     raise HTTPException(status_code=400, detail=f"Cannot force complete session #{s.id} until 24 hours after its end time.")
                 is_force = True
                 s.is_force_completed = True

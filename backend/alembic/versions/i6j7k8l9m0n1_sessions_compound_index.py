@@ -22,23 +22,33 @@ branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
 
+def _has_index(table: str, index: str) -> bool:
+    try:
+        return any(ix.get("name") == index for ix in sa.inspect(op.get_bind()).get_indexes(table))
+    except Exception:
+        return False
+
+
 def upgrade() -> None:
+    # Idempotent: skip any indexes that already exist (e.g. on a DB that
+    # ran a partial version of this migration, or on fresh installs that
+    # may have these defined in the 0001 baseline in the future).
     with op.batch_alter_table("sessions") as batch_op:
-        # Checker-loop primary filter: status then time ordering
-        batch_op.create_index(
-            "ix_sessions_status_start_time",
-            ["status", "start_time"],
-        )
-        # Per-teacher schedule range queries
-        batch_op.create_index(
-            "ix_sessions_teacher_start_time",
-            ["teacher_id", "start_time"],
-        )
-        # Per-student schedule range queries
-        batch_op.create_index(
-            "ix_sessions_student_start_time",
-            ["student_id", "start_time"],
-        )
+        if not _has_index("sessions", "ix_sessions_status_start_time"):
+            batch_op.create_index(
+                "ix_sessions_status_start_time",
+                ["status", "start_time"],
+            )
+        if not _has_index("sessions", "ix_sessions_teacher_start_time"):
+            batch_op.create_index(
+                "ix_sessions_teacher_start_time",
+                ["teacher_id", "start_time"],
+            )
+        if not _has_index("sessions", "ix_sessions_student_start_time"):
+            batch_op.create_index(
+                "ix_sessions_student_start_time",
+                ["student_id", "start_time"],
+            )
 
 
 def downgrade() -> None:
