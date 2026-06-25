@@ -9,9 +9,7 @@ __pycache__
 .env
 .env.local
 backend/.env
-# NOTE: backend/.env is still tracked in git from an old commit.
-# Run: git rm --cached backend/.env && git commit -m "untrack .env"
-# to fully remove it from git history going forward.
+
 
 STARTUP_DEBUG.md
 TEST_USERS.md

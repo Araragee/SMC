@@ -1,14 +1,20 @@
 import asyncio
 import os
+import logging
+import uuid
+import traceback
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+import jwt
+from fastapi import FastAPI, Request, Response, status, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
+from sqlalchemy import text
 
 from . import models
 
@@ -17,6 +23,9 @@ from .config import settings
 from .database import SessionLocal
 from .routers import activity, auth, messaging, notifications, payments, push, sessions, shop, uploads, users
 from .routers.sessions import session_checker_task
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 # Rate limiter shared with routers (e.g. login endpoint).
 limiter = Limiter(key_func=get_remote_address)
@@ -60,7 +69,7 @@ def _seed_defaults() -> None:
                 must_change_password=True,
             ))
             db.commit()
-            print(f"Default admin user created: {settings.DEFAULT_ADMIN_USERNAME} / [see DEFAULT_ADMIN_PASSWORD in .env]")
+            logger.info(f"Default admin user created: {settings.DEFAULT_ADMIN_USERNAME} / [see DEFAULT_ADMIN_PASSWORD in .env]")
         elif admin_user and not admin_user.username:
             admin_user.username = settings.DEFAULT_ADMIN_USERNAME
             db.commit()
@@ -89,9 +98,9 @@ def _purge_stale_tokens() -> None:
         )
         db.commit()
         if deleted_refresh or deleted_reset:
-            print(f"Token purge: removed {deleted_refresh} refresh token(s), {deleted_reset} reset token(s).")
+            logger.info(f"Token purge: removed {deleted_refresh} refresh token(s), {deleted_reset} reset token(s).")
         else:
-            print("Token purge completed: nothing to remove.")
+            logger.info("Token purge completed: nothing to remove.")
     finally:
         db.close()
 
@@ -113,6 +122,31 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    request_id = str(uuid.uuid4())
+    logger.error(
+        f"Unhandled exception occurred. Request ID: {request_id} | "
+        f"Path: {request.url.path} | Method: {request.method} | "
+        f"Detail: {exc}",
+        exc_info=exc
+    )
+    if settings.DEBUG:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": f"Internal server error (Request ID: {request_id})",
+                "exception": str(exc),
+                "traceback": traceback.format_exc(),
+            }
+        )
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"}
+        )
+
+
 os.makedirs("uploads", exist_ok=True)
 # Public assets only — shop product images are non-sensitive and benefit
 # from StaticFiles' efficient streaming. Sensitive subdirectories
@@ -122,14 +156,6 @@ os.makedirs("uploads", exist_ok=True)
 # backend/utils/signed_urls.py for the full contract.
 os.makedirs("uploads/shop", exist_ok=True)
 app.mount("/uploads/shop", StaticFiles(directory="uploads/shop"), name="uploads_shop")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
-)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -175,7 +201,68 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class MaintenanceModeMiddleware(BaseHTTPMiddleware):
+    """Return 503 for everyone except admins while MAINTENANCE_MODE is on.
+
+    We never read the request body here: doing so drains the ASGI stream and
+    leaves the real route handler with an empty body (a known BaseHTTPMiddleware
+    footgun). Instead we let the auth endpoints through unconditionally — a
+    non-admin can obtain a token, but every *other* route is still blocked by
+    the Bearer-header admin check below, so nothing useful leaks. Admin identity
+    is read only from the JWT in the Authorization header (no DB write, no body).
+    """
+
+    # Open during maintenance: health probe + the endpoints an admin needs to
+    # authenticate. Token-issuing is harmless because non-admin tokens still
+    # fail _is_admin on every protected route.
+    _ALLOWED_PATHS = {"/health", "/login", "/auth/refresh", "/auth/logout"}
+
+    async def dispatch(self, request: Request, call_next):
+        if not settings.MAINTENANCE_MODE:
+            return await call_next(request)
+        if request.url.path in self._ALLOWED_PATHS or self._is_admin(request):
+            return await call_next(request)
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Service under maintenance. Please try again later."},
+        )
+
+    @staticmethod
+    def _is_admin(request: Request) -> bool:
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return False
+        token = auth_header.split(" ", 1)[1]
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        except jwt.InvalidTokenError:
+            return False
+        username = payload.get("sub")
+        if not username:
+            return False
+        db = SessionLocal()
+        try:
+            user = db.query(models.User).filter(
+                (models.User.username == username) | (models.User.email == username)
+            ).first()
+            return bool(user and user.role and user.role.name.lower() == "admin")
+        finally:
+            db.close()
+
+
+# Middleware runs outermost-first (last added = outermost). CORS is added LAST
+# so it wraps everything: early 503s from MaintenanceModeMiddleware and 500s
+# from the exception handler still come back with CORS headers, otherwise the
+# browser would mask them as opaque CORS failures on cross-origin calls.
+app.add_middleware(MaintenanceModeMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
+)
 
 # Include routers
 app.include_router(users.router)
@@ -195,4 +282,15 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection failed"
+        )
+    finally:
+        db.close()

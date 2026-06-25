@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     COUNTER_PROPOSAL_CAP: int = 3          # Maximum counter proposals allowed before admin mediation
     WORKING_HOURS_START: int = 8           # Start of school working hours (inclusive hour, e.g. 8 = 08:00)
     WORKING_HOURS_END: int = 22             # End of school working hours (exclusive hour, e.g. 22 = 22:00)
+    MAINTENANCE_MODE: bool = False
+
 
 
     # CORS

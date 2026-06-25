@@ -146,6 +146,10 @@ const router = createRouter({
         if (!auth.isAuthenticated) return '/login'
         return `/${auth.userRole}`
       }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      component: NotFoundView
     }
   ]
 })

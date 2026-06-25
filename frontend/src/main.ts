@@ -47,6 +47,13 @@ axios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
+    if (error.response?.status === 503) {
+      const { useMaintenanceStore } = await import('@stores/maintenance')
+      const maintenance = useMaintenanceStore()
+      maintenance.setMaintenance(true)
+      return Promise.reject(error)
+    }
+
     // Only intercept 401s that haven't already been retried and aren't the
     // refresh endpoint itself (infinite-loop guard).
     if (

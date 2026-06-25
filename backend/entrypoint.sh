@@ -22,7 +22,7 @@ except Exception as e:
 
 if [ "$NEEDS_SEED" = "seed" ]; then
     echo "==> Seeding database..."
-    python /app/backend/seed_data.py
+    python /app/backend/seed.py
 else
     echo "==> Database already seeded ($NEEDS_SEED), skipping."
 fi
