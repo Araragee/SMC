@@ -1,8 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-
-logger = logging.getLogger(__name__)
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import Response
@@ -18,6 +16,10 @@ from ..dependencies import get_current_active_user, require_admin, require_stude
 from ..services.notifier import safe_notify
 from ..utils.signed_urls import sign_url
 from ..utils.uploads import save_upload
+from .activity import log_activity
+from .notifications import notify_users
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -34,9 +36,6 @@ _limiter = Limiter(key_func=_nudge_key)
 
 def format_dt(dt: datetime) -> str:
     return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
-
-from .activity import log_activity
-from .notifications import notify_users
 
 
 def _check_version(db_session: models.Session, expected: int | None) -> None:
@@ -113,11 +112,11 @@ def _validate_session_window(
     Raises HTTPException(400) on any violation; never silently coerces.
     """
     if start.tzinfo is None:
-        start = start.replace(tzinfo=timezone.utc)
+        start = start.replace(tzinfo=UTC)
     if end is None:
         end = start + timedelta(hours=1)
     elif end.tzinfo is None:
-        end = end.replace(tzinfo=timezone.utc)
+        end = end.replace(tzinfo=UTC)
 
     if end <= start:
         raise HTTPException(
@@ -144,7 +143,7 @@ def _validate_session_window(
         )
 
     if not allow_past:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cutoff = now - timedelta(seconds=_PAST_CLOCK_SKEW_SECONDS)
         if start < cutoff:
             raise HTTPException(
@@ -276,19 +275,19 @@ async def session_checker_task():
     while True:
         try:
             # Off-hours back-off: 00:00–06:00 UTC → 5 min intervals to reduce DB churn.
-            _hour = datetime.now(timezone.utc).hour
+            _hour = datetime.now(UTC).hour
             sleep_interval = 300 if _hour < 6 else 60
 
             db = SessionLocal()
             try:
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
 
                 # ── Daily token and notification purge, and drift recalculation ──────────────────
                 if _last_token_purge is None or (now - _last_token_purge).total_seconds() >= 86400:
                     from .. import models as _m
                     deleted_refresh = (
                         db.query(_m.RefreshToken)
-                        .filter((_m.RefreshToken.revoked == True) | (_m.RefreshToken.expires_at < now))
+                        .filter((_m.RefreshToken.revoked.is_(True)) | (_m.RefreshToken.expires_at < now))
                         .delete(synchronize_session=False)
                     )
                     deleted_reset = (
@@ -296,7 +295,7 @@ async def session_checker_task():
                         .filter(_m.PasswordResetToken.expires_at < now)
                         .delete(synchronize_session=False)
                     )
-                    
+
                     # 90-day Notification purge
                     deleted_notifications = (
                         db.query(_m.Notification)
@@ -308,7 +307,7 @@ async def session_checker_task():
                     students = db.query(_m.User).join(_m.Role).filter(_m.Role.name.ilike("student")).all()
                     drift_detected = False
                     for student in students:
-                        enrollments = db.query(_m.Enrollment).filter(_m.Enrollment.student_id == student.id, _m.Enrollment.is_active == True).all()
+                        enrollments = db.query(_m.Enrollment).filter(_m.Enrollment.student_id == student.id, _m.Enrollment.is_active.is_(True)).all()
                         recalculated = sum(max(0, e.sessions_purchased - e.sessions_used) for e in enrollments)
                         old_value = student.sessions_left or 0
                         if old_value != recalculated:
@@ -321,15 +320,15 @@ async def session_checker_task():
                                 target_type="user",
                                 target_id=student.id,
                             )
-                    
+
                     db.commit()
                     _last_token_purge = now
-                    
+
                     if deleted_refresh or deleted_reset or deleted_notifications:
                         logger.info("Daily token purge: removed %d refresh, %d reset token(s), %d notifications.", deleted_refresh, deleted_reset, deleted_notifications)
                     else:
                         logger.info("Daily token purge: nothing to remove.")
-                        
+
                     if drift_detected:
                         notify_users(db, get_admin_ids(db), "⚠️ Nightly cleanup detected and resolved session credit drift for one or more students.")
 
@@ -346,7 +345,7 @@ async def session_checker_task():
                     models.Session.updated_at < stale_cutoff,
                     # Only send if we haven't reminded within the cooldown window
                     (
-                        (models.Session.stale_reminded_at == None) |
+                        (models.Session.stale_reminded_at.is_(None)) |
                         (models.Session.stale_reminded_at < now - timedelta(hours=REMINDER_COOLDOWN_HOURS))
                     ),
                 ).all()
@@ -411,7 +410,7 @@ async def session_checker_task():
                         models.Session.status == "scheduled",
                         models.Session.start_time <= target_24h,
                         models.Session.start_time > now,
-                        models.Session.notified_24h == False
+                        models.Session.notified_24h.is_(False)
                     ).all()
                     for s in sessions_24h:
                         dt_str = format_dt(s.start_time)
@@ -424,7 +423,7 @@ async def session_checker_task():
                         models.Session.status == "scheduled",
                         models.Session.start_time <= target_12h,
                         models.Session.start_time > now,
-                        models.Session.notified_12h == False
+                        models.Session.notified_12h.is_(False)
                     ).all()
                     for s in sessions_12h:
                         dt_str = format_dt(s.start_time)
@@ -504,7 +503,7 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     enrollment = db.query(models.Enrollment).filter(
         models.Enrollment.student_id == db_session.student_id,
         models.Enrollment.teacher_id == db_session.teacher_id,
-        models.Enrollment.is_active == True
+        models.Enrollment.is_active.is_(True)
     ).order_by(models.Enrollment.id.desc()).first()
     if enrollment:
         db.execute(
@@ -814,10 +813,10 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
     dt_str = format_dt(db_session.start_time)
 
     if db_session.status == "completed":
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         start_time = db_session.start_time
         if start_time.tzinfo is None:
-            start_time = start_time.replace(tzinfo=timezone.utc)
+            start_time = start_time.replace(tzinfo=UTC)
         if (now - start_time).days >= 30:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -882,11 +881,11 @@ def cancel_session(
     # Cutoff check: if not admin, cannot cancel within CANCEL_CUTOFF_HOURS
     start_time = db_session.start_time
     if start_time.tzinfo is None:
-        start_time = start_time.replace(tzinfo=timezone.utc)
+        start_time = start_time.replace(tzinfo=UTC)
 
     if not is_admin:
         cutoff_time = start_time - timedelta(hours=settings.CANCEL_CUTOFF_HOURS)
-        if datetime.now(timezone.utc) >= cutoff_time:
+        if datetime.now(UTC) >= cutoff_time:
             raise HTTPException(
                 status_code=400,
                 detail=f"Sessions starting in less than {settings.CANCEL_CUTOFF_HOURS} hours must be cancelled by an admin."
@@ -915,7 +914,7 @@ def cancel_session(
     for uid in (db_session.student_id, db_session.teacher_id):
         if uid != current_user.id:
             notify_ids.add(uid)
-    
+
     notify_reason = f" Reason: {approval.notes}" if approval.notes else ""
     if notify_ids:
         notify_users(db, list(notify_ids), f"❌ Session on {dt_str} has been cancelled by {current_user.name}.{notify_reason}")
@@ -1107,10 +1106,10 @@ def counter_session_as_teacher(
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     # Check if this session has a conflict with an active scheduled session
     has_conflict_before = get_session_conflict_id(db, db_session) is not None
-    
+
     if db_session.status != "pending_teacher" and not (db_session.status == "scheduled" and has_conflict_before):
         raise HTTPException(status_code=409, detail="Only pending_teacher or conflicting scheduled sessions can be countered by teacher")
     if db_session.teacher_id != current_user.id and current_user.role.name.lower() != "admin":
@@ -1125,13 +1124,13 @@ def counter_session_as_teacher(
     if counter.notes:
         db_session.notes = counter.notes
     db_session.counter_count = (db_session.counter_count or 0) + 1
-    
+
     # If resolving a conflict, bypass student approval and send straight to admin approval
     if has_conflict_before or db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
         db_session.status = "pending_admin"
     else:
         db_session.status = "pending_student"
-        
+
     _bump_version(db_session)
 
     db.commit()
@@ -1172,12 +1171,12 @@ def counter_session_as_student(
     if counter.notes:
         db_session.notes = counter.notes
     db_session.counter_count = (db_session.counter_count or 0) + 1
-    
+
     if db_session.counter_count >= settings.COUNTER_PROPOSAL_CAP:
         db_session.status = "pending_admin"
     else:
         db_session.status = "pending_teacher"
-        
+
     _bump_version(db_session)
 
     db.commit()
@@ -1476,9 +1475,9 @@ def complete_session_as_admin(
         # "can't compare offset-naive and offset-aware". Coerce to UTC.
         end_time = db_session.end_time
         if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=timezone.utc)
+            end_time = end_time.replace(tzinfo=UTC)
         target_time = end_time + timedelta(hours=24)
-        if datetime.now(timezone.utc) < target_time:
+        if datetime.now(UTC) < target_time:
             raise HTTPException(status_code=400, detail="Cannot force complete a session until 24 hours after its end time.")
         is_force = True
         db_session.is_force_completed = True
@@ -1499,7 +1498,7 @@ def complete_session_as_admin(
     enrollment = db.query(models.Enrollment).filter(
         models.Enrollment.student_id == db_session.student_id,
         models.Enrollment.teacher_id == db_session.teacher_id,
-        models.Enrollment.is_active == True
+        models.Enrollment.is_active.is_(True)
     ).order_by(models.Enrollment.id.desc()).first()
     if enrollment:
         db.execute(
@@ -1640,7 +1639,7 @@ def recalculate_student_sessions(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id, models.Enrollment.is_active == True).all()
+    enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id, models.Enrollment.is_active.is_(True)).all()
     recalculated = sum(
         max(0, e.sessions_purchased - e.sessions_used) for e in enrollments
     )
@@ -1820,7 +1819,7 @@ def export_sessions_ics(
         q = q.filter(models.Session.student_id == current_user.id)
     # admin: all sessions
 
-    now_stamp = _ics_dt(datetime.now(timezone.utc))
+    now_stamp = _ics_dt(datetime.now(UTC))
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -1876,16 +1875,16 @@ def bulk_session_action(
         found_ids = {s.id for s in sessions}
         missing_ids = set(req.session_ids) - found_ids
         raise HTTPException(status_code=404, detail=f"Sessions not found: {list(missing_ids)}")
-    
+
     updated_sessions = []
-    
+
     for s in sessions:
         if req.action == "approve":
             if s.status != "pending_admin":
                 raise HTTPException(status_code=409, detail=f"Session #{s.id} is not pending admin approval (status is '{s.status}')")
             s.status = "scheduled"
             _bump_version(s)
-            
+
             dt_str = format_dt(s.start_time)
             log_activity(db, action_type="session_approved",
                          description=f"Admin {current_user.name} approved session #{s.id} with {s.student.name} and {s.teacher.name} on {dt_str} (bulk)",
@@ -1893,25 +1892,25 @@ def bulk_session_action(
                          target_type="session", target_id=s.id)
             notify_users(db, [s.teacher_id], f"✅ Session on {dt_str} with {s.student.name} has been approved and confirmed.")
             notify_users(db, [s.student_id], f"🎵 Great news! Your session on {dt_str} with {s.teacher.name} is confirmed.")
-            
+
         elif req.action == "complete":
             if s.status not in ["scheduled", "overdue", "overdue_rejected", "pending_verification"]:
                 raise HTTPException(status_code=409, detail=f"Session #{s.id} cannot be completed from status '{s.status}'")
-            
+
             is_force = False
             if s.status != "pending_verification":
                 end_time = s.end_time
                 if end_time.tzinfo is None:
-                    end_time = end_time.replace(tzinfo=timezone.utc)
+                    end_time = end_time.replace(tzinfo=UTC)
                 target_time = end_time + timedelta(hours=24)
-                if datetime.now(timezone.utc) < target_time:
+                if datetime.now(UTC) < target_time:
                     raise HTTPException(status_code=400, detail=f"Cannot force complete session #{s.id} until 24 hours after its end time.")
                 is_force = True
                 s.is_force_completed = True
-            
+
             s.status = "completed"
             _bump_version(s)
-            
+
             db.execute(
                 text(
                     "UPDATE users SET sessions_left = sessions_left - 1 "
@@ -1919,11 +1918,11 @@ def bulk_session_action(
                 ),
                 {"uid": s.student_id},
             )
-            
+
             enrollment = db.query(models.Enrollment).filter(
                 models.Enrollment.student_id == s.student_id,
                 models.Enrollment.teacher_id == s.teacher_id,
-                models.Enrollment.is_active == True
+                models.Enrollment.is_active.is_(True)
             ).order_by(models.Enrollment.id.desc()).first()
             if enrollment:
                 db.execute(
@@ -1934,13 +1933,13 @@ def bulk_session_action(
                     {"eid": enrollment.id},
                 )
                 db.expire(enrollment, ["sessions_used"])
-            
+
             dt_str = format_dt(s.start_time)
             msg = f"Session from {dt_str} has been marked complete by admin."
             if is_force:
                 msg = f"Session from {dt_str} has been force completed by admin."
             notify_users(db, [s.teacher_id, s.student_id], ("✅ " if not is_force else "⚠️ ") + msg)
-            
+
             # Notify student if low sessions
             student = db.query(models.User).filter(models.User.id == s.student_id).first()
             if student and student.sessions_left is not None:
@@ -1949,17 +1948,17 @@ def bulk_session_action(
                     notify_users(db, get_admin_ids(db), f"{student.name} has used all their sessions. Consider scheduling a renewal.", title="⚠️ Student Out of Sessions", link="/admin/students")
                 elif student.sessions_left == 1:
                     notify_users(db, [student.id], "You have only 1 session left. Contact admin to book more sessions soon.", title="⚠️ Last Session Remaining", link="/student/dashboard")
-            
+
             action = "session_force_completed" if is_force else "session_completed"
             log_activity(db, action_type=action,
                          description=msg,
                          actor_id=current_user.id, actor_name=current_user.name,
                          target_type="session", target_id=s.id)
-                         
+
         elif req.action == "cancel":
             if s.status in TERMINAL_STATUSES and s.status != "completed":
                 raise HTTPException(status_code=409, detail=f"Session #{s.id} is already in terminal status '{s.status}'")
-            
+
             if s.status == "completed":
                 student = db.query(models.User).filter(models.User.id == s.student_id).first()
                 if student and student.sessions_left is not None:
@@ -1977,19 +1976,19 @@ def bulk_session_action(
                         {"eid": enrollment.id},
                     )
                     db.expire(enrollment, ["sessions_used"])
-            
+
             s.status = "cancelled"
             _bump_version(s)
-            
+
             dt_str = format_dt(s.start_time)
             log_activity(db, action_type="session_cancelled",
                          description=f"Admin {current_user.name} cancelled session #{s.id} ({dt_str}) (bulk)",
                          actor_id=current_user.id, actor_name=current_user.name,
                          target_type="session", target_id=s.id)
             notify_users(db, [s.teacher_id, s.student_id], f"❌ Session on {dt_str} has been cancelled by admin.")
-        
+
         updated_sessions.append(s)
-    
+
     db.commit()
     return [map_session(s) for s in updated_sessions]
 
@@ -2004,14 +2003,14 @@ def get_sessions_stats(
     completed = db.query(models.Session).filter(models.Session.status == "completed").count()
     scheduled = db.query(models.Session).filter(models.Session.status == "scheduled").count()
     overdue = db.query(models.Session).filter(models.Session.status.in_(["overdue", "overdue_rejected"])).count()
-    
+
     pending_statuses = ["pending_teacher", "pending_student", "pending_admin", "pending_verification"]
     pending = db.query(models.Session).filter(models.Session.status.in_(pending_statuses)).count()
-    
+
     awaiting_admin = db.query(models.Session).filter(models.Session.status.in_(["pending_admin", "pending_verification"])).count()
-    
+
     rate = round((completed / total) * 100) if total > 0 else 0
-    
+
     return schemas.SessionStatsResponse(
         total_sessions=total,
         scheduled_sessions=scheduled,

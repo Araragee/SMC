@@ -2,13 +2,13 @@
 import csv
 import io
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
-from ..dependencies import require_admin
+from ..dependencies import get_current_active_user, require_admin
 
 router = APIRouter()
 
@@ -118,9 +118,6 @@ def get_activity_log(
     )
 
 
-from fastapi import HTTPException
-from ..dependencies import get_current_active_user
-
 @router.get("/session/{session_id}", response_model=list[schemas.ActivityLogEntry])
 def get_session_activity_log(
     session_id: int,
@@ -131,7 +128,7 @@ def get_session_activity_log(
     session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     is_admin = current_user.role and current_user.role.name.lower() == "admin"
     is_participant = current_user.id in (session.student_id, session.teacher_id)
     if not (is_admin or is_participant):

@@ -5,16 +5,18 @@ Revises: f3a1b2c4d5e6
 Create Date: 2026-05-23
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
 
 from alembic import op
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'g4h5i6j7k8l9'
 down_revision: str | None = 'f3a1b2c4d5e6'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def _has_index(table: str, index: str) -> bool:

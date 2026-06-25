@@ -71,14 +71,13 @@ def _seed_defaults() -> None:
 def _purge_stale_tokens() -> None:
     """Delete expired and revoked auth tokens to prevent unbounded table growth."""
     import datetime
-    from datetime import timezone
     db = SessionLocal()
     try:
-        now = datetime.datetime.now(timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         deleted_refresh = (
             db.query(models.RefreshToken)
             .filter(
-                (models.RefreshToken.revoked == True)
+                (models.RefreshToken.revoked.is_(True))
                 | (models.RefreshToken.expires_at < now)
             )
             .delete(synchronize_session=False)

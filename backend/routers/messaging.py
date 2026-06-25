@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
@@ -68,7 +68,7 @@ def _msg_dict(msg: models.Message) -> dict:
 def _unread_count(db, conversation_id: int, participant: models.ConversationParticipant) -> int:
     q = db.query(models.Message).filter(
         models.Message.conversation_id == conversation_id,
-        models.Message.is_deleted == False,
+        models.Message.is_deleted.is_(False),
     )
     if participant.last_read_at:
         q = q.filter(models.Message.created_at > participant.last_read_at)
@@ -86,7 +86,7 @@ def _build_conversation_out(db, conv: models.Conversation, current_user_id: int)
 
     last_msg = db.query(models.Message).filter(
         models.Message.conversation_id == conv.id,
-        models.Message.is_deleted == False,
+        models.Message.is_deleted.is_(False),
     ).order_by(models.Message.created_at.desc()).first()
 
     my_part = next((p for p in conv.participants if p.user_id == current_user_id), None)
@@ -136,7 +136,7 @@ async def _ws_handle_mark_read(user_id: int, data: dict, db):
     ).first()
     if not part:
         return
-    part.last_read_at = datetime.now(timezone.utc)
+    part.last_read_at = datetime.now(UTC)
     db.commit()
     await ws_manager.send_to_user(user_id, {
         "type": "unread_update", "conversation_id": conv_id, "count": 0,
@@ -405,6 +405,6 @@ def mark_conversation_read(
     ).first()
     if not part:
         raise HTTPException(status_code=403, detail="Not a participant")
-    part.last_read_at = datetime.now(timezone.utc)
+    part.last_read_at = datetime.now(UTC)
     db.commit()
     return {"unread_count": 0}

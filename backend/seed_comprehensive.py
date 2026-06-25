@@ -24,7 +24,7 @@ def seed_enrollments():
         if not cur.fetchone():
             cur.execute(
                 "INSERT INTO enrollments (student_id, teacher_id, sessions_purchased, sessions_used, created_at) VALUES (?, ?, ?, ?, ?)",
-                (sid, tid, 10, 2, datetime.datetime.now(datetime.timezone.utc).isoformat())
+                (sid, tid, 10, 2, datetime.datetime.now(datetime.UTC).isoformat())
             )
             print(f"  Created enrollment: Teacher {tid} -> Student {sid}")
     conn.commit()

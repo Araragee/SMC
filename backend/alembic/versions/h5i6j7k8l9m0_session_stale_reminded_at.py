@@ -5,16 +5,18 @@ Revises: g4h5i6j7k8l9
 Create Date: 2026-05-24
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
+
+import sqlalchemy as sa
 
 from alembic import op
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'h5i6j7k8l9m0'
 down_revision: str | None = 'g4h5i6j7k8l9'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def _has_column(table: str, column: str) -> bool:

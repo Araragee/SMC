@@ -59,6 +59,7 @@ def save_upload(
 
     if ext in {"jpg", "jpeg", "png", "webp"}:
         import io
+
         from PIL import Image
         try:
             img = Image.open(io.BytesIO(contents))
@@ -72,13 +73,13 @@ def save_upload(
                     new_h = max_edge
                     new_w = int(w * (max_edge / h))
                 img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            
+
             out_bytes = io.BytesIO()
             img.save(out_bytes, format="WEBP")
             contents = out_bytes.getvalue()
             ext = "webp"
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}") from e
 
     safe_name = f"{secrets.token_hex(16)}.{ext}"
     dest = Path("uploads") / subdir / safe_name

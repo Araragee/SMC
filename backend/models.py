@@ -1,8 +1,11 @@
 import datetime
-from datetime import timezone
 
-from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy import DateTime as _NaiveDateTime
+from sqlalchemy.orm import relationship
+
+from .database import Base
+
 
 # All timestamp columns use timezone-aware DateTime so that PostgreSQL comparisons
 # work correctly (SQLite silently accepts naive datetimes, but Postgres raises
@@ -10,9 +13,6 @@ from sqlalchemy import DateTime as _NaiveDateTime
 class DateTime(_NaiveDateTime):  # noqa: N801 — intentional shadow
     def __init__(self, timezone: bool = True, **kw):
         super().__init__(timezone=timezone, **kw)
-from sqlalchemy.orm import relationship
-
-from .database import Base
 
 
 class Role(Base):
@@ -43,7 +43,7 @@ class TeacherStudent(Base):
     id = Column(Integer, primary_key=True, index=True)
     teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
     student_id = Column(Integer, ForeignKey("users.id"), index=True)
-    assigned_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    assigned_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
     teacher = relationship("User", foreign_keys=[teacher_id], back_populates="students_assigned")
     student = relationship("User", foreign_keys=[student_id], back_populates="teachers_assigned")
@@ -130,11 +130,11 @@ class Session(Base):
     proof_justification = Column(String, nullable=True)
     rejection_reason = Column(String, nullable=True)
     is_force_completed = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     updated_at = Column(
         DateTime,
-        default=lambda: datetime.datetime.now(timezone.utc),
-        onupdate=lambda: datetime.datetime.now(timezone.utc),
+        default=lambda: datetime.datetime.now(datetime.UTC),
+        onupdate=lambda: datetime.datetime.now(datetime.UTC),
     )
 
     # Optimistic locking: bumped on every status transition; clients send
@@ -174,7 +174,7 @@ class Enrollment(Base):
     sessions_purchased = Column(Integer, default=0)
     sessions_used = Column(Integer, default=0)
     is_active = Column(Boolean, default=True, server_default="1")
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
     student = relationship("User", foreign_keys=[student_id])
     teacher = relationship("User", foreign_keys=[teacher_id])
@@ -187,7 +187,7 @@ class Homework(Base):
     description = Column(String)
     is_completed = Column(Boolean, default=False)
     file_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
     session = relationship("Session", back_populates="homeworks")
 
@@ -197,7 +197,7 @@ class SessionProof(Base):
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, ForeignKey("sessions.id"), index=True)
     image_url = Column(String)
-    uploaded_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    uploaded_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     uploader_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     uploader_role = Column(String, nullable=True)
 
@@ -210,7 +210,7 @@ class Payment(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("users.id"), index=True)
     amount = Column(Integer) # In cents or smallest currency unit
-    date = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    date = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     method = Column(String) # cash | bank_transfer | card
     status = Column(String, default="completed") # pending | completed | failed
     notes = Column(String, nullable=True)
@@ -225,7 +225,7 @@ class Notification(Base):
     message = Column(String)
     link = Column(String, nullable=True)
     is_read = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
     user = relationship("User", back_populates="notifications")
 
@@ -247,9 +247,9 @@ class InstrumentProduct(Base):
     image_url = Column(String, nullable=True)
     category_id = Column(Integer, ForeignKey("instruments.id"), nullable=True, index=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc),
-                        onupdate=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC),
+                        onupdate=lambda: datetime.datetime.now(datetime.UTC))
 
     category = relationship("Instrument")
 
@@ -264,9 +264,9 @@ class Order(Base):
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     approved_at = Column(DateTime, nullable=True)
     rejection_reason = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), index=True)
-    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc),
-                        onupdate=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC), index=True)
+    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC),
+                        onupdate=lambda: datetime.datetime.now(datetime.UTC))
 
     user = relationship("User", foreign_keys=[user_id])
     approver = relationship("User", foreign_keys=[approved_by])
@@ -286,8 +286,6 @@ class OrderItem(Base):
 
 # ── Messaging ──────────────────────────────────────────────────────────────────
 
-from sqlalchemy import UniqueConstraint
-
 
 class Conversation(Base):
     __tablename__ = "conversations"
@@ -295,7 +293,7 @@ class Conversation(Base):
     id         = Column(Integer, primary_key=True, index=True)
     type       = Column(String, nullable=False, default="dm")  # "dm" | "group" | "session_thread"
     name       = Column(String, nullable=True)                  # for groups / session thread label
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
     participants   = relationship("ConversationParticipant", back_populates="conversation", cascade="all, delete-orphan")
     messages       = relationship("Message", back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at")
@@ -311,7 +309,7 @@ class ConversationParticipant(Base):
     id              = Column(Integer, primary_key=True, index=True)
     conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False, index=True)
     user_id         = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    joined_at       = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
+    joined_at       = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     last_read_at    = Column(DateTime, nullable=True)
 
     conversation = relationship("Conversation", back_populates="participants")
@@ -325,7 +323,7 @@ class Message(Base):
     conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False, index=True)
     sender_id       = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     body            = Column(String, nullable=False)
-    created_at      = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), index=True)
+    created_at      = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC), index=True)
     is_deleted      = Column(Boolean, default=False)
 
     conversation = relationship("Conversation", back_populates="messages")
@@ -355,7 +353,7 @@ class ActivityLog(Base):
     target_type = Column(String, nullable=True)                # 'session' | 'payment' | 'user' …
     target_id   = Column(Integer, nullable=True)
     description = Column(String, nullable=False)
-    created_at  = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), index=True)
+    created_at  = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC), index=True)
 
     actor = relationship("User", foreign_keys=[actor_id])
 
@@ -372,7 +370,7 @@ class RefreshToken(Base):
     token_hash   = Column(String, nullable=False, unique=True, index=True)
     expires_at   = Column(DateTime, nullable=False)
     revoked      = Column(Boolean, nullable=False, default=False, server_default="0")
-    created_at   = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), nullable=False)
+    created_at   = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False)
     last_used_at = Column(DateTime, nullable=True)
 
     user = relationship("User", foreign_keys=[user_id])
@@ -387,7 +385,7 @@ class PasswordResetToken(Base):
     token_hash = Column(String, nullable=False, unique=True, index=True)
     expires_at = Column(DateTime, nullable=False)
     used_at    = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False)
 
     user = relationship("User", foreign_keys=[user_id])
 
@@ -402,6 +400,6 @@ class PushSubscription(Base):
     keys_p256dh = Column(String, nullable=False)
     keys_auth   = Column(String, nullable=False)
     user_agent  = Column(String, nullable=True)
-    created_at  = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), nullable=False)
+    created_at  = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC), nullable=False)
 
     user = relationship("User", foreign_keys=[user_id])

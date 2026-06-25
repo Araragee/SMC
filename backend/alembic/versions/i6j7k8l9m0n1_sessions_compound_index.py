@@ -14,6 +14,7 @@ speed up per-user schedule lookups that span a time range.
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision: str = "i6j7k8l9m0n1"

@@ -53,7 +53,7 @@ def _compute_sig(path: str, exp: int) -> str:
     """Sign the *path + exp* pair. The path is included so a signature
     for ``/uploads/proofs/A.png`` cannot be replayed against
     ``/uploads/proofs/B.png`` simply by editing the URL."""
-    msg = f"{path}|{exp}".encode("utf-8")
+    msg = f"{path}|{exp}".encode()
     return hmac.new(_signing_key(), msg, hashlib.sha256).hexdigest()[:_SIG_LEN]
 
 

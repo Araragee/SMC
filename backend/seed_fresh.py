@@ -3,9 +3,9 @@ Fresh seed script. Drops all tables, recreates from models, inserts mock data.
 Run from project root: PYTHONPATH=. python -m backend.seed_fresh
 """
 import datetime
-import sys
 import os
-from datetime import timezone, timedelta
+import sys
+from datetime import timedelta
 
 # Allow running as `python backend/seed_fresh.py` too
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import passlib.hash
 from sqlalchemy.orm import Session
 
-from backend.database import Base, engine, SessionLocal
 from backend import models
+from backend.database import Base, SessionLocal, engine
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ def pw(plain: str) -> str:
     return passlib.hash.bcrypt.hash(plain)
 
 def dt(days_offset: int = 0, hour: int = 10, minute: int = 0) -> datetime.datetime:
-    base = datetime.datetime.now(timezone.utc).replace(
+    base = datetime.datetime.now(datetime.UTC).replace(
         hour=hour, minute=minute, second=0, microsecond=0
     )
     return base + timedelta(days=days_offset)
@@ -134,7 +134,7 @@ try:
     s1, s2, s3, s4, s5, s6 = students
 
     # ── sessions ──────────────────────────────────────────────────────────────
-    now = datetime.datetime.now(timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     def session(teacher, student, instr, days, hour=14, status="scheduled", notes=None, proposed_by=None):
         start = dt(days, hour)

@@ -36,6 +36,7 @@ from ..dependencies import (
     pwd_context,
 )
 from ..services.notifier import safe_notify
+from ..utils.passwords import enforce_password_strength
 from ..utils.totp_crypt import decrypt_totp_secret, encrypt_totp_secret, is_encrypted
 from .activity import log_activity
 
@@ -289,6 +290,8 @@ def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     if req.new_password == req.current_password:
         raise HTTPException(status_code=400, detail="New password must differ from the current one")
+    # Reject weak / over-length new passwords (length floor, repetition, common list).
+    enforce_password_strength(req.new_password)
 
     current_user.hashed_password = pwd_context.hash(req.new_password[:72])
     current_user.must_change_password = False
@@ -326,8 +329,8 @@ def reset_password(request: Request, req: schemas.ResetPasswordRequest, db: Sess
         raise HTTPException(status_code=400, detail="User not found")
 
     pwd = req.new_password
-    if len(pwd.encode()) > 72:
-        raise HTTPException(status_code=400, detail="Password too long (max 72 bytes)")
+    # Enforce the password policy (length floor + 72-byte ceiling + weak-list).
+    enforce_password_strength(pwd)
     user.hashed_password = pwd_context.hash(pwd[:72])
     prt.used_at = _naive(_utcnow())
     # A successful reset counts as the user rotating their credential —

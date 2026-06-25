@@ -69,7 +69,7 @@ def mark_all_notifications_read(user_id: int, db: Session = Depends(get_db), cur
         raise HTTPException(status_code=403, detail="Not authorized")
     db.query(models.Notification).filter(
         models.Notification.user_id == user_id,
-        models.Notification.is_read == False
+        models.Notification.is_read.is_(False)
     ).update({"is_read": True})
     db.commit()
     return {"message": "All notifications marked as read"}

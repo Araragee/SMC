@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     TWO_FA_CHALLENGE_EXPIRE_MINUTES: int = 5
     TOTP_ISSUER: str = "SMC Music School"
 
+    # Minimum length for user-chosen passwords (change-password / reset-password).
+    # NIST SP 800-63B treats length as the primary strength lever; 8 is the
+    # documented floor. Override in .env to tighten without touching code.
+    PASSWORD_MIN_LENGTH: int = 8
+
     # Default admin credentials (override in .env — never leave as defaults in production)
     DEFAULT_ADMIN_PASSWORD: str = "changeme_on_first_boot"
     DEFAULT_ADMIN_EMAIL: str = "admin@smc.edu"

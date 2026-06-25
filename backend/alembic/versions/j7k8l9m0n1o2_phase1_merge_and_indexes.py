@@ -30,8 +30,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from alembic import op
 from sqlalchemy import inspect
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "j7k8l9m0n1o2"

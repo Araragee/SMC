@@ -4,7 +4,6 @@ Run from SMC/ root:
   ./backend/venv/bin/python3 backend/seed_data.py
 """
 import datetime
-import hashlib
 import pathlib
 import sqlite3
 import sys
@@ -164,7 +163,7 @@ def seed():
                     is_done = 1 if random.random() > 0.3 else 0
                     cur.execute(
                         "INSERT INTO homework (session_id, description, is_completed, created_at) VALUES (?,?,?,?)",
-                        (sess_id, hw, is_done, datetime.datetime.now(datetime.timezone.utc).isoformat())
+                        (sess_id, hw, is_done, datetime.datetime.now(datetime.UTC).isoformat())
                     )
                     conn.commit()
                     hw_count += 1
@@ -175,7 +174,7 @@ def seed():
     print("\n👨‍🏫 Teacher accounts:")
     for n, e in TEACHERS:
         print(f"  {e}")
-    print(f"\n👩‍🎓 Student accounts (sample):")
+    print("\n👩‍🎓 Student accounts (sample):")
     for i, (n, e) in enumerate(STUDENTS[:5]):
         print(f"  {e}")
     print(f"  ... and {len(STUDENTS) - 5} more")

@@ -1,5 +1,4 @@
 import datetime
-from datetime import timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import text
@@ -10,8 +9,8 @@ from ..config import settings
 from ..database import get_db
 from ..dependencies import get_current_user, require_admin
 from ..utils.uploads import save_upload
-from .notifications import notify_users
 from .activity import log_activity
+from .notifications import notify_users
 
 router = APIRouter()
 
@@ -27,7 +26,7 @@ def get_products(db: Session = Depends(get_db), current_user: models.User = Depe
         joinedload(models.InstrumentProduct.category)
     )
     if current_user.role.name != "admin":
-        query = query.filter(models.InstrumentProduct.is_active == True)
+        query = query.filter(models.InstrumentProduct.is_active.is_(True))
     return query.all()
 
 @router.get("/products/{id}", response_model=schemas.InstrumentProduct)
@@ -103,7 +102,7 @@ def create_order(order_in: schemas.OrderCreate, db: Session = Depends(get_db), c
     for item_in in order_in.items:
         product = db.query(models.InstrumentProduct).filter(
             models.InstrumentProduct.id == item_in.product_id,
-            models.InstrumentProduct.is_active == True
+            models.InstrumentProduct.is_active.is_(True)
         ).first()
 
         if not product:
@@ -289,7 +288,7 @@ def update_order_status(id: int, status_in: schemas.OrderStatusUpdate, db: Sessi
             if item.product.stock < LOW_STOCK_THRESHOLD:
                 low_stock_products.append(item.product)
         order.approved_by = current_user.id
-        order.approved_at = datetime.datetime.now(timezone.utc)
+        order.approved_at = datetime.datetime.now(datetime.UTC)
 
     elif old_status == "approved" and new_status == "fulfilled":
         notify_users(

@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -15,6 +15,7 @@ from ..dependencies import (
     require_admin,
 )
 from ..services.notifier import safe_notify
+from .activity import log_activity
 
 router = APIRouter()
 
@@ -106,9 +107,6 @@ def login(
     from .auth import build_token_pair_with_cookie
     pair = build_token_pair_with_cookie(db, user, response)
     return pair.model_dump()
-
-from .activity import log_activity
-from ..utils.uploads import save_upload
 
 
 @router.post("/users/")
@@ -259,7 +257,7 @@ def read_users_by_role(
         raise HTTPException(status_code=404, detail="Role not found")
     q = db.query(models.User).filter(models.User.role_id == role.id)
     if not include_inactive:
-        q = q.filter(models.User.is_active == True)
+        q = q.filter(models.User.is_active.is_(True))
     return q.offset(skip).limit(limit).all()
 
 @router.get("/users/", response_model=list[schemas.User])
@@ -272,7 +270,7 @@ def read_users(
 ):
     q = db.query(models.User)
     if not include_inactive:
-        q = q.filter(models.User.is_active == True)
+        q = q.filter(models.User.is_active.is_(True))
     return q.offset(skip).limit(limit).all()
 
 @router.get("/users/{user_id}", response_model=schemas.User)

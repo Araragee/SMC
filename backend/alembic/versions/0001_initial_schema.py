@@ -13,8 +13,9 @@ already exist), run::
 …to mark this revision as applied without re-executing the DDL.
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '0001'

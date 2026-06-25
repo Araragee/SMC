@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Any, List, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
@@ -450,13 +450,13 @@ class RecurringSessionCreate(BaseModel):
     occurrences: Annotated[int, Field(ge=2, le=52)] = 4
     notes: OptNote = None
     instrument_id: int | None = None
-    skip_dates: Annotated[List[datetime], Field(max_length=52)] = []
+    skip_dates: Annotated[list[datetime], Field(max_length=52)] = []
 
 
 class RecurringSessionResult(BaseModel):
     created_count: int
     skipped_count: int
-    session_ids: List[int]
+    session_ids: list[int]
 
 
 # ── Push notification subscription ───────────────────────────────────────────
