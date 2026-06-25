@@ -4,11 +4,11 @@ import { useAuthStore } from '@stores/auth'
 import type { ChatMessage, Conversation } from '@types'
 
 import { API_URL } from '@typescript/constants'
-const WS_URL = (import.meta.env.VITE_WS_BASE_URL || (() => {
-  if (import.meta.env.DEV) return 'ws://localhost:8000'
-  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${proto}//${window.location.host}`
-})())
+
+// Derive the WS origin from the runtime-resolved API origin (API_URL reads
+// window._env_ in prod), so the socket targets the backend, not the page host.
+// http -> ws, https -> wss. Override with VITE_WS_BASE_URL if WS lives elsewhere.
+const WS_URL = import.meta.env.VITE_WS_BASE_URL || API_URL.replace(/^http/, 'ws')
 
 const authHeaders = function() {
   const auth = useAuthStore()
