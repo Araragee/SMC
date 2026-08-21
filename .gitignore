@@ -13,3 +13,7 @@ backend/.env
 
 STARTUP_DEBUG.md
 TEST_USERS.md
+
+# Runtime logs — these were tracked on main and are pure process output;
+# they should never be in version control.
+*.log
