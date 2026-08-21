@@ -12,6 +12,8 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
+from ..config import settings
+
 MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 DEFAULT_ALLOWED_EXTS = {"jpg", "jpeg", "png", "webp"}
 
@@ -82,7 +84,7 @@ def save_upload(
             raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}") from e
 
     safe_name = f"{secrets.token_hex(16)}.{ext}"
-    dest = Path("uploads") / subdir / safe_name
+    dest = Path(settings.UPLOADS_DIR) / subdir / safe_name
     dest.parent.mkdir(parents=True, exist_ok=True)
     with open(dest, "wb") as f:
         f.write(contents)

@@ -147,15 +147,16 @@ async def global_exception_handler(request: Request, exc: Exception):
         )
 
 
-os.makedirs("uploads", exist_ok=True)
+os.makedirs(settings.UPLOADS_DIR, exist_ok=True)
 # Public assets only — shop product images are non-sensitive and benefit
 # from StaticFiles' efficient streaming. Sensitive subdirectories
 # (``proofs``, ``homework``) are served by the auth-gated router below,
 # which requires both a valid HMAC-signed URL and an authenticated
 # admin/participant. See backend/routers/uploads.py and
 # backend/utils/signed_urls.py for the full contract.
-os.makedirs("uploads/shop", exist_ok=True)
-app.mount("/uploads/shop", StaticFiles(directory="uploads/shop"), name="uploads_shop")
+_shop_dir = os.path.join(settings.UPLOADS_DIR, "shop")
+os.makedirs(_shop_dir, exist_ok=True)
+app.mount("/uploads/shop", StaticFiles(directory=_shop_dir), name="uploads_shop")
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):

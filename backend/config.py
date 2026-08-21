@@ -58,6 +58,13 @@ class Settings(BaseSettings):
 
 
 
+    # Where uploaded files land. Relative paths resolve against the process
+    # CWD; point this at a mounted volume (e.g. /data/uploads) in any
+    # deployment whose filesystem is ephemeral or replicated.
+    # ponytail: local disk only — swap for S3/object storage when more than
+    # one replica has to serve the same file.
+    UPLOADS_DIR: str = "uploads"
+
     # CORS
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000",

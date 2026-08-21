@@ -24,6 +24,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from .. import models
+from ..config import settings
 from ..database import get_db
 from ..dependencies import get_current_active_user
 from ..utils.signed_urls import verify_sig
@@ -33,7 +34,7 @@ router = APIRouter(prefix="/uploads", tags=["uploads"])
 # Anchored to the same ``uploads/`` directory the rest of the app writes to
 # (created on app boot in main.py). Using ``resolve()`` makes the
 # traversal check below symlink-safe.
-_UPLOADS_ROOT = Path("uploads").resolve()
+_UPLOADS_ROOT = Path(settings.UPLOADS_DIR).resolve()
 
 # Filenames are generated server-side as ``token_hex(16).<ext>`` — strict
 # enough that we can reject anything else outright. This blocks path
