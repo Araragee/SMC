@@ -1,0 +1,83 @@
+# Render blueprint: FastAPI backend (Docker) + Vue SPA (static site).
+#
+# The database is Supabase Postgres and uploads live in a private Supabase
+# Storage bucket — Render's free web services have no persistent disk, so
+# anything written to the container filesystem is lost on every deploy.
+#
+# Create with: Render dashboard → New → Blueprint → point at this repo.
+# Values marked `sync: false` are prompted for on first deploy and stored as
+# secrets; never commit them.
+services:
+  - type: web
+    name: smc-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Supabase connection string. Use the **Session pooler** URI from
+      # Supabase → Project Settings → Database: Render's free tier is
+      # IPv4-only and the direct connection is IPv6-only.
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false
+      - key: DEFAULT_ADMIN_EMAIL
+        sync: false
+      - key: DEFAULT_ADMIN_USERNAME
+        value: admin
+      # Object storage for uploads (private bucket).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: uploads
+      # Set to the static site's URL once Render assigns it, e.g.
+      # ["https://smc-web.onrender.com"]
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: REFRESH_COOKIE_SECURE
+        value: "true"
+      - key: REFRESH_COOKIE_SAMESITE
+        value: none
+      - key: SEED_DEMO_DATA
+        value: "false"
+      - key: DEBUG
+        value: "false"
+      - key: NOTIFIER_TYPE
+        value: console
+
+  - type: web
+    name: smc-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    envVars:
+      # Baked into the bundle at build time. Set it to the API service URL,
+      # e.g. https://smc-api.onrender.com — changing it needs a rebuild.
+      - key: VITE_API_BASE_URL
+        sync: false
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    routes:
+      # SPA history fallback: every unmatched path serves index.html so
+      # client-side routes survive a hard refresh.
+      - type: rewrite
+        source: /*
+        destination: /index.html

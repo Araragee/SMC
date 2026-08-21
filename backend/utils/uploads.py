@@ -12,7 +12,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
-from ..config import settings
+from . import storage
 
 MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 DEFAULT_ALLOWED_EXTS = {"jpg", "jpeg", "png", "webp"}
@@ -39,9 +39,11 @@ def save_upload(
     subdir: str,
     allowed_exts: Iterable[str] = DEFAULT_ALLOWED_EXTS,
 ) -> tuple[str, str]:
-    """Validate and persist an UploadFile under uploads/<subdir>/.
+    """Validate and persist an UploadFile under <subdir>/.
 
-    Returns (public_url, disk_path) as strings. Raises HTTPException on failure.
+    Returns ``(public_url, storage_key)``. The key is ``<subdir>/<filename>``;
+    where that physically lives is the storage layer's business. Raises
+    HTTPException on failure.
     """
     allowed = {e.lower() for e in allowed_exts}
 
@@ -84,10 +86,7 @@ def save_upload(
             raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}") from e
 
     safe_name = f"{secrets.token_hex(16)}.{ext}"
-    dest = Path(settings.UPLOADS_DIR) / subdir / safe_name
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    with open(dest, "wb") as f:
-        f.write(contents)
+    key = storage.put(subdir, safe_name, contents, content_type=f"image/{ext}" if ext != "pdf" else "application/pdf")
 
     public_url = f"/uploads/{subdir}/{safe_name}"
-    return public_url, str(dest)
+    return public_url, key

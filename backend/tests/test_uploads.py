@@ -16,6 +16,7 @@ pytest.importorskip("PIL")
 
 from fastapi import HTTPException  # noqa: E402
 
+from backend.utils import storage  # noqa: E402
 from backend.utils import uploads as up  # noqa: E402
 
 
@@ -94,10 +95,11 @@ def test_enforces_size_cap(monkeypatch):
 
 
 def test_happy_path_normalises_to_webp(tmp_path, monkeypatch):
-    # save_upload writes under ./uploads/<subdir>/ relative to cwd.
+    # save_upload writes under <UPLOADS_DIR>/<subdir>/, which is relative to cwd.
     monkeypatch.chdir(tmp_path)
     f = _FakeUpload("photo.png", _png_bytes())
-    public_url, disk_path = up.save_upload(f, "proofs")
+    public_url, key = up.save_upload(f, "proofs")
     assert public_url.startswith("/uploads/proofs/")
     assert public_url.endswith(".webp")
-    assert (tmp_path / disk_path).exists()
+    subdir, _, filename = key.partition("/")
+    assert storage.local_path(subdir, filename).exists()

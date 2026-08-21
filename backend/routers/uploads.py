@@ -20,13 +20,14 @@ import re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from .. import models
 from ..config import settings
 from ..database import get_db
 from ..dependencies import get_current_active_user
+from ..utils import storage
 from ..utils.signed_urls import verify_sig
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -117,6 +118,26 @@ def _user_can_see_homework(db: Session, user: models.User, file_url: str) -> boo
     return user.id in (session.teacher_id, session.student_id)
 
 
+def _serve(subdir: str, filename: str):
+    """Return the stored file, whichever backend holds it.
+
+    Local disk keeps using FileResponse (sendfile, no buffering). Object
+    storage is fetched and returned inline — uploads are capped at 10 MB, so
+    holding one in memory briefly is cheaper than the streaming plumbing.
+    """
+    if not _SAFE_FILENAME.match(filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    if not storage.is_remote():
+        return FileResponse(_safe_path(subdir, filename))
+
+    found = storage.get(subdir, filename)
+    if found is None:
+        raise HTTPException(status_code=404, detail="File not found")
+    data, content_type = found
+    return Response(content=data, media_type=content_type)
+
+
 @router.get("/proofs/{filename}")
 def get_proof(
     filename: str,
@@ -139,7 +160,7 @@ def get_proof(
     if not _user_can_see_proof(db, current_user, path_for_sig):
         raise HTTPException(status_code=403, detail="Not authorized to view this proof")
 
-    return FileResponse(_safe_path("proofs", filename))
+    return _serve("proofs", filename)
 
 
 @router.get("/homework/{filename}")
@@ -159,4 +180,14 @@ def get_homework(
     if not _user_can_see_homework(db, current_user, path_for_sig):
         raise HTTPException(status_code=403, detail="Not authorized to view this file")
 
-    return FileResponse(_safe_path("homework", filename))
+    return _serve("homework", filename)
+
+
+@router.get("/shop/{filename}")
+def get_shop_image(filename: str):
+    """Public product images.
+
+    Only registered when object storage is in use — on local disk these are
+    served by the StaticFiles mount in main.py, which is faster.
+    """
+    return _serve("shop", filename)

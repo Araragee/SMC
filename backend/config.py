@@ -61,9 +61,15 @@ class Settings(BaseSettings):
     # Where uploaded files land. Relative paths resolve against the process
     # CWD; point this at a mounted volume (e.g. /data/uploads) in any
     # deployment whose filesystem is ephemeral or replicated.
-    # ponytail: local disk only — swap for S3/object storage when more than
-    # one replica has to serve the same file.
     UPLOADS_DIR: str = "uploads"
+
+    # Object storage for uploads. When all three are set, files go to a private
+    # Supabase Storage bucket instead of local disk — required on hosts with an
+    # ephemeral filesystem (Render free tier) or more than one replica.
+    # SUPABASE_SERVICE_KEY bypasses row-level security: server-side only.
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+    SUPABASE_BUCKET: str = ""
 
     # CORS
     ALLOWED_ORIGINS: list[str] = [
