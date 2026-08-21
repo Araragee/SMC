@@ -106,7 +106,7 @@ const monthlyBreakdown = computed(() => {
     </header>
 
     <!-- Ledger Table -->
-    <section class="glass-heavy rounded-[2.5rem] border border-outline-variant/30 overflow-hidden shadow-2xl shadow-black/5 dark:shadow-black/20">
+    <section class="glass-heavy rounded-[2.5rem] border border-outline-variant/30 overflow-hidden shadow-2xl shadow-e2 dark:shadow-e2">
       <div v-if="paymentsStore.isLoading" class="p-24 text-center">
         <span class="material-symbols-outlined text-5xl animate-spin text-primary/40">progress_activity</span>
       </div>
@@ -162,7 +162,7 @@ const monthlyBreakdown = computed(() => {
     </section>
 
     <!-- Monthly Breakdown -->
-    <section v-if="monthlyBreakdown.length > 0" class="glass-heavy rounded-[2.5rem] border border-outline-variant/30 overflow-hidden shadow-2xl shadow-black/5 dark:shadow-black/20">
+    <section v-if="monthlyBreakdown.length > 0" class="glass-heavy rounded-[2.5rem] border border-outline-variant/30 overflow-hidden shadow-2xl shadow-e2 dark:shadow-e2">
       <div class="px-8 py-6 border-b border-outline-variant/10 flex items-center gap-3">
         <span class="material-symbols-outlined text-primary">bar_chart</span>
         <h2 class="text-sm font-black text-on-surface uppercase tracking-[0.2em]">Monthly Breakdown</h2>
@@ -191,9 +191,9 @@ const monthlyBreakdown = computed(() => {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl shadow-2xl;
+  @apply bg-on-surface/70 dark:bg-zinc-900/70 shadow-2xl;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 </style>

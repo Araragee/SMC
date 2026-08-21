@@ -47,7 +47,7 @@ const toastIcon = (type: ToastType) => ({
         <div
           v-for="toast in toastStore.toasts"
           :key="toast.id"
-          class="pointer-events-auto flex items-start gap-3 min-w-[300px] max-w-[400px] px-4 py-3 rounded-xl backdrop-blur-xl shadow-xl transition-colors duration-300"
+          class="pointer-events-auto flex items-start gap-3 min-w-[300px] max-w-[400px] px-4 py-3 rounded-xl shadow-xl transition-colors duration-300"
           :class="[toastClasses(toast.type), textClasses(toast.type)]"
           role="alert"
           :aria-label="`${toast.type}: ${toast.title}`"
@@ -60,7 +60,7 @@ const toastIcon = (type: ToastType) => ({
             <p v-if="toast.message" class="text-xs opacity-80 mt-0.5 leading-snug">{{ toast.message }}</p>
           </div>
           <button
-            class="opacity-60 hover:opacity-100 transition-opacity shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-on-surface/20 dark:focus:ring-white/30 rounded"
+            class="opacity-60 hover:opacity-100 transition-opacity shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-on-surface/20 dark:focus:ring-on-surface/30 rounded"
             :aria-label="`Dismiss notification: ${toast.title}`"
             @click="toastStore.remove(toast.id)"
           >

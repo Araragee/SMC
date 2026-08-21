@@ -189,14 +189,14 @@ const formatDay = function(iso: string): string  {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-surface-container border border-black/[0.08] dark:border-white/10 text-on-surface font-bold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-surface-container border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface font-bold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showRecurringModal = true"
         >
           <span class="material-symbols-outlined text-lg">repeat</span>
           Recurring
         </button>
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-primary text-on-primary font-bold rounded-3xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -254,7 +254,7 @@ const formatDay = function(iso: string): string  {
               Approve
             </button>
             <button
-              class="px-4 py-2 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              class="px-4 py-2 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-bold transition-all flex items-center gap-1.5"
               @click="openCounter(session)"
             >
               <span class="material-symbols-outlined text-sm">swap_horiz</span>
@@ -273,7 +273,7 @@ const formatDay = function(iso: string): string  {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
       <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
         <span class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
@@ -284,7 +284,7 @@ const formatDay = function(iso: string): string  {
     </section>
 
     <!-- Upcoming Confirmed Sessions -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
       <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
         <span class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
           <span
@@ -299,10 +299,10 @@ const formatDay = function(iso: string): string  {
         <div
           v-for="session in upcomingSessions"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-on-surface/[0.02] dark:bg-on-surface/[0.02] border border-on-surface/[0.04] dark:border-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
         >
           <div class="text-center w-14 shrink-0">
-            <p class="text-[10px] font-black text-orange-500 uppercase">
+            <p class="text-[10px] font-black text-primary uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
             <p class="text-2xl font-black text-on-surface dark:text-on-surface">{{ formatDay(session.startTime) }}</p>
@@ -313,7 +313,7 @@ const formatDay = function(iso: string): string  {
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
           </div>
-          <span class="w-2 h-2 rounded-full bg-orange-500 shrink-0"></span>
+          <span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>
         </div>
         <div v-if="upcomingSessions.length === 0" class="text-center py-6 text-on-surface-variant dark:text-on-surface-variant">
           No upcoming sessions
@@ -336,21 +336,21 @@ const formatDay = function(iso: string): string  {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
             @click="rejectModal.open = false"
           />
           <div
-            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
+            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Decline Session Request</h3>
-              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <button class="w-8 h-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
             </div>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
               placeholder="Reason for declining (optional)..."
-              class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
             />
             <div class="flex gap-3">
               <button
@@ -360,7 +360,7 @@ const formatDay = function(iso: string): string  {
                 Confirm Decline
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-5 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="rejectModal.open = false"
               >
                 Cancel
@@ -386,15 +386,15 @@ const formatDay = function(iso: string): string  {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
             @click="counterModal.open = false"
           />
           <div
-            class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
+            class="relative w-full max-w-md liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
               <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Counter Proposal</h3>
-              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="counterModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <button class="w-8 h-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="counterModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
             </div>
             
             <div class="space-y-4">
@@ -403,7 +403,7 @@ const formatDay = function(iso: string): string  {
                 <input
                   v-model="counterModal.startTime"
                   type="datetime-local"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 [color-scheme:dark]"
+                  class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-primary/50 [color-scheme:dark]"
                 />
               </div>
               <div>
@@ -411,7 +411,7 @@ const formatDay = function(iso: string): string  {
                 <input
                   v-model="counterModal.endTime"
                   type="datetime-local"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 [color-scheme:dark]"
+                  class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-primary/50 [color-scheme:dark]"
                 />
               </div>
               <div>
@@ -419,20 +419,20 @@ const formatDay = function(iso: string): string  {
                 <textarea
                   v-model="counterModal.notes"
                   rows="3"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 resize-none"
+                  class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-primary/50 resize-none"
                 />
               </div>
             </div>
 
             <div class="flex gap-3 pt-2">
               <button
-                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-black rounded-2xl text-sm shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all"
+                class="flex-1 py-3 bg-primary text-on-primary font-black rounded-2xl text-sm shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
                 @click="confirmCounter"
               >
                 Send Counter
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-5 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="counterModal.open = false"
               >
                 Cancel

@@ -159,9 +159,9 @@ const totalPaid = computed(() =>
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-lg;
+  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-lg;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 </style>

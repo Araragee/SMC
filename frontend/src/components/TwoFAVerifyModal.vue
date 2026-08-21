@@ -57,14 +57,14 @@ const handleCancel = () => {
         class="fixed inset-0 z-[220] flex items-center justify-center p-4"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-md" @click="handleCancel" />
+        <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="handleCancel" />
 
         <!-- Modal Card -->
         <div class="relative w-full max-w-md glass-heavy rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col p-8 space-y-6">
-          <div class="h-2 w-full bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600 absolute top-0 left-0"></div>
+          <div class="h-2 w-full bg-primary absolute top-0 left-0"></div>
 
           <div class="text-center space-y-2 mt-4">
-            <div class="w-16 h-16 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center justify-center text-orange-500 mx-auto shadow-inner">
+            <div class="w-16 h-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-primary mx-auto shadow-inner">
               <span class="material-symbols-outlined text-3xl">security</span>
             </div>
             <h2 class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tight">Two-Factor Verification</h2>
@@ -87,7 +87,7 @@ const handleCancel = () => {
                 required
                 autocomplete="one-time-code"
                 placeholder="000000"
-                class="w-full h-16 text-center text-3xl font-black tracking-[0.2em] bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/40 text-on-surface dark:text-on-surface transition-all placeholder:opacity-30"
+                class="w-full h-16 text-center text-3xl font-black tracking-[0.2em] bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-on-surface dark:text-on-surface transition-all placeholder:opacity-30"
                 @input="code = code.replace(/[^0-9]/g, '')"
               />
             </div>
@@ -97,7 +97,7 @@ const handleCancel = () => {
             <div class="flex gap-4">
               <button
                 type="button"
-                class="flex-1 h-14 rounded-2xl bg-black/5 dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant font-bold text-xs uppercase tracking-widest hover:text-on-surface dark:hover:text-on-surface transition-colors border border-black/5 dark:border-white/5"
+                class="flex-1 h-14 rounded-2xl bg-on-surface/5 dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant font-bold text-xs uppercase tracking-widest hover:text-on-surface dark:hover:text-on-surface transition-colors border border-on-surface/5 dark:border-on-surface/5"
                 @click="handleCancel"
               >
                 Cancel
@@ -105,7 +105,7 @@ const handleCancel = () => {
               <button
                 type="submit"
                 :disabled="isVerifying || code.length < 6"
-                class="flex-1 h-14 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white font-black rounded-2xl text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+                class="flex-1 h-14 bg-primary text-on-primary font-black rounded-2xl text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
               >
                 <span v-if="isVerifying" class="material-symbols-outlined animate-spin text-sm">progress_activity</span>
                 {{ isVerifying ? 'Verifying...' : 'Verify' }}

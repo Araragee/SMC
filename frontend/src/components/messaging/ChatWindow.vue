@@ -117,7 +117,7 @@ const getConvLabel = function(): string  {
       <div class="flex justify-center mb-2">
         <button
           v-if="nextCursor"
-          class="text-[10px] font-bold text-on-surface-variant hover:text-orange-500 transition-colors px-3 py-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5"
+          class="text-[10px] font-bold text-on-surface-variant hover:text-primary transition-colors px-3 py-1.5 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5"
           :disabled="isLoadingMore"
           @click="loadMore"
         >
@@ -135,7 +135,7 @@ const getConvLabel = function(): string  {
 
       <!-- Typing indicator -->
       <div v-if="typingList.length > 0" class="flex justify-start mb-1.5">
-        <div class="bg-black/[0.06] dark:bg-white/10 rounded-3xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
+        <div class="bg-on-surface/[0.06] dark:bg-on-surface/10 rounded-3xl rounded-bl-sm px-4 py-3 flex gap-1 items-center">
           <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-bounce [animation-delay:0ms]" />
           <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-bounce [animation-delay:150ms]" />
           <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-bounce [animation-delay:300ms]" />
@@ -151,12 +151,12 @@ const getConvLabel = function(): string  {
     </div>
 
     <!-- Input bar -->
-    <div class="px-4 py-3 border-t border-black/[0.04] dark:border-white/5">
+    <div class="px-4 py-3 border-t border-on-surface/[0.04] dark:border-on-surface/5">
       <div class="flex items-end gap-2">
         <textarea
           v-model="input"
           rows="1"
-          class="flex-1 bg-black/[0.04] dark:bg-white/5 border border-black/[0.06] dark:border-white/5 rounded-2xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all max-h-24 overflow-y-auto"
+          class="flex-1 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.06] dark:border-on-surface/5 rounded-2xl px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant resize-none focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all max-h-24 overflow-y-auto"
           :placeholder="`Message ${getConvLabel()}…`"
           @input="onInput"
           @keydown="onKeydown"
@@ -164,8 +164,8 @@ const getConvLabel = function(): string  {
         <button
           class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 transition-all"
           :class="input.trim()
-            ? 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
-            : 'bg-black/[0.04] dark:bg-white/5 text-on-surface-variant cursor-not-allowed'"
+            ? 'bg-primary text-on-surface hover:bg-primary-dim active:scale-95'
+            : 'bg-on-surface/[0.04] dark:bg-on-surface/5 text-on-surface-variant cursor-not-allowed'"
           :disabled="!input.trim()"
           @click="send"
         >

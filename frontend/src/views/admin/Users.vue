@@ -124,7 +124,7 @@ const handleDeleteUser = async (user: User) => {
         </p>
       </div>
       <button
-        class="group px-6 py-3.5 bg-primary text-white text-[11px] font-black uppercase tracking-[0.15em] rounded-2xl hover:bg-primary/90 transition-all flex items-center gap-3 shadow-lg shadow-primary/20 active:scale-95 whitespace-nowrap"
+        class="group px-6 py-3.5 bg-primary text-on-primary text-[11px] font-black uppercase tracking-[0.15em] rounded-2xl hover:bg-primary/90 transition-all flex items-center gap-3 shadow-lg shadow-primary/20 active:scale-95 whitespace-nowrap"
         @click="openAddModal"
       >
         <span class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform">add</span>
@@ -253,7 +253,7 @@ const handleDeleteUser = async (user: User) => {
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showEditModal = false"
         >
-          <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-sm" @click="showEditModal = false" />
+          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="showEditModal = false" />
           <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
 
@@ -297,7 +297,7 @@ const handleDeleteUser = async (user: User) => {
               </div>
 
               <div class="flex gap-3 pt-6">
-                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-white text-sm font-black uppercase tracking-widest transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
+                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-on-primary text-sm font-black uppercase tracking-widest transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
                   {{ isSubmitting ? 'Updating...' : 'Save Changes' }}
                 </button>
               </div>

@@ -70,8 +70,8 @@ const submit = async function () {
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @click.self="emit('close')">
-    <div class="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-2xl space-y-4">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/50 p-4" @click.self="emit('close')">
+    <div class="w-full max-w-lg bg-surface-container-lowest dark:bg-zinc-900 rounded-3xl p-6 shadow-2xl space-y-4">
       <h2 class="text-2xl font-black text-on-surface dark:text-on-surface">Recurring Lessons</h2>
       <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">Create a series of scheduled sessions.</p>
 
@@ -123,7 +123,7 @@ const submit = async function () {
       <div class="flex gap-2 justify-end pt-2">
         <button class="px-5 py-2 rounded-2xl bg-zinc-200 dark:bg-zinc-800 text-on-surface dark:text-on-surface font-semibold" @click="emit('close')">Cancel</button>
         <button
-          class="px-5 py-2 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold disabled:opacity-50"
+          class="px-5 py-2 rounded-2xl bg-primary text-on-primary font-bold disabled:opacity-50"
           :disabled="!isValid || submitting"
           @click="submit"
         >

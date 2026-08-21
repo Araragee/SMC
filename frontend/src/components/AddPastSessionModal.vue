@@ -79,17 +79,17 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <BaseCard class="w-full max-w-md max-h-[90vh] overflow-y-auto liquid-glass border border-white/10 p-6 flex flex-col relative">
-      <button @click="$emit('close')" class="absolute top-4 right-4 text-white/50 hover:text-white material-symbols-outlined">close</button>
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/60">
+    <BaseCard class="w-full max-w-md max-h-[90vh] overflow-y-auto liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
+      <button @click="$emit('close')" class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined">close</button>
 
-      <h2 class="text-xl font-bold text-white mb-2">Add Past Session</h2>
-      <p class="text-sm text-white/50 mb-6">Create a manual record of a completed session for {{ student.name }}.</p>
+      <h2 class="text-xl font-bold text-on-surface mb-2">Add Past Session</h2>
+      <p class="text-sm text-on-surface/50 mb-6">Create a manual record of a completed session for {{ student.name }}.</p>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
 
         <div>
-          <label class="block text-sm font-medium text-white/70 mb-1">Teacher</label>
+          <label class="block text-sm font-medium text-on-surface/70 mb-1">Teacher</label>
           <select v-model="formData.teacherId" required class="w-full bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
             <option value="" disabled>Select a teacher</option>
             <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -97,7 +97,7 @@ const handleSubmit = async () => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-white/70 mb-1">Instrument</label>
+          <label class="block text-sm font-medium text-on-surface/70 mb-1">Instrument</label>
           <select v-model="formData.instrumentId" class="w-full bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
             <option value="">Select an instrument (Optional)</option>
             <option v-for="inst in studentInstruments" :key="inst.id" :value="inst.id">{{ inst.name }}</option>
@@ -116,11 +116,11 @@ const handleSubmit = async () => {
         <BaseInput v-model.number="formData.sessionNumber" type="number" label="Session Number (Optional)" placeholder="e.g., 5" />
 
         <div>
-           <label class="block text-sm font-medium text-white/70 mb-1">Notes</label>
+           <label class="block text-sm font-medium text-on-surface/70 mb-1">Notes</label>
            <textarea v-model="formData.notes" rows="3" class="w-full bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
         </div>
 
-        <div class="flex justify-end gap-3 pt-4 border-t border-white/5 mt-6">
+        <div class="flex justify-end gap-3 pt-4 border-t border-on-surface/5 mt-6">
           <BaseButton type="button" variant="secondary" @click="$emit('close')">Cancel</BaseButton>
           <BaseButton type="submit" :disabled="isSubmitting">
              <span v-if="isSubmitting" class="material-symbols-outlined animate-spin text-sm mr-2">autorenew</span>
