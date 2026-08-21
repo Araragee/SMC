@@ -1,0 +1,35 @@
+# Production overlay. Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# What it changes versus the dev compose file:
+# - no source bind mounts, so containers run the code baked into the image
+# - uploads live in a named volume instead of a host directory
+# - Postgres is reachable only from the host loopback, not the public interface
+# - demo seeding stays off; the app boots with just the bootstrap admin
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  backend:
+    volumes:
+      - smc_uploads:/app/uploads
+    environment:
+      - SEED_DEMO_DATA=false
+      - DEBUG=false
+      - UPLOADS_DIR=/app/uploads
+      # Set these in the shell or an env file next to this compose file.
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:?ALLOWED_ORIGINS required, e.g. ["https://smc.example.com"]}
+      - REFRESH_COOKIE_SECURE=true
+      - REFRESH_COOKIE_SAMESITE=lax
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    environment:
+      - VITE_API_BASE_URL=${PUBLIC_API_URL:?PUBLIC_API_URL required, e.g. https://api.smc.example.com}
+    ports:
+      - "127.0.0.1:3000:80"
+
+volumes:
+  smc_uploads:

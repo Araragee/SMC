@@ -140,7 +140,7 @@ class Session(Base):
     # Optimistic locking: bumped on every status transition; clients send
     # this back and the server rejects with 409 if it has been incremented
     # by a concurrent request. SQLAlchemy auto-manages via version_id_col.
-    counter_count = Column(Integer, default=0, server_default="0")
+    counter_count = Column(Integer, default=0, server_default="0", nullable=False)
     version = Column(Integer, nullable=False, default=0, server_default="0")
 
     __mapper_args__ = {
@@ -173,7 +173,7 @@ class Enrollment(Base):
     teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
     sessions_purchased = Column(Integer, default=0)
     sessions_used = Column(Integer, default=0)
-    is_active = Column(Boolean, default=True, server_default="1")
+    is_active = Column(Boolean, default=True, server_default="1", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 
     student = relationship("User", foreign_keys=[student_id])

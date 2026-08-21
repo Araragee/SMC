@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -234,20 +235,42 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: model
         (models.Enrollment.teacher_id == user_id) | (models.Enrollment.student_id == user_id)
     ).first()
 
-    if has_sessions or has_enrollments:
-        # Perform soft delete by deactivating
+    def deactivate(reason: str) -> dict:
         db_user.is_active = False
         db.commit()
         log_activity(db, action_type="user_deactivated",
-                     description=f"Admin {current_user.name} deactivated user {db_user.name} (has linked records)",
+                     description=f"Admin {current_user.name} deactivated user {db_user.name} ({reason})",
                      actor_id=current_user.id, actor_name=current_user.name,
                      target_type="user", target_id=db_user.id)
-        return {"message": "User has linked records and was deactivated instead of deleted"}
+        return {"message": f"User was deactivated instead of deleted ({reason})"}
 
-    db.delete(db_user)
+    # Credentials die with the account on either path: an account that is gone
+    # or disabled must not keep a usable refresh token or push channel.
+    db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user_id).delete(
+        synchronize_session=False
+    )
+    db.query(models.PushSubscription).filter(models.PushSubscription.user_id == user_id).delete(
+        synchronize_session=False
+    )
     db.commit()
+
+    if has_sessions or has_enrollments:
+        return deactivate("has linked records")
+
+    user_name = db_user.name
+    try:
+        db.delete(db_user)
+        db.commit()
+    except IntegrityError:
+        # Some other table still references this user (payments, orders, roster
+        # entries, messages...). Enumerating them all would rot the moment a
+        # table is added, so let the database be the authority and fall back to
+        # deactivation.
+        db.rollback()
+        return deactivate("still referenced by other records")
+
     log_activity(db, action_type="user_deleted",
-                 description=f"Admin {current_user.name} permanently deleted user {db_user.name}",
+                 description=f"Admin {current_user.name} permanently deleted user {user_name}",
                  actor_id=current_user.id, actor_name=current_user.name,
                  target_type="user", target_id=user_id)
     return {"message": "User deleted successfully"}
