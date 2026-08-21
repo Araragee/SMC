@@ -462,3 +462,73 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
   }
 }
+
+/* ============================================
+   Baseline UI primitives
+   --------------------------------------------
+   One place for page rhythm, type scale, controls and tables so every view
+   inherits the same spacing instead of hand-rolling px/py per element.
+   Views should reach for these first and only add utilities for what is
+   genuinely one-off.
+   ============================================ */
+@layer components {
+
+  /* — Page shell ————————————————————————— */
+  .page            { @apply mx-auto w-full max-w-[1600px] space-y-8 px-4 pb-28 sm:px-6; }
+  .page-header     { @apply flex flex-col gap-4 md:flex-row md:items-end md:justify-between; }
+  .page-eyebrow    { @apply text-xs font-semibold uppercase text-primary; }
+  .page-title      { @apply text-balance text-3xl font-bold text-on-surface; }
+  .page-subtitle   { @apply max-w-prose text-pretty text-sm text-on-surface-variant; }
+  .section-title   { @apply text-balance text-lg font-semibold text-on-surface; }
+  .section-caption { @apply text-pretty text-sm text-on-surface-variant; }
+
+  /* — Surfaces ——————————————————————————— */
+  .card        { @apply rounded-3xl border border-outline-variant/30 bg-surface-container; }
+  .card-pad    { @apply p-6; }
+  .card-header { @apply flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant/20 px-6 py-5; }
+
+  /* — Forms ——————————————————————————————— */
+  .field       { @apply space-y-2; }
+  .field-label { @apply block text-sm font-medium text-on-surface-variant; }
+  .field-hint  { @apply text-xs text-on-surface-variant; }
+  .field-error { @apply text-xs font-medium text-red-500; }
+  .input {
+    @apply w-full rounded-xl border border-outline-variant/40 bg-surface-container-highest/20 px-4 py-3
+           text-sm text-on-surface transition-colors placeholder:text-on-surface-variant/60
+           focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/30;
+  }
+  .select { @apply input cursor-pointer appearance-none pr-10; }
+
+  /* — Buttons ————————————————————————————— */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold
+           transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply btn bg-primary text-white shadow-sm hover:bg-primary/90; }
+  .btn-subtle  { @apply btn border border-outline-variant/40 bg-surface-container-highest/20 text-on-surface hover:bg-surface-container-highest/40; }
+  .btn-ghost   { @apply btn text-on-surface-variant hover:bg-on-surface/5 hover:text-on-surface; }
+  .btn-danger  { @apply btn bg-red-500 text-white hover:bg-red-600; }
+  .btn-sm      { @apply px-3.5 py-2 text-xs; }
+  .icon-btn {
+    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-transparent
+           text-on-surface-variant transition-colors hover:bg-on-surface/5 hover:text-on-surface
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40;
+  }
+  .icon-btn-danger { @apply icon-btn hover:bg-red-500/10 hover:text-red-500; }
+
+  /* — Tables ——————————————————————————————— */
+  .data-table       { @apply w-full border-collapse text-left; }
+  .data-table thead { @apply bg-surface-container-highest/20; }
+  .data-table th    { @apply px-6 py-4 text-xs font-semibold uppercase text-on-surface-variant; }
+  .data-table td    { @apply px-6 py-4 align-middle text-sm text-on-surface; }
+  .data-table tbody tr { @apply border-t border-outline-variant/15; }
+  .cell-strong  { @apply font-semibold text-on-surface; }
+  .cell-muted   { @apply text-sm text-on-surface-variant; }
+  .num          { @apply tabular-nums; }
+
+  /* — Bits ————————————————————————————————— */
+  .badge     { @apply inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium; }
+  .empty-state { @apply flex flex-col items-center gap-3 px-6 py-16 text-center; }
+  .skeleton-row { @apply h-16 animate-pulse rounded-xl bg-surface-container-highest/20; }
+}

@@ -50,7 +50,7 @@ const handleAddToCart = function(product: any) {
     <!-- Header -->
     <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div>
-        <h1 class="text-4xl md:text-5xl font-black text-on-surface dark:text-on-surface mb-4 tracking-tight">
+        <h1 class="text-4xl md:text-5xl font-semibold text-on-surface dark:text-on-surface mb-4 tracking-tight">
           Instrument <span class="text-orange-500">Shop</span>
         </h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-bold max-w-xl">
@@ -62,13 +62,13 @@ const handleAddToCart = function(product: any) {
       <div class="flex items-center gap-4">
         <button
           @click="isCartOpen = true"
-          class="relative h-16 px-8 bg-orange-500 hover:bg-orange-600 text-white rounded-3xl font-black text-sm uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-xl shadow-orange-500/20 flex items-center gap-3"
+          class="relative h-16 px-8 bg-orange-500 hover:bg-orange-600 text-white rounded-3xl font-semibold text-sm uppercase transition-all hover:scale-105 active:scale-95 shadow-xl shadow-orange-500/20 flex items-center gap-3"
         >
           <span class="material-symbols-outlined">shopping_cart</span>
           Cart
           <span
             v-if="shopStore.cartItemsCount > 0"
-            class="absolute -top-2 -right-2 w-7 h-7 bg-white text-orange-500 rounded-full flex items-center justify-center text-xs font-black shadow-lg"
+            class="absolute -top-2 -right-2 size-7 bg-white text-orange-500 rounded-full flex items-center justify-center text-xs font-semibold shadow-lg"
           >
             {{ shopStore.cartItemsCount }}
           </span>
@@ -80,14 +80,14 @@ const handleAddToCart = function(product: any) {
     <div class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-white/5 pb-4">
       <button
         @click="activeTab = 'products'"
-        class="px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all"
+        class="px-6 py-2 rounded-xl text-sm font-semibold uppercase transition-all"
         :class="activeTab === 'products' ? 'text-orange-500 bg-orange-500/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
       >
         Products
       </button>
       <button
         @click="activeTab = 'orders'"
-        class="px-6 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all"
+        class="px-6 py-2 rounded-xl text-sm font-semibold uppercase transition-all"
         :class="activeTab === 'orders' ? 'text-orange-500 bg-orange-500/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
       >
         My Orders
@@ -97,8 +97,8 @@ const handleAddToCart = function(product: any) {
     <!-- Content -->
     <div v-if="activeTab === 'products'">
       <div v-if="shopStore.isLoading" class="flex flex-col items-center justify-center py-40">
-        <div class="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
-        <p class="mt-4 text-on-surface-variant font-black uppercase tracking-widest text-xs">Loading Catalog...</p>
+        <div class="size-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-on-surface-variant font-semibold uppercase text-xs">Loading Catalog...</p>
       </div>
       <ProductGrid v-else :products="shopStore.products" @view-product="openProductDetails" />
     </div>
@@ -108,16 +108,16 @@ const handleAddToCart = function(product: any) {
         <div
           v-for="order in shopStore.myOrders"
           :key="order.id"
-          class="glass-thin rounded-[2rem] p-6 border border-outline-variant/20 dark:border-white/5 bg-surface-container-low/50 dark:bg-transparent hover:border-orange-500/30 transition-all group"
+          class="glass-thin rounded-3xl p-6 border border-outline-variant/20 dark:border-white/5 bg-surface-container-low/50 dark:bg-transparent hover:border-orange-500/30 transition-all group"
         >
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+              <div class="size-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
                 <span class="material-symbols-outlined">receipt_long</span>
               </div>
               <div>
-                <h4 class="font-black text-on-surface dark:text-on-surface">Order #{{ order.id }}</h4>
-                <p class="text-xs font-bold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest">
+                <h4 class="font-semibold text-on-surface dark:text-on-surface">Order #{{ order.id }}</h4>
+                <p class="text-xs font-bold text-on-surface-variant dark:text-on-surface-variant uppercase">
                   Placed on {{ formatDate(order.createdAt) }}
                 </p>
               </div>
@@ -125,8 +125,8 @@ const handleAddToCart = function(product: any) {
 
             <div class="flex items-center gap-6">
               <div class="text-right hidden sm:block">
-                <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1">Total Amount</p>
-                <p class="text-lg font-black text-on-surface dark:text-on-surface">{{ formatPrice(order.totalCents) }}</p>
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1">Total Amount</p>
+                <p class="text-lg font-semibold text-on-surface dark:text-on-surface">{{ formatPrice(order.totalCents) }}</p>
               </div>
 
               <OrderStatusBadge :status="order.status" />
@@ -134,7 +134,7 @@ const handleAddToCart = function(product: any) {
               <button
                 v-if="order.status === 'pending'"
                 @click="shopStore.cancelMyOrder(order.id)"
-                class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 text-xs font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all"
+                class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 text-xs font-semibold uppercase hover:bg-rose-500 hover:text-white transition-all"
               >
                 Cancel
               </button>
@@ -148,7 +148,7 @@ const handleAddToCart = function(product: any) {
               :key="item.id"
               class="flex items-center gap-3 px-4 py-2 bg-black/5 dark:bg-black/20 rounded-2xl border border-outline-variant/20 dark:border-white/5 shrink-0"
             >
-              <div class="w-8 h-8 rounded-lg overflow-hidden bg-black/10 dark:bg-black/40">
+              <div class="size-8 rounded-lg overflow-hidden bg-black/10 dark:bg-black/40">
                 <img v-if="item.product?.imageUrl" :src="item.product.imageUrl.startsWith('http') ? item.product.imageUrl : `${API_URL}${item.product.imageUrl}`" class="w-full h-full object-cover" />
                 <div v-else class="w-full h-full flex items-center justify-center text-white/10">
                   <span class="material-symbols-outlined text-xs">image</span>
@@ -167,14 +167,14 @@ const handleAddToCart = function(product: any) {
 
       <!-- Empty Orders -->
       <div v-else class="flex flex-col items-center justify-center py-20 glass-thin rounded-[3rem] border border-outline-variant/20 dark:border-white/5 bg-surface-container-low/50 dark:bg-transparent">
-        <div class="w-20 h-20 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mb-6 shadow-inner">
+        <div class="size-20 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mb-6 shadow-inner">
           <span class="material-symbols-outlined text-4xl">history</span>
         </div>
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-2">No orders yet</h3>
+        <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-2">No orders yet</h3>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-bold">Your order history will appear here.</p>
         <button
           @click="activeTab = 'products'"
-          class="mt-8 px-8 py-4 bg-orange-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105"
+          class="mt-8 px-8 py-4 bg-orange-500 text-white rounded-2xl font-semibold text-xs uppercase transition-all hover:scale-105"
         >
           Go to Shop
         </button>
@@ -199,7 +199,7 @@ const handleAddToCart = function(product: any) {
 
           <button
             @click="isProductModalOpen = false"
-            class="absolute top-6 left-6 w-12 h-12 rounded-2xl bg-black/40 backdrop-blur-md text-white flex items-center justify-center md:hidden"
+            class="absolute top-6 left-6 size-12 rounded-2xl bg-black/40 backdrop-blur-md text-white flex items-center justify-center md:hidden"
           >
             <span class="material-symbols-outlined">close</span>
           </button>
@@ -210,26 +210,26 @@ const handleAddToCart = function(product: any) {
           <div class="hidden md:flex justify-end mb-8">
             <button
               @click="isProductModalOpen = false"
-              class="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center"
+              class="size-12 rounded-2xl bg-black/5 dark:bg-white/5 text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center"
             >
-              <span class="material-symbols-outlined font-black">close</span>
+              <span class="material-symbols-outlined font-semibold">close</span>
             </button>
           </div>
 
           <div class="flex-grow">
             <div class="flex items-center gap-3 mb-4">
-              <span class="px-4 py-1.5 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-black uppercase tracking-widest border border-orange-500/20">
+              <span class="px-4 py-1.5 rounded-full bg-orange-500/10 text-orange-500 text-xs font-semibold uppercase border border-orange-500/20">
                 {{ selectedProduct.category?.name || 'Instrument' }}
               </span>
-              <span v-if="selectedProduct.stock > 0" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+              <span v-if="selectedProduct.stock > 0" class="text-xs font-semibold text-emerald-500 uppercase">
                 In Stock
               </span>
-              <span v-else class="text-[10px] font-black text-rose-500 uppercase tracking-widest">
+              <span v-else class="text-xs font-semibold text-rose-500 uppercase">
                 Out of Stock
               </span>
             </div>
 
-            <h2 class="text-4xl font-black text-on-surface dark:text-on-surface mb-6 leading-tight">
+            <h2 class="text-4xl font-semibold text-on-surface dark:text-on-surface mb-6 leading-tight">
               {{ selectedProduct.name }}
             </h2>
 
@@ -243,21 +243,21 @@ const handleAddToCart = function(product: any) {
           <div class="mt-auto pt-8 border-t border-outline-variant/20 dark:border-white/5">
             <div class="flex items-end justify-between gap-6 mb-8">
               <div>
-                <p class="text-xs font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-[0.2em] mb-1">Price</p>
-                <p class="text-4xl font-black text-orange-500 tracking-tighter">{{ formatPrice(selectedProduct.priceCents) }}</p>
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1">Price</p>
+                <p class="text-4xl font-semibold text-orange-500 tracking-tighter">{{ formatPrice(selectedProduct.priceCents) }}</p>
               </div>
               <div class="text-right">
-                <p class="text-xs font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-[0.2em] mb-1">Stock</p>
-                <p class="text-xl font-black text-on-surface dark:text-on-surface">{{ selectedProduct.stock }} <span class="text-sm text-on-surface-variant uppercase tracking-widest">units</span></p>
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1">Stock</p>
+                <p class="text-xl font-semibold text-on-surface dark:text-on-surface">{{ selectedProduct.stock }} <span class="text-sm text-on-surface-variant uppercase">units</span></p>
               </div>
             </div>
 
             <button
               @click="handleAddToCart(selectedProduct)"
               :disabled="selectedProduct.stock <= 0"
-              class="w-full h-20 bg-orange-500 hover:bg-orange-600 disabled:opacity-30 text-white rounded-[2rem] font-black text-sm uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-orange-500/30 flex items-center justify-center gap-4 group"
+              class="w-full h-20 bg-orange-500 hover:bg-orange-600 disabled:opacity-30 text-white rounded-3xl font-semibold text-sm uppercase transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-orange-500/30 flex items-center justify-center gap-4 group"
             >
-              <span class="material-symbols-outlined font-black group-hover:rotate-12 transition-transform">add_shopping_cart</span>
+              <span class="material-symbols-outlined font-semibold group-hover:rotate-12 transition-transform">add_shopping_cart</span>
               Add to Cart
             </button>
           </div>

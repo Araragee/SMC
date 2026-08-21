@@ -110,17 +110,17 @@ const handleRecalculate = async () => {
     <section v-if="student" class="flex flex-col md:flex-row gap-6 items-start">
       <BaseCard class="flex-1 p-6 liquid-glass border border-white/10 relative overflow-hidden group">
         <div class="flex items-center gap-6">
-          <div class="w-24 h-24 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+          <div class="size-24 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center overflow-hidden flex-shrink-0 relative">
             <img v-if="student.avatarUrl" :src="student.avatarUrl" alt="Avatar" class="w-full h-full object-cover" />
             <span v-else class="material-symbols-outlined text-4xl text-on-surface-variant">person</span>
           </div>
           <div>
-            <h1 class="text-3xl font-black text-white tracking-tight">{{ student.name }}</h1>
+            <h1 class="text-3xl font-semibold text-white tracking-tight">{{ student.name }}</h1>
             <p class="text-white/60 text-sm flex gap-2 items-center mt-1">
               <span class="material-symbols-outlined text-xs">mail</span> {{ student.email }}
             </p>
             <div class="flex flex-wrap gap-2 mt-3">
-               <span v-for="inst in student.instruments" :key="inst.id" class="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-white/80 uppercase tracking-widest">
+               <span v-for="inst in student.instruments" :key="inst.id" class="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-xs font-bold text-white/80 uppercase">
                  {{ inst.name }}
                </span>
             </div>
@@ -129,7 +129,7 @@ const handleRecalculate = async () => {
       </BaseCard>
 
       <BaseCard class="w-full md:w-80 p-6 liquid-glass border border-white/10 shrink-0">
-        <h3 class="text-sm font-black uppercase tracking-[0.2em] text-white/50 mb-4">Enrollment Status</h3>
+        <h3 class="text-sm font-semibold uppercase text-white/50 mb-4">Enrollment Status</h3>
         <div class="space-y-4">
           <div>
             <div class="flex justify-between text-sm mb-1">
@@ -137,15 +137,15 @@ const handleRecalculate = async () => {
               <span class="font-bold text-white">{{ totalUsed }} / {{ totalEnrolled }}</span>
             </div>
             <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-              <div class="h-full bg-primary transition-all " :style="{ width: `${progressPercentage}%` }"></div>
+              <div class="h-full bg-primary transition-all" :style="{ width: `${progressPercentage}%` }"></div>
             </div>
           </div>
           <div class="flex justify-between items-center pt-2 border-t border-white/5">
              <span class="text-xs text-white/50">Sessions Left</span>
-             <span class="text-xl font-black text-primary">{{ student.sessionsLeft || 0 }}</span>
+             <span class="text-xl font-semibold text-primary">{{ student.sessionsLeft || 0 }}</span>
           </div>
           <button
-            class="w-full mt-1 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-primary border border-white/10 hover:border-primary/30 rounded-xl py-2 transition-all"
+            class="w-full mt-1 flex items-center justify-center gap-2 text-xs font-bold uppercase text-white/50 hover:text-primary border border-white/10 hover:border-primary/30 rounded-xl py-2 transition-all"
             :disabled="interactionsStore.isLoading"
             @click="handleRecalculate"
           >
@@ -158,7 +158,7 @@ const handleRecalculate = async () => {
 
     <!-- Enrollments -->
     <section v-if="interactionsStore.enrollments.length > 0">
-      <h2 class="text-xs font-black uppercase tracking-[0.2em] text-white/40 mb-3">Enrollments</h2>
+      <h2 class="text-xs font-semibold uppercase text-white/40 mb-3">Enrollments</h2>
       <div class="space-y-2">
         <BaseCard
           v-for="enrollment in interactionsStore.enrollments"
@@ -218,11 +218,11 @@ const handleRecalculate = async () => {
         <p>No session records found.</p>
       </div>
       <div v-else class="space-y-4">
-        <BaseCard v-for="session in filteredSessions" :key="session.id" class="p-5 liquid-glass border border-white/10 hover:border-white/20 transition-colors">
+        <BaseCard v-for="session in filteredSessions" :key="session.id" class="p-4 liquid-glass border border-white/10 hover:border-white/20 transition-colors">
           <div class="flex flex-col md:flex-row gap-4 justify-between md:items-center">
 
             <div class="flex items-start gap-4">
-              <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+              <div class="size-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
                 <span class="material-symbols-outlined text-primary" v-if="session.status === 'completed'">check_circle</span>
                 <span class="material-symbols-outlined text-secondary" v-else-if="session.status === 'scheduled'">event</span>
                 <span class="material-symbols-outlined text-white/50" v-else>cancel</span>
@@ -231,7 +231,7 @@ const handleRecalculate = async () => {
               <div>
                 <div class="flex items-center gap-2 mb-1">
                   <h4 class="font-bold text-white">{{ formatDate(session.startTime) }}</h4>
-                  <span v-if="session.isManualEntry" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest bg-orange-500/20 text-orange-400 border border-orange-500/30">Paper Record</span>
+                  <span v-if="session.isManualEntry" class="px-2 py-0.5 rounded text-xs uppercase font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">Paper Record</span>
                   <span v-if="session.sessionNumber" class="text-xs text-white/40">#{{ session.sessionNumber }}</span>
                 </div>
 
@@ -247,12 +247,8 @@ const handleRecalculate = async () => {
             </div>
 
             <div class="flex items-center gap-3">
-               <span class="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border"
-                 :class="{
-                   'border-primary/30 text-primary bg-primary/10': session.status === 'completed',
-                   'border-secondary/30 text-secondary bg-secondary/10': session.status === 'scheduled',
-                   'border-white/20 text-white/50': !['completed', 'scheduled'].includes(session.status)
-                 }">
+               <span class="text-xs font-bold uppercase px-3 py-1 rounded-full border"
+                 :class="{ 'border-primary/30 text-primary bg-primary/10': session.status === 'completed', 'border-secondary/30 text-secondary bg-secondary/10': session.status === 'scheduled', 'border-white/20 text-white/50': !['completed', 'scheduled'].includes(session.status) }">
                  {{ session.status }}
                </span>
             </div>

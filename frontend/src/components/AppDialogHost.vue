@@ -36,10 +36,10 @@ function handleKeydown(e: KeyboardEvent) {
       >
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="handleCancel" />
 
-        <div class="relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-[2rem] p-7 shadow-2xl overflow-hidden">
+        <div class="relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl overflow-hidden">
           <!-- Accent glow -->
           <div
-            class="absolute top-0 right-0 w-28 h-28 blur-[64px] rounded-full -z-10 pointer-events-none"
+            class="absolute top-0 right-0 size-28 blur-[64px] rounded-full -z-10 pointer-events-none"
             :class="dialogState.destructive ? 'bg-error/20' : 'bg-primary/15'"
           />
 
@@ -51,18 +51,18 @@ function handleKeydown(e: KeyboardEvent) {
             >
               {{ dialogState.type === 'prompt' ? 'edit_note' : (dialogState.destructive ? 'warning' : 'help') }}
             </span>
-            <h3 class="text-lg font-black text-on-surface">{{ dialogState.title }}</h3>
+            <h3 class="text-lg font-semibold text-on-surface">{{ dialogState.title }}</h3>
           </div>
 
           <!-- Message -->
-          <p class="text-sm text-on-surface-variant mb-5 leading-relaxed">{{ dialogState.message }}</p>
+          <p class="text-sm text-on-surface-variant mb-4 leading-relaxed">{{ dialogState.message }}</p>
 
           <!-- Input for prompt mode -->
-          <div v-if="dialogState.type === 'prompt'" class="mb-5">
+          <div v-if="dialogState.type === 'prompt'" class="mb-4">
             <input
               v-model="dialogState.inputValue"
               :placeholder="dialogState.placeholder || 'Enter text…'"
-              class="w-full bg-surface-container-highest/30 border border-outline-variant/30 text-on-surface rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+              class="input"
               autofocus
               @keydown.enter="handleConfirm"
             />
@@ -71,18 +71,14 @@ function handleKeydown(e: KeyboardEvent) {
           <!-- Actions -->
           <div class="flex gap-3 justify-end">
             <button
-              class="px-5 py-2.5 rounded-2xl text-sm font-bold text-on-surface-variant bg-surface-container-highest/40 hover:bg-surface-container-highest/70 border border-outline-variant/20 transition-all"
+              class="px-4 py-2 rounded-2xl text-sm font-bold text-on-surface-variant bg-surface-container-highest/40 hover:bg-surface-container-highest/70 border border-outline-variant/20 transition-all"
               @click="handleCancel"
             >
               Cancel
             </button>
             <button
-              class="px-5 py-2.5 rounded-2xl text-sm font-bold transition-all"
-              :class="
-                dialogState.destructive
-                  ? 'bg-error/90 hover:bg-error text-on-error shadow-[0_0_20px_-4px_rgba(186,26,26,0.4)]'
-                  : 'bg-primary/90 hover:bg-primary text-on-primary shadow-[0_0_20px_-4px_rgba(255,144,109,0.3)]'
-              "
+              class="px-4 py-2 rounded-2xl text-sm font-bold transition-all"
+              :class="dialogState.destructive ? 'bg-error/90 hover:bg-error text-on-error shadow-[0_0_20px_-4px_rgba(186,26,26,0.4)]' : 'bg-primary/90 hover:bg-primary text-on-primary shadow-[0_0_20px_-4px_rgba(255,144,109,0.3)]'"
               @click="handleConfirm"
             >
               {{ dialogState.type === 'prompt' ? 'Submit' : 'Confirm' }}

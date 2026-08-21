@@ -19,7 +19,7 @@ const getStatusColor = (status: OrderStatus) => {
 
 <template>
   <span
-    class="px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-[0.15em]"
+    class="px-4 py-1.5 rounded-full border text-xs font-semibold uppercase"
     :class="getStatusColor(status)"
   >
     {{ status }}

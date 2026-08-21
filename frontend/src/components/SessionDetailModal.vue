@@ -374,17 +374,17 @@ const statusContext = computed(() => {
         <!-- Modal -->
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <!-- Coloured header stripe -->
-          <div :class="`bg-gradient-to-b ${statusConfig.headerBg} p-5 pb-4 border-b border-black/5 dark:border-white/5`">
+          <div :class="`bg-gradient-to-b ${statusConfig.headerBg} p-4 pb-4 border-b border-black/5 dark:border-white/5`">
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <span
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border mb-2"
+                  class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold uppercase border mb-2"
                   :class="statusConfig.badge"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full" :class="statusConfig.dot"></span>
+                  <span class="size-1.5 rounded-full" :class="statusConfig.dot"></span>
                   {{ statusConfig.label }}
                 </span>
-                <p class="text-on-surface dark:text-on-surface font-black text-lg leading-tight">
+                <p class="text-on-surface dark:text-on-surface font-semibold text-lg leading-tight">
                   {{ formatDateLong(session.startTime) }}
                 </p>
                 <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-0.5 font-medium">
@@ -398,7 +398,7 @@ const statusContext = computed(() => {
                 </div>
                 <!-- Copy link button -->
                 <button
-                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
+                  class="icon-btn"
                   title="Copy session link"
                   @click="copySessionLink"
                 >
@@ -406,7 +406,7 @@ const statusContext = computed(() => {
                 </button>
                 <!-- Universal close button -->
                 <button
-                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
+                  class="icon-btn"
                   @click="emit('close')"
                 >
                   <span class="material-symbols-outlined text-lg">close</span>
@@ -416,19 +416,19 @@ const statusContext = computed(() => {
           </div>
 
           <!-- Scrollable body -->
-          <div class="overflow-y-auto flex-1 p-5 space-y-4 custom-scrollbar">
+          <div class="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar">
 
             <!-- Tabs -->
             <div class="flex bg-black/[0.04] dark:bg-white/5 p-1 rounded-2xl border border-black/[0.06] dark:border-white/10">
               <button
-                class="flex-1 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
                 :class="activeTab === 'overview' ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                 @click="activeTab = 'overview'"
               >
                 Overview
               </button>
               <button
-                class="flex-1 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
+                class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
                 :class="activeTab === 'history' ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                 @click="activeTab = 'history'"
               >
@@ -440,7 +440,7 @@ const statusContext = computed(() => {
               <!-- Context message -->
               <div
                 v-if="statusContext"
-                class="flex items-start gap-2.5 p-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/5"
+                class="flex items-start gap-2 p-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/5"
               >
                 <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="statusContext.color">{{ statusContext.icon }}</span>
                 <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">{{ statusContext.text }}</p>
@@ -449,18 +449,18 @@ const statusContext = computed(() => {
               <!-- Participants -->
               <div class="grid grid-cols-2 gap-2">
                 <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
-                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Teacher</p>
+                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Teacher</p>
                   <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.teacherId) }}</p>
                 </div>
                 <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
-                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Student</p>
+                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Student</p>
                   <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.studentId) }}</p>
                 </div>
               </div>
 
               <!-- Notes -->
               <div v-if="session.notes" class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
-                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Notes</p>
+                <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Notes</p>
                 <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
               </div>
 
@@ -470,12 +470,12 @@ const statusContext = computed(() => {
 
               <!-- COMPLETED: proof thumbnails -->
               <div v-if="session.status === 'completed'" class="space-y-3">
-                <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Session Proofs</p>
+                <p class="text-xs text-on-surface-variant uppercase font-semibold">Session Proofs</p>
                 <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-3">
                   <button
                     v-for="proof in session.proofs"
                     :key="proof.id"
-                    class="w-16 h-16 rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative shrink-0"
+                    class="size-16 rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative shrink-0"
                     @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
                   >
                     <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
@@ -491,7 +491,7 @@ const statusContext = computed(() => {
               <div v-if="['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)" class="space-y-4">
                 <!-- Proof status table -->
                 <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-4 space-y-3">
-                  <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Proof Status</p>
+                  <p class="text-xs text-on-surface-variant uppercase font-semibold">Proof Status</p>
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-on-surface-variant">Teacher</span>
                     <div class="flex items-center gap-2">
@@ -536,27 +536,27 @@ const statusContext = computed(() => {
                 <span class="material-symbols-outlined text-violet-400 text-lg">hourglass_top</span>
                 <div>
                   <p class="text-xs font-bold text-violet-400">Awaiting Admin Review</p>
-                  <p class="text-[10px] text-violet-300/70">Your proof has been submitted successfully.</p>
+                  <p class="text-xs text-violet-300/70">Your proof has been submitted successfully.</p>
                 </div>
               </div>
             </div>
 
             <!-- History Tab -->
             <div v-else class="space-y-3">
-              <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Activity History</p>
+              <p class="text-xs text-on-surface-variant uppercase font-semibold">Activity History</p>
               <div v-if="isLoadingHistory" class="text-center py-4 text-xs text-on-surface-variant">
                 Loading history...
               </div>
               <div v-else-if="!historyLogs || historyLogs.length === 0" class="text-center py-4 text-xs text-on-surface-variant">
                 No activity logged yet.
               </div>
-              <div v-else class="space-y-2.5">
+              <div v-else class="space-y-2">
                 <div
                   v-for="log in historyLogs"
                   :key="log.id"
                   class="bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/5 rounded-2xl p-3 flex flex-col space-y-1"
                 >
-                  <div class="flex items-center justify-between text-[10px] text-on-surface-variant font-bold">
+                  <div class="flex items-center justify-between text-xs text-on-surface-variant font-bold">
                     <span>{{ log.actorName || 'System' }}</span>
                     <span>{{ formatDateLong(log.createdAt) }}</span>
                   </div>
@@ -579,7 +579,7 @@ const statusContext = computed(() => {
                 "
               >
                 <div class="flex gap-2 mb-2">
-                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse" @click="$emit('counter-teacher', session)">
+                  <button class="flex-1 py-2 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse" @click="$emit('counter-teacher', session)">
                     <span class="material-symbols-outlined text-base">build</span> Propose New Time (Fix Conflict)
                   </button>
                 </div>
@@ -593,13 +593,13 @@ const statusContext = computed(() => {
                 "
               >
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-teacher', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-teacher', session.id)">
                     <span class="material-symbols-outlined text-base">check_circle</span> Approve
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-teacher', session)">
+                  <button class="flex-1 py-2 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-teacher', session)">
                     <span class="material-symbols-outlined text-base">swap_horiz</span> Counter
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-teacher', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-teacher', session.id)">
                     <span class="material-symbols-outlined text-base">cancel</span> Decline
                   </button>
                 </div>
@@ -613,13 +613,13 @@ const statusContext = computed(() => {
                 "
               >
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-student', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-student', session.id)">
                     <span class="material-symbols-outlined text-base">check_circle</span> Accept Time
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-student', session)">
+                  <button class="flex-1 py-2 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-student', session)">
                     <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest Other
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-student', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-student', session.id)">
                     <span class="material-symbols-outlined text-base">cancel</span> Decline
                   </button>
                 </div>
@@ -628,10 +628,10 @@ const statusContext = computed(() => {
               <!-- Admin: approve / reject pending_admin -->
               <template v-if="userRole === 'admin' && session.status === 'pending_admin'">
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-admin', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-admin', session.id)">
                     <span class="material-symbols-outlined text-base">check_circle</span> Approve
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-admin', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-admin', session.id)">
                     <span class="material-symbols-outlined text-base">cancel</span> Reject
                   </button>
                 </div>
@@ -640,10 +640,10 @@ const statusContext = computed(() => {
               <!-- Admin: approve proof / reject proof for pending_verification -->
               <template v-if="userRole === 'admin' && session.status === 'pending_verification'">
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('complete-admin', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('complete-admin', session.id)">
                     <span class="material-symbols-outlined text-base">verified</span> Approve Proof
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-proof-admin', session.id)">
+                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-proof-admin', session.id)">
                     <span class="material-symbols-outlined text-base">cancel</span> Reject Proof
                   </button>
                 </div>
@@ -652,7 +652,7 @@ const statusContext = computed(() => {
               <!-- Admin: force complete (overdue/overdue_rejected/scheduled) -->
               <template v-if="userRole === 'admin' && ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)">
                 <button
-                  class="w-full py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  class="w-full py-2 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                   :title="canForceComplete(session) ? 'Overrides proof requirements and finalizes session' : 'Only available 24h after session end time'"
                   :disabled="!canForceComplete(session)"
                   @click="$emit('complete-admin', session.id)"
@@ -665,7 +665,7 @@ const statusContext = computed(() => {
               <!-- Admin edit button (always visible for admin) -->
               <button
                 v-if="userRole === 'admin' && !['completed', 'cancelled', 'rejected'].includes(session.status)"
-                class="w-full py-2.5 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-black/[0.06] dark:border-white/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                class="w-full py-2 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-black/[0.06] dark:border-white/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
                 @click="$emit('edit-admin', session)"
               >
                 <span class="material-symbols-outlined text-base">edit</span> Edit Session
@@ -674,7 +674,7 @@ const statusContext = computed(() => {
               <!-- Upload Proof Button (visible to participant who hasn't uploaded) -->
               <button
                 v-if="showUploadProofButton"
-                class="w-full py-2.5 rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                class="w-full py-2 rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5"
                 @click="triggerUpload"
               >
                 <span class="material-symbols-outlined text-base">upload</span> Upload My Proof
@@ -690,7 +690,7 @@ const statusContext = computed(() => {
               <!-- Cancel Session Button (visible to admin or participant) -->
               <button
                 v-if="showCancelButton"
-                class="w-full py-2.5 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                class="w-full py-2 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 :disabled="!canCancel"
                 :title="!canCancel ? 'Non-admins cannot cancel sessions starting in less than 24 hours.' : 'Cancel this session'"
                 @click="clickCancel"
@@ -722,7 +722,7 @@ const statusContext = computed(() => {
         @click="showProofViewer = null"
       >
         <button
-          class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all"
+          class="icon-btn absolute right-5 top-5 text-white hover:bg-white/20"
           @click="showProofViewer = null"
         >
           <span class="material-symbols-outlined">close</span>
@@ -731,7 +731,7 @@ const statusContext = computed(() => {
         <!-- Prev Button -->
         <button
           v-if="proofUrls.length > 1"
-          class="absolute left-5 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
+          class="absolute left-5 size-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
           @click.stop="prevProof"
         >
           <span class="material-symbols-outlined">chevron_left</span>
@@ -745,7 +745,7 @@ const statusContext = computed(() => {
         <!-- Next Button -->
         <button
           v-if="proofUrls.length > 1"
-          class="absolute right-5 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
+          class="absolute right-5 size-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
           @click.stop="nextProof"
         >
           <span class="material-symbols-outlined">chevron_right</span>

@@ -123,7 +123,16 @@ export interface Enrollment {
   sessionsPurchased: number;
   sessionsUsed: number;
   sessionsLeft: number;
+  isActive?: boolean;
   createdAt: string;
+}
+
+/** A student placed on a teacher's roster (backend: `teacher_students`). */
+export interface TeacherAssignment {
+  id: number;
+  teacherId: number;
+  studentId: number;
+  assignedAt: string;
 }
 
 // ── Messaging ─────────────────────────────────────────────────────────────────

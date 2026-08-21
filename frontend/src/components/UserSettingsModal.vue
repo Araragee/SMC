@@ -107,23 +107,23 @@ const handleLogout = () => {
 
         <!-- Modal Card -->
         <div
-          class="relative w-full max-w-xl glass-heavy rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           <!-- Decorative Header -->
           <div
-            class="h-2 w-full bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600"
+            class="h-2 w-full bg-orange-600"
           ></div>
 
           <!-- Header Section -->
           <div class="p-8 pb-0 flex items-start justify-between">
             <div>
-              <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-2">
+              <p class="text-xs font-semibold text-orange-500 uppercase mb-2">
                 Account Control
               </p>
-              <h2 class="text-3xl font-black text-on-surface dark:text-on-surface tracking-tight">User Settings</h2>
+              <h2 class="text-3xl font-semibold text-on-surface dark:text-on-surface tracking-tight">User Settings</h2>
             </div>
             <button
-              class="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group"
+              class="size-12 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group"
               @click="$emit('close')"
             >
               <span
@@ -139,14 +139,14 @@ const handleLogout = () => {
               <div class="flex items-center gap-6">
                 <div class="relative group">
                   <div
-                    class="w-24 h-24 rounded-[2rem] bg-orange-500/10 border-2 border-dashed border-orange-500/30 flex items-center justify-center overflow-hidden transition-all group-hover:border-orange-500/60"
+                    class="size-24 rounded-3xl bg-orange-500/10 border-2 border-dashed border-orange-500/30 flex items-center justify-center overflow-hidden transition-all group-hover:border-orange-500/60"
                   >
                     <img
                       v-if="form.avatar_url || authStore.user?.avatarUrl"
                       :src="form.avatar_url || authStore.user?.avatarUrl"
                       class="w-full h-full object-cover"
                     />
-                    <span v-else class="text-3xl font-black text-orange-500/40">{{
+                    <span v-else class="text-3xl font-semibold text-orange-500/40">{{
                       authStore.user?.name?.charAt(0).toUpperCase()
                     }}</span>
 
@@ -164,7 +164,7 @@ const handleLogout = () => {
                   <div
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mt-3"
                   >
-                    <span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">{{
+                    <span class="text-xs font-semibold text-orange-500 uppercase">{{
                       authStore.user?.role
                     }}</span>
                   </div>
@@ -198,7 +198,7 @@ const handleLogout = () => {
             <section class="space-y-6">
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-orange-500 text-lg">security</span>
-                <h3 class="text-sm font-black text-on-surface dark:text-on-surface uppercase tracking-widest">
+                <h3 class="text-sm font-semibold text-on-surface dark:text-on-surface uppercase">
                   Security &amp; Privacy
                 </h3>
               </div>
@@ -213,7 +213,7 @@ const handleLogout = () => {
                   placeholder="Enter new password"
                   icon-left="lock"
                 />
-                <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-medium px-2 italic leading-relaxed">
+                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant font-medium px-2 italic leading-relaxed">
                   Leave the password field empty if you don't wish to change it. Your new password
                   must be at least 8 characters long.
                 </p>
@@ -231,13 +231,13 @@ const handleLogout = () => {
                   <div>
                     <span
                       v-if="authStore.user?.totpEnabled"
-                      class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
+                      class="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
                     >
                       Active
                     </span>
                     <span
                       v-else
-                      class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-zinc-500/20 border border-zinc-500/30 text-zinc-400"
+                      class="px-2 py-1 rounded-full text-xs font-semibold uppercase bg-zinc-500/20 border border-zinc-500/30 text-zinc-400"
                     >
                       Inactive
                     </span>
@@ -248,7 +248,7 @@ const handleLogout = () => {
                   <button
                     v-if="!showDisableConfirm"
                     type="button"
-                    class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-black rounded-2xl text-xs uppercase tracking-widest transition-all"
+                    class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-semibold rounded-2xl text-xs uppercase transition-all"
                     @click="showDisableConfirm = true"
                   >
                     Deactivate 2FA
@@ -283,7 +283,7 @@ const handleLogout = () => {
                       </button>
                       <button
                         type="button"
-                        class="px-4 py-2 bg-red-500 text-white text-xs font-black rounded-xl uppercase tracking-widest hover:bg-red-600 transition-all"
+                        class="px-4 py-2 bg-red-500 text-white text-xs font-semibold rounded-xl uppercase hover:bg-red-600 transition-all"
                         @click="handleDisable2FA"
                       >
                         Confirm Deactivation
@@ -295,7 +295,7 @@ const handleLogout = () => {
                 <div v-else>
                   <button
                     type="button"
-                    class="w-full py-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-500 font-black rounded-2xl text-xs uppercase tracking-widest transition-all"
+                    class="w-full py-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-500 font-semibold rounded-2xl text-xs uppercase transition-all"
                     @click="isTwoFASetupOpen = true"
                   >
                     Set Up Authenticator
@@ -309,7 +309,7 @@ const handleLogout = () => {
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-orange-500 text-lg">palette</span>
                 <h3
-                  class="text-sm font-black text-on-surface dark:text-on-surface uppercase tracking-widest"
+                  class="text-sm font-semibold text-on-surface dark:text-on-surface uppercase"
                 >
                   Appearance
                 </h3>
@@ -333,10 +333,8 @@ const handleLogout = () => {
                       { value: 'dark', icon: 'dark_mode', label: 'Dark' },
                     ] as const)"
                     :key="opt.value"
-                    class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300"
-                    :class="themeStore.preference === opt.value
-                      ? 'bg-white dark:bg-white/15 text-orange-600 dark:text-orange-400 shadow-sm border border-black/[0.06] dark:border-white/10'
-                      : 'text-on-surface-variant hover:text-on-surface hover:bg-black/[0.04] dark:hover:bg-white/5'"
+                    class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all duration-300"
+                    :class="themeStore.preference === opt.value ? 'bg-white dark:bg-white/15 text-orange-600 dark:text-orange-400 shadow-sm border border-black/[0.06] dark:border-white/10' : 'text-on-surface-variant hover:text-on-surface hover:bg-black/[0.04] dark:hover:bg-white/5'"
                     :aria-label="`Switch to ${opt.label} mode`"
                     :aria-pressed="themeStore.preference === opt.value"
                     @click="themeStore.setPreference(opt.value)"
@@ -352,13 +350,13 @@ const handleLogout = () => {
             <section class="space-y-4">
               <div class="flex items-center gap-3 px-1">
                 <span class="material-symbols-outlined text-red-500 text-lg">warning</span>
-                <h3 class="text-sm font-black text-red-500 uppercase tracking-widest">
+                <h3 class="text-sm font-semibold text-red-500 uppercase">
                   Danger Zone
                 </h3>
               </div>
               <div class="bg-red-500/5 border border-red-500/10 rounded-3xl p-6">
                 <button
-                  class="w-full py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-black rounded-2xl transition-all flex items-center justify-center gap-3 group"
+                  class="w-full py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-semibold rounded-2xl transition-all flex items-center justify-center gap-3 group"
                   @click="handleLogout"
                 >
                   <span
@@ -383,7 +381,7 @@ const handleLogout = () => {
             </button>
             <button
               :disabled="authStore.isLoading"
-              class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white dark:text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+              class="px-10 py-3 bg-orange-500 hover:from-orange-400 hover:to-orange-600 text-white dark:text-white font-semibold rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
               @click="handleSave"
             >
               <span

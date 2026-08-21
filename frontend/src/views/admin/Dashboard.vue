@@ -7,6 +7,7 @@ import { useAuthStore } from '@stores/auth'
 import { useNotificationStore } from '@stores/notification'
 import { useToastStore } from '@stores/toast'
 import { usePaymentsStore } from '@stores/payments'
+import { useRosterStore } from '@stores/roster'
 import ProposeSessionModal from '@components/ProposeSessionModal.vue'
 import SessionDetailModal from '@components/SessionDetailModal.vue'
 import type { Session } from '@types'
@@ -18,6 +19,7 @@ const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
 const paymentsStore = usePaymentsStore()
+const rosterStore = useRosterStore()
 const dialog = useDialog()
 
 const showAddSessionModal = ref(false)
@@ -33,6 +35,14 @@ const quickDate = ref(new Date().toISOString().split('T')[0])
 const quickTime = ref(
   new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 )
+const unassignedStudents = computed(() => {
+  const assigned = new Set(rosterStore.assignments.map((a) => a.studentId))
+  return students.value.filter((s) => !assigned.has(s.id))
+})
+const activeEnrollments = computed(
+  () => rosterStore.enrollments.filter((e) => e.isActive !== false).length
+)
+
 const teacherSearch = ref('')
 const showTeacherSearch = ref(false)
 
@@ -44,6 +54,9 @@ onMounted(async () => {
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
     paymentsStore.fetchPayments(),
+    // Roster load is best-effort: the rest of the dashboard should still render
+    // if the roster endpoints are unavailable.
+    rosterStore.fetchAll().catch(() => {}),
   ])
   if (authStore.currentUser?.id) {
     notifStore.fetchNotifications(authStore.currentUser.id)
@@ -333,11 +346,11 @@ const openLiveAnalytics = function () {
 </script>
 
 <template>
-  <div class="max-w-[1600px] mx-auto pb-28 space-y-4 px-4 sm:px-6">
+  <div class="page">
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">
           Admin Dashboard
         </h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
@@ -355,7 +368,7 @@ const openLiveAnalytics = function () {
       >
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]"
+            <span class="text-xs font-semibold text-orange-500 uppercase"
               >Live Analytics</span
             >
             <div
@@ -364,7 +377,7 @@ const openLiveAnalytics = function () {
             />
             <h2
               v-else
-              class="text-3xl font-black mt-2 tracking-tight text-on-surface dark:text-on-surface"
+              class="text-3xl font-semibold mt-2 tracking-tight text-on-surface dark:text-on-surface"
             >
               {{ stats.scheduledSessions }} Active Today
             </h2>
@@ -389,7 +402,7 @@ const openLiveAnalytics = function () {
 
         <div class="space-y-4 mt-8">
           <div
-            class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
+            class="flex items-center justify-between text-xs font-semibold uppercase text-on-surface-variant"
           >
             <span>Popular Instruments</span>
             <span>Sessions</span>
@@ -401,12 +414,12 @@ const openLiveAnalytics = function () {
               class="px-4 py-2 bg-primary/5 border border-primary/20 rounded-2xl flex items-center gap-3 group hover:bg-primary/10 transition-all cursor-default"
             >
               <span
-                class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"
+                class="size-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"
               ></span>
-              <span class="text-[11px] font-black text-on-surface uppercase tracking-wider">{{
+              <span class="text-xs font-semibold text-on-surface uppercase">{{
                 inst.name
               }}</span>
-              <span class="text-[10px] font-bold text-primary opacity-60">{{ inst.count }}</span>
+              <span class="text-xs font-bold text-primary opacity-60">{{ inst.count }}</span>
             </div>
             <div
               v-if="topInstruments.length === 0"
@@ -420,20 +433,20 @@ const openLiveAnalytics = function () {
 
       <!-- Retention Rate (orange gradient) -->
       <div
-        class="bg-gradient-to-br from-orange-500 to-orange-700 p-4 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
+        class="bg-orange-500 p-4 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
       >
-        <div class="absolute -right-6 -bottom-6 opacity-20 w-40 h-40">
+        <div class="absolute -right-6 -bottom-6 opacity-20 size-40">
           <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
         </div>
         <div class="relative z-10">
-          <span class="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]"
+          <span class="text-xs font-semibold text-white/70 uppercase"
             >Retention Rate</span
           >
           <div
             v-if="scheduleStore.isLoading"
             class="h-14 w-20 rounded bg-white/20 animate-pulse mt-2"
           />
-          <h2 v-else class="text-5xl font-black mt-2 tracking-tighter text-white">
+          <h2 v-else class="text-5xl font-semibold mt-2 tracking-tighter text-white">
             {{ stats.completionRate }}%
           </h2>
         </div>
@@ -448,7 +461,7 @@ const openLiveAnalytics = function () {
       >
         <div>
           <span
-            class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-[0.2em]"
+            class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
             >New Registrations</span
           >
           <div
@@ -457,7 +470,7 @@ const openLiveAnalytics = function () {
           />
           <h2
             v-else
-            class="text-5xl font-black mt-2 tracking-tighter text-on-surface dark:text-on-surface"
+            class="text-5xl font-semibold mt-2 tracking-tighter text-on-surface dark:text-on-surface"
           >
             {{ students.length }}
           </h2>
@@ -486,7 +499,7 @@ const openLiveAnalytics = function () {
         class="liquid-glass p-4 rounded-3xl border border-amber-500/20 flex flex-col justify-between hover:bg-amber-500/5 transition-all group"
       >
         <div>
-          <span class="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]"
+          <span class="text-xs font-semibold text-amber-500 uppercase"
             >Pending Approvals</span
           >
           <div
@@ -495,12 +508,8 @@ const openLiveAnalytics = function () {
           />
           <h2
             v-else
-            class="text-5xl font-black mt-2 tracking-tighter"
-            :class="
-              scheduleStore.pendingSessions.length > 0
-                ? 'text-amber-400'
-                : 'text-on-surface dark:text-on-surface'
-            "
+            class="text-5xl font-semibold mt-2 tracking-tighter"
+            :class="scheduleStore.pendingSessions.length > 0 ? 'text-amber-400' : 'text-on-surface dark:text-on-surface'"
           >
             {{ scheduleStore.pendingSessions.length }}
           </h2>
@@ -518,7 +527,7 @@ const openLiveAnalytics = function () {
         class="liquid-glass p-4 rounded-3xl border border-emerald-500/20 flex flex-col justify-between hover:bg-emerald-500/5 transition-all group"
       >
         <div>
-          <span class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]"
+          <span class="text-xs font-semibold text-emerald-500 uppercase"
             >Monthly Revenue</span
           >
           <div
@@ -527,7 +536,7 @@ const openLiveAnalytics = function () {
           />
           <h2
             v-else
-            class="text-3xl font-black mt-2 tracking-tighter text-emerald-400 leading-none"
+            class="text-3xl font-semibold mt-2 tracking-tighter text-emerald-400 leading-none"
           >
             {{ formatRevenue(thisMonthRevenue) }}
           </h2>
@@ -545,7 +554,7 @@ const openLiveAnalytics = function () {
         class="liquid-glass p-4 rounded-3xl border border-rose-500/20 flex flex-col justify-between hover:bg-rose-500/5 transition-all group"
       >
         <div>
-          <span class="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em]"
+          <span class="text-xs font-semibold text-rose-500 uppercase"
             >Overdue</span
           >
           <div
@@ -554,12 +563,8 @@ const openLiveAnalytics = function () {
           />
           <h2
             v-else
-            class="text-5xl font-black mt-2 tracking-tighter"
-            :class="
-              stats.overdueSessions > 0
-                ? 'text-rose-400'
-                : 'text-on-surface dark:text-on-surface'
-            "
+            class="text-5xl font-semibold mt-2 tracking-tighter"
+            :class="stats.overdueSessions > 0 ? 'text-rose-400' : 'text-on-surface dark:text-on-surface'"
           >
             {{ stats.overdueSessions }}
           </h2>
@@ -582,7 +587,7 @@ const openLiveAnalytics = function () {
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h3 class="text-2xl font-black tracking-tight text-on-surface dark:text-on-surface">
+              <h3 class="text-2xl font-semibold tracking-tight text-on-surface dark:text-on-surface">
                 Music Schedule
               </h3>
               <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
@@ -595,23 +600,15 @@ const openLiveAnalytics = function () {
                 class="flex bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/5 mr-2"
               >
                 <button
-                  class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                  :class="
-                    viewMode === 'daily'
-                      ? 'bg-primary text-white shadow-md'
-                      : 'text-on-surface-variant hover:text-on-surface'
-                  "
+                  class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
+                  :class="viewMode === 'daily' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                   @click="viewMode = 'daily'"
                 >
                   Today
                 </button>
                 <button
-                  class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                  :class="
-                    viewMode === 'weekly'
-                      ? 'bg-primary text-white shadow-md'
-                      : 'text-on-surface-variant hover:text-on-surface'
-                  "
+                  class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
+                  :class="viewMode === 'weekly' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                   @click="viewMode = 'weekly'"
                 >
                   Weekly
@@ -644,12 +641,12 @@ const openLiveAnalytics = function () {
               class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-black/[0.04] dark:border-white/5 mb-4 px-2"
             >
               <div
-                class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-[0.2em] col-span-1"
+                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase col-span-1"
               >
                 Time
               </div>
               <div
-                class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-[0.2em] col-span-5"
+                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase col-span-5"
               >
                 Sessions &amp; Instructors
               </div>
@@ -689,9 +686,9 @@ const openLiveAnalytics = function () {
                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-3xl p-2 px-4 -mx-2"
               >
                 <div class="col-span-1 flex flex-col justify-center">
-                  <span class="text-sm font-black">{{ formatTime(session.startTime) }}</span>
+                  <span class="text-sm font-semibold">{{ formatTime(session.startTime) }}</span>
                   <span
-                    class="text-[10px] text-on-surface-variant dark:text-on-surface-variant uppercase font-bold tracking-widest"
+                    class="text-xs text-on-surface-variant dark:text-on-surface-variant uppercase font-bold"
                     >{{ formatAmPm(session.startTime) }}</span
                   >
                 </div>
@@ -718,7 +715,7 @@ const openLiveAnalytics = function () {
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span
-                      class="text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider"
+                      class="text-xs px-3 py-1 rounded-full font-semibold uppercase"
                       :class="statusClass(session.status)"
                       >{{ session.status }}</span
                     >
@@ -743,10 +740,10 @@ const openLiveAnalytics = function () {
                   class="flex-1 min-w-[180px] bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 flex flex-col"
                 >
                   <div class="mb-4 text-center">
-                    <p class="text-[9px] font-black text-primary uppercase tracking-widest mb-1">
+                    <p class="text-xs font-semibold text-primary uppercase mb-1">
                       {{ day.date.toLocaleDateString('en-US', { weekday: 'short' }) }}
                     </p>
-                    <p class="text-lg font-black text-on-surface">{{ day.date.getDate() }}</p>
+                    <p class="text-lg font-semibold text-on-surface">{{ day.date.getDate() }}</p>
                   </div>
 
                   <div class="space-y-2 flex-1">
@@ -760,7 +757,7 @@ const openLiveAnalytics = function () {
                       <p class="text-[8px] font-bold text-on-surface-variant uppercase mb-1">
                         {{ formatTime(session.startTime) }}
                       </p>
-                      <p class="text-[10px] font-black text-on-surface truncate">
+                      <p class="text-xs font-semibold text-on-surface truncate">
                         #{{ session.id }} {{ session.instrument?.name || 'Session' }}
                       </p>
                     </div>
@@ -783,7 +780,7 @@ const openLiveAnalytics = function () {
           >
             <div class="col-span-1"></div>
             <button
-              class="col-span-5 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-on-surface-variant dark:text-on-surface-variant hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-black/[0.02] dark:bg-white/[0.02] uppercase tracking-widest text-sm font-bold"
+              class="col-span-5 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-on-surface-variant dark:text-on-surface-variant hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-black/[0.02] dark:bg-white/[0.02] uppercase text-sm font-bold"
               @click="showAddSessionModal = true"
             >
               <span class="material-symbols-outlined">add_circle</span>
@@ -797,7 +794,7 @@ const openLiveAnalytics = function () {
           class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 overflow-hidden"
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-            <h3 class="text-2xl font-black tracking-tight text-on-surface dark:text-on-surface">
+            <h3 class="text-2xl font-semibold tracking-tight text-on-surface dark:text-on-surface">
               Faculty &amp; Staff
             </h3>
             <div class="flex items-center gap-3">
@@ -816,7 +813,7 @@ const openLiveAnalytics = function () {
               </div>
               <button
                 :class="{ 'text-orange-500 bg-orange-500/5': showTeacherSearch }"
-                class="px-5 py-2.5 bg-black/[0.04] dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant text-[10px] font-black uppercase tracking-widest border border-black/[0.08] dark:border-white/10 rounded-2xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
+                class="px-4 py-2 bg-black/[0.04] dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant text-xs font-semibold uppercase border border-black/[0.08] dark:border-white/10 rounded-2xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
                 @click="showTeacherSearch = !showTeacherSearch"
               >
                 <span class="material-symbols-outlined text-sm">filter_list</span>
@@ -824,7 +821,7 @@ const openLiveAnalytics = function () {
               </button>
               <RouterLink
                 to="/admin/users?action=create"
-                class="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
+                class="px-4 py-2 bg-orange-500 text-white text-xs font-semibold uppercase rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
               >
                 <span class="material-symbols-outlined text-sm">person_add</span>
                 Add Member
@@ -851,16 +848,16 @@ const openLiveAnalytics = function () {
           </div>
 
           <div v-else class="overflow-x-auto">
-            <table class="w-full text-left">
+            <table class="data-table">
               <thead>
                 <tr
-                  class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-[0.2em]"
+                  class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
                 >
-                  <th class="pb-6 px-2">Member</th>
-                  <th class="pb-6 px-2">Department</th>
-                  <th class="pb-6 px-2">Status</th>
-                  <th class="pb-6 px-2">Sessions</th>
-                  <th class="pb-6 px-2 text-right">Actions</th>
+                  <th class="pb-6">Member</th>
+                  <th class="pb-6">Department</th>
+                  <th class="pb-6">Status</th>
+                  <th class="pb-6">Sessions</th>
+                  <th class="pb-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-black/[0.04] dark:divide-white/5">
@@ -869,15 +866,15 @@ const openLiveAnalytics = function () {
                   :key="teacher.id"
                   class="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                 >
-                  <td class="py-6 px-2">
+                  <td>
                     <div class="flex items-center gap-4">
                       <div
-                        class="w-12 h-12 rounded-[18px] bg-surface-container-highest border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-on-surface dark:text-on-surface font-black text-lg"
+                        class="size-12 rounded-[18px] bg-surface-container-highest border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-lg"
                       >
                         {{ teacher.name.charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-sm font-black text-on-surface dark:text-on-surface">
+                        <p class="text-sm font-semibold text-on-surface dark:text-on-surface">
                           {{ teacher.name }}
                         </p>
                         <p class="text-xs text-on-surface-variant dark:text-on-surface-variant">
@@ -886,28 +883,28 @@ const openLiveAnalytics = function () {
                       </div>
                     </div>
                   </td>
-                  <td class="py-6 px-2">
+                  <td>
                     <span class="text-xs font-medium text-on-surface-variant">Music Faculty</span>
                   </td>
-                  <td class="py-6 px-2">
+                  <td>
                     <span
-                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                     >
                       <span
-                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.5)]"
+                        class="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.5)]"
                       ></span>
                       Available
                     </span>
                   </td>
-                  <td class="py-6 px-2">
-                    <span class="text-sm font-black text-on-surface dark:text-on-surface">
+                  <td>
+                    <span class="text-sm font-semibold text-on-surface dark:text-on-surface">
                       {{
                         scheduleStore.allSessions.filter((s: any) => s.teacherId === teacher.id)
                           .length
                       }}
                     </span>
                   </td>
-                  <td class="py-6 px-2 text-right">
+                  <td class="text-right">
                     <div class="flex items-center justify-end gap-1">
                       <RouterLink
                         :to="`/admin/users?edit=${teacher.id}`"
@@ -938,20 +935,20 @@ const openLiveAnalytics = function () {
           class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5"
         >
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-lg font-black tracking-tight text-on-surface dark:text-on-surface">
+            <h3 class="text-lg font-semibold tracking-tight text-on-surface dark:text-on-surface">
               Alerts &amp; Updates
             </h3>
             <div class="flex items-center gap-2">
               <span
                 v-if="notifStore.unreadCount > 0"
-                class="text-[10px] font-black text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1"
+                class="text-xs font-semibold text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                <span class="size-1.5 rounded-full bg-orange-400 animate-pulse"></span>
                 {{ notifStore.unreadCount }} NEW
               </span>
               <button
                 v-if="notifStore.notifications.length > 0"
-                class="text-[10px] font-black text-on-surface-variant hover:text-primary transition-colors uppercase tracking-widest"
+                class="text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors uppercase"
                 @click="handleClearAll"
               >
                 Clear
@@ -968,7 +965,7 @@ const openLiveAnalytics = function () {
                 <span class="material-symbols-outlined text-orange-500 text-xl">warning</span>
                 <div>
                   <h4
-                    class="text-[10px] font-black uppercase tracking-[0.2em] mb-1 text-orange-400"
+                    class="text-xs font-semibold uppercase mb-1 text-orange-400"
                   >
                     Schedule Alert
                   </h4>
@@ -985,18 +982,14 @@ const openLiveAnalytics = function () {
               class="py-12 text-center opacity-40"
             >
               <span class="material-symbols-outlined text-3xl mb-2">notifications_off</span>
-              <p class="text-xs font-bold uppercase tracking-widest">No recent updates</p>
+              <p class="text-xs font-bold uppercase">No recent updates</p>
             </div>
 
             <div
               v-for="notif in notifStore.notifications"
               :key="notif.id"
               class="bg-black/[0.04] dark:bg-white/5 p-3 rounded-3xl border-y transition-all hover:bg-black/5 dark:hover:bg-white/10 relative group"
-              :class="[
-                notif.isRead
-                  ? 'border-zinc-500 opacity-60'
-                  : 'border-primary/30 ring-1 ring-primary/10 shadow-lg shadow-primary/5',
-              ]"
+              :class="[ notif.isRead ? 'border-zinc-500 opacity-60' : 'border-primary/30 ring-1 ring-primary/10 shadow-lg shadow-primary/5', ]"
             >
               <div class="flex gap-4">
                 <span
@@ -1006,7 +999,7 @@ const openLiveAnalytics = function () {
                 </span>
                 <div class="flex-1">
                   <h4
-                    class="text-[10px] font-black uppercase tracking-[0.2em] mb-1"
+                    class="text-xs font-semibold uppercase mb-1"
                     :class="[notif.isRead ? 'text-zinc-500' : 'text-primary']"
                   >
                     {{ notif.title || 'Notification' }}
@@ -1016,7 +1009,7 @@ const openLiveAnalytics = function () {
                   </p>
                   <div class="flex items-center justify-between mt-3">
                     <p
-                      class="text-[9px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase"
+                      class="text-xs text-on-surface-variant dark:text-on-surface-variant font-bold uppercase"
                     >
                       {{
                         new Date(notif.createdAt).toLocaleTimeString([], {
@@ -1027,7 +1020,7 @@ const openLiveAnalytics = function () {
                     </p>
                     <button
                       v-if="!notif.isRead"
-                      class="text-[9px] font-black text-primary uppercase tracking-widest hover:underline"
+                      class="text-xs font-semibold text-primary uppercase hover:underline"
                       @click="handleMarkRead(notif.id)"
                     >
                       Dismiss
@@ -1044,31 +1037,74 @@ const openLiveAnalytics = function () {
           </div>
           <RouterLink
             to="/admin/activity-log"
-            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase tracking-[0.2em]"
+            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase"
           >
             <span class="material-symbols-outlined text-base">history</span>
             View All Activity
           </RouterLink>
         </section>
 
+
+        <!-- Roster -->
+        <section class="card card-pad space-y-6">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-1">
+              <h3 class="section-title">Roster</h3>
+              <p class="section-caption">Students on teacher rosters and their enrollments.</p>
+            </div>
+            <RouterLink to="/admin/roster" class="btn-subtle btn-sm">Manage</RouterLink>
+          </div>
+
+          <dl class="grid grid-cols-3 gap-4">
+            <div class="space-y-1">
+              <dd class="num text-2xl font-semibold text-on-surface">{{ rosterStore.assignments.length }}</dd>
+              <dt class="text-xs text-on-surface-variant">Assignments</dt>
+            </div>
+            <div class="space-y-1">
+              <dd class="num text-2xl font-semibold text-on-surface">{{ activeEnrollments }}</dd>
+              <dt class="text-xs text-on-surface-variant">Active enrollments</dt>
+            </div>
+            <div class="space-y-1">
+              <dd class="num text-2xl font-semibold text-on-surface">{{ unassignedStudents.length }}</dd>
+              <dt class="text-xs text-on-surface-variant">Unassigned</dt>
+            </div>
+          </dl>
+
+          <div v-if="unassignedStudents.length" class="space-y-3">
+            <p class="field-hint">Not on any teacher's roster yet</p>
+            <ul class="space-y-2">
+              <li
+                v-for="student in unassignedStudents.slice(0, 3)"
+                :key="student.id"
+                class="flex items-center justify-between gap-3 rounded-xl border border-outline-variant/20 px-4 py-3"
+              >
+                <span class="truncate text-sm text-on-surface">{{ student.name }}</span>
+                <span class="num shrink-0 text-xs text-on-surface-variant">{{ student.sessionsLeft ?? 0 }} credits</span>
+              </li>
+            </ul>
+            <RouterLink to="/admin/roster" class="btn-primary btn-sm w-full">Add students to a roster</RouterLink>
+          </div>
+          <p v-else class="section-caption">Every student is on a roster.</p>
+        </section>
+
         <!-- Quick Assign -->
         <section
-          class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-4 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
+          class="bg-orange-500 rounded-3xl p-4 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
         >
           <div
-            class="absolute -top-10 -right-10 w-40 h-40 bg-black/[0.06] dark:bg-white/10 rounded-full blur-3xl"
+            class="absolute -top-10 -right-10 size-40 bg-black/[0.06] dark:bg-white/10 rounded-full blur-3xl"
           ></div>
           <div class="relative z-10">
-            <h3 class="text-xl font-black mb-6 tracking-tight">Quick Assign</h3>
-            <div class="space-y-5">
+            <h3 class="text-xl font-semibold mb-6 tracking-tight">Quick Assign</h3>
+            <div class="space-y-4">
               <div>
                 <label
-                  class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                  class="text-xs font-semibold uppercase text-white/60 block mb-2"
                   >Teacher</label
                 >
                 <select
                   v-model="quickTeacherId"
-                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
                 >
                   <option value="" class="text-on-surface">Select Faculty</option>
                   <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">
@@ -1078,12 +1114,12 @@ const openLiveAnalytics = function () {
               </div>
               <div>
                 <label
-                  class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                  class="text-xs font-semibold uppercase text-white/60 block mb-2"
                   >Student</label
                 >
                 <select
                   v-model="quickStudentId"
-                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
                 >
                   <option value="" class="text-on-surface">Select Student</option>
                   <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">
@@ -1095,30 +1131,30 @@ const openLiveAnalytics = function () {
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label
-                    class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                    class="text-xs font-semibold uppercase text-white/60 block mb-2"
                     >Date</label
                   >
                   <input
                     v-model="quickDate"
                     type="date"
-                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
+                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
                   />
                 </div>
                 <div>
                   <label
-                    class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 block mb-2"
+                    class="text-xs font-semibold uppercase text-white/60 block mb-2"
                     >Time</label
                   >
                   <input
                     v-model="quickTime"
                     type="time"
-                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-5 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
+                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
                   />
                 </div>
               </div>
               <button
                 :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
-                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-black py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-semibold py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all uppercase text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="confirmQuickAssign"
               >
                 {{ isQuickAssigning ? 'Scheduling...' : 'Confirm Schedule' }}

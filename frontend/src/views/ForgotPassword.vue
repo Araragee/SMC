@@ -40,7 +40,7 @@ const submit = async () => {
 
 <template>
   <main class="relative z-10 w-full max-w-md px-6 py-12">
-    <div class="relative glass-heavy rounded-[2rem] p-8 md:p-10 space-y-6">
+    <div class="relative glass-heavy rounded-3xl p-8 md:p-10 space-y-6">
       <div class="space-y-2 text-center">
         <h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Reset password</h1>
         <p class="text-on-surface-variant text-sm">
@@ -50,7 +50,7 @@ const submit = async () => {
 
       <form v-if="!submitted" class="space-y-4" @submit.prevent="submit">
         <div class="space-y-2">
-          <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant font-bold px-1">
+          <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             Email
           </label>
           <input
@@ -59,13 +59,13 @@ const submit = async () => {
             required
             autocomplete="email"
             placeholder="you@example.com"
-            class="w-full h-14 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            class="input"
           />
         </div>
         <button
           :disabled="isLoading"
           type="submit"
-          class="w-full h-14 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white uppercase tracking-wider active:scale-[0.98] transition-all disabled:opacity-50"
+          class="w-full h-14 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white uppercase active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {{ isLoading ? 'Sending…' : 'Send reset link' }}
         </button>
@@ -74,7 +74,7 @@ const submit = async () => {
       <!-- Same message regardless of whether the email existed: prevents
            enumeration. -->
       <div v-else class="space-y-3 text-center">
-        <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center">
+        <div class="size-12 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center">
           <span class="material-symbols-outlined text-emerald-500">mark_email_read</span>
         </div>
         <p class="text-on-surface font-semibold">Check your inbox</p>
@@ -87,7 +87,7 @@ const submit = async () => {
       <div class="text-center">
         <router-link
           to="/login"
-          class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors"
+          class="text-xs font-semibold uppercase text-on-surface-variant hover:text-on-surface transition-colors"
         >
           Back to sign in
         </router-link>

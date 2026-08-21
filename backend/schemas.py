@@ -228,8 +228,16 @@ class EnrollmentBase(BaseModel):
 class EnrollmentCreate(EnrollmentBase):
     pass
 
+class EnrollmentUpdate(BaseModel):
+    """Partial update. ``sessions_used`` is deliberately absent — it is owned
+    by session completion, not by the admin form."""
+    teacher_id: int | None = None
+    sessions_purchased: Annotated[int, Field(ge=0)] | None = None
+    is_active: bool | None = None
+
 class Enrollment(EnrollmentBase):
     id: int
+    is_active: bool = True
     created_at: datetime
 
     @computed_field

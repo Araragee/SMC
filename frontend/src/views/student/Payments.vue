@@ -66,25 +66,25 @@ const totalPaid = computed(() =>
         <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
           <span class="material-symbols-outlined text-emerald-500 text-2xl">account_balance_wallet</span>
         </div>
-        <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.25em]">Financial Balance</p>
+        <p class="text-xs font-semibold text-emerald-500 uppercase">Financial Balance</p>
       </div>
-      <h1 class="text-5xl font-black tracking-tight text-on-surface mb-2">My Payments</h1>
+      <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">My Payments</h1>
       <p class="text-on-surface-variant font-medium text-lg">Detailed history of your course enrollments and settlement status.</p>
     </header>
 
     <!-- Summary card -->
     <div v-if="paymentsStore.payments.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-      <div class="glass-medium rounded-3xl p-5 border border-outline-variant/30">
-        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Total Paid</p>
-        <p class="text-2xl font-black text-emerald-500">{{ formatCurrency(totalPaid) }}</p>
+      <div class="glass-medium rounded-3xl p-4 border border-outline-variant/30">
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Total Paid</p>
+        <p class="text-2xl font-semibold text-emerald-500">{{ formatCurrency(totalPaid) }}</p>
       </div>
-      <div class="glass-medium rounded-3xl p-5 border border-outline-variant/30">
-        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Transactions</p>
-        <p class="text-2xl font-black text-on-surface">{{ paymentsStore.payments.length }}</p>
+      <div class="glass-medium rounded-3xl p-4 border border-outline-variant/30">
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Transactions</p>
+        <p class="text-2xl font-semibold text-on-surface">{{ paymentsStore.payments.length }}</p>
       </div>
-      <div class="glass-medium rounded-3xl p-5 border border-outline-variant/30 col-span-2 sm:col-span-1">
-        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Pending</p>
-        <p class="text-2xl font-black text-amber-500">{{ paymentsStore.pendingCount }}</p>
+      <div class="glass-medium rounded-3xl p-4 border border-outline-variant/30 col-span-2 sm:col-span-1">
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Pending</p>
+        <p class="text-2xl font-semibold text-amber-500">{{ paymentsStore.pendingCount }}</p>
       </div>
     </div>
 
@@ -95,7 +95,7 @@ const totalPaid = computed(() =>
           v-for="i in 3" :key="i"
           class="glass-medium rounded-3xl p-6 border border-outline-variant/20 flex items-center gap-4 animate-pulse"
         >
-          <div class="w-12 h-12 rounded-2xl bg-on-surface/5 shrink-0" />
+          <div class="size-12 rounded-2xl bg-on-surface/5 shrink-0" />
           <div class="flex-1 space-y-2">
             <div class="h-3 rounded-full bg-on-surface/5 w-24" />
             <div class="h-4 rounded-full bg-on-surface/5 w-48" />
@@ -111,7 +111,7 @@ const totalPaid = computed(() =>
         class="glass-medium rounded-[3rem] p-20 text-center border-dashed border-2 border-outline-variant/30"
       >
         <span class="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4">history</span>
-        <p class="text-lg font-black text-on-surface">No transaction history</p>
+        <p class="text-lg font-semibold text-on-surface">No transaction history</p>
         <p class="text-sm text-on-surface-variant">Your payment records will appear here once processed by admin.</p>
       </div>
 
@@ -123,21 +123,21 @@ const totalPaid = computed(() =>
           class="glass-heavy rounded-3xl p-6 border border-outline-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-emerald-500/30 transition-all hover:translate-x-1"
         >
           <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center shrink-0">
+            <div class="size-12 rounded-2xl bg-surface-container-highest flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-on-surface-variant">receipt</span>
             </div>
             <div>
-              <p class="text-xs font-black text-on-surface-variant uppercase tracking-widest">{{ formatDate(pay.date) }}</p>
-              <h4 class="text-lg font-black text-on-surface">{{ paymentLabel(pay) }}</h4>
+              <p class="text-xs font-semibold text-on-surface-variant uppercase">{{ formatDate(pay.date) }}</p>
+              <h4 class="text-lg font-semibold text-on-surface">{{ paymentLabel(pay) }}</h4>
               <p class="text-xs text-on-surface-variant font-medium">via {{ pay.method.toUpperCase() }}</p>
             </div>
           </div>
 
           <div class="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
-            <span class="text-2xl font-black text-on-surface">{{ formatCurrency(pay.amount) }}</span>
+            <span class="text-2xl font-semibold text-on-surface">{{ formatCurrency(pay.amount) }}</span>
             <div class="flex items-center gap-2">
               <span
-                class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border"
+                class="px-3 py-1 rounded-full text-xs font-semibold uppercase border"
                 :class="statusClass(pay.status)"
               >
                 {{ pay.status }}
@@ -145,7 +145,7 @@ const totalPaid = computed(() =>
               <button
                 @click="printReceipt(pay.id)"
                 title="Print Receipt"
-                class="w-7 h-7 rounded-xl bg-on-surface/5 hover:bg-on-surface/10 flex items-center justify-center transition-colors"
+                class="size-7 rounded-xl bg-on-surface/5 hover:bg-on-surface/10 flex items-center justify-center transition-colors"
               >
                 <span class="material-symbols-outlined text-on-surface-variant text-base">print</span>
               </button>

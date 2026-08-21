@@ -32,7 +32,7 @@ const onClick = (event: MouseEvent) => {
 };
 
 const computedClasses = computed(() => {
-  const baseClasses = 'group relative font-bold font-headline uppercase tracking-wider overflow-hidden active:scale-[0.98] transition-all duration-300 rounded-[24px] focus:outline-none';
+  const baseClasses = 'group relative font-bold font-headline uppercase overflow-hidden active:scale-[0.98] transition-all duration-300 rounded-[24px] focus:outline-none';
 
   const variantClasses = {
     primary: 'bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed shadow-[0_0_40px_-5px_rgba(255,144,109,0.4)] border-none',

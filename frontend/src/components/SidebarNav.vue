@@ -45,6 +45,7 @@ const navItems = computed(() => {
     items.push(
       { label: 'Users', icon: 'manage_accounts', path: '/admin/users' },
       { label: 'Students', icon: 'group', path: '/admin/students' },
+      { label: 'Roster', icon: 'checklist', path: '/admin/roster' },
       { label: 'Teachers', icon: 'person', path: '/admin/teachers' },
       { label: 'Ledger', icon: 'payments', path: '/admin/payments' },
       { label: 'Shop', icon: 'storefront', path: '/admin/instruments' },
@@ -124,7 +125,7 @@ onMounted(() => {
 
 <template>
   <button
-    class="fixed top-4 left-4 z-[105] lg:hidden w-12 h-12 bg-surface-container-low/80 backdrop-blur-lg rounded-full border border-black/[0.08] dark:border-white/10 flex items-center justify-center shadow-lg"
+    class="fixed top-4 left-4 z-[105] lg:hidden size-12 bg-surface-container-low/80 backdrop-blur-lg rounded-full border border-black/[0.08] dark:border-white/10 flex items-center justify-center shadow-lg"
     @click="toggleSidebar"
   >
     <span class="material-symbols-outlined text-on-surface dark:text-on-surface">menu</span>
@@ -137,21 +138,21 @@ onMounted(() => {
   ></div>
 
   <aside
-    class="fixed top-0 left-0 h-screen w-full glass-thin border-r border-black/5 dark:border-white/5 p-4 flex flex-col z-[100] lg:w-full lg:sticky lg:top-6 lg:h-auto lg:rounded-[2rem] lg:shadow-2xl lg:translate-x-0"
+    class="fixed top-0 left-0 h-screen w-full glass-thin border-r border-black/5 dark:border-white/5 p-4 flex flex-col z-[100] lg:w-full lg:sticky lg:top-6 lg:h-auto lg:rounded-3xl lg:shadow-2xl lg:translate-x-0"
     :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
   >
     <!-- Logo Section -->
     <div class="flex flex-col items-center py-4 mb-2">
       <div
-        class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0 mb-3 overflow-hidden"
+        class="size-12 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-900/40 shrink-0 mb-3 overflow-hidden"
       >
         <img src="/logo.png" alt="Logo" class="w-full h-full object-cover" />
       </div>
       <div class="text-center leading-none">
-        <h2 class="text-on-surface dark:text-on-surface font-black tracking-tight text-lg">
+        <h2 class="text-on-surface dark:text-on-surface font-semibold tracking-tight text-lg">
           Sernan's
         </h2>
-        <p class="text-orange-500 text-[11px] font-bold uppercase tracking-wider">Music Clinic</p>
+        <p class="text-orange-500 text-xs font-bold uppercase">Music Clinic</p>
       </div>
     </div>
 
@@ -166,11 +167,7 @@ onMounted(() => {
         :key="item.path"
         :to="item.path"
         class="flex items-center gap-3 px-4 py-3 border rounded-2xl text-sm font-bold border-opacity-20 py-1.5"
-        :class="
-          isActive(item.path)
-            ? 'bg-orange-500/10 text-orange-500 border-orange-500 shadow-sm shadow-orange-500/20'
-            : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 border-transparent'
-        "
+        :class="isActive(item.path) ? 'bg-orange-500/10 text-orange-500 border-orange-500 shadow-sm shadow-orange-500/20' : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 border-transparent'"
         @click="closeSidebar"
       >
         <span
@@ -190,10 +187,10 @@ onMounted(() => {
           @click="openNotifications"
         >
           <span class="material-symbols-outlined text-xl group-hover:scale-110">notifications</span>
-          <span class="text-xs font-bold uppercase tracking-wider">Notifs</span>
+          <span class="text-xs font-bold uppercase">Notifs</span>
           <span
             v-if="unreadCount > 0"
-            class="absolute top-1.5 right-2 w-4 h-4 bg-orange-500 rounded-full text-[9px] font-black text-white flex items-center justify-center"
+            class="absolute top-1.5 right-2 size-4 bg-orange-500 rounded-full text-xs font-semibold text-white flex items-center justify-center"
             >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
         </button>
         <!-- Messages -->
@@ -205,10 +202,10 @@ onMounted(() => {
             class="material-symbols-outlined text-xl group-hover:scale-110"
             style="font-variation-settings: 'FILL' 1"
             >chat</span>
-          <span class="text-xs font-bold uppercase tracking-wider">Chat</span>
+          <span class="text-xs font-bold uppercase">Chat</span>
           <span
             v-if="messagingStore.totalUnread > 0"
-            class="absolute top-1.5 right-2 min-w-[16px] h-4 bg-orange-500 rounded-full text-[9px] font-black text-white flex items-center justify-center px-0.5"
+            class="absolute top-1.5 right-2 min-w-[16px] h-4 bg-orange-500 rounded-full text-xs font-semibold text-white flex items-center justify-center px-0.5"
             >{{ messagingStore.totalUnread > 99 ? '99+' : messagingStore.totalUnread }}</span>
         </button>
       </div>
@@ -216,10 +213,8 @@ onMounted(() => {
       <!-- User Profile Dropdown -->
       <div class="relative w-full">
         <button
-          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 group border border-transparent"
-          :class="{
-            'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen,
-          }"
+          class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 group border border-transparent"
+          :class="{ 'bg-white/10 border-black/[0.08] dark:border-white/10 shadow-lg': isUserDropdownOpen, }"
           @click.stop="toggleUserDropdown"
         >
           <div
@@ -239,7 +234,7 @@ onMounted(() => {
               {{ authStore.currentUser?.name || 'User' }}
             </p>
             <p
-              class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-widest truncate"
+              class="text-xs text-on-surface-variant dark:text-on-surface-variant font-bold uppercase truncate"
             >
               {{ roleLabel }}
             </p>
@@ -260,7 +255,7 @@ onMounted(() => {
             class="p-4 border-b border-black/[0.04] dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]"
           >
             <p
-              class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1"
+              class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1"
             >
               Signed in as
             </p>
@@ -271,14 +266,14 @@ onMounted(() => {
 
           <div class="p-2">
             <button
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold"
               @click="openSettings"
             >
               <span class="material-symbols-outlined text-lg">person_edit</span>
               Profile Settings
             </button>
             <button
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold"
               @click="openSettings"
             >
               <span class="material-symbols-outlined text-lg">settings</span>
@@ -286,7 +281,7 @@ onMounted(() => {
             </button>
             <div class="h-px bg-black/[0.04] dark:bg-white/5 my-1 mx-2"></div>
             <button
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 text-xs font-black"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 text-xs font-semibold"
               @click="logout"
             >
               <span class="material-symbols-outlined text-lg">logout</span>

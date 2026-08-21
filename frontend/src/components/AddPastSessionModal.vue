@@ -90,7 +90,7 @@ const handleSubmit = async () => {
 
         <div>
           <label class="block text-sm font-medium text-white/70 mb-1">Teacher</label>
-          <select v-model="formData.teacherId" required class="w-full bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
+          <select v-model="formData.teacherId" required class="input appearance-none">
             <option value="" disabled>Select a teacher</option>
             <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
           </select>
@@ -98,7 +98,7 @@ const handleSubmit = async () => {
 
         <div>
           <label class="block text-sm font-medium text-white/70 mb-1">Instrument</label>
-          <select v-model="formData.instrumentId" class="w-full bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none">
+          <select v-model="formData.instrumentId" class="input appearance-none">
             <option value="">Select an instrument (Optional)</option>
             <option v-for="inst in studentInstruments" :key="inst.id" :value="inst.id">{{ inst.name }}</option>
             <option v-if="studentInstruments.length === 0" disabled value="">No instruments enrolled</option>
@@ -117,7 +117,7 @@ const handleSubmit = async () => {
 
         <div>
            <label class="block text-sm font-medium text-white/70 mb-1">Notes</label>
-           <textarea v-model="formData.notes" rows="3" class="w-full bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"></textarea>
+           <textarea v-model="formData.notes" rows="3" class="input resize-none"></textarea>
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-white/5 mt-6">

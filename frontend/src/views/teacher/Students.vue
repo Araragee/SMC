@@ -250,7 +250,7 @@ async function handleRejectStudent(sessionId: number) {
 
     <!-- Header -->
     <div>
-      <h1 class="text-5xl font-black tracking-tight text-on-surface mb-2">My Students</h1>
+      <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">My Students</h1>
       <p class="text-on-surface-variant font-medium">
         <span class="text-on-surface font-bold">{{ baseStudents.length }}</span> students in your sessions
       </p>
@@ -261,24 +261,24 @@ async function handleRejectStudent(sessionId: number) {
 
       <!-- Search bar -->
       <div class="relative group">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl pointer-events-none transition-colors  group-focus-within:text-teal-400">search</span>
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl pointer-events-none transition-colors group-focus-within:text-teal-400">search</span>
         <input
           v-model="search"
           type="text"
           placeholder="Search by name or email…"
-          class="w-full pl-12 pr-11 py-4 bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl text-on-surface placeholder:text-on-surface-variant text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500/30 transition-all "
+          class="input pl-12 pr-11"
         />
         <Transition
-          enter-active-class="transition-all "
+          enter-active-class="transition-all"
           enter-from-class="opacity-0 scale-75"
           enter-to-class="opacity-100 scale-100"
-          leave-active-class="transition-all "
+          leave-active-class="transition-all"
           leave-from-class="opacity-100 scale-100"
           leave-to-class="opacity-0 scale-75"
         >
           <button
             v-if="search"
-            class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-xl bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
+            class="absolute right-3 top-1/2 -translate-y-1/2 size-7 rounded-xl bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
             @click="search = ''"
           >
             <span class="material-symbols-outlined text-base">close</span>
@@ -293,36 +293,32 @@ async function handleRejectStudent(sessionId: number) {
           <button
             v-for="f in listFilters"
             :key="f.key"
-            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all "
-            :class="listFilter === f.key
-              ? 'bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-500/30'
-              : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.08] dark:hover:bg-white/[0.08]'"
+            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all"
+            :class="listFilter === f.key ? 'bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-500/30' : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.08] dark:hover:bg-white/[0.08]'"
             @click="listFilter = listFilter === f.key && f.key !== 'all' ? 'all' : f.key"
           >
             <span class="material-symbols-outlined" style="font-size:14px">{{ f.icon }}</span>
             {{ f.label }}
-            <span class="font-black" :class="listFilter === f.key ? 'opacity-80' : 'opacity-50'">{{ f.count }}</span>
+            <span class="font-semibold" :class="listFilter === f.key ? 'opacity-80' : 'opacity-50'">{{ f.count }}</span>
           </button>
         </div>
 
         <!-- Sort dropdown -->
         <div class="relative shrink-0">
           <button
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all  whitespace-nowrap"
-            :class="sortOpen
-              ? 'bg-black/[0.08] dark:bg-white/[0.08] border-black/10 dark:border-white/10 text-on-surface'
-              : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.07]'"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all whitespace-nowrap"
+            :class="sortOpen ? 'bg-black/[0.08] dark:bg-white/[0.08] border-black/10 dark:border-white/10 text-on-surface' : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.07]'"
             @click.stop="sortOpen = !sortOpen"
           >
             <span class="material-symbols-outlined" style="font-size:14px">swap_vert</span>
             {{ sortOptions.find(o => o.key === sortBy)?.label }}
-            <span class="material-symbols-outlined transition-transform " style="font-size:14px" :class="sortOpen ? 'rotate-180' : ''">expand_more</span>
+            <span class="material-symbols-outlined transition-transform" style="font-size:14px" :class="sortOpen ? 'rotate-180' : ''">expand_more</span>
           </button>
           <Transition
-            enter-active-class="transition-all  ease-out"
+            enter-active-class="transition-all ease-out"
             enter-from-class="opacity-0 translate-y-1 scale-95"
             enter-to-class="opacity-100 translate-y-0 scale-100"
-            leave-active-class="transition-all  ease-in"
+            leave-active-class="transition-all ease-in"
             leave-from-class="opacity-100 translate-y-0 scale-100"
             leave-to-class="opacity-0 translate-y-1 scale-95"
           >
@@ -334,7 +330,7 @@ async function handleRejectStudent(sessionId: number) {
               <button
                 v-for="opt in sortOptions"
                 :key="opt.key"
-                class="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-left transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+                class="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-left transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
                 :class="sortBy === opt.key ? 'text-teal-400' : 'text-on-surface-variant hover:text-on-surface'"
                 @click="sortBy = opt.key; sortOpen = false"
               >
@@ -349,10 +345,10 @@ async function handleRejectStudent(sessionId: number) {
 
       <!-- Active filter summary + clear -->
       <Transition
-        enter-active-class="transition-all "
+        enter-active-class="transition-all"
         enter-from-class="opacity-0 -translate-y-1"
         enter-to-class="opacity-100 translate-y-0"
-        leave-active-class="transition-all "
+        leave-active-class="transition-all"
         leave-from-class="opacity-100 translate-y-0"
         leave-to-class="opacity-0 -translate-y-1"
       >
@@ -396,7 +392,7 @@ async function handleRejectStudent(sessionId: number) {
           @click="openStudent(student)"
         >
           <!-- Avatar -->
-          <div class="w-11 h-11 rounded-2xl bg-teal-500/20 border border-teal-500/20 flex items-center justify-center text-teal-400 font-black text-base shrink-0 overflow-hidden">
+          <div class="size-11 rounded-2xl bg-teal-500/20 border border-teal-500/20 flex items-center justify-center text-teal-400 font-semibold text-base shrink-0 overflow-hidden">
             <img v-if="student.avatarUrl" :src="student.avatarUrl" class="w-full h-full object-cover" />
             <span v-else>{{ student.name.charAt(0).toUpperCase() }}</span>
           </div>
@@ -409,13 +405,13 @@ async function handleRejectStudent(sessionId: number) {
           <div class="flex items-center gap-2 shrink-0">
             <span
               v-if="hasOverdue(student)"
-              class="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/25 text-rose-400"
+              class="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/25 text-rose-400"
             >Overdue</span>
             <span
               v-else-if="hasAttention(student)"
-              class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400"
+              class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400"
             >Pending</span>
-            <span class="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               {{ doneCount(student) }} done
             </span>
           </div>
@@ -427,10 +423,10 @@ async function handleRejectStudent(sessionId: number) {
     <!-- ── Student Detail Modal ────────────────────────────────────────────── -->
     <Teleport to="body">
       <Transition
-        enter-active-class="transition-all  ease-out"
+        enter-active-class="transition-all ease-out"
         enter-from-class="opacity-0 translate-x-8"
         enter-to-class="opacity-100 translate-x-0"
-        leave-active-class="transition-all  ease-in"
+        leave-active-class="transition-all ease-in"
         leave-from-class="opacity-100 translate-x-0"
         leave-to-class="opacity-0 translate-x-8"
       >
@@ -440,16 +436,16 @@ async function handleRejectStudent(sessionId: number) {
           <div class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
             <!-- Header -->
             <div class="flex items-center gap-4 p-6 border-b border-black/5 dark:border-white/5">
-              <div class="w-14 h-14 rounded-2xl bg-teal-500/20 border border-teal-500/20 flex items-center justify-center text-teal-400 font-black text-xl overflow-hidden shrink-0">
+              <div class="size-14 rounded-2xl bg-teal-500/20 border border-teal-500/20 flex items-center justify-center text-teal-400 font-semibold text-xl overflow-hidden shrink-0">
                 <img v-if="selectedStudent.avatarUrl" :src="selectedStudent.avatarUrl" class="w-full h-full object-cover" />
                 <span v-else>{{ selectedStudent.name.charAt(0).toUpperCase() }}</span>
               </div>
               <div class="flex-1 min-w-0">
-                <h2 class="font-black text-xl text-on-surface truncate">{{ selectedStudent.name }}</h2>
+                <h2 class="font-semibold text-xl text-on-surface truncate">{{ selectedStudent.name }}</h2>
                 <p class="text-on-surface-variant text-sm">{{ selectedStudent.email }}</p>
               </div>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
+                class="icon-btn"
                 @click="closeStudent"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
@@ -457,48 +453,48 @@ async function handleRejectStudent(sessionId: number) {
             </div>
 
             <!-- Body -->
-            <div class="overflow-y-auto flex-1 p-6 space-y-5 custom-scrollbar">
+            <div class="overflow-y-auto flex-1 p-6 space-y-4 custom-scrollbar">
               <!-- Info grid -->
               <div class="grid grid-cols-2 gap-3">
                 <div v-if="selectedStudent.school" class="bg-black/[0.04] dark:bg-white/[0.04] rounded-2xl p-3">
-                  <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">School</p>
+                  <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">School</p>
                   <p class="text-sm font-bold text-on-surface">{{ selectedStudent.school }}</p>
                 </div>
                 <div v-if="selectedStudent.contactNumber" class="bg-black/[0.04] dark:bg-white/[0.04] rounded-2xl p-3">
-                  <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Contact</p>
+                  <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Contact</p>
                   <p class="text-sm font-bold text-on-surface">{{ selectedStudent.contactNumber }}</p>
                 </div>
                 <div v-if="selectedStudent.parentName" class="bg-black/[0.04] dark:bg-white/[0.04] rounded-2xl p-3">
-                  <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Parent</p>
+                  <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Parent</p>
                   <p class="text-sm font-bold text-on-surface">{{ selectedStudent.parentName }}</p>
                 </div>
                 <div class="bg-teal-500/10 border border-teal-500/20 rounded-2xl p-3">
-                  <p class="text-[9px] font-black text-teal-400 uppercase tracking-widest mb-1">Sessions Done</p>
-                  <p class="text-2xl font-black text-teal-400">{{ stats.completed }}</p>
+                  <p class="text-xs font-semibold text-teal-400 uppercase mb-1">Sessions Done</p>
+                  <p class="text-2xl font-semibold text-teal-400">{{ stats.completed }}</p>
                 </div>
               </div>
 
               <!-- Stat chips -->
               <div>
-                <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-3">Session Breakdown</p>
+                <p class="text-xs font-semibold text-on-surface-variant uppercase mb-3">Session Breakdown</p>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="chip in chips"
                     :key="chip.key"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold uppercase transition-all"
                     :class="[chip.color, activeChip === chip.key ? 'ring-2 ring-offset-1 ring-offset-transparent scale-105' : 'opacity-80 hover:opacity-100']"
                     @click="selectChip(chip.key)"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full" :class="chip.dot"></span>
+                    <span class="size-1.5 rounded-full" :class="chip.dot"></span>
                     {{ chip.label }}
-                    <span class="font-black ml-0.5">{{ chip.count }}</span>
+                    <span class="font-semibold ml-0.5">{{ chip.count }}</span>
                   </button>
                 </div>
               </div>
 
               <!-- Session list -->
               <div v-if="filteredSessions.length > 0" class="space-y-2">
-                <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">
+                <p class="text-xs font-semibold text-on-surface-variant uppercase">
                   {{ activeChip ? chips.find(c => c.key === activeChip)?.label : 'All' }} Sessions
                 </p>
                 <button
@@ -511,7 +507,7 @@ async function handleRejectStudent(sessionId: number) {
                     <p class="text-sm font-bold text-on-surface">{{ formatTime(session.startTime) }}</p>
                     <p class="text-xs text-on-surface-variant">{{ statusLabel(session.status) }}</p>
                   </div>
-                  <span class="text-[9px] font-black px-2 py-1 rounded-full border" :class="statusBadge(session.status)">
+                  <span class="text-xs font-semibold px-2 py-1 rounded-full border" :class="statusBadge(session.status)">
                     {{ statusLabel(session.status) }}
                   </span>
                   <span class="material-symbols-outlined text-sm text-on-surface-variant/40 group-hover:text-on-surface-variant transition-colors">chevron_right</span>

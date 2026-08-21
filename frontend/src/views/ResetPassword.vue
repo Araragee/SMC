@@ -67,7 +67,7 @@ const submit = async () => {
 
 <template>
   <main class="relative z-10 w-full max-w-md px-6 py-12">
-    <div class="relative glass-heavy rounded-[2rem] p-8 md:p-10 space-y-6">
+    <div class="relative glass-heavy rounded-3xl p-8 md:p-10 space-y-6">
       <div class="space-y-2 text-center">
         <h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Choose a new password</h1>
         <p v-if="!token" class="text-error text-sm">
@@ -80,7 +80,7 @@ const submit = async () => {
 
       <form v-if="token && !successful" class="space-y-4" @submit.prevent="submit">
         <div class="space-y-2">
-          <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant font-bold px-1">
+          <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             New password
           </label>
           <input
@@ -89,11 +89,11 @@ const submit = async () => {
             required
             autocomplete="new-password"
             placeholder="••••••••"
-            class="w-full h-14 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            class="input"
           />
         </div>
         <div class="space-y-2">
-          <label class="block text-[10px] tracking-widest uppercase text-on-surface-variant font-bold px-1">
+          <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             Confirm new password
           </label>
           <input
@@ -102,7 +102,7 @@ const submit = async () => {
             required
             autocomplete="new-password"
             placeholder="••••••••"
-            class="w-full h-14 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            class="input"
           />
         </div>
 
@@ -111,14 +111,14 @@ const submit = async () => {
         <button
           :disabled="!canSubmit"
           type="submit"
-          class="w-full h-14 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white uppercase tracking-wider active:scale-[0.98] transition-all disabled:opacity-50"
+          class="w-full h-14 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white uppercase active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {{ isLoading ? 'Saving…' : 'Save new password' }}
         </button>
       </form>
 
       <div v-else-if="successful" class="space-y-3 text-center">
-        <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center">
+        <div class="size-12 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center">
           <span class="material-symbols-outlined text-emerald-500">verified</span>
         </div>
         <p class="text-on-surface font-semibold">Password updated</p>
@@ -128,7 +128,7 @@ const submit = async () => {
       <div class="text-center">
         <router-link
           to="/login"
-          class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors"
+          class="text-xs font-semibold uppercase text-on-surface-variant hover:text-on-surface transition-colors"
         >
           Back to sign in
         </router-link>

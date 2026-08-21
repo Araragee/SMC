@@ -75,9 +75,9 @@ async function handleFileUpload(event: Event, homeworkId: number) {
         <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
           <span class="material-symbols-outlined text-indigo-500 text-2xl">menu_book</span>
         </div>
-        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-[0.25em]">Self Study</p>
+        <p class="text-xs font-semibold text-indigo-500 uppercase">Self Study</p>
       </div>
-      <h1 class="text-5xl font-black tracking-tight text-on-surface mb-2">Homework & Assignments</h1>
+      <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">Homework & Assignments</h1>
       <p class="text-on-surface-variant font-medium text-lg">Review your practice goals and upload completion proofs.</p>
     </header>
 
@@ -85,9 +85,9 @@ async function handleFileUpload(event: Event, homeworkId: number) {
       <!-- Pending Section -->
       <section class="space-y-6">
         <div class="flex items-center gap-4">
-          <h2 class="text-xl font-black text-on-surface uppercase tracking-wider">Active Tasks</h2>
+          <h2 class="text-xl font-semibold text-on-surface uppercase">Active Tasks</h2>
           <div class="h-px flex-1 bg-outline-variant/20"></div>
-          <span class="text-[10px] font-black px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
             {{ pendingHomework.length }} Pending
           </span>
         </div>
@@ -100,17 +100,17 @@ async function handleFileUpload(event: Event, homeworkId: number) {
           <div 
             v-for="hw in pendingHomework" 
             :key="hw.id"
-            class="glass-heavy rounded-[2.5rem] p-8 border border-outline-variant/30 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all group overflow-hidden relative"
+            class="glass-heavy rounded-3xl p-8 border border-outline-variant/30 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all group overflow-hidden relative"
           >
-            <div class="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/5 blur-3xl rounded-full" />
+            <div class="absolute -right-8 -top-8 size-32 bg-indigo-500/5 blur-3xl rounded-full" />
             
             <div class="relative z-10 flex flex-col h-full">
               <div class="flex justify-between items-start mb-4">
-                <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Session #{{ hw.sessionId }}</span>
-                <span class="text-[10px] font-bold text-on-surface-variant">{{ new Date(hw.createdAt).toLocaleDateString() }}</span>
+                <span class="text-xs font-semibold text-indigo-500 uppercase">Session #{{ hw.sessionId }}</span>
+                <span class="text-xs font-bold text-on-surface-variant">{{ new Date(hw.createdAt).toLocaleDateString() }}</span>
               </div>
               
-              <h3 class="text-xl font-black text-on-surface mb-4 leading-tight group-hover:text-indigo-500 transition-colors">
+              <h3 class="text-xl font-semibold text-on-surface mb-4 leading-tight group-hover:text-indigo-500 transition-colors">
                 {{ hw.description }}
               </h3>
               
@@ -125,7 +125,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
                     @change="(e) => handleFileUpload(e, hw.id)"
                     accept="image/*,.pdf,.doc,.docx"
                   />
-                  <div class="w-full py-4 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all">
+                  <div class="w-full py-4 bg-indigo-500 text-white rounded-2xl text-xs font-semibold uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all">
                     <span class="material-symbols-outlined text-sm">{{ isUploading === hw.id ? 'progress_activity' : 'cloud_upload' }}</span>
                     {{ isUploading === hw.id ? 'Uploading...' : 'Submit Proof' }}
                   </div>
@@ -139,7 +139,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
       <!-- Completed Section -->
       <section class="space-y-6">
         <div class="flex items-center gap-4">
-          <h2 class="text-xl font-black text-on-surface uppercase tracking-wider text-on-surface-variant">Archive</h2>
+          <h2 class="text-xl font-semibold text-on-surface uppercase text-on-surface-variant">Archive</h2>
           <div class="h-px flex-1 bg-outline-variant/10"></div>
         </div>
 
@@ -147,10 +147,10 @@ async function handleFileUpload(event: Event, homeworkId: number) {
           <div 
             v-for="hw in completedHomework" 
             :key="hw.id"
-            class="glass-medium rounded-[2rem] p-6 border border-outline-variant/20 flex items-center justify-between group"
+            class="glass-medium rounded-3xl p-6 border border-outline-variant/20 flex items-center justify-between group"
           >
             <div class="min-w-0 flex-1">
-              <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+              <p class="text-xs font-semibold text-emerald-500 uppercase mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">check_circle</span>
                 Completed
               </p>

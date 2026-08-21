@@ -307,18 +307,18 @@ const statusBadgeClass = function(status: string): string  {
 </script>
 
 <template>
-  <div class="max-w-[1600px] mx-auto pb-28 space-y-4 px-4 sm:px-6">
+  <div class="page">
     <!-- Page Header -->
     <div
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">Schedule</h1>
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">Schedule</h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">Manage all sessions — approve, edit, and schedule.</p>
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-5 py-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+          class="px-4 py-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
           :disabled="exportingIcs"
           @click="exportIcs"
         >
@@ -326,14 +326,14 @@ const statusBadgeClass = function(status: string): string  {
           {{ exportingIcs ? 'Exporting…' : 'Export .ics' }}
         </button>
         <button
-          class="px-5 py-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-4 py-3 bg-white/60 dark:bg-zinc-800/60 backdrop-blur text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showRecurringModal = true"
         >
           <span class="material-symbols-outlined text-lg">repeat</span>
           Recurring
         </button>
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-orange-500 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -356,7 +356,7 @@ const statusBadgeClass = function(status: string): string  {
           >
         </div>
         <div>
-          <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Pending Approvals</h3>
+          <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Pending Approvals</h3>
           <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
             {{ pendingSessions.length }} session{{ pendingSessions.length !== 1 ? 's' : '' }}
             awaiting review
@@ -369,22 +369,14 @@ const statusBadgeClass = function(status: string): string  {
           v-for="session in pendingSessions"
           :key="session.id"
           class="flex items-center gap-4 p-4 rounded-2xl border"
-          :class="
-            session.status === 'pending_admin'
-              ? 'bg-blue-500/5 border-blue-500/20'
-              : 'bg-amber-500/5 border-amber-500/20'
-          "
+          :class="session.status === 'pending_admin' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'"
         >
           <!-- Time & Participants -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
               <span
-                class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
-                :class="
-                  session.status === 'pending_admin'
-                    ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-                    : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                "
+                class="px-2 py-0.5 rounded-full text-xs font-semibold uppercase border"
+                :class="session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : 'bg-amber-500/20 border-amber-500/30 text-amber-400'"
               >
                 {{ session.status === 'pending_admin' ? 'Awaiting Admin' : 'Awaiting Teacher' }}
               </span>
@@ -425,7 +417,7 @@ const statusBadgeClass = function(status: string): string  {
 
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
+      <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
         <span class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
         </span>
@@ -437,7 +429,7 @@ const statusBadgeClass = function(status: string): string  {
     <!-- All Sessions Table -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
+        <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3">
           <span class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center">
             <span class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant">list_alt</span>
           </span>
@@ -447,7 +439,7 @@ const statusBadgeClass = function(status: string): string  {
           <button
             v-if="filteredSessions.length > 0"
             type="button"
-            class="text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-on-surface px-4 py-2 bg-black/[0.04] dark:bg-white/5 rounded-2xl border border-black/[0.08] dark:border-white/10 transition-all"
+            class="text-xs font-semibold uppercase text-on-surface-variant hover:text-on-surface px-4 py-2 bg-black/[0.04] dark:bg-white/5 rounded-2xl border border-black/[0.08] dark:border-white/10 transition-all"
             @click="toggleSelectAll"
           >
             {{ selectedSessionIds.length === filteredSessions.length ? 'Deselect All' : 'Select All' }}
@@ -476,7 +468,7 @@ const statusBadgeClass = function(status: string): string  {
             type="checkbox"
             :value="session.id"
             v-model="selectedSessionIds"
-            class="w-4 h-4 rounded border-black/20 dark:border-white/20 text-orange-500 focus:ring-orange-500/50 bg-black/10 dark:bg-white/5 cursor-pointer accent-orange-500 shrink-0"
+            class="size-4 rounded border-black/20 dark:border-white/20 text-orange-500 focus:ring-orange-500/50 bg-black/10 dark:bg-white/5 cursor-pointer accent-orange-500 shrink-0"
           />
           <div class="w-1 h-10 rounded-full shrink-0" :class="statusBarClass(session.status)"></div>
           <div class="flex-1 min-w-0">
@@ -486,7 +478,7 @@ const statusBadgeClass = function(status: string): string  {
             </p>
           </div>
           <span
-            class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border shrink-0"
+            class="px-2 py-1 rounded-full text-xs font-semibold uppercase border shrink-0"
             :class="statusBadgeClass(session.status)"
           >
             {{ statusLabel(session.status) }}
@@ -546,14 +538,14 @@ const statusBadgeClass = function(status: string): string  {
             class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Reject Session</h3>
-              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Reject Session</h3>
+              <button class="size-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
             </div>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
               placeholder="Reason for rejection (optional)..."
-              class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              class="input resize-none"
             />
             <div class="flex gap-3">
               <button
@@ -563,7 +555,7 @@ const statusBadgeClass = function(status: string): string  {
                 Confirm Reject
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm transition-all"
+                class="px-4 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm transition-all"
                 @click="rejectModal.open = false"
               >
                 Cancel
@@ -594,12 +586,12 @@ const statusBadgeClass = function(status: string): string  {
             @click="editModal.open = false"
           />
           <div
-            class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-5"
+            class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Edit Session</h3>
+              <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Edit Session</h3>
               <button
-                class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
+                class="size-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
                 @click="editModal.open = false"
               >
                 <span class="material-symbols-outlined text-base">close</span>
@@ -608,47 +600,47 @@ const statusBadgeClass = function(status: string): string  {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
-                  class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2"
+                  class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2"
                   >Date</label
                 >
                 <input
                   v-model="editModal.date"
                   type="date"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  class="input"
                 />
               </div>
               <div>
                 <label
-                  class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2"
+                  class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2"
                   >Time</label
                 >
                 <input
                   v-model="editModal.time"
                   type="time"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  class="input"
                 />
               </div>
             </div>
             <div>
               <label
-                class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2"
+                class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2"
                 >Notes</label
               >
               <textarea
                 v-model="editModal.notes"
                 rows="2"
-                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
+                class="input resize-none"
               />
             </div>
             <div class="flex gap-3">
               <button
-                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl text-sm"
+                class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-2xl text-sm"
                 @click="confirmEdit"
               >
                 Save Changes
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-4 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="editModal.open = false"
               >
                 Cancel
@@ -715,7 +707,7 @@ const statusBadgeClass = function(status: string): string  {
           v-if="selectedSessionIds.length > 0"
           class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4 px-6 py-4 rounded-full liquid-glass border border-black/10 dark:border-white/10 shadow-2xl backdrop-blur-xl animate-bounce-subtle"
         >
-          <span class="text-xs font-black uppercase tracking-widest text-on-surface dark:text-on-surface">
+          <span class="text-xs font-semibold uppercase text-on-surface dark:text-on-surface">
             {{ selectedSessionIds.length }} Selected
           </span>
           <div class="w-px h-6 bg-black/10 dark:bg-white/10"></div>

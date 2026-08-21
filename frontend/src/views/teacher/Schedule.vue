@@ -180,7 +180,7 @@ const formatDay = function(iso: string): string  {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">My Schedule</h1>
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">My Schedule</h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
           <span class="text-on-surface dark:text-on-surface font-bold">{{ mySessions.length }}</span> total sessions,
           <span class="text-amber-400 font-bold">{{ studentProposals.length }}</span> student
@@ -196,7 +196,7 @@ const formatDay = function(iso: string): string  {
           Recurring
         </button>
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-orange-500 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -210,7 +210,7 @@ const formatDay = function(iso: string): string  {
       v-if="studentProposals.length > 0"
       class="liquid-glass rounded-3xl p-6 border border-amber-500/20"
     >
-      <div class="flex items-center gap-3 mb-5">
+      <div class="flex items-center gap-3 mb-4">
         <div class="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-amber-400"
@@ -219,7 +219,7 @@ const formatDay = function(iso: string): string  {
           >
         </div>
         <div>
-          <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Student Proposals</h3>
+          <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Student Proposals</h3>
           <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
             {{ studentProposals.length }} request{{ studentProposals.length !== 1 ? 's' : '' }}
             awaiting your review
@@ -274,7 +274,7 @@ const formatDay = function(iso: string): string  {
 
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
+      <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
         <span class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
         </span>
@@ -285,7 +285,7 @@ const formatDay = function(iso: string): string  {
 
     <!-- Upcoming Confirmed Sessions -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
+      <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
         <span class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-emerald-400"
@@ -302,10 +302,10 @@ const formatDay = function(iso: string): string  {
           class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
         >
           <div class="text-center w-14 shrink-0">
-            <p class="text-[10px] font-black text-orange-500 uppercase">
+            <p class="text-xs font-semibold text-orange-500 uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-2xl font-black text-on-surface dark:text-on-surface">{{ formatDay(session.startTime) }}</p>
+            <p class="text-2xl font-semibold text-on-surface dark:text-on-surface">{{ formatDay(session.startTime) }}</p>
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-on-surface dark:text-on-surface font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
@@ -313,7 +313,7 @@ const formatDay = function(iso: string): string  {
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
           </div>
-          <span class="w-2 h-2 rounded-full bg-orange-500 shrink-0"></span>
+          <span class="size-2 rounded-full bg-orange-500 shrink-0"></span>
         </div>
         <div v-if="upcomingSessions.length === 0" class="text-center py-6 text-on-surface-variant dark:text-on-surface-variant">
           No upcoming sessions
@@ -343,14 +343,14 @@ const formatDay = function(iso: string): string  {
             class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Decline Session Request</h3>
-              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Decline Session Request</h3>
+              <button class="size-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
             </div>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
               placeholder="Reason for declining (optional)..."
-              class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              class="input resize-none"
             />
             <div class="flex gap-3">
               <button
@@ -360,7 +360,7 @@ const formatDay = function(iso: string): string  {
                 Confirm Decline
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-4 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="rejectModal.open = false"
               >
                 Cancel
@@ -393,46 +393,46 @@ const formatDay = function(iso: string): string  {
             class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Counter Proposal</h3>
-              <button class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="counterModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface">Counter Proposal</h3>
+              <button class="size-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="counterModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
             </div>
             
             <div class="space-y-4">
               <div>
-                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2 block">New Start Time</label>
+                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block">New Start Time</label>
                 <input
                   v-model="counterModal.startTime"
                   type="datetime-local"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 [color-scheme:dark]"
+                  class="input [color-scheme:dark]"
                 />
               </div>
               <div>
-                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2 block">New End Time</label>
+                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block">New End Time</label>
                 <input
                   v-model="counterModal.endTime"
                   type="datetime-local"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 [color-scheme:dark]"
+                  class="input [color-scheme:dark]"
                 />
               </div>
               <div>
-                <label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2 block">Notes to Student</label>
+                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block">Notes to Student</label>
                 <textarea
                   v-model="counterModal.notes"
                   rows="3"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:ring-2 focus:ring-orange-500/50 resize-none"
+                  class="input resize-none"
                 />
               </div>
             </div>
 
             <div class="flex gap-3 pt-2">
               <button
-                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-black rounded-2xl text-sm shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all"
+                class="flex-1 py-3 bg-orange-500 text-white font-semibold rounded-2xl text-sm shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all"
                 @click="confirmCounter"
               >
                 Send Counter
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-4 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="counterModal.open = false"
               >
                 Cancel

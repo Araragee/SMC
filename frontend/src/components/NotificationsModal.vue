@@ -134,19 +134,19 @@ const closeModal = () => {
           <!-- Header -->
           <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5 shrink-0">
             <div>
-              <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Stay Updated</p>
-              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Notifications</h3>
+              <p class="text-xs font-semibold text-orange-500 uppercase mb-1">Stay Updated</p>
+              <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface">Notifications</h3>
             </div>
             <div class="flex items-center gap-2">
               <button
                 v-if="unreadCount > 0"
-                class="text-[10px] font-bold text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider px-2 py-1"
+                class="text-xs font-bold text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors uppercase px-2 py-1"
                 @click="markAllAsRead"
               >
                 Mark all as read
               </button>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
+                class="icon-btn"
                 @click="closeModal"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
@@ -155,14 +155,12 @@ const closeModal = () => {
           </div>
 
           <!-- Filter Pills -->
-          <div class="px-6 py-2.5 flex gap-1.5 overflow-x-auto custom-scrollbar shrink-0 border-b border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
+          <div class="px-6 py-2 flex gap-1.5 overflow-x-auto custom-scrollbar shrink-0 border-b border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
             <button
               v-for="filter in (['all', 'unread', 'sessions', 'shop', 'payments', 'auth'] as const)"
               :key="filter"
-              class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
-              :class="activeFilter === filter 
-                ? 'bg-orange-500 text-white shadow-sm' 
-                : 'bg-black/[0.04] dark:bg-white/5 text-on-surface-variant hover:text-on-surface'"
+              class="px-3 py-1 rounded-full text-xs font-semibold uppercase transition-all whitespace-nowrap"
+              :class="activeFilter === filter ? 'bg-orange-500 text-white shadow-sm' : 'bg-black/[0.04] dark:bg-white/5 text-on-surface-variant hover:text-on-surface'"
               @click="activeFilter = filter"
             >
               {{ filter }}
@@ -172,7 +170,7 @@ const closeModal = () => {
           <!-- Notification List -->
           <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             <div v-if="notifications.length === 0" class="text-center py-12">
-              <div class="w-16 h-16 bg-black/[0.04] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/40 dark:border-white/5">
+              <div class="size-16 bg-black/[0.04] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/40 dark:border-white/5">
                 <span class="material-symbols-outlined text-3xl text-on-surface-variant/60 dark:text-on-surface-variant/40">notifications_off</span>
               </div>
               <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">All caught up!</p>
@@ -183,11 +181,7 @@ const closeModal = () => {
               v-for="notif in sortedNotifications"
               :key="notif.id"
               class="group relative rounded-2xl p-4 border transition-all cursor-pointer"
-              :class="[
-                notif.isRead 
-                  ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.05] dark:border-white/5 opacity-60' 
-                  : 'bg-orange-500/5 border-orange-500/20 hover:bg-orange-500/10'
-              ]"
+              :class="[ notif.isRead ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.05] dark:border-white/5 opacity-60' : 'bg-orange-500/5 border-orange-500/20 hover:bg-orange-500/10' ]"
               @click="handleNotifClick(notif)"
             >
               <div class="flex gap-4">
@@ -205,7 +199,7 @@ const closeModal = () => {
                     <h4 class="text-sm font-bold text-on-surface dark:text-on-surface truncate group-hover:text-orange-400 transition-colors">
                       {{ notif.title || 'Notification' }}
                     </h4>
-                    <span class="text-[10px] text-on-surface-variant dark:text-on-surface-variant whitespace-nowrap font-medium">
+                    <span class="text-xs text-on-surface-variant dark:text-on-surface-variant whitespace-nowrap font-medium">
                       {{ formatTime(notif.createdAt) }}
                     </span>
                   </div>
@@ -218,14 +212,14 @@ const closeModal = () => {
               <!-- Unread Dot -->
               <div 
                 v-if="!notif.isRead"
-                class="absolute top-4 right-4 w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                class="absolute top-4 right-4 size-2 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
               ></div>
             </div>
           </div>
 
           <!-- Footer -->
           <div class="p-4 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] shrink-0 text-center">
-            <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-tighter">
+            <p class="text-xs text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-tighter">
               Showing last {{ notifications.length }} notifications
             </p>
           </div>

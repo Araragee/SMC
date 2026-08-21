@@ -259,12 +259,12 @@ const limitForView = computed(() => {
     <!-- Calendar Controls -->
     <div class="flex items-center justify-between min-w-[700px]">
       <div class="flex items-center gap-4">
-        <h3 class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tight min-w-[200px]">
+        <h3 class="text-2xl font-semibold text-on-surface dark:text-on-surface tracking-tight min-w-[200px]">
           {{ displayMonthYear }}
         </h3>
         <button
           v-if="offset !== 0"
-          class="px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-wider hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
+          class="px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-semibold uppercase hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
           @click="resetToToday"
         >
           Today
@@ -278,10 +278,8 @@ const limitForView = computed(() => {
           <button
             v-for="view in (['day', 'week', 'month'] as const)"
             :key="view"
-            class="px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
-            :class="activeView === view 
-              ? 'bg-orange-500 text-white shadow-md' 
-              : 'text-on-surface-variant hover:text-on-surface'"
+            class="px-4 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
+            :class="activeView === view ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
             @click="activeView = view"
           >
             {{ view }}
@@ -292,13 +290,13 @@ const limitForView = computed(() => {
           class="flex items-center gap-2 bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant"
         >
           <button
-            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+            class="icon-btn"
             @click="previous"
           >
             <span class="material-symbols-outlined text-lg">chevron_left</span>
           </button>
           <button
-            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+            class="icon-btn"
             @click="next"
           >
             <span class="material-symbols-outlined text-lg">chevron_right</span>
@@ -310,10 +308,7 @@ const limitForView = computed(() => {
     <!-- Calendar Grid -->
     <div 
       class="grid gap-3 min-w-[700px] flex-1"
-      :class="{
-        'grid-cols-1': activeView === 'day',
-        'grid-cols-7': activeView === 'week' || activeView === 'month'
-      }"
+      :class="{ 'grid-cols-1': activeView === 'day', 'grid-cols-7': activeView === 'week' || activeView === 'month' }"
     >
       <div
         v-for="day in calendarDays"
@@ -326,32 +321,18 @@ const limitForView = computed(() => {
       >
         <!-- Day Header -->
         <div
-          class="p-2.5 text-center border-b border-outline-variant dark:border-outline-variant"
-          :class="
-            day.isToday
-              ? 'bg-teal-500/10 dark:bg-teal-500/10'
-              : 'bg-surface-container-high dark:bg-surface-container-high'
-          "
+          class="p-2 text-center border-b border-outline-variant dark:border-outline-variant"
+          :class="day.isToday ? 'bg-teal-500/10 dark:bg-teal-500/10' : 'bg-surface-container-high dark:bg-surface-container-high'"
         >
           <p
-            class="text-[9px] font-black uppercase tracking-widest mb-1"
-            :class="
-              day.isToday
-                ? 'text-teal-600 dark:text-teal-400'
-                : day.isWeekend
-                  ? 'text-on-surface-variant/50 dark:text-on-surface-variant/40'
-                  : 'text-on-surface-variant dark:text-on-surface-variant'
-            "
+            class="text-xs font-semibold uppercase mb-1"
+            :class="day.isToday ? 'text-teal-600 dark:text-teal-400' : day.isWeekend ? 'text-on-surface-variant/50 dark:text-on-surface-variant/40' : 'text-on-surface-variant dark:text-on-surface-variant'"
           >
             {{ day.label }}
           </p>
           <div
-            class="w-8 h-8 rounded-full flex items-center justify-center mx-auto text-sm font-black transition-all"
-            :class="
-              day.isToday
-                ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md shadow-teal-500/20'
-                : 'text-on-surface dark:text-on-surface'
-            "
+            class="size-8 rounded-full flex items-center justify-center mx-auto text-sm font-semibold transition-all"
+            :class="day.isToday ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20' : 'text-on-surface dark:text-on-surface'"
           >
             {{ day.dateNum }}
           </div>
@@ -369,10 +350,10 @@ const limitForView = computed(() => {
             @click.stop="emit('sessionClick', session)"
           >
             <div class="flex items-center gap-1 mb-0.5">
-              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
-              <span class="font-black text-[10px] truncate">{{ formatTime(session.startTime) }}</span>
+              <span class="size-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
+              <span class="font-semibold text-xs truncate">{{ formatTime(session.startTime) }}</span>
             </div>
-            <p class="text-[9px] font-bold uppercase tracking-wider opacity-75 truncate">
+            <p class="text-xs font-bold uppercase opacity-75 truncate">
               {{ statusLabel(session.status) }}
             </p>
           </div>
@@ -383,7 +364,7 @@ const limitForView = computed(() => {
             class="mt-1"
           >
             <button
-              class="w-full text-center py-1 text-[9px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-colors"
+              class="w-full text-center py-1 text-xs font-semibold uppercase text-orange-600 dark:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-colors"
               @click.stop="toggleOverflow(day.iso, day.sessions)"
             >
               +{{ day.sessions.length - limitForView }} more
@@ -396,7 +377,7 @@ const limitForView = computed(() => {
             class="absolute inset-x-0 bottom-2 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <span
-              class="w-7 h-7 rounded-full bg-surface-container-high dark:bg-surface-container-high shadow flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant"
+              class="size-7 rounded-full bg-surface-container-high dark:bg-surface-container-high shadow flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant"
             >
               <span class="material-symbols-outlined text-sm">add</span>
             </span>
@@ -410,7 +391,7 @@ const limitForView = computed(() => {
           @click.stop
         >
           <div class="flex items-center justify-between border-b border-outline-variant pb-1.5">
-            <span class="text-xs font-black uppercase tracking-wider text-on-surface">All Sessions</span>
+            <span class="text-xs font-semibold uppercase text-on-surface">All Sessions</span>
             <button class="text-on-surface-variant hover:text-on-surface" @click="overflowOpenDay = null">
               <span class="material-symbols-outlined text-sm">close</span>
             </button>
@@ -423,10 +404,10 @@ const limitForView = computed(() => {
             @click.stop="emit('sessionClick', session); overflowOpenDay = null"
           >
             <div class="flex items-center gap-1 mb-0.5">
-              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
-              <span class="font-black text-[10px]">{{ formatTime(session.startTime) }}</span>
+              <span class="size-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
+              <span class="font-semibold text-xs">{{ formatTime(session.startTime) }}</span>
             </div>
-            <p class="text-[9px] font-bold uppercase tracking-wider opacity-75">
+            <p class="text-xs font-bold uppercase opacity-75">
               {{ statusLabel(session.status) }}
             </p>
           </div>
@@ -436,15 +417,15 @@ const limitForView = computed(() => {
 
     <!-- Legend -->
     <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-3 border-t border-outline-variant dark:border-outline-variant min-w-[700px]">
-      <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mr-1">Legend</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-teal-600 dark:text-teal-400"><span class="w-2 h-2 rounded-full bg-teal-400 shrink-0"></span>Confirmed</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>Done</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-amber-600 dark:text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>Aw. Teacher</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-orange-600 dark:text-orange-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span>Countered</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-blue-600 dark:text-blue-400"><span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>Aw. Admin</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-violet-600 dark:text-violet-400"><span class="w-2 h-2 rounded-full bg-violet-400 shrink-0"></span>In Review</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-rose-600 dark:text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>Overdue</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-red-600 dark:text-red-400"><span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>Proof Rej.</span>
+      <span class="text-xs font-semibold uppercase text-on-surface-variant mr-1">Legend</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-teal-600 dark:text-teal-400"><span class="size-2 rounded-full bg-teal-400 shrink-0"></span>Confirmed</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400"><span class="size-2 rounded-full bg-emerald-400 shrink-0"></span>Done</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400"><span class="size-2 rounded-full bg-amber-400 shrink-0"></span>Aw. Teacher</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-orange-600 dark:text-orange-400"><span class="size-2 rounded-full bg-orange-400 shrink-0"></span>Countered</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400"><span class="size-2 rounded-full bg-blue-400 shrink-0"></span>Aw. Admin</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-violet-600 dark:text-violet-400"><span class="size-2 rounded-full bg-violet-400 shrink-0"></span>In Review</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400"><span class="size-2 rounded-full bg-rose-400 shrink-0"></span>Overdue</span>
+      <span class="flex items-center gap-1 text-xs font-bold text-red-600 dark:text-red-400"><span class="size-2 rounded-full bg-red-500 shrink-0"></span>Proof Rej.</span>
     </div>
   </div>
 </template>

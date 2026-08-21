@@ -272,7 +272,7 @@ const stopCountering = () => {
     <!-- Hero Welcome -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>
-        <h2 class="text-5xl font-black tracking-tighter text-on-surface dark:text-on-surface mb-3">
+        <h2 class="text-5xl font-semibold tracking-tighter text-on-surface dark:text-on-surface mb-3">
           Morning, {{ authStore.currentUser?.name?.split(' ')[0] || 'Student' }}.
         </h2>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium mb-6">
@@ -289,7 +289,7 @@ const stopCountering = () => {
             Schedule
           </RouterLink>
           <button
-            class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
+            class="px-6 py-3 bg-orange-500 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
             @click="openRequestModal"
           >
             <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -360,7 +360,7 @@ const stopCountering = () => {
               Request a session with your teacher to get started!
             </p>
             <button
-              class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
+              class="mt-4 px-4 py-2 bg-orange-500 text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
               @click="openRequestModal"
             >
               Request a Session
@@ -372,48 +372,26 @@ const stopCountering = () => {
             <div
               v-for="session in mySessions"
               :key="session.id"
-              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
+              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-4 rounded-3xl flex items-center gap-6 hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
               @click="selectSession(session.id)"
             >
               <!-- Date badge -->
               <div
-                class="flex flex-col items-center justify-center w-16 h-16 rounded-3xl shadow-lg shrink-0"
-                :class="
-                  session.status === 'completed'
-                    ? 'bg-surface-container-high text-on-surface-variant'
-                    : session.status === 'pending_teacher'
-                      ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
-                      : session.status === 'pending_student'
-                        ? 'bg-orange-500/20 border border-orange-500/40 text-orange-400'
-                      : session.status === 'pending_admin'
-                        ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
-                        : session.status === 'rejected'
-                          ? 'bg-red-900 text-red-300'
-                          : 'bg-orange-500 text-white shadow-orange-900/30'
-                "
+                class="flex flex-col items-center justify-center size-16 rounded-3xl shadow-lg shrink-0"
+                :class="session.status === 'completed' ? 'bg-surface-container-high text-on-surface-variant' : session.status === 'pending_teacher' ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' : session.status === 'pending_student' ? 'bg-orange-500/20 border border-orange-500/40 text-orange-400' : session.status === 'pending_admin' ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' : session.status === 'rejected' ? 'bg-red-900 text-red-300' : 'bg-orange-500 text-white shadow-orange-900/30'"
               >
-                <span class="text-[10px] uppercase font-black">{{
+                <span class="text-xs uppercase font-semibold">{{
                   formatMonth(session.startTime)
                 }}</span>
-                <span class="text-2xl font-black">{{ formatDay(session.startTime) }}</span>
+                <span class="text-2xl font-semibold">{{ formatDay(session.startTime) }}</span>
               </div>
 
               <!-- Info -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span
-                    class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border"
-                    :class="
-                      session.status === 'pending_teacher'
-                        ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                        : session.status === 'pending_admin'
-                          ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-                          : session.status === 'rejected'
-                            ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                            : session.status === 'completed'
-                              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                              : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
-                    "
+                    class="px-2 py-0.5 text-xs font-bold rounded-full uppercase border"
+                    :class="session.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : session.status === 'rejected' ? 'bg-red-500/20 border-red-500/30 text-red-400' : session.status === 'completed' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-orange-500/20 border-orange-500/30 text-orange-400'"
                   >
                     {{
                       session.status === 'pending_teacher'
@@ -442,12 +420,12 @@ const stopCountering = () => {
               <div class="flex items-center gap-3 shrink-0">
                 <span
                   v-if="session.homeworkAssigned && !session.homeworkCompleted"
-                  class="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 font-semibold"
+                  class="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 font-semibold"
                   >HW Pending</span
                 >
                 <span
                   v-else-if="session.homeworkCompleted"
-                  class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold"
+                  class="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold"
                   >HW Done ✓</span
                 >
                 <span
@@ -475,15 +453,11 @@ const stopCountering = () => {
             <!-- Upload area -->
             <label
               class="relative overflow-hidden border-2 border-dashed border-black/[0.08] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
-              :class="
-                proofPreviewUrl
-                  ? 'border-orange-500/50'
-                  : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50'
-              "
+              :class="proofPreviewUrl ? 'border-orange-500/50' : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50'"
             >
               <template v-if="!proofPreviewUrl">
                 <div
-                  class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+                  class="size-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
                 >
                   <span
                     class="material-symbols-outlined text-3xl"
@@ -502,7 +476,7 @@ const stopCountering = () => {
                   class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
                 />
                 <div
-                  class="relative z-10 w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3"
+                  class="relative z-10 size-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3"
                 >
                   <span
                     class="material-symbols-outlined absolute"
@@ -511,7 +485,7 @@ const stopCountering = () => {
                   >
                 </div>
                 <p
-                  class="relative z-10 font-black text-on-surface dark:text-on-surface text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
+                  class="relative z-10 font-semibold text-on-surface dark:text-on-surface text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
                 >
                   Image Selected
                 </p>
@@ -527,7 +501,7 @@ const stopCountering = () => {
             </label>
             <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
               <button
-                class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+                class="px-6 py-2 bg-orange-500 text-white text-sm font-semibold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
                 @click="handleGenericProofUpload"
               >
                 Submit Proof
@@ -540,7 +514,7 @@ const stopCountering = () => {
               class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-black/5 dark:hover:bg-white/10 transition-all"
             >
               <div
-                class="w-12 h-12 bg-surface-container-high text-on-surface-variant dark:text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
+                class="size-12 bg-surface-container-high text-on-surface-variant dark:text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
               >
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >description</span
@@ -578,7 +552,7 @@ const stopCountering = () => {
             <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-8">Enrollment Status</h3>
             <div class="flex items-center justify-center mb-10 relative">
               <svg
-                class="w-48 h-48 -rotate-90 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]"
+                class="size-48 -rotate-90 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]"
                 viewBox="0 0 192 192"
                 aria-hidden="true"
               >
@@ -604,11 +578,11 @@ const stopCountering = () => {
                 />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-4xl font-black text-on-surface dark:text-on-surface">
+                <span class="text-4xl font-semibold text-on-surface dark:text-on-surface">
                   {{ mySessions.filter((s: any) => s.status === 'completed').length }} /
                   {{ authStore.currentUser?.sessionsLeft ?? 0 }}
                 </span>
-                <span class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1"
+                <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mt-1"
                   >Sessions Used</span
                 >
               </div>
@@ -635,7 +609,7 @@ const stopCountering = () => {
             </button>
           </div>
           <div
-            class="absolute -right-20 -bottom-20 w-48 h-48 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all "
+            class="absolute -right-20 -bottom-20 size-48 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all"
           ></div>
         </section>
 
@@ -659,11 +633,11 @@ const stopCountering = () => {
           </div>
           <div class="space-y-4">
             <div
-              class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-6 text-white relative overflow-hidden group/promo cursor-pointer"
+              class="bg-orange-500 rounded-3xl p-6 text-white relative overflow-hidden group/promo cursor-pointer"
             >
               <div class="relative z-10">
                 <span
-                  class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[9px] font-black uppercase tracking-widest mb-3"
+                  class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg text-xs font-semibold uppercase mb-3"
                   >Limited Offer</span
                 >
                 <h4 class="font-bold text-lg leading-tight mb-2">Summer Masterclass Series</h4>
@@ -671,13 +645,13 @@ const stopCountering = () => {
                   Get 20% off if you book before Friday evening.
                 </p>
                 <button
-                  class="bg-white text-orange-600 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all"
+                  class="bg-white text-orange-600 px-4 py-2 rounded-2xl text-xs font-semibold uppercase hover:scale-105 active:scale-95 transition-all"
                 >
                   Learn More
                 </button>
               </div>
               <span
-                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform "
+                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform"
                 style="font-variation-settings: 'FILL' 1"
                 >music_note</span
               >
@@ -693,7 +667,7 @@ const stopCountering = () => {
                 >
               </div>
               <div>
-                <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-1">
+                <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1">
                   Academy Tip
                 </p>
                 <p class="text-sm font-medium text-on-surface dark:text-on-surface leading-snug">
@@ -707,14 +681,14 @@ const stopCountering = () => {
         <!-- Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="liquid-glass rounded-3xl p-6 text-center border border-black/[0.04] dark:border-white/5">
-            <p class="text-3xl font-black text-orange-500">{{ mySessions.length * 60 }}</p>
-            <p class="text-[9px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1">
+            <p class="text-3xl font-semibold text-orange-500">{{ mySessions.length * 60 }}</p>
+            <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mt-1">
               Practice Hours
             </p>
           </div>
           <div class="liquid-glass rounded-3xl p-6 text-center border border-black/[0.04] dark:border-white/5">
-            <p class="text-3xl font-black text-on-surface dark:text-on-surface">A+</p>
-            <p class="text-[9px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1">
+            <p class="text-3xl font-semibold text-on-surface dark:text-on-surface">A+</p>
+            <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mt-1">
               Avg Grade
             </p>
           </div>
@@ -726,10 +700,10 @@ const stopCountering = () => {
   <!-- Session Detail Modal -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out "
+      enter-active-class="transition opacity-200 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in "
+      leave-active-class="transition opacity-200 ease-in"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -749,41 +723,21 @@ const stopCountering = () => {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div
-                class="flex flex-col items-center justify-center w-14 h-14 rounded-2xl shadow-lg shrink-0"
-                :class="
-                  selectedSession.status === 'completed'
-                    ? 'bg-surface-container-high text-on-surface-variant'
-                    : selectedSession.status === 'pending_teacher'
-                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
-                      : selectedSession.status === 'pending_admin'
-                        ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
-                        : selectedSession.status === 'rejected'
-                          ? 'bg-red-900 text-red-300'
-                          : 'bg-orange-500 text-white shadow-orange-900/30'
-                "
+                class="flex flex-col items-center justify-center size-14 rounded-2xl shadow-lg shrink-0"
+                :class="selectedSession.status === 'completed' ? 'bg-surface-container-high text-on-surface-variant' : selectedSession.status === 'pending_teacher' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' : selectedSession.status === 'pending_admin' ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' : selectedSession.status === 'rejected' ? 'bg-red-900 text-red-300' : 'bg-orange-500 text-white shadow-orange-900/30'"
               >
-                <span class="text-[9px] uppercase font-black">{{
+                <span class="text-xs uppercase font-semibold">{{
                   formatMonth(selectedSession.startTime)
                 }}</span>
-                <span class="text-xl font-black">{{ formatDay(selectedSession.startTime) }}</span>
+                <span class="text-xl font-semibold">{{ formatDay(selectedSession.startTime) }}</span>
               </div>
               <div>
-                <h3 id="session-modal-title" class="text-xl font-black text-on-surface dark:text-on-surface">
+                <h3 id="session-modal-title" class="text-xl font-semibold text-on-surface dark:text-on-surface">
                   Session #{{ selectedSession.id }}
                 </h3>
                 <span
-                  class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase border inline-block mt-1"
-                  :class="
-                    selectedSession.status === 'pending_teacher'
-                      ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                      : selectedSession.status === 'pending_admin'
-                        ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-                        : selectedSession.status === 'rejected'
-                          ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                          : selectedSession.status === 'completed'
-                            ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                            : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
-                  "
+                  class="px-2 py-0.5 text-xs font-bold rounded-full uppercase border inline-block mt-1"
+                  :class="selectedSession.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : selectedSession.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : selectedSession.status === 'rejected' ? 'bg-red-500/20 border-red-500/30 text-red-400' : selectedSession.status === 'completed' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-orange-500/20 border-orange-500/30 text-orange-400'"
                 >
                   {{
                     selectedSession.status === 'pending_teacher'
@@ -826,13 +780,7 @@ const stopCountering = () => {
               <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Homework</span>
               <span
                 class="text-sm font-bold"
-                :class="
-                  selectedSession.homeworkCompleted
-                    ? 'text-emerald-400'
-                    : selectedSession.homeworkAssigned
-                      ? 'text-amber-400'
-                      : 'text-on-surface-variant'
-                "
+                :class="selectedSession.homeworkCompleted ? 'text-emerald-400' : selectedSession.homeworkAssigned ? 'text-amber-400' : 'text-on-surface-variant'"
               >
                 {{
                   selectedSession.homeworkCompleted
@@ -854,12 +802,12 @@ const stopCountering = () => {
             v-if="['scheduled', 'overdue', 'completed', 'pending_verification', 'overdue_rejected'].includes(selectedSession.status)"
             class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-4 border border-black/[0.04] dark:border-white/5"
           >
-            <h4 class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-3">
+            <h4 class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-3">
               Session Proofs
             </h4>
 
             <div v-if="selectedSession.status === 'overdue_rejected'" class="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-              <p class="text-[10px] font-black uppercase text-red-500 tracking-wider mb-1">Proof Rejected</p>
+              <p class="text-xs font-semibold uppercase text-red-500 mb-1">Proof Rejected</p>
               <p class="text-xs text-red-400 font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
               <p class="text-xs text-on-surface-variant">Please upload a valid proof and provide justification below.</p>
             </div>
@@ -882,7 +830,7 @@ const stopCountering = () => {
             <div v-if="selectedSession.proofs?.some(p => p.uploaderRole === 'student')" class="flex flex-col gap-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0">
+                  <div class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0">
                     <img :src="selectedSession.proofs?.find(p => p.uploaderRole === 'student')?.imageUrl" class="w-full h-full object-cover" />
                   </div>
                   <div>
@@ -900,8 +848,8 @@ const stopCountering = () => {
 
               <div v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)" class="mt-2 pt-3 border-t border-black/[0.04] dark:border-white/5 space-y-3">
                 <label class="block text-xs text-on-surface-variant mb-1 font-bold">Add a note for the Admin (Optional)</label>
-                <textarea v-model="approvalJustification" rows="2" class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none placeholder:text-on-surface-variant/50" placeholder="E.g. Class was conducted successfully..."></textarea>
-                <button class="w-full py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] active:scale-95 text-white font-bold rounded-xl transition-all text-sm shadow-md" @click="submitApprovalRequest(selectedSession.id)">
+                <textarea v-model="approvalJustification" rows="2" class="input resize-none" placeholder="E.g. Class was conducted successfully..."></textarea>
+                <button class="w-full py-2 bg-orange-500 hover:scale-[1.02] active:scale-95 text-white font-bold rounded-xl transition-all text-sm shadow-md" @click="submitApprovalRequest(selectedSession.id)">
                   Submit Request for Approval
                 </button>
               </div>
@@ -909,7 +857,7 @@ const stopCountering = () => {
 
             <div v-else-if="selectedSession.status === 'pending_verification'" class="mt-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-center">
               <p class="text-xs font-bold text-emerald-500">Approval Request Pending</p>
-              <p class="text-[10px] text-emerald-400 mt-1">An admin or teacher is reviewing your proof.</p>
+              <p class="text-xs text-emerald-400 mt-1">An admin or teacher is reviewing your proof.</p>
             </div>
 
             <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
@@ -931,7 +879,7 @@ const stopCountering = () => {
                     Suggest Other
                   </button>
                 </div>
-                <div v-else class="space-y-3 mt-2   ">
+                <div v-else class="space-y-3 mt-2">
                   <input
                     v-model="counterForm.startTime"
                     type="datetime-local"
@@ -963,7 +911,7 @@ const stopCountering = () => {
             <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0"
+                  class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0"
                 >
                   <img :src="stagedProofUrl" class="w-full h-full object-cover" />
                 </div>
@@ -981,7 +929,7 @@ const stopCountering = () => {
                 </div>
               </div>
               <button
-                class="w-full py-2 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-xs font-black rounded-lg transition-all active:scale-95"
+                class="w-full py-2 bg-orange-500 hover:scale-[1.02] text-white text-xs font-semibold rounded-lg transition-all active:scale-95"
                 @click="saveStagedProof"
               >
                 Save Proof
@@ -1018,10 +966,10 @@ const stopCountering = () => {
   <!-- Proof Viewer Lightbox -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out "
+      enter-active-class="transition opacity-200 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in "
+      leave-active-class="transition opacity-200 ease-in"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -1047,10 +995,10 @@ const stopCountering = () => {
   <!-- Request Session Modal -->
   <Teleport to="body">
     <Transition
-      enter-active-class="transition opacity-200 ease-out "
+      enter-active-class="transition opacity-200 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in "
+      leave-active-class="transition opacity-200 ease-in"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -1070,7 +1018,7 @@ const stopCountering = () => {
           class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl"
         >
           <div class="flex items-center justify-between mb-6">
-            <h3 id="request-modal-title" class="text-xl font-black text-on-surface dark:text-on-surface">
+            <h3 id="request-modal-title" class="text-xl font-semibold text-on-surface dark:text-on-surface">
               Request a Session
             </h3>
             <button
@@ -1084,7 +1032,7 @@ const stopCountering = () => {
           <form class="space-y-4" @submit.prevent="submitRequest">
             <div>
               <label
-                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-wider mb-1.5 block"
+                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1.5 block"
                 for="req-teacher"
                 >Preferred Teacher</label
               >
@@ -1092,7 +1040,7 @@ const stopCountering = () => {
                 id="req-teacher"
                 v-model="requestForm.teacherId"
                 required
-                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="input"
               >
                 <option :value="null">Select a teacher...</option>
                 <option v-for="t in allTeachers" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -1100,7 +1048,7 @@ const stopCountering = () => {
             </div>
             <div>
               <label
-                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase tracking-wider mb-1.5 block"
+                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1.5 block"
                 for="req-date"
                 >Preferred Date &amp; Time</label
               >
@@ -1109,7 +1057,7 @@ const stopCountering = () => {
                 v-model="requestForm.startTime"
                 type="datetime-local"
                 required
-                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="input"
               />
             </div>
             <div class="flex gap-3 pt-2">
@@ -1123,7 +1071,7 @@ const stopCountering = () => {
               <button
                 type="submit"
                 :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
+                class="flex-1 py-3 rounded-xl bg-orange-500 hover:scale-[1.02] text-white text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
               >
                 {{ scheduleStore.isLoading ? 'Submitting...' : 'Request Session' }}
               </button>

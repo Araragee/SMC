@@ -1576,6 +1576,64 @@ def create_enrollment(enrollment: schemas.EnrollmentCreate, db: Session = Depend
 
     return db_enrollment
 
+@router.get("/enrollments/", response_model=list[schemas.Enrollment])
+def read_all_enrollments(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Every enrollment in the school — powers the admin roster view.
+    Admin-only for the same reason as the teacher-student roster."""
+    return db.query(models.Enrollment).order_by(models.Enrollment.id.desc()).all()
+
+
+@router.put("/enrollments/{enrollment_id}", response_model=schemas.Enrollment)
+def update_enrollment(
+    enrollment_id: int,
+    payload: schemas.EnrollmentUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Edit an enrollment. Changing ``sessions_purchased`` moves the student's
+    ``sessions_left`` counter by the same delta so the two never drift."""
+    enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+
+    data = payload.model_dump(exclude_unset=True)
+    student = db.query(models.User).filter(models.User.id == enrollment.student_id).first()
+
+    if "sessions_purchased" in data:
+        new_purchased = data["sessions_purchased"]
+        if new_purchased < enrollment.sessions_used:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot set purchased sessions below the {enrollment.sessions_used} already used",
+            )
+        delta = new_purchased - enrollment.sessions_purchased
+        if student is not None and delta:
+            student.sessions_left = max(0, (student.sessions_left or 0) + delta)
+
+    for field, value in data.items():
+        setattr(enrollment, field, value)
+
+    db.commit()
+    db.refresh(enrollment)
+
+    log_activity(
+        db,
+        action_type="enrollment_updated",
+        description=(
+            f"Admin {current_user.name} updated enrollment #{enrollment_id} for "
+            f"{student.name if student else enrollment.student_id} ({', '.join(data.keys())})"
+        ),
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=enrollment_id,
+    )
+    return enrollment
+
+
 @router.get("/enrollments/student/{student_id}", response_model=list[schemas.Enrollment])
 def read_student_enrollments(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()

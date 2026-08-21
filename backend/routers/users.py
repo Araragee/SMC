@@ -311,6 +311,12 @@ def assign_teacher_student(assignment: schemas.TeacherStudentCreate, db: Session
 
     return new_assignment
 
+@router.get("/teacher-students/", response_model=list[schemas.TeacherStudent])
+def get_all_teacher_students(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
+    """Full teacher-student roster. Admin-only: it exposes the whole school's
+    assignment graph, which a single teacher has no business reading."""
+    return db.query(models.TeacherStudent).all()
+
 @router.get("/teacher-students/teacher/{teacher_id}", response_model=list[schemas.TeacherStudent])
 def get_students_for_teacher(teacher_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     assignments = db.query(models.TeacherStudent).filter(models.TeacherStudent.teacher_id == teacher_id).all()

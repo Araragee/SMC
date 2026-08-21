@@ -231,19 +231,19 @@ async function submitPayment() {
         >
           <span class="material-symbols-outlined text-emerald-500 text-2xl">payments</span>
         </div>
-        <p class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.25em]">
+        <p class="text-xs font-semibold text-emerald-500 uppercase">
           Finance & Records
         </p>
       </div>
       <div class="flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-5xl font-black tracking-tight text-on-surface mb-2">Ledger</h1>
+          <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">Ledger</h1>
           <p class="text-on-surface-variant font-medium text-lg">
             All student payment records and transaction history.
           </p>
         </div>
         <button
-          class="flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
+          class="flex items-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-semibold text-sm transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
           @click="showAddModal = true"
         >
           <span class="material-symbols-outlined text-lg">add</span>
@@ -255,26 +255,26 @@ async function submitPayment() {
     <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
-        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-2">
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">
           Total Revenue
         </p>
-        <p class="text-3xl font-black text-on-surface">{{ formatCurrency(totalRevenue) }}</p>
+        <p class="text-3xl font-semibold text-on-surface">{{ formatCurrency(totalRevenue) }}</p>
         <p class="text-xs text-emerald-500 font-bold mt-1">
           {{ paymentsStore.completedCount }} completed payments
         </p>
       </div>
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
-        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-2">
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">
           This Month
         </p>
-        <p class="text-3xl font-black text-on-surface">{{ formatCurrency(thisMonthRevenue) }}</p>
+        <p class="text-3xl font-semibold text-on-surface">{{ formatCurrency(thisMonthRevenue) }}</p>
         <p class="text-xs text-on-surface-variant font-bold mt-1">Collected in current month</p>
       </div>
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
-        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-2">
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">
           Pending
         </p>
-        <p class="text-3xl font-black text-on-surface">{{ formatCurrency(pendingTotal) }}</p>
+        <p class="text-3xl font-semibold text-on-surface">{{ formatCurrency(pendingTotal) }}</p>
         <p class="text-xs text-amber-500 font-bold mt-1">
           {{ paymentsStore.pendingCount }} payments awaiting
         </p>
@@ -349,7 +349,7 @@ async function submitPayment() {
         <span class="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4 block"
           >receipt_long</span
         >
-        <p class="text-lg font-black text-on-surface">No payments found</p>
+        <p class="text-lg font-semibold text-on-surface">No payments found</p>
         <p class="text-sm text-on-surface-variant mt-1">
           Try adjusting your filters, or record a new payment above.
         </p>
@@ -359,7 +359,7 @@ async function submitPayment() {
       <div v-else class="space-y-3">
         <!-- Header row (hidden on mobile) -->
         <div
-          class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-4 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant"
+          class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-4 px-6 py-2 text-xs font-semibold uppercase text-on-surface-variant"
         >
           <span>Student</span>
           <span>Date</span>
@@ -372,7 +372,7 @@ async function submitPayment() {
         <div
           v-for="pay in filteredPayments"
           :key="pay.id"
-          class="glass-heavy rounded-3xl px-6 py-5 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
+          class="glass-heavy rounded-3xl px-6 py-4 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
         >
           <!-- Student -->
           <div class="flex items-center gap-3">
@@ -384,7 +384,7 @@ async function submitPayment() {
               }}</span>
             </div>
             <div>
-              <p class="text-sm font-black text-on-surface">
+              <p class="text-sm font-semibold text-on-surface">
                 {{ pay.student_name || `Student #${pay.student_id}` }}
               </p>
               <p v-if="pay.notes" class="text-xs text-on-surface-variant truncate max-w-[200px]">
@@ -402,11 +402,11 @@ async function submitPayment() {
           </p>
 
           <!-- Amount -->
-          <p class="text-sm font-black text-on-surface">{{ formatCurrency(pay.amount) }}</p>
+          <p class="text-sm font-semibold text-on-surface">{{ formatCurrency(pay.amount) }}</p>
 
           <!-- Status badge -->
           <span
-            class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border self-start sm:self-center"
+            class="px-3 py-1 rounded-full text-xs font-semibold uppercase border self-start sm:self-center"
             :class="statusColor(pay.status)"
           >
             {{ pay.status }}
@@ -447,7 +447,7 @@ async function submitPayment() {
         <span class="text-on-surface-variant font-bold"
           >{{ filteredPayments.length }} record{{ filteredPayments.length !== 1 ? 's' : '' }}</span
         >
-        <span class="font-black text-on-surface">
+        <span class="font-semibold text-on-surface">
           Filtered total:
           <span class="text-emerald-500">{{
             formatCurrency(filteredPayments.reduce((s, p) => s + p.amount, 0))
@@ -465,12 +465,12 @@ async function submitPayment() {
       @click.self="showAddModal = false"
     >
       <div
-        class="w-full max-w-md glass-heavy rounded-[2rem] border border-outline-variant/30 shadow-2xl p-6 space-y-5"
+        class="w-full max-w-md glass-heavy rounded-3xl border border-outline-variant/30 shadow-2xl p-6 space-y-4"
       >
         <div class="flex items-center justify-between">
-          <h2 class="text-xl font-black text-on-surface">Record Payment</h2>
+          <h2 class="text-xl font-semibold text-on-surface">Record Payment</h2>
           <button
-            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
+            class="size-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
             @click="showAddModal = false"
           >
             <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
@@ -481,7 +481,7 @@ async function submitPayment() {
           <!-- Student -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Student *</label
             >
             <select
@@ -496,7 +496,7 @@ async function submitPayment() {
           <!-- Amount -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Amount (PHP) *</label
             >
             <input
@@ -512,7 +512,7 @@ async function submitPayment() {
           <!-- Method -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
             >
             <select
@@ -530,7 +530,7 @@ async function submitPayment() {
           <!-- Status -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
             >
             <select
@@ -546,7 +546,7 @@ async function submitPayment() {
           <!-- Notes -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Notes (optional)</label
             >
             <input
@@ -560,7 +560,7 @@ async function submitPayment() {
 
         <button
           :disabled="isSaving"
-          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all"
+          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-semibold text-sm transition-all"
           @click="submitPayment"
         >
           <span v-if="isSaving">Saving…</span>
@@ -578,12 +578,12 @@ async function submitPayment() {
       @click.self="showEditModal = false"
     >
       <div
-        class="w-full max-w-md glass-heavy rounded-[2rem] border border-outline-variant/30 shadow-2xl p-6 space-y-5"
+        class="w-full max-w-md glass-heavy rounded-3xl border border-outline-variant/30 shadow-2xl p-6 space-y-4"
       >
         <div class="flex items-center justify-between">
-          <h2 class="text-xl font-black text-on-surface">Edit Payment</h2>
+          <h2 class="text-xl font-semibold text-on-surface">Edit Payment</h2>
           <button
-            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
+            class="size-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
             @click="showEditModal = false"
           >
             <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
@@ -594,7 +594,7 @@ async function submitPayment() {
           <!-- Student (Read-only in edit) -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Student</label
             >
             <div class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-black/5">
@@ -605,7 +605,7 @@ async function submitPayment() {
           <!-- Amount -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Amount (PHP) *</label
             >
             <input
@@ -621,7 +621,7 @@ async function submitPayment() {
           <!-- Method -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
             >
             <select
@@ -639,7 +639,7 @@ async function submitPayment() {
           <!-- Status -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
             >
             <select
@@ -655,7 +655,7 @@ async function submitPayment() {
           <!-- Notes -->
           <div>
             <label
-              class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
+              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Notes (optional)</label
             >
             <input
@@ -669,7 +669,7 @@ async function submitPayment() {
 
         <button
           :disabled="isUpdating"
-          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all"
+          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-semibold text-sm transition-all"
           @click="submitUpdate"
         >
           <span v-if="isUpdating">Updating…</span>

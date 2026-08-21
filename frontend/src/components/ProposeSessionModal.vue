@@ -134,13 +134,13 @@ const submit = async function() {
           <!-- Header -->
           <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
             <div>
-              <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">
+              <p class="text-xs font-semibold text-orange-500 uppercase mb-1">
                 {{ userRole === 'admin' ? 'Direct Schedule' : 'Propose Session' }}
               </p>
-              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">New Session Request</h3>
+              <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface">New Session Request</h3>
             </div>
             <button
-              class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
+              class="icon-btn"
               @click="$emit('close')"
             >
               <span class="material-symbols-outlined text-lg">close</span>
@@ -148,13 +148,13 @@ const submit = async function() {
           </div>
 
           <!-- Form -->
-          <div class="p-6 space-y-5">
+          <div class="p-6 space-y-4">
             <!-- Teacher select (for student / admin) -->
             <div v-if="userRole === 'student' || userRole === 'admin'">
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Teacher</label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Teacher</label>
               <select
                 v-model="form.teacherId"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
                 <option :value="null" disabled class="bg-surface-container">Select a teacher</option>
                 <option v-for="t in teachers" :key="t.id" :value="t.id" class="bg-surface-container">{{ t.name }}</option>
@@ -163,10 +163,10 @@ const submit = async function() {
 
             <!-- Student select (for teacher / admin) -->
             <div v-if="userRole === 'teacher' || userRole === 'admin'">
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Student</label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Student</label>
               <select
                 v-model="form.studentId"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
                 <option :value="null" disabled class="bg-surface-container">Select a student</option>
                 <option v-for="s in students" :key="s.id" :value="s.id" class="bg-surface-container">{{ s.name }}</option>
@@ -176,30 +176,30 @@ const submit = async function() {
             <!-- Date & Time -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Date</label>
+                <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Date</label>
                 <input
                   v-model="form.date"
                   type="date"
                   :min="todayStr"
-                  class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                  class="input"
                 />
               </div>
               <div>
-                <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Time</label>
+                <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Time</label>
                 <input
                   v-model="form.time"
                   type="time"
-                  class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                  class="input"
                 />
               </div>
             </div>
 
             <!-- Duration -->
             <div>
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Duration</label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Duration</label>
               <select
                 v-model="form.durationHours"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
                 <option value="0.5" class="bg-surface-container">30 minutes</option>
                 <option value="1" class="bg-surface-container">1 hour</option>
@@ -210,28 +210,28 @@ const submit = async function() {
 
             <!-- Busy slots helper & overlap warning -->
             <div v-if="busySlotsOnSelectedDate.length > 0" class="p-3 bg-red-500/5 border border-red-500/20 rounded-2xl">
-              <p class="text-[10px] font-black text-red-500 dark:text-red-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+              <p class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">warning</span>
                 Teacher Busy Slots on this Date:
               </p>
               <div class="flex flex-wrap gap-1.5 mt-1">
-                <span v-for="slot in busySlotsOnSelectedDate" class="text-[11px] font-bold bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-lg">
+                <span v-for="slot in busySlotsOnSelectedDate" class="text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-lg">
                   {{ formatSlotTime(slot.startTime) }} - {{ formatSlotTime(slot.endTime) }}
                 </span>
               </div>
-              <p v-if="overlapsWithBusySlot" class="text-xs font-black text-red-600 dark:text-red-400 mt-2">
+              <p v-if="overlapsWithBusySlot" class="text-xs font-semibold text-red-600 dark:text-red-400 mt-2">
                 ⚠️ Overlap conflict detected. Please select another time.
               </p>
             </div>
 
             <!-- Instrument (optional, shown if instruments list is provided) -->
             <div v-if="instruments && instruments.length > 0">
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">
                 Instrument <span class="normal-case font-medium">(optional)</span>
               </label>
               <select
                 v-model="form.instrumentId"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
                 <option :value="null" class="bg-surface-container">No specific instrument</option>
                 <option v-for="inst in instruments" :key="inst.id" :value="inst.id" class="bg-surface-container">{{ inst.name }}</option>
@@ -240,17 +240,17 @@ const submit = async function() {
 
             <!-- Notes -->
             <div>
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Notes <span class="text-on-surface-variant dark:text-on-surface-variant normal-case font-medium">(optional)</span></label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Notes <span class="text-on-surface-variant dark:text-on-surface-variant normal-case font-medium">(optional)</span></label>
               <textarea
                 v-model="form.notes"
                 rows="3"
                 placeholder="Add context, instrument focus, or any special requests..."
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 resize-none"
+                class="input resize-none"
               />
             </div>
 
             <!-- Approval notice for non-admin -->
-            <div v-if="userRole !== 'admin'" class="flex items-start gap-2.5 p-3 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div v-if="userRole !== 'admin'" class="flex items-start gap-2 p-3 rounded-2xl bg-blue-500/5 border border-blue-500/20">
               <span class="material-symbols-outlined text-blue-400 text-base mt-0.5">info</span>
               <p class="text-blue-700 dark:text-blue-300 text-xs leading-relaxed">
                 <template v-if="userRole === 'student'">Your request will be sent to your teacher for review, then forwarded to admin for final approval.</template>
@@ -263,7 +263,7 @@ const submit = async function() {
           <div class="p-4 border-t border-black/5 dark:border-white/5 flex gap-3">
             <button
               :disabled="!isValid || isSubmitting"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+              class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
               @click="submit"
             >
               <span v-if="isSubmitting" class="material-symbols-outlined text-base animate-spin">refresh</span>
@@ -271,7 +271,7 @@ const submit = async function() {
               {{ submitLabel }}
             </button>
             <button
-              class="px-5 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
+              class="px-4 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
               @click="$emit('close')"
             >
               Cancel

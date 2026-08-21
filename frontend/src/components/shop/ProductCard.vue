@@ -23,7 +23,7 @@ const handleAddToCart = function(e: Event) {
 </script>
 
 <template>
-  <div class="glass-thin rounded-[2.5rem] overflow-hidden border border-outline-variant/20 dark:border-white/5 hover:border-orange-500/30 transition-all group flex flex-col h-full bg-surface-container-low/50 dark:bg-transparent">
+  <div class="glass-thin rounded-3xl overflow-hidden border border-outline-variant/20 dark:border-white/5 hover:border-orange-500/30 transition-all group flex flex-col h-full bg-surface-container-low/50 dark:bg-transparent">
     <!-- Image -->
     <div class="aspect-square relative overflow-hidden bg-black/5 dark:bg-black/40">
       <img
@@ -37,14 +37,14 @@ const handleAddToCart = function(e: Event) {
 
       <!-- Category Badge -->
       <div v-if="product.category" class="absolute top-4 left-4">
-        <span class="px-4 py-1.5 rounded-full bg-black/40 dark:bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-widest text-white">
+        <span class="px-4 py-1.5 rounded-full bg-black/40 dark:bg-black/60 backdrop-blur-md border border-white/10 text-xs font-semibold uppercase text-white">
           {{ product.category.name }}
         </span>
       </div>
 
       <!-- Out of Stock Overlay -->
       <div v-if="product.stock <= 0" class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-        <span class="px-6 py-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-500 font-black uppercase tracking-tighter text-sm">
+        <span class="px-6 py-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-500 font-semibold uppercase tracking-tighter text-sm">
           Out of Stock
         </span>
       </div>
@@ -53,14 +53,14 @@ const handleAddToCart = function(e: Event) {
     <!-- Info -->
     <div class="p-6 flex flex-col flex-grow">
       <div class="mb-4">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface line-clamp-1 mb-1">{{ product.name }}</h3>
+        <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface line-clamp-1 mb-1">{{ product.name }}</h3>
         <p class="text-xs font-bold text-on-surface-variant dark:text-on-surface-variant line-clamp-2 h-8">{{ product.description }}</p>
       </div>
 
       <div class="mt-auto flex items-center justify-between gap-4">
         <div>
-          <p class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-0.5">Price</p>
-          <p class="text-xl font-black text-orange-500 tracking-tighter">{{ formatPrice(product.priceCents) }}</p>
+          <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-0.5">Price</p>
+          <p class="text-xl font-semibold text-orange-500 tracking-tighter">{{ formatPrice(product.priceCents) }}</p>
         </div>
 
         <button
@@ -68,7 +68,7 @@ const handleAddToCart = function(e: Event) {
           :disabled="product.stock <= 0"
           class="h-12 w-12 rounded-2xl bg-on-surface text-surface dark:bg-white dark:text-black hover:bg-orange-500 hover:text-white dark:hover:bg-orange-500 dark:hover:text-white disabled:opacity-20 transition-all flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-white/5 active:scale-90"
         >
-          <span class="material-symbols-outlined font-black">add_shopping_cart</span>
+          <span class="material-symbols-outlined font-semibold">add_shopping_cart</span>
         </button>
       </div>
     </div>

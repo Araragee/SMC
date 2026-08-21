@@ -20,6 +20,7 @@ const TeacherDashboard = () => import('@views/teacher/Dashboard.vue')
 const AdminUsers = () => import('@views/admin/Users.vue')
 const AdminStudentRecords = () => import('@views/admin/StudentRecords.vue')
 const AdminStudents = () => import('@views/admin/Students.vue')
+const AdminRoster = () => import('@views/admin/Roster.vue')
 const AdminTeachers = () => import('@views/admin/Teachers.vue')
 const AdminInstruments = () => import('@views/admin/Instruments.vue')
 const AdminPayments = () => import('@views/admin/Payments.vue')
@@ -101,6 +102,7 @@ const router = createRouter({
         { path: 'schedule', name: 'admin-schedule', component: AdminSchedule },
         { path: 'users', name: 'admin-users', component: AdminUsers },
         { path: 'students', name: 'admin-students', component: AdminStudents },
+        { path: 'roster', name: 'admin-roster', component: AdminRoster },
         { path: 'teachers', name: 'admin-teachers', component: AdminTeachers },
         { path: 'instruments', name: 'admin-instruments', component: AdminInstruments },
         { path: 'payments', name: 'admin-payments', component: AdminPayments },

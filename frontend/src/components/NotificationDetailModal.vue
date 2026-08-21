@@ -81,14 +81,14 @@ const formatTime = function (iso: string) {
 
         <!-- Modal -->
         <div
-          class="relative w-full max-w-lg glass-heavy rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
+          class="relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col"
         >
           <!-- Header Section -->
           <div class="p-8 pb-4">
             <div class="flex items-start justify-between gap-6 mb-6">
               <div class="flex items-center gap-3">
                 <div
-                  class="w-12 h-12 rounded-2xl flex items-center justify-center border shadow-inner"
+                  class="size-12 rounded-2xl flex items-center justify-center border shadow-inner"
                   :class="typeClasses(notification.type)"
                 >
                   <span class="material-symbols-outlined text-2xl">{{
@@ -97,7 +97,7 @@ const formatTime = function (iso: string) {
                 </div>
                 <div>
                   <span
-                    class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant dark:text-on-surface-variant mb-1 block"
+                    class="text-xs font-semibold uppercase text-on-surface-variant dark:text-on-surface-variant mb-1 block"
                   >
                     {{ typeLabel(notification.type) }}
                   </span>
@@ -106,7 +106,7 @@ const formatTime = function (iso: string) {
                       class="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant"
                       >{{ formatFullDate(notification.createdAt) }}</span
                     >
-                    <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+                    <span class="size-1 rounded-full bg-outline-variant"></span>
                     <span
                       class="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant"
                       >{{ formatTime(notification.createdAt) }}</span
@@ -115,7 +115,7 @@ const formatTime = function (iso: string) {
                 </div>
               </div>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all group"
+                class="icon-btn"
                 @click="$emit('close')"
               >
                 <span
@@ -126,7 +126,7 @@ const formatTime = function (iso: string) {
             </div>
 
             <h2
-              class="text-2xl font-black text-on-surface dark:text-on-surface leading-tight tracking-tight"
+              class="text-2xl font-semibold text-on-surface dark:text-on-surface leading-tight tracking-tight"
             >
               {{ notification.title || 'Notification Update' }}
             </h2>
@@ -158,8 +158,8 @@ const formatTime = function (iso: string) {
                 v-if="!notification.isRead"
                 class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 w-max"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest"
+                <span class="size-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                <span class="text-xs font-semibold text-orange-500 uppercase"
                   >New</span
                 >
               </div>
@@ -172,7 +172,7 @@ const formatTime = function (iso: string) {
                   >done_all</span
                 >
                 <span
-                  class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest"
+                  class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
                   >Read</span
                 >
               </div>
@@ -182,7 +182,7 @@ const formatTime = function (iso: string) {
               <router-link
                 v-if="notification.link"
                 :to="notification.link"
-                class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
+                class="px-6 py-3 bg-orange-500 hover:from-orange-400 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
                 @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-sm">open_in_new</span>

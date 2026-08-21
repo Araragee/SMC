@@ -65,7 +65,7 @@ const computedClasses = computed(() => {
 <template>
   <div class="space-y-2 w-full">
     <div v-if="label" class="flex justify-between items-center px-1">
-      <label :for="id" class="text-[10px] tracking-widest uppercase text-on-surface-variant font-bold">
+      <label :for="id" class="text-xs uppercase text-on-surface-variant font-bold">
         {{ label }}
       </label>
       <slot name="label-right"></slot>

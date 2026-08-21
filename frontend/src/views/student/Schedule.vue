@@ -120,7 +120,7 @@ const formatDay = function (iso: string): string {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">
           My Schedule
         </h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
@@ -135,7 +135,7 @@ const formatDay = function (iso: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-orange-500 text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -147,7 +147,7 @@ const formatDay = function (iso: string): string {
     <!-- Pending Sessions Notice -->
     <section
       v-if="pendingSessions.length > 0"
-      class="liquid-glass rounded-3xl p-5 border border-amber-500/20"
+      class="liquid-glass rounded-3xl p-4 border border-amber-500/20"
     >
       <div class="flex items-start gap-3">
         <span
@@ -165,11 +165,7 @@ const formatDay = function (iso: string): string {
               v-for="session in pendingSessions"
               :key="session.id"
               class="flex items-center justify-between p-3 rounded-2xl border"
-              :class="
-                session.status === 'pending_admin'
-                  ? 'bg-blue-500/5 border-blue-500/20'
-                  : 'bg-amber-500/5 border-amber-500/20'
-              "
+              :class="session.status === 'pending_admin' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'"
             >
               <div>
                 <p class="text-on-surface dark:text-on-surface text-sm font-bold">
@@ -180,12 +176,8 @@ const formatDay = function (iso: string): string {
                 </p>
               </div>
               <span
-                class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border"
-                :class="
-                  session.status === 'pending_admin'
-                    ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-                    : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                "
+                class="px-2 py-1 rounded-full text-xs font-semibold uppercase border"
+                :class="session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : 'bg-amber-500/20 border-amber-500/30 text-amber-400'"
               >
                 {{ session.status === 'pending_admin' ? 'Awaiting Admin' : 'Awaiting Teacher' }}
               </span>
@@ -198,7 +190,7 @@ const formatDay = function (iso: string): string {
     <!-- Weekly Calendar -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <h3
-        class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3 mb-6"
+        class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6"
       >
         <span
           class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500"
@@ -219,7 +211,7 @@ const formatDay = function (iso: string): string {
     <!-- Upcoming Sessions -->
     <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
       <h3
-        class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3"
+        class="text-xl font-semibold text-on-surface dark:text-on-surface mb-6 flex items-center gap-3"
       >
         <span class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
           <span
@@ -235,16 +227,16 @@ const formatDay = function (iso: string): string {
         <div
           v-for="session in upcomingSessions"
           :key="session.id"
-          class="flex items-center gap-5 p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 hover:border-white/10 transition-all group"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 hover:border-white/10 transition-all group"
         >
           <!-- Date badge -->
           <div
-            class="w-14 h-14 rounded-2xl bg-orange-500/20 border border-orange-500/20 flex flex-col items-center justify-center shrink-0"
+            class="size-14 rounded-2xl bg-orange-500/20 border border-orange-500/20 flex flex-col items-center justify-center shrink-0"
           >
-            <p class="text-[10px] font-black text-orange-500 uppercase tracking-wider">
+            <p class="text-xs font-semibold text-orange-500 uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-xl font-black text-on-surface dark:text-on-surface leading-none">
+            <p class="text-xl font-semibold text-on-surface dark:text-on-surface leading-none">
               {{ formatDay(session.startTime) }}
             </p>
           </div>
