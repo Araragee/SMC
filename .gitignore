@@ -17,3 +17,8 @@ TEST_USERS.md
 # Runtime logs — these were tracked on main and are pure process output;
 # they should never be in version control.
 *.log
+
+# User uploads (session proofs, homework, shop images). Runtime data, not
+# source: the app creates these directories on boot and production keeps them
+# in a mounted volume.
+uploads/
