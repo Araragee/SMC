@@ -11,8 +11,10 @@ from ..config import settings
 from ..database import get_db
 from ..dependencies import (
     get_current_active_user,
+    is_admin,
     pwd_context,
     require_admin,
+    require_self_or_admin,
 )
 from ..services.notifier import safe_notify
 from .activity import log_activity
@@ -183,6 +185,13 @@ def update_user(request: Request, user_id: int, user: schemas.UserUpdate, db: Se
         raise HTTPException(status_code=404, detail="User not found")
 
     update_data = user.model_dump(exclude_unset=True)
+
+    # Lesson balances decide what the student is owed. Self-service edits here
+    # let a student top up their own account, so only an admin may set them.
+    if not is_admin(current_user):
+        for privileged in ("sessions_left", "sessions_enrolled"):
+            update_data.pop(privileged, None)
+
     if "password" in update_data:
         pwd = update_data.pop("password")
         if len(pwd.encode()) > 72:
@@ -313,6 +322,7 @@ def assign_teacher_student(assignment: schemas.TeacherStudentCreate, db: Session
 
 @router.get("/teacher-students/teacher/{teacher_id}", response_model=list[schemas.TeacherStudent])
 def get_students_for_teacher(teacher_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    require_self_or_admin(current_user, teacher_id)
     assignments = db.query(models.TeacherStudent).filter(models.TeacherStudent.teacher_id == teacher_id).all()
     return assignments
 
