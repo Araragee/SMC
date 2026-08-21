@@ -19,6 +19,12 @@ COPY . ./backend/
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Create the upload tree in the image, owned by the runtime user. Docker seeds
+# a fresh named volume from the image's directory (contents and ownership), so
+# without this the volume mounts as root-owned and the non-root process cannot
+# write proofs or homework into it.
+RUN mkdir -p /app/uploads/shop /app/uploads/proofs /app/uploads/homework
+
 RUN useradd -m -u 1000 appuser && chown -R appuser /app
 USER appuser
 
