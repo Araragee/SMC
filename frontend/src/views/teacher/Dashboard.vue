@@ -272,7 +272,7 @@ const formatTime = (dt: string | undefined) => {
     <!-- Hero Header -->
     <section class="mb-8">
       <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-3">
-        Welcome back, <span class="text-orange-500">Maestro.</span>
+        Welcome back, <span class="text-primary">Maestro.</span>
       </h1>
       <p class="text-on-surface-variant dark:text-on-surface-variant text-lg font-medium mb-6">
         You have
@@ -285,16 +285,16 @@ const formatTime = (dt: string | undefined) => {
         <!-- Current Session Card -->
         <div
           v-if="currentSession"
-          class="liquid-glass border border-orange-500/20 rounded-3xl overflow-hidden cursor-pointer hover:border-orange-500/50 transition-all flex flex-col group"
+          class="liquid-glass border border-primary/20 rounded-3xl overflow-hidden cursor-pointer hover:border-primary/50 transition-all flex flex-col group"
           @click="openSessionModal(currentSession)"
         >
-          <div class="h-2 bg-orange-500 w-full relative">
-            <div class="absolute right-2 -top-1 size-3 bg-white rounded-full animate-ping"></div>
-            <div class="absolute right-2 -top-1 size-3 bg-white rounded-full"></div>
+          <div class="h-2 bg-primary w-full relative">
+            <div class="absolute right-2 -top-1 size-3 bg-surface-container-lowest rounded-full animate-ping"></div>
+            <div class="absolute right-2 -top-1 size-3 bg-surface-container-lowest rounded-full"></div>
           </div>
           <div class="p-4 flex-1 flex flex-col justify-center">
             <p
-              class="text-xs font-semibold text-orange-500 uppercase mb-1 flex items-center gap-2"
+              class="text-xs font-semibold text-primary uppercase mb-1 flex items-center gap-2"
             >
               LIVE NOW
             </p>
@@ -311,7 +311,7 @@ const formatTime = (dt: string | undefined) => {
         </div>
         <div
           v-else
-          class="liquid-glass border border-black/[0.04] dark:border-white/5 rounded-3xl p-4 flex flex-col justify-center items-center text-center opacity-70"
+          class="liquid-glass border border-on-surface/[0.04] dark:border-on-surface/5 rounded-3xl p-4 flex flex-col justify-center items-center text-center opacity-70"
         >
           <span class="material-symbols-outlined text-3xl text-on-surface-variant dark:text-on-surface-variant mb-2">hotel_class</span>
           <p class="text-sm font-bold text-on-surface-variant dark:text-on-surface-variant uppercase">No Active Session</p>
@@ -320,7 +320,7 @@ const formatTime = (dt: string | undefined) => {
         <!-- Next Up Session Card -->
         <div
           v-if="nextSession"
-          class="liquid-glass border border-black/[0.04] dark:border-white/5 border-l-[6px] border-l-outline-variant dark:border-l-white/20 rounded-3xl p-4 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all flex flex-col justify-center group"
+          class="liquid-glass border border-on-surface/[0.04] dark:border-on-surface/5 border-l-[6px] border-l-outline-variant dark:border-l-on-surface/20 rounded-3xl p-4 cursor-pointer hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all flex flex-col justify-center group"
           @click="openSessionModal(nextSession)"
         >
           <p
@@ -330,13 +330,13 @@ const formatTime = (dt: string | undefined) => {
           </p>
           <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-1 truncate">Session #{{ nextSession.id }}</h3>
           <p class="text-sm text-on-surface-variant dark:text-on-surface-variant truncate">{{ getStudentName(nextSession.studentId) }}</p>
-          <p class="text-xs text-orange-400 mt-2 font-bold">
+          <p class="text-xs text-primary mt-2 font-bold">
             {{ formatTime(nextSession.startTime) }}
           </p>
         </div>
         <div
           v-else
-          class="liquid-glass border border-black/[0.04] dark:border-white/5 border-l-[6px] border-l-outline-variant dark:border-l-white/10 rounded-3xl p-4 flex flex-col justify-center items-center text-center opacity-70"
+          class="liquid-glass border border-on-surface/[0.04] dark:border-on-surface/5 border-l-[6px] border-l-outline-variant dark:border-l-on-surface/10 rounded-3xl p-4 flex flex-col justify-center items-center text-center opacity-70"
         >
           <span class="material-symbols-outlined text-3xl text-on-surface-variant dark:text-on-surface-variant mb-2">event_available</span>
           <p class="text-sm font-bold text-on-surface-variant dark:text-on-surface-variant uppercase">Schedule Clear</p>
@@ -349,18 +349,18 @@ const formatTime = (dt: string | undefined) => {
       <!-- Full Column -->
       <div class="col-span-full space-y-4">
         <!-- Student Roster -->
-        <div class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 space-y-3">
+        <div class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-2xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3">
               <span
-                class="material-symbols-outlined text-orange-500 text-3xl"
+                class="material-symbols-outlined text-primary text-3xl"
                 style="font-variation-settings: 'FILL' 1"
                 >diversity_3</span
               >
               Student Roster
             </h3>
             <button
-              class="text-orange-500 font-bold text-sm hover:underline tracking-wide uppercase"
+              class="text-primary font-bold text-sm hover:underline tracking-wide uppercase"
               @click="router.push('/teacher/students')"
             >
               View All Roster
@@ -369,7 +369,7 @@ const formatTime = (dt: string | undefined) => {
 
           <!-- Loading -->
           <div v-if="usersStore.isLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div v-for="i in 2" :key="i" class="h-28 rounded-3xl bg-black/[0.04] dark:bg-white/5 animate-pulse" />
+            <div v-for="i in 2" :key="i" class="h-28 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse" />
           </div>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -377,11 +377,11 @@ const formatTime = (dt: string | undefined) => {
             <div
               v-for="entry in rosterEntries"
               :key="entry.studentId"
-              class="bg-black/[0.04] dark:bg-white/5 backdrop-blur-xl border border-black/[0.04] dark:border-white/5 p-4 rounded-3xl flex items-center gap-4 hover:border-orange-500/40 transition-all group cursor-pointer"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-4 rounded-3xl flex items-center gap-4 hover:border-primary/40 transition-all group cursor-pointer"
               @click="openRosterSession(entry.studentId)"
             >
               <div
-                class="size-16 rounded-2xl overflow-hidden shadow-2xl border border-black/[0.08] dark:border-white/10 group-hover:scale-105 transition-transform bg-surface-container-highest flex items-center justify-center shrink-0"
+                class="size-16 rounded-2xl overflow-hidden shadow-2xl border border-on-surface/[0.08] dark:border-on-surface/10 group-hover:scale-105 transition-transform bg-surface-container-highest flex items-center justify-center shrink-0"
               >
                 <span class="text-2xl font-semibold text-on-surface dark:text-on-surface">{{
                   entry.name.charAt(0).toUpperCase()
@@ -394,24 +394,24 @@ const formatTime = (dt: string | undefined) => {
                 </p>
                 <div class="flex gap-2 flex-wrap">
                   <span
-                    class="px-2 py-1 bg-orange-500/10 text-orange-400 text-xs font-bold rounded-full border border-orange-500/20 uppercase"
+                    class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full border border-primary/20 uppercase"
                     >{{ entry.status }}</span
                   >
                 </div>
               </div>
               <span
-                class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 transition-colors"
+                class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary transition-colors"
                 >chevron_right</span
               >
             </div>
 
             <!-- Enroll New -->
             <div
-              class="bg-black/[0.04] dark:bg-white/5 backdrop-blur-xl p-4 rounded-3xl flex items-center justify-center border-2 border-dashed border-black/[0.08] dark:border-white/10 hover:border-orange-500/50 hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-all group cursor-pointer"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 p-4 rounded-3xl flex items-center justify-center border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 hover:border-primary/50 hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.08] transition-all group cursor-pointer"
             >
               <div class="text-center">
                 <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 text-3xl mb-1 block"
+                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary text-3xl mb-1 block"
                   >person_add</span
                 >
                 <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase">
@@ -423,11 +423,11 @@ const formatTime = (dt: string | undefined) => {
         </div>
 
         <!-- Weekly Schedule -->
-        <div class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 space-y-3">
+        <div class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-2xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3">
-                <span class="material-symbols-outlined text-orange-500 text-3xl"
+                <span class="material-symbols-outlined text-primary text-3xl"
                   >calendar_month</span
                 >
                 Weekly Schedule
@@ -445,13 +445,13 @@ const formatTime = (dt: string | undefined) => {
               <div class="text-center">
                 <p
                   class="text-xs font-semibold uppercase"
-                  :class="day.isToday ? 'text-orange-500' : day.isWeekend ? 'text-on-surface-variant' : 'text-on-surface-variant'"
+                  :class="day.isToday ? 'text-primary' : day.isWeekend ? 'text-on-surface-variant' : 'text-on-surface-variant'"
                 >
                   {{ day.label }}
                 </p>
                 <div
                   class="size-8 rounded-full flex items-center justify-center text-sm font-semibold mx-auto mt-1"
-                  :class="day.isToday ? 'bg-orange-500 text-white' : 'text-on-surface-variant'"
+                  :class="day.isToday ? 'bg-primary text-on-primary' : 'text-on-surface-variant'"
                 >
                   {{ day.dateNum }}
                 </div>
@@ -460,10 +460,10 @@ const formatTime = (dt: string | undefined) => {
               <div
                 v-if="day.session"
                 class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
-                :class="day.session.status === 'scheduled' ? 'bg-orange-500/10 border-orange-500' : day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' : day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/20'"
+                :class="day.session.status === 'scheduled' ? 'bg-primary/10 border-primary' : day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' : day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' : 'bg-on-surface/5 dark:bg-on-surface/5 border-on-surface/10 dark:border-on-surface/20'"
                 @click="day.session && openSessionModal(day.session)"
               >
-                <p class="text-xs font-semibold text-orange-500 mb-1">
+                <p class="text-xs font-semibold text-primary mb-1">
                   {{ formatTime(day.session.startTime) }}
                 </p>
                 <p class="text-xs font-bold text-on-surface dark:text-on-surface truncate">
@@ -485,8 +485,8 @@ const formatTime = (dt: string | undefined) => {
               <!-- Empty slot -->
               <div
                 v-else
-                class="h-32 border border-dashed rounded-2xl flex items-center justify-center cursor-pointer hover:border-orange-500/40 hover:bg-orange-500/5 transition-colors"
-                :class="day.isWeekend ? 'border-black/[0.04] dark:border-white/[0.03] bg-black/[0.02] dark:bg-white/[0.01]' : 'border-black/[0.06] dark:border-white/5 bg-black/[0.03] dark:bg-black/20'"
+                class="h-32 border border-dashed rounded-2xl flex items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                :class="day.isWeekend ? 'border-on-surface/[0.04] dark:border-on-surface/[0.03] bg-on-surface/[0.02] dark:bg-on-surface/[0.01]' : 'border-on-surface/[0.06] dark:border-on-surface/5 bg-on-surface/[0.03] dark:bg-on-surface/20'"
                 @click="openProposeForDate(day.date)"
               >
                 <span class="material-symbols-outlined text-on-surface-variant text-base">add</span>
@@ -495,7 +495,7 @@ const formatTime = (dt: string | undefined) => {
           </div>
           <RouterLink
             to="/teacher/schedule"
-            class="block text-center text-xs text-on-surface-variant dark:text-on-surface-variant hover:text-orange-500 transition-colors font-bold"
+            class="block text-center text-xs text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors font-bold"
           >
             View Full Schedule →
           </RouterLink>
@@ -506,10 +506,10 @@ const formatTime = (dt: string | undefined) => {
     <!-- Footer Stats -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
       >
         <div
-          class="size-20 rounded-3xl bg-orange-500 text-white flex items-center justify-center text-4xl font-semibold shadow-2xl group-hover:scale-110 transition-transform"
+          class="size-20 rounded-3xl bg-primary text-on-surface flex items-center justify-center text-4xl font-semibold shadow-2xl group-hover:scale-110 transition-transform"
         >
           {{ mySessions.length }}
         </div>
@@ -519,10 +519,10 @@ const formatTime = (dt: string | undefined) => {
         </div>
       </div>
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
       >
         <div
-          class="size-20 rounded-3xl bg-orange-500/20 text-orange-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
+          class="size-20 rounded-3xl bg-primary/20 text-primary flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
         >
           <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1"
             >star</span
@@ -534,7 +534,7 @@ const formatTime = (dt: string | undefined) => {
         </div>
       </div>
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.08] dark:border-white/10 flex items-center gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+        class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
       >
         <div
           class="size-20 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
@@ -582,7 +582,7 @@ const formatTime = (dt: string | undefined) => {
         aria-labelledby="teacher-session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
+        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-lg bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
         >
@@ -604,7 +604,7 @@ const formatTime = (dt: string | undefined) => {
               </p>
             </div>
             <button
-              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
+              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
               aria-label="Close modal"
               @click="closeSessionModal"
             >
@@ -618,7 +618,7 @@ const formatTime = (dt: string | undefined) => {
               <label class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase">Visual Evidence</label>
             </div>
             
-            <div class="space-y-2 mb-4 bg-black/[0.04] dark:bg-white/5 p-3 rounded-xl border border-black/[0.04] dark:border-white/5">
+            <div class="space-y-2 mb-4 bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-xl border border-on-surface/[0.04] dark:border-on-surface/5">
               <div class="flex items-center justify-between text-sm">
                 <span class="text-on-surface-variant">Your Proof</span>
                 <span class="font-bold" :class="expandedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
@@ -635,17 +635,17 @@ const formatTime = (dt: string | undefined) => {
 
             <div
               v-if="expandedSession.proofs?.some(p => p.uploaderRole === 'teacher')"
-              class="relative group rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/10"
+              class="relative group rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10"
             >
               <img
                 :src="expandedSession.proofs.find(p => p.uploaderRole === 'teacher')?.imageUrl"
                 class="w-full h-auto object-cover max-h-48"
               />
               <div
-                class="absolute inset-0 bg-black/30 dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
                 <label
-                  class="px-4 py-2 bg-white/20 hover:bg-black/10 dark:hover:bg-white/30 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors"
+                  class="px-4 py-2 bg-on-surface/20 hover:bg-on-surface/10 dark:hover:bg-on-surface/30 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors"
                 >
                   Replace Image
                   <input
@@ -659,12 +659,12 @@ const formatTime = (dt: string | undefined) => {
             </div>
             <div
               v-else-if="stagedProofUrl"
-              class="relative rounded-2xl overflow-hidden border border-orange-500/50"
+              class="relative rounded-2xl overflow-hidden border border-primary/50"
             >
               <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
               <div class="absolute top-2 right-2 flex gap-2">
                 <label
-                  class="px-3 py-1.5 bg-black/30 dark:bg-black/60 hover:bg-black/80 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer backdrop-blur-sm transition-colors border border-white/20"
+                  class="px-3 py-1.5 bg-on-surface/30 dark:bg-on-surface/60 hover:bg-on-surface/80 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors border border-on-surface/20"
                 >
                   Change
                   <input
@@ -678,14 +678,14 @@ const formatTime = (dt: string | undefined) => {
             </div>
             <label
               v-else
-              class="aspect-video bg-black/[0.04] dark:bg-white/5 rounded-3xl border-2 border-dashed border-black/[0.08] dark:border-white/10 flex flex-col items-center justify-center cursor-pointer hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:border-orange-500/50 transition-all group overflow-hidden relative"
+              class="aspect-video bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-3xl border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 flex flex-col items-center justify-center cursor-pointer hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.08] hover:border-primary/50 transition-all group overflow-hidden relative"
             >
               <div class="text-center group-hover:scale-105 transition-transform">
                 <div
-                  class="size-14 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-3"
+                  class="size-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3"
                 >
                   <span
-                    class="material-symbols-outlined text-3xl text-orange-500"
+                    class="material-symbols-outlined text-3xl text-primary"
                     style="font-variation-settings: 'FILL' 1"
                     >add_a_photo</span
                   >
@@ -706,10 +706,10 @@ const formatTime = (dt: string | undefined) => {
 
 
           <!-- Negotiation Buttons -->
-          <div v-if="expandedSession.status === 'pending_teacher'" class="p-4 bg-orange-500/5 border border-orange-500/20 rounded-3xl space-y-3">
+          <div v-if="expandedSession.status === 'pending_teacher'" class="p-4 bg-primary/5 border border-primary/20 rounded-3xl space-y-3">
              <div class="flex items-center gap-2 mb-2">
-                <span class="material-symbols-outlined text-orange-500 text-sm">schedule_send</span>
-                <span class="text-xs font-bold text-orange-500 uppercase">Student Proposal</span>
+                <span class="material-symbols-outlined text-primary text-sm">schedule_send</span>
+                <span class="text-xs font-bold text-primary uppercase">Student Proposal</span>
              </div>
              <div class="flex gap-3">
                 <button 
@@ -720,7 +720,7 @@ const formatTime = (dt: string | undefined) => {
                   Approve Time
                 </button>
                 <button 
-                  class="flex-1 py-3 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+                  class="flex-1 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
                   @click="openCounter"
                 >
                   <span class="material-symbols-outlined text-sm">edit_calendar</span>
@@ -750,13 +750,13 @@ const formatTime = (dt: string | undefined) => {
           <!-- Action Buttons -->
           <div class="flex gap-3 pt-2">
             <button
-              class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10"
+              class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10"
               @click="closeSessionModal"
             >
               Cancel
             </button>
             <button
-              class="flex-1 py-3 rounded-xl bg-orange-500 hover:scale-[1.02] text-white text-sm font-semibold transition-all active:scale-95 shadow-lg shadow-orange-900/20"
+              class="flex-1 py-3 rounded-xl bg-primary hover:scale-[1.02] text-on-primary text-sm font-semibold transition-all active:scale-95 shadow-lg"
               @click="saveSessionChanges"
             >
               Save Changes
@@ -782,21 +782,21 @@ const formatTime = (dt: string | undefined) => {
         class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         @click.self="showCounterModal = false"
       >
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showCounterModal = false" />
-        <div class="relative w-full max-w-sm liquid-glass border border-white/10 rounded-3xl p-6 space-y-4 shadow-2xl">
+        <div class="absolute inset-0 bg-on-surface/40" @click="showCounterModal = false" />
+        <div class="relative w-full max-w-sm liquid-glass border border-on-surface/10 rounded-3xl p-6 space-y-4 shadow-2xl">
           <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Suggest New Time</h3>
           <div class="space-y-4">
             <div>
               <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1">Start Time</label>
-              <input v-model="counterForm.startTime" type="datetime-local" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]" />
+              <input v-model="counterForm.startTime" type="datetime-local" class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]" />
             </div>
             <div>
               <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1">Notes</label>
-              <textarea v-model="counterForm.notes" rows="2" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-sm resize-none"></textarea>
+              <textarea v-model="counterForm.notes" rows="2" class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm resize-none"></textarea>
             </div>
             <div class="flex gap-3">
-               <button class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-2xl text-sm" @click="submitCounter">Send Proposal</button>
-               <button class="px-4 py-3 bg-white/5 text-on-surface-variant font-bold rounded-2xl text-sm" @click="showCounterModal = false">Cancel</button>
+               <button class="flex-1 py-3 bg-primary text-on-surface font-bold rounded-2xl text-sm" @click="submitCounter">Send Proposal</button>
+               <button class="px-4 py-3 bg-on-surface/5 text-on-surface-variant font-bold rounded-2xl text-sm" @click="showCounterModal = false">Cancel</button>
             </div>
           </div>
         </div>

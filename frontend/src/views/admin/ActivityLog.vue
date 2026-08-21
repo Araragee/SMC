@@ -173,7 +173,7 @@ function timeAgo(dateStr: string) {
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div
-          class="w-10 h-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center"
+          class="size-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center"
         >
           <span class="material-symbols-outlined text-violet-500 text-2xl">history</span>
         </div>
@@ -190,7 +190,7 @@ function timeAgo(dateStr: string) {
         </div>
         <div class="flex items-center gap-2">
           <button
-            class="flex items-center gap-2 px-4 py-3 glass-medium border border-outline-variant/30 hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-semibold text-sm text-on-surface transition-all"
+            class="flex items-center gap-2 px-4 py-3 glass-medium border border-outline-variant/30 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 rounded-2xl font-semibold text-sm text-on-surface transition-all"
             :disabled="isExporting"
             @click="exportCsv"
           >
@@ -201,7 +201,7 @@ function timeAgo(dateStr: string) {
             {{ isExporting ? 'Exporting…' : 'Export CSV' }}
           </button>
           <button
-            class="flex items-center gap-2 px-4 py-3 glass-medium border border-outline-variant/30 hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-semibold text-sm text-on-surface transition-all"
+            class="flex items-center gap-2 px-4 py-3 glass-medium border border-outline-variant/30 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 rounded-2xl font-semibold text-sm text-on-surface transition-all"
             @click="fetchLog"
           >
             <span class="material-symbols-outlined text-lg">refresh</span>
@@ -385,7 +385,7 @@ function timeAgo(dateStr: string) {
           <button
             :disabled="currentPage === 1"
             @click="currentPage--"
-            class="size-9 rounded-2xl glass-medium border border-outline-variant/30 flex items-center justify-center text-on-surface transition-all hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+            class="size-9 rounded-2xl glass-medium border border-outline-variant/30 flex items-center justify-center text-on-surface transition-all hover:bg-on-surface/5 dark:hover:bg-on-surface/5 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <span class="material-symbols-outlined text-base">chevron_left</span>
           </button>
@@ -394,7 +394,7 @@ function timeAgo(dateStr: string) {
               v-if="p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1"
               @click="currentPage = p"
               class="size-9 rounded-2xl text-xs font-semibold transition-all border"
-              :class="p === currentPage ? 'bg-violet-500 text-white border-violet-500 shadow-lg shadow-violet-500/20' : 'glass-medium border-outline-variant/30 text-on-surface-variant hover:bg-black/5 dark:hover:bg-white/5'"
+              :class="p === currentPage ? 'bg-violet-500 text-on-surface border-violet-500 shadow-lg shadow-violet-500/20' : 'glass-medium border-outline-variant/30 text-on-surface-variant hover:bg-on-surface/5 dark:hover:bg-on-surface/5'"
             >{{ p }}</button>
             <span
               v-else-if="p === currentPage - 2 || p === currentPage + 2"
@@ -404,7 +404,7 @@ function timeAgo(dateStr: string) {
           <button
             :disabled="currentPage === totalPages"
             @click="currentPage++"
-            class="size-9 rounded-2xl glass-medium border border-outline-variant/30 flex items-center justify-center text-on-surface transition-all hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed"
+            class="size-9 rounded-2xl glass-medium border border-outline-variant/30 flex items-center justify-center text-on-surface transition-all hover:bg-on-surface/5 dark:hover:bg-on-surface/5 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <span class="material-symbols-outlined text-base">chevron_right</span>
           </button>
@@ -422,9 +422,9 @@ function timeAgo(dateStr: string) {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-lg;
+  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-lg;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 </style>

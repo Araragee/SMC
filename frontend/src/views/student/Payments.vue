@@ -63,7 +63,7 @@ const totalPaid = computed(() =>
   <div class="max-w-[1000px] mx-auto pb-28 space-y-10 px-4 sm:px-6">
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+        <div class="size-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
           <span class="material-symbols-outlined text-emerald-500 text-2xl">account_balance_wallet</span>
         </div>
         <p class="text-xs font-semibold text-emerald-500 uppercase">Financial Balance</p>
@@ -159,9 +159,9 @@ const totalPaid = computed(() =>
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-lg;
+  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-lg;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 </style>

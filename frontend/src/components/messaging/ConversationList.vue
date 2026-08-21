@@ -45,9 +45,9 @@ const onCreated = function(id: number) {
 <template>
   <div class="flex flex-col h-full">
     <!-- Search / New -->
-    <div class="px-4 py-3 border-b border-black/[0.04] dark:border-white/5">
+    <div class="px-4 py-3 border-b border-on-surface/[0.04] dark:border-on-surface/5">
       <button
-        class="w-full flex items-center justify-center gap-2 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-2xl text-orange-500 text-xs font-semibold uppercase transition-colors"
+        class="w-full flex items-center justify-center gap-2 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-2xl text-primary text-xs font-semibold uppercase transition-colors"
         @click="showNew = true"
       >
         <span class="material-symbols-outlined text-base">edit_square</span>
@@ -69,14 +69,14 @@ const onCreated = function(id: number) {
       <button
         v-for="conv in store.sortedConversations"
         :key="conv.id"
-        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-black/[0.04] dark:hover:bg-white/5 transition-colors border-b border-black/[0.03] dark:border-white/[0.03] text-left"
-        :class="conv.id === store.activeConversationId ? 'bg-orange-500/5' : ''"
+        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-on-surface/[0.04] dark:hover:bg-on-surface/5 transition-colors border-b border-on-surface/[0.03] dark:border-on-surface/[0.03] text-left"
+        :class="conv.id === store.activeConversationId ? 'bg-primary/5' : ''"
         @click="emit('select', conv.id)"
       >
         <!-- Avatar -->
         <div
-          class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 text-sm font-black"
-          :class="conv.type === 'session_thread' ? 'bg-blue-500/10 text-blue-400' : conv.type === 'group' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-orange-500/10 text-orange-400'"
+          class="size-10 rounded-2xl flex items-center justify-center shrink-0 text-sm font-semibold"
+          :class="conv.type === 'session_thread' ? 'bg-blue-500/10 text-blue-400' : conv.type === 'group' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-primary/10 text-primary'"
         >
           <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1">{{ getIcon(conv) }}</span>
         </div>
@@ -95,7 +95,7 @@ const onCreated = function(id: number) {
         <!-- Unread badge -->
         <span
           v-if="(store.unreadCounts[conv.id] ?? conv.unreadCount) > 0"
-          class="min-w-[18px] h-[18px] bg-orange-500 rounded-full text-xs font-semibold text-white flex items-center justify-center px-1 shrink-0"
+          class="min-w-[18px] h-[18px] bg-primary rounded-full text-xs font-semibold text-on-surface flex items-center justify-center px-1 shrink-0"
         >
           {{ (store.unreadCounts[conv.id] ?? conv.unreadCount) > 99 ? '99+' : (store.unreadCounts[conv.id] ?? conv.unreadCount) }}
         </span>

@@ -23,7 +23,7 @@ watch(() => auth.isAuthenticated, (v) => {
 
 <template>
   <div class="antialiased font-sans selection:bg-primary/30">
-    <div v-if="maintenance.isMaintenance" class="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center z-[9999] p-4">
+    <div v-if="maintenance.isMaintenance" class="fixed inset-0 bg-on-surface/75 flex items-center justify-center z-[9999] p-4">
       <div class="glass-heavy glass-specular max-w-md w-full p-8 rounded-3xl shadow-2xl text-center space-y-6">
         <div class="inline-flex p-4 bg-primary/10 rounded-full text-primary">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12">

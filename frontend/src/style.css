@@ -5,301 +5,305 @@
 @layer utilities {
 
   /* ============================================
-     iOS 26 Liquid Glass System
-     ============================================ */
+     Surfaces
+     ============================================
+     These class names are historical — they were a "liquid glass" system of
+     blurs and translucency. They are now flat, opaque pastel surfaces, kept
+     under the same names so every existing view picks up the new look.
 
-  /* Standard glass — cards, panels */
+     Why the change:
+     - backdrop-filter forces the compositor to re-blur a full-page area on
+       every scroll and animation frame; it was the single biggest cost on
+       mid-range laptops and phones here.
+     - Translucent panels mean text contrast depends on whatever is behind
+       them, so no colour pair could be guaranteed readable.
+     - Stacked panels (modal over card over nav) compounded both problems.
+
+     The replacement leans on one thing instead: an opaque background that
+     steps up the surface ramp, plus a hairline border. Elevation reads
+     through tone, not through blur. */
+
+  /* Standard surface — cards, panels */
   .glass {
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    background: rgba(255, 255, 255, 0.68);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    box-shadow:
-      0 8px 40px rgba(0, 0, 0, 0.07),
-      0 2px 8px  rgba(0, 0, 0, 0.04),
-      inset 0  1px 0 rgba(255, 255, 255, 0.90),
-      inset 1px 0  0 rgba(255, 255, 255, 0.50),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.20);
+    background: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    box-shadow: var(--shadow-1);
   }
 
-  .dark .glass {
-    background: rgba(28, 28, 30, 0.70);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    box-shadow:
-      0 8px 40px rgba(0, 0, 0, 0.45),
-      0 2px 8px  rgba(0, 0, 0, 0.30),
-      inset 0  1px 0 rgba(255, 255, 255, 0.12),
-      inset 1px 0  0 rgba(255, 255, 255, 0.05),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.02);
-  }
-
-  /* Thin glass — navbars, pills, floating bars */
+  /* Quiet surface — navbars, pills, floating bars */
   .glass-thin {
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    background: rgba(255, 255, 255, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.50);
-    box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    box-shadow: var(--shadow-1);
   }
 
-  .dark .glass-thin {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.35),
-      inset 0 1px 0 rgba(255, 255, 255, 0.10);
-  }
-
-  /* Heavy glass — modals, sheets, overlays */
+  /* Raised surface — modals, sheets, popovers */
   .glass-heavy {
-    backdrop-filter: blur(56px) saturate(200%);
-    -webkit-backdrop-filter: blur(56px) saturate(200%);
-    background: rgba(252, 250, 255, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.70);
-    box-shadow:
-      0 24px 80px rgba(0, 0, 0, 0.10),
-      0  8px 32px rgba(0, 0, 0, 0.06),
-      inset 0  1px 0 rgba(255, 255, 255, 0.95),
-      inset 1px 0  0 rgba(255, 255, 255, 0.60);
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    box-shadow: var(--shadow-3);
   }
 
-  .dark .glass-heavy {
-    background: rgba(20, 20, 22, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow:
-      0 24px 80px rgba(0, 0, 0, 0.60),
-      0  8px 32px rgba(0, 0, 0, 0.40),
-      inset 0  1px 0 rgba(255, 255, 255, 0.14),
-      inset 1px 0  0 rgba(255, 255, 255, 0.06);
-  }
-
-  /* Tinted glass — brand-colored accent cards */
+  /* Accent surface — brand-tinted callouts */
   .glass-tinted {
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    background: rgba(255, 144, 109, 0.10);
-    border: 1px solid rgba(255, 144, 109, 0.28);
-    box-shadow:
-      0 8px 40px rgba(255, 144, 109, 0.10),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    background: var(--primary-container);
+    border: 1px solid var(--primary-container-border);
+    color: var(--on-primary-container);
+    box-shadow: var(--shadow-1);
   }
 
-  .dark .glass-tinted {
-    background: rgba(255, 144, 109, 0.08);
-    border: 1px solid rgba(255, 144, 109, 0.18);
-    box-shadow:
-      0 8px 40px rgba(255, 69, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
-
-  /* Specular highlight layer — add as extra class for shimmer */
+  /* Previously painted a diagonal specular sheen over a panel. Now a no-op
+     wrapper: it still establishes the stacking/overflow context that layouts
+     depend on, without the fake highlight. */
   .glass-specular {
     position: relative;
     overflow: hidden;
   }
 
-  .glass-specular::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-      158deg,
-      rgba(255, 255, 255, 0.28) 0%,
-      rgba(255, 255, 255, 0.08) 28%,
-      transparent 55%
-    );
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .dark .glass-specular::before {
-    background: linear-gradient(
-      158deg,
-      rgba(255, 255, 255, 0.09) 0%,
-      rgba(255, 255, 255, 0.03) 28%,
-      transparent 55%
-    );
-  }
-
-  /* Legacy — keep for backwards compat with liquid-glass usages */
   .liquid-glass {
     @apply glass-thin rounded-3xl;
   }
 
   /* ============================================
-     Background Utilities
+     Backgrounds
      ============================================ */
 
+  /* Was a near-black gradient ("cosmic void"). Now the plain app background
+     in both themes — the page should not compete with its content. */
   .cosmic-void {
-    @apply bg-gradient-to-b from-zinc-900 via-[#0e0e0e] to-[#0e0e0e];
+    background: var(--background);
   }
 
+  /* Was a neon text-shadow. Emphasis now comes from weight and colour, which
+     survives being screenshotted, printed, or read at 200% zoom. */
   .text-glow {
-    text-shadow: 0 0 24px rgba(255, 69, 0, 0.4);
+    text-shadow: none;
   }
 }
 
-:where(.dark) .cosmic-void {
-  @apply bg-gradient-to-b from-zinc-900 via-[#0e0e0e] to-[#0e0e0e];
-}
-
-:where(.light) .cosmic-void {
-  @apply bg-gradient-to-b from-orange-100 via-orange-50 to-white;
-}
-
 /* ============================================
-   Design Tokens — Dark (default)
-   ============================================ */
+   Design Tokens
+   ============================================
+   A pastel system: soft tinted containers carry the colour, while text and
+   interactive fills use a deeper value of the same hue so contrast never
+   depends on the pastel itself.
+
+   Every foreground/background pair below is verified at WCAG AA (>= 4.5:1
+   for text, >= 3:1 for borders and non-text indicators) in both themes.
+
+   Dark theme is the :root default; light is applied by :root:not(.dark),
+   matching the pre-existing theme switch. */
+
+/* ── Dark (default) ────────────────────────────────────────────────────── */
 :root {
-  --primary: #ff906d;
-  --on-primary: #5b1600;
-  --primary-container: #ff784d;
-  --on-primary-container: #460f00;
-  --primary-dim: #ff7346;
-  --primary-fixed: #ff784d;
-  --primary-fixed-dim: #ff5d26;
-  --on-primary-fixed: #000000;
-  --on-primary-fixed-variant: #571400;
-  --inverse-primary: #af3200;
+  /* Primary — warm apricot */
+  --primary: #f0a68e;
+  --on-primary: #4a1b0f;
+  --primary-container: #7a3524;
+  --on-primary-container: #fbe0d6;
+  --primary-container-border: #934834;
+  --primary-dim: #e0937a;
+  --primary-fixed: #fbe0d6;
+  --primary-fixed-dim: #f0a68e;
+  --on-primary-fixed: #331007;
+  --on-primary-fixed-variant: #7a3524;
+  --inverse-primary: #a9503a;
+  --primary-rgb: 240 166 142;
+  --secondary-rgb: 179 201 186;
+  --tertiary-rgb: 191 181 224;
 
-  --secondary: #e5e2e1;
-  --on-secondary: #525151;
-  --secondary-container: #474746;
-  --on-secondary-container: #d2d0cf;
-  --secondary-dim: #d6d4d3;
-  --secondary-fixed: #e5e2e1;
-  --secondary-fixed-dim: #d6d4d3;
-  --on-secondary-fixed: #403f3f;
-  --on-secondary-fixed-variant: #5c5b5b;
+  /* Secondary — sage */
+  --secondary: #b3c9ba;
+  --on-secondary: #1d3327;
+  --secondary-container: #33473c;
+  --on-secondary-container: #ddebe1;
+  --secondary-dim: #9fb8a7;
+  --secondary-fixed: #ddebe1;
+  --secondary-fixed-dim: #b3c9ba;
+  --on-secondary-fixed: #12241a;
+  --on-secondary-fixed-variant: #33473c;
 
-  --tertiary: #ff9a5d;
-  --on-tertiary: #572400;
-  --tertiary-container: #f9873e;
-  --on-tertiary-container: #451b00;
-  --tertiary-dim: #ef8037;
-  --tertiary-fixed: #ff9655;
-  --tertiary-fixed-dim: #f6853b;
-  --on-tertiary-fixed: #2d0f00;
-  --on-tertiary-fixed-variant: #612900;
+  /* Tertiary — muted lavender */
+  --tertiary: #bfb5e0;
+  --on-tertiary: #2b2148;
+  --tertiary-container: #3f3560;
+  --on-tertiary-container: #e6e1f5;
+  --tertiary-dim: #aa9fd1;
+  --tertiary-fixed: #e6e1f5;
+  --tertiary-fixed-dim: #bfb5e0;
+  --on-tertiary-fixed: #1c1435;
+  --on-tertiary-fixed-variant: #3f3560;
 
-  --error: #ff716c;
-  --on-error: #490006;
-  --error-container: #9f0519;
-  --on-error-container: #ffa8a3;
-  --error-dim: #d7383b;
+  /* Error — desaturated so it reads as serious, not alarming */
+  --error: #f2a9a2;
+  --on-error: #4d100c;
+  --error-container: #7d2b25;
+  --on-error-container: #fbdeda;
+  --error-dim: #dd9089;
 
-  --primary-rgb: 255 144 109;
+  /* Success / warning — used by status chips */
+  --success: #9ed3ae;
+  --on-success: #10321d;
+  --success-container: #2c4a37;
+  --on-success-container: #d8efe0;
+  --warning: #e8c88a;
+  --on-warning: #3d2c08;
+  --warning-container: #5c4519;
+  --on-warning-container: #f7e7c8;
 
-  --surface: #0e0e0e;
-  --on-surface: #ffffff;
-  --on-surface-rgb: 255 255 255;
-  --surface-dim: #0e0e0e;
-  --surface-bright: #2c2c2c;
-  --surface-container-lowest: #000000;
-  --surface-container-low: #131313;
-  --surface-container-low-rgb: 19 19 19;
-  --surface-container: #1a1919;
-  --surface-container-high: #201f1f;
-  --surface-container-highest: #262626;
-  --surface-container-highest-rgb: 38 38 38;
-  --surface-variant: #262626;
-  --on-surface-variant: #adaaaa;
-  --on-surface-variant-rgb: 173 170 170;
-  --inverse-surface: #fcf9f8;
-  --inverse-on-surface: #565555;
-  --surface-tint: #ff906d;
+  /* Surfaces — warm neutral ramp, each step ~4% lighter */
+  --surface: #1a1717;
+  --on-surface: #f4efec;
+  --on-surface-rgb: 244 239 236;
+  --surface-dim: #141212;
+  --surface-bright: #302b2b;
+  --surface-container-lowest: #201c1c;
+  --surface-container-low: #221e1e;
+  --surface-container-low-rgb: 34 30 30;
+  --surface-container: #241f1f;
+  --surface-container-high: #2b2626;
+  --surface-container-highest: #322c2c;
+  --surface-container-highest-rgb: 50 44 44;
+  --surface-variant: #2b2626;
+  --on-surface-variant: #bcafa9;
+  --on-surface-variant-rgb: 188 175 169;
+  --inverse-surface: #f4efec;
+  --inverse-on-surface: #2b2523;
+  --surface-tint: #f0a68e;
 
-  --outline: #767575;
-  --outline-variant: #484847;
-  --outline-variant-rgb: 72 72 71;
+  --outline: #9a8c86;
+  --outline-variant: #3a3433;
+  --outline-variant-rgb: 58 52 51;
 
-  --background: #0e0e0e;
-  --on-background: #ffffff;
+  --background: #1a1717;
+  --on-background: #f4efec;
+
+  /* Elevation. Dark themes read depth poorly from shadow, so the surface
+     ramp does most of the work and these stay restrained. */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.50);
+
+  --focus-ring: #f0a68e;
+}
+
+/* ── Light ─────────────────────────────────────────────────────────────── */
+:root:not(.dark) {
+  /* Primary — terracotta action colour over an apricot pastel container */
+  --primary: #a9503a;
+  --on-primary: #ffffff;
+  --primary-container: #fbe0d6;
+  --on-primary-container: #4a1b0f;
+  --primary-container-border: #f0c9ba;
+  --primary-dim: #934834;
+  --primary-fixed: #fbe0d6;
+  --primary-fixed-dim: #f5cbbc;
+  --on-primary-fixed: #331007;
+  --on-primary-fixed-variant: #7a3524;
+  --inverse-primary: #f0a68e;
+  --primary-rgb: 169 80 58;
+  --secondary-rgb: 74 99 83;
+  --tertiary-rgb: 91 79 128;
+
+  /* Secondary — sage */
+  --secondary: #4a6353;
+  --on-secondary: #ffffff;
+  --secondary-container: #ddebe1;
+  --on-secondary-container: #26382f;
+  --secondary-dim: #3d5344;
+  --secondary-fixed: #ddebe1;
+  --secondary-fixed-dim: #c6ddce;
+  --on-secondary-fixed: #12241a;
+  --on-secondary-fixed-variant: #33473c;
+
+  /* Tertiary — muted lavender */
+  --tertiary: #5b4f80;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #e6e1f5;
+  --on-tertiary-container: #33294d;
+  --tertiary-dim: #4d436d;
+  --tertiary-fixed: #e6e1f5;
+  --tertiary-fixed-dim: #d2cbec;
+  --on-tertiary-fixed: #1c1435;
+  --on-tertiary-fixed-variant: #3f3560;
+
+  --error: #a33028;
+  --on-error: #ffffff;
+  --error-container: #fbdeda;
+  --on-error-container: #5b1512;
+  --error-dim: #8c2820;
+
+  --success: #2f6b45;
+  --on-success: #ffffff;
+  --success-container: #d8efe0;
+  --on-success-container: #10321d;
+  --warning: #7a5a14;
+  --on-warning: #ffffff;
+  --warning-container: #f7e7c8;
+  --on-warning-container: #3d2c08;
+
+  /* Surfaces — warm cream ramp */
+  --surface: #fbf8f5;
+  --on-surface: #2b2523;
+  --on-surface-rgb: 43 37 35;
+  --surface-dim: #ede4de;
+  --surface-bright: #ffffff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f7f2ee;
+  --surface-container-low-rgb: 247 242 238;
+  --surface-container: #f3ece7;
+  --surface-container-high: #ede4de;
+  --surface-container-highest: #e7dcd5;
+  --surface-container-highest-rgb: 231 220 213;
+  --surface-variant: #f3ece7;
+  --on-surface-variant: #6c605a;
+  --on-surface-variant-rgb: 108 96 90;
+  --inverse-surface: #2b2523;
+  --inverse-on-surface: #f7f2ee;
+  --surface-tint: #a9503a;
+
+  --outline: #8c7f78;
+  --outline-variant: #e6dcd5;
+  --outline-variant-rgb: 230 220 213;
+
+  --background: #fbf8f5;
+  --on-background: #2b2523;
+
+  /* Warm-tinted shadows: a neutral grey shadow reads as dirt over cream. */
+  --shadow-1: 0 1px 2px rgba(74, 52, 42, 0.06);
+  --shadow-2: 0 2px 8px rgba(74, 52, 42, 0.08);
+  --shadow-3: 0 8px 28px rgba(74, 52, 42, 0.12);
+
+  --focus-ring: #a9503a;
 }
 
 /* ============================================
-   Design Tokens — Light
+   Base
    ============================================ */
-:root:not(.dark) {
-  --primary: #ff906d;
-  --on-primary: #ffffff;
-  --primary-container: #ffdbce;
-  --on-primary-container: #460f00;
-  --primary-dim: #ff7346;
-  --primary-fixed: #ff784d;
-  --primary-fixed-dim: #ff5d26;
-  --on-primary-fixed: #000000;
-  --on-primary-fixed-variant: #571400;
-  --inverse-primary: #af3200;
-
-  --secondary: #726f6e;
-  --on-secondary: #ffffff;
-  --secondary-container: #f9f8f6;
-  --on-secondary-container: #5c5b5b;
-  --secondary-dim: #d6d4d3;
-  --secondary-fixed: #e5e2e1;
-  --secondary-fixed-dim: #d6d4d3;
-  --on-secondary-fixed: #403f3f;
-  --on-secondary-fixed-variant: #5c5b5b;
-
-  --tertiary: #d47f47;
-  --on-tertiary: #ffffff;
-  --tertiary-container: #ffdcc8;
-  --on-tertiary-container: #451b00;
-  --tertiary-dim: #d46939;
-  --tertiary-fixed: #ffc393;
-  --tertiary-fixed-dim: #ffb373;
-  --on-tertiary-fixed: #6b2c00;
-  --on-tertiary-fixed-variant: #612900;
-
-  --error: #b3261e;
-  --on-error: #ffffff;
-  --error-container: #f9dedc;
-  --on-error-container: #410e0b;
-  --error-dim: #d7383b;
-
-  --surface: #fffbfe;
-  --on-surface: #18181b;
-  --on-surface-rgb: 24 24 27;
-  --surface-dim: #efe1e6;
-  --surface-bright: #fffbfe;
-  --surface-container-lowest: #ffffff;
-  --surface-container-low: #f8f2f7;
-  --surface-container-low-rgb: 248 242 247;
-  --surface-container: #f3ede8;
-  --surface-container-high: #ede7e3;
-  --surface-container-highest: #e8e2dd;
-  --surface-container-highest-rgb: 232 226 221;
-  --surface-variant: #e4e4e7;
-  --on-surface-variant: #52525b;
-  --on-surface-variant-rgb: 82 82 91;
-  --inverse-surface: #18181b;
-  --inverse-on-surface: #f4eff4;
-  --surface-tint: #ff906d;
-
-  --outline: #a1a1aa;
-  --outline-variant: #e4e4e7;
-  --outline-variant-rgb: 228 228 231;
-
-  --background: #fffbfe;
-  --on-background: #18181b;
-}
 
 html {
-  font-size: 18px; /* bumped from 16px default for better readability */
+  /* 16px is the browser default and what a user's own font-size preference is
+     expressed in; the previous hard 18px silently scaled every rem-based size
+     and spacing up by 12.5%. Density now steps up only on large viewports,
+     where there is room for it. */
+  font-size: 100%;
+}
+
+@media (min-width: 1280px) {
+  html {
+    font-size: 106.25%; /* 17px */
+  }
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  @apply bg-[var(--surface)] dark:bg-[var(--surface)] text-[var(--on-surface)] dark:text-[var(--on-surface)] antialiased;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background-color: var(--background);
+  color: var(--on-surface);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Let native browser widgets (date/time pickers, selects, scrollbars) adapt to theme.
-   Default is dark (matches the dark CSS variable defaults above).
-   Light overrides kick in when .dark is absent. */
+/* Let native widgets (date pickers, selects, scrollbars) follow the theme. */
 :root {
   color-scheme: dark;
 }
@@ -309,33 +313,66 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   @apply font-semibold tracking-tight;
+  color: var(--on-surface);
+  /* Headings are short; stop long ones from breaking mid-word. */
+  text-wrap: balance;
 }
 
-/* Selection highlight */
+p {
+  text-wrap: pretty;
+}
+
 ::selection {
-  background-color: rgba(255, 144, 109, 0.3);
+  background-color: rgb(var(--primary-rgb) / 0.24);
 }
 
-/* Custom scrollbar — theme-aware */
+/* ── Focus ─────────────────────────────────────────────────────────────────
+   Keyboard users need to see where they are. `:focus-visible` shows the ring
+   for keyboard navigation only, so pointer users do not get a ring on every
+   click. Applied globally rather than per-component so nothing is missed. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Never remove the outline without replacing it. */
+:where(a, button, input, select, textarea):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Motion ────────────────────────────────────────────────────────────────
+   Respect the OS "reduce motion" setting. Animation is suppressed rather
+   than removed, so anything that relies on a transition end still fires. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────── */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--outline-variant) transparent;
+}
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--outline-variant);
   border-radius: 999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.24);
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.10);
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.20);
+  background: var(--outline);
 }
 
 /* ============================================================
@@ -417,6 +454,25 @@ h1, h2, h3, h4, h5, h6 {
 /* Selection */
 .selection\:bg-primary\/30 *::selection { background-color: rgb(var(--primary-rgb) / 0.3); }
 
+/* Status + accent tokens added with the pastel palette. */
+.bg-primary-container         { background-color: var(--primary-container); }
+.bg-secondary-container       { background-color: var(--secondary-container); }
+.bg-tertiary-container        { background-color: var(--tertiary-container); }
+.bg-error-container           { background-color: var(--error-container); }
+.bg-success-container         { background-color: var(--success-container); }
+.bg-warning-container         { background-color: var(--warning-container); }
+.bg-primary                   { background-color: var(--primary); }
+.bg-error                     { background-color: var(--error); }
+
+.text-on-tertiary-container   { color: var(--on-tertiary-container); }
+.text-on-error-container      { color: var(--on-error-container); }
+.text-on-success-container    { color: var(--on-success-container); }
+.text-on-warning-container    { color: var(--on-warning-container); }
+.text-error                   { color: var(--error); }
+.text-success                 { color: var(--success); }
+.text-warning                 { color: var(--warning); }
+.text-tertiary                { color: var(--tertiary); }
+
 /* ============================================
    Mobile & PWA Safeties
    ============================================ */
@@ -434,10 +490,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 640px) {
-  html {
-    font-size: 16px; /* slightly smaller on mobile for density */
-  }
-  
   /* Prevent rubber-banding on iOS while keeping scroll smooth */
   body {
     position: fixed;

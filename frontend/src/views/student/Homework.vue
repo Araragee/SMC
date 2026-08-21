@@ -72,7 +72,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
     <!-- Header -->
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+        <div class="size-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
           <span class="material-symbols-outlined text-indigo-500 text-2xl">menu_book</span>
         </div>
         <p class="text-xs font-semibold text-indigo-500 uppercase">Self Study</p>
@@ -125,7 +125,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
                     @change="(e) => handleFileUpload(e, hw.id)"
                     accept="image/*,.pdf,.doc,.docx"
                   />
-                  <div class="w-full py-4 bg-indigo-500 text-white rounded-2xl text-xs font-semibold uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all">
+                  <div class="w-full py-4 bg-indigo-500 text-on-surface rounded-2xl text-xs font-semibold uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all">
                     <span class="material-symbols-outlined text-sm">{{ isUploading === hw.id ? 'progress_activity' : 'cloud_upload' }}</span>
                     {{ isUploading === hw.id ? 'Uploading...' : 'Submit Proof' }}
                   </div>
@@ -161,7 +161,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
               v-if="hw.fileUrl" 
               :href="hw.fileUrl" 
               target="_blank"
-              class="ml-4 w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
+              class="ml-4 size-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
             >
               <span class="material-symbols-outlined">visibility</span>
             </a>
@@ -174,9 +174,9 @@ async function handleFileUpload(event: Event, homeworkId: number) {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl;
+  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-xl;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 </style>

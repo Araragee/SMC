@@ -34,7 +34,7 @@ function handleKeydown(e: KeyboardEvent) {
         class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
         @keydown="handleKeydown"
       >
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="handleCancel" />
+        <div class="absolute inset-0 bg-on-surface/50" @click="handleCancel" />
 
         <div class="relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl overflow-hidden">
           <!-- Accent glow -->

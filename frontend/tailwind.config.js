@@ -50,6 +50,17 @@ export default {
         "on-tertiary-fixed":          "var(--on-tertiary-fixed)",
         "on-tertiary-fixed-variant":  "var(--on-tertiary-fixed-variant)",
 
+        // Status colors — pastel containers with a deeper on-* foreground.
+        "success":                    "var(--success)",
+        "on-success":                 "var(--on-success)",
+        "success-container":          "var(--success-container)",
+        "on-success-container":       "var(--on-success-container)",
+
+        "warning":                    "var(--warning)",
+        "on-warning":                 "var(--on-warning)",
+        "warning-container":          "var(--warning-container)",
+        "on-warning-container":       "var(--on-warning-container)",
+
         "error":                      "var(--error)",
         "on-error":                   "var(--on-error)",
         "error-container":            "var(--error-container)",
@@ -98,7 +109,15 @@ export default {
         "sans": ["Plus Jakarta Sans", "sans-serif"],
         "plus-jakarta-sans": ["Plus Jakarta Sans", "sans-serif"],
       },
-      borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem"},
+      // Radii were 1rem/2rem/3rem — heavy enough that small controls read as
+      // pills and cards as lozenges. Scaled to a conventional ramp where the
+      // radius stays proportional to the element.
+      borderRadius: {"DEFAULT": "0.75rem", "lg": "1rem", "xl": "1.5rem"},
+      boxShadow: {
+        "e1": "var(--shadow-1)",
+        "e2": "var(--shadow-2)",
+        "e3": "var(--shadow-3)",
+      },
     },
   },
   plugins: [],

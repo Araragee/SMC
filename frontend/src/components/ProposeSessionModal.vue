@@ -128,13 +128,13 @@ const submit = async function() {
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="$emit('close')" />
 
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
+          <div class="flex items-center justify-between p-6 border-b border-on-surface/5 dark:border-on-surface/5">
             <div>
-              <p class="text-xs font-semibold text-orange-500 uppercase mb-1">
+              <p class="text-xs font-semibold text-primary uppercase mb-1">
                 {{ userRole === 'admin' ? 'Direct Schedule' : 'Propose Session' }}
               </p>
               <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface">New Session Request</h3>
@@ -260,10 +260,10 @@ const submit = async function() {
           </div>
 
           <!-- Footer -->
-          <div class="p-4 border-t border-black/5 dark:border-white/5 flex gap-3">
+          <div class="p-4 border-t border-on-surface/5 dark:border-on-surface/5 flex gap-3">
             <button
               :disabled="!isValid || isSubmitting"
-              class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+              class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
               @click="submit"
             >
               <span v-if="isSubmitting" class="material-symbols-outlined text-base animate-spin">refresh</span>
@@ -271,7 +271,7 @@ const submit = async function() {
               {{ submitLabel }}
             </button>
             <button
-              class="px-4 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
+              class="px-4 py-3 bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
               @click="$emit('close')"
             >
               Cancel

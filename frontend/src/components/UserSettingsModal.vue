@@ -103,7 +103,7 @@ const handleLogout = () => {
         @click.self="$emit('close')"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/80 backdrop-blur-md" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/80" @click="$emit('close')" />
 
         <!-- Modal Card -->
         <div
@@ -111,19 +111,19 @@ const handleLogout = () => {
         >
           <!-- Decorative Header -->
           <div
-            class="h-2 w-full bg-orange-600"
+            class="h-2 w-full bg-primary"
           ></div>
 
           <!-- Header Section -->
           <div class="p-8 pb-0 flex items-start justify-between">
             <div>
-              <p class="text-xs font-semibold text-orange-500 uppercase mb-2">
+              <p class="text-xs font-semibold text-primary uppercase mb-2">
                 Account Control
               </p>
               <h2 class="text-3xl font-semibold text-on-surface dark:text-on-surface tracking-tight">User Settings</h2>
             </div>
             <button
-              class="size-12 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group"
+              class="size-12 rounded-2xl bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all group"
               @click="$emit('close')"
             >
               <span
@@ -139,22 +139,22 @@ const handleLogout = () => {
               <div class="flex items-center gap-6">
                 <div class="relative group">
                   <div
-                    class="size-24 rounded-3xl bg-orange-500/10 border-2 border-dashed border-orange-500/30 flex items-center justify-center overflow-hidden transition-all group-hover:border-orange-500/60"
+                    class="size-24 rounded-3xl bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden transition-all group-hover:border-primary/60"
                   >
                     <img
                       v-if="form.avatar_url || authStore.user?.avatarUrl"
                       :src="form.avatar_url || authStore.user?.avatarUrl"
                       class="w-full h-full object-cover"
                     />
-                    <span v-else class="text-3xl font-semibold text-orange-500/40">{{
+                    <span v-else class="text-3xl font-semibold text-primary/40">{{
                       authStore.user?.name?.charAt(0).toUpperCase()
                     }}</span>
 
                     <!-- Overlay for upload (mock) -->
                     <div
-                      class="absolute inset-0 bg-black/30 dark:bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                      class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                     >
-                      <span class="material-symbols-outlined text-white dark:text-white text-2xl">add_a_photo</span>
+                      <span class="material-symbols-outlined text-on-surface dark:text-on-surface text-2xl">add_a_photo</span>
                     </div>
                   </div>
                 </div>
@@ -162,9 +162,9 @@ const handleLogout = () => {
                   <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-1">{{ authStore.user?.name }}</h3>
                   <p class="text-on-surface-variant dark:text-on-surface-variant text-sm font-medium">{{ authStore.user?.email }}</p>
                   <div
-                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 mt-3"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mt-3"
                   >
-                    <span class="text-xs font-semibold text-orange-500 uppercase">{{
+                    <span class="text-xs font-semibold text-primary uppercase">{{
                       authStore.user?.role
                     }}</span>
                   </div>
@@ -197,7 +197,7 @@ const handleLogout = () => {
             <!-- Security Section -->
             <section class="space-y-6">
               <div class="flex items-center gap-3 px-1">
-                <span class="material-symbols-outlined text-orange-500 text-lg">security</span>
+                <span class="material-symbols-outlined text-primary text-lg">security</span>
                 <h3 class="text-sm font-semibold text-on-surface dark:text-on-surface uppercase">
                   Security &amp; Privacy
                 </h3>
@@ -283,7 +283,7 @@ const handleLogout = () => {
                       </button>
                       <button
                         type="button"
-                        class="px-4 py-2 bg-red-500 text-white text-xs font-semibold rounded-xl uppercase hover:bg-red-600 transition-all"
+                        class="px-4 py-2 bg-red-500 text-on-surface text-xs font-semibold rounded-xl uppercase hover:bg-red-600 transition-all"
                         @click="handleDisable2FA"
                       >
                         Confirm Deactivation
@@ -295,7 +295,7 @@ const handleLogout = () => {
                 <div v-else>
                   <button
                     type="button"
-                    class="w-full py-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-500 font-semibold rounded-2xl text-xs uppercase transition-all"
+                    class="w-full py-3 bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary font-semibold rounded-2xl text-xs uppercase transition-all"
                     @click="isTwoFASetupOpen = true"
                   >
                     Set Up Authenticator
@@ -307,7 +307,7 @@ const handleLogout = () => {
             <!-- Appearance Section -->
             <section class="space-y-6">
               <div class="flex items-center gap-3 px-1">
-                <span class="material-symbols-outlined text-orange-500 text-lg">palette</span>
+                <span class="material-symbols-outlined text-primary text-lg">palette</span>
                 <h3
                   class="text-sm font-semibold text-on-surface dark:text-on-surface uppercase"
                 >
@@ -325,7 +325,7 @@ const handleLogout = () => {
                   </p>
                 </div>
                 <!-- 3-Way Theme Picker -->
-                <div class="flex rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.06] dark:border-white/8 p-1 gap-1">
+                <div class="flex rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.06] dark:border-on-surface/8 p-1 gap-1">
                   <button
                     v-for="opt in ([
                       { value: 'system', icon: 'desktop_windows', label: 'System' },
@@ -334,7 +334,7 @@ const handleLogout = () => {
                     ] as const)"
                     :key="opt.value"
                     class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all duration-300"
-                    :class="themeStore.preference === opt.value ? 'bg-white dark:bg-white/15 text-orange-600 dark:text-orange-400 shadow-sm border border-black/[0.06] dark:border-white/10' : 'text-on-surface-variant hover:text-on-surface hover:bg-black/[0.04] dark:hover:bg-white/5'"
+                    :class="themeStore.preference === opt.value ? 'bg-surface-container-lowest dark:bg-on-surface/15 text-primary dark:text-primary shadow-sm border border-on-surface/[0.06] dark:border-on-surface/10' : 'text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.04] dark:hover:bg-on-surface/5'"
                     :aria-label="`Switch to ${opt.label} mode`"
                     :aria-pressed="themeStore.preference === opt.value"
                     @click="themeStore.setPreference(opt.value)"
@@ -371,7 +371,7 @@ const handleLogout = () => {
 
           <!-- Sticky Footer -->
           <div
-            class="p-8 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] flex items-center justify-end gap-4 shrink-0"
+            class="p-8 border-t border-on-surface/5 dark:border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] flex items-center justify-end gap-4 shrink-0"
           >
             <button
               class="px-6 py-3 text-sm font-bold text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-colors"
@@ -381,7 +381,7 @@ const handleLogout = () => {
             </button>
             <button
               :disabled="authStore.isLoading"
-              class="px-10 py-3 bg-orange-500 hover:from-orange-400 hover:to-orange-600 text-white dark:text-white font-semibold rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+              class="px-10 py-3 bg-primary text-on-primary dark:text-on-surface font-semibold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
               @click="handleSave"
             >
               <span

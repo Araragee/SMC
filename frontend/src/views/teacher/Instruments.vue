@@ -96,14 +96,14 @@ async function removeInstrument(instrumentId: string | number) {
   <div class="max-w-[1200px] mx-auto pb-28 space-y-8 px-4 sm:px-6">
     <!-- Header -->
     <header class="relative py-8">
-      <div class="absolute -top-10 -left-10 size-64 bg-orange-500/10 blur-[100px] rounded-full -z-10 animate-pulse" />
+      <div class="absolute -top-10 -left-10 size-64 bg-primary/10 blur-[100px] rounded-full -z-10 animate-pulse" />
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shadow-inner">
-              <span class="material-symbols-outlined text-orange-500 text-2xl">piano</span>
+            <div class="size-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+              <span class="material-symbols-outlined text-primary text-2xl">piano</span>
             </div>
-            <p class="text-xs font-semibold text-orange-500 uppercase">Professional Profile</p>
+            <p class="text-xs font-semibold text-primary uppercase">Professional Profile</p>
           </div>
           <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">My Instruments</h1>
           <p class="text-on-surface-variant font-medium text-lg">
@@ -114,18 +114,18 @@ async function removeInstrument(instrumentId: string | number) {
     </header>
 
     <!-- Tabs -->
-    <div class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-white/5 pb-4">
+    <div class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-on-surface/5 pb-4">
       <button
         @click="activeTab = 'my-instruments'"
         class="px-6 py-2 rounded-xl text-sm font-semibold uppercase transition-all"
-        :class="activeTab === 'my-instruments' ? 'text-orange-500 bg-orange-500/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
+        :class="activeTab === 'my-instruments' ? 'text-primary bg-primary/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
       >
         My Certified Instruments
       </button>
       <button
         @click="activeTab = 'order-history'"
         class="px-6 py-2 rounded-xl text-sm font-semibold uppercase transition-all"
-        :class="activeTab === 'order-history' ? 'text-orange-500 bg-orange-500/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
+        :class="activeTab === 'order-history' ? 'text-primary bg-primary/10 shadow-sm' : 'text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
       >
         Order History
       </button>
@@ -140,7 +140,7 @@ async function removeInstrument(instrumentId: string | number) {
             <span class="size-2 rounded-full bg-emerald-500"></span>
             Active Repertoire
           </h2>
-          <span class="text-xs font-bold text-on-surface-variant bg-black/5 dark:bg-white/5 px-3 py-1 rounded-full border border-black/5 dark:border-white/5 uppercase">
+          <span class="text-xs font-bold text-on-surface-variant bg-on-surface/5 dark:bg-on-surface/5 px-3 py-1 rounded-full border border-on-surface/5 dark:border-on-surface/5 uppercase">
             {{ myInstruments.length }} Assigned
           </span>
         </div>
@@ -157,7 +157,7 @@ async function removeInstrument(instrumentId: string | number) {
           <div 
             v-for="inst in myInstruments" 
             :key="inst.id"
-            class="group relative overflow-hidden glass-heavy rounded-3xl border border-outline-variant/20 hover:border-orange-500/30 transition-all hover:shadow-2xl hover:shadow-orange-500/5 hover:-translate-y-1 p-6"
+            class="group relative overflow-hidden glass-heavy rounded-3xl border border-outline-variant/20 hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1 p-6"
           >
             <!-- Decorative bg -->
             <div class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 transition-all">
@@ -166,7 +166,7 @@ async function removeInstrument(instrumentId: string | number) {
 
             <div class="flex justify-between items-start relative z-10">
               <div class="flex items-center gap-4">
-                <div class="size-12 rounded-2xl bg-orange-400 flex items-center justify-center shadow-lg shadow-orange-900/20 text-white">
+                <div class="size-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg text-on-primary">
                   <span class="material-symbols-outlined text-2xl">music_note</span>
                 </div>
                 <div>
@@ -175,7 +175,7 @@ async function removeInstrument(instrumentId: string | number) {
                 </div>
               </div>
               <button 
-                class="size-8 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/10 opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 hover:text-white flex items-center justify-center"
+                class="size-8 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/10 opacity-0 group-hover:opacity-100 transition-all hover:bg-rose-500 hover:text-on-surface flex items-center justify-center"
                 @click="removeInstrument(inst.id)"
                 title="Remove from profile"
               >
@@ -193,7 +193,7 @@ async function removeInstrument(instrumentId: string | number) {
         <div class="glass-medium rounded-3xl border border-outline-variant/30 p-6 space-y-6 shadow-xl">
           <!-- Search box -->
           <div class="relative group">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-orange-500">search</span>
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary">search</span>
             <input 
               v-model="searchQuery"
               type="text" 
@@ -209,14 +209,14 @@ async function removeInstrument(instrumentId: string | number) {
             <div 
               v-for="inst in availableInstruments" 
               :key="inst.id"
-              class="flex items-center justify-between p-3 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-all group"
+              class="flex items-center justify-between p-3 rounded-2xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all group"
             >
               <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-on-surface-variant group-hover:text-orange-500 transition-colors">circle</span>
+                <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">circle</span>
                 <span class="text-sm font-bold text-on-surface">{{ inst.name }}</span>
               </div>
               <button 
-                class="size-8 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/10 hover:bg-orange-500 hover:text-white flex items-center justify-center transition-all disabled:opacity-30"
+                class="size-8 rounded-xl bg-primary/10 text-primary border border-primary/10 hover:bg-primary hover:text-on-surface flex items-center justify-center transition-all disabled:opacity-30"
                 @click="addInstrument(inst)"
                 :disabled="isSaving"
               >
@@ -246,11 +246,11 @@ async function removeInstrument(instrumentId: string | number) {
         <div
           v-for="order in shopStore.myOrders"
           :key="order.id"
-          class="glass-heavy rounded-3xl p-6 border border-outline-variant/20 dark:border-white/5 hover:border-orange-500/30 transition-all group"
+          class="glass-heavy rounded-3xl p-6 border border-outline-variant/20 dark:border-on-surface/5 hover:border-primary/30 transition-all group"
         >
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-              <div class="size-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+              <div class="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <span class="material-symbols-outlined">receipt_long</span>
               </div>
               <div>
@@ -272,7 +272,7 @@ async function removeInstrument(instrumentId: string | number) {
               <button
                 v-if="order.status === 'pending'"
                 @click="shopStore.cancelMyOrder(order.id)"
-                class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 text-xs font-semibold uppercase hover:bg-rose-500 hover:text-white transition-all"
+                class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 text-xs font-semibold uppercase hover:bg-rose-500 hover:text-on-surface transition-all"
               >
                 Cancel
               </button>
@@ -280,15 +280,15 @@ async function removeInstrument(instrumentId: string | number) {
           </div>
 
           <!-- Order Items Preview -->
-          <div class="mt-6 pt-6 border-t border-outline-variant/20 dark:border-white/5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div class="mt-6 pt-6 border-t border-outline-variant/20 dark:border-on-surface/5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <div
               v-for="item in order.items"
               :key="item.id"
-              class="flex items-center gap-3 px-4 py-2 bg-black/5 dark:bg-black/20 rounded-2xl border border-outline-variant/20 dark:border-white/5 shrink-0"
+              class="flex items-center gap-3 px-4 py-2 bg-on-surface/5 dark:bg-on-surface/20 rounded-2xl border border-outline-variant/20 dark:border-on-surface/5 shrink-0"
             >
-              <div class="size-8 rounded-lg overflow-hidden bg-black/10 dark:bg-black/40">
+              <div class="size-8 rounded-lg overflow-hidden bg-on-surface/10 dark:bg-on-surface/40">
                 <img v-if="item.product?.imageUrl" :src="item.product.imageUrl.startsWith('http') ? item.product.imageUrl : `${API_URL}${item.product.imageUrl}`" class="w-full h-full object-cover" />
-                <div v-else class="w-full h-full flex items-center justify-center text-white/10">
+                <div v-else class="w-full h-full flex items-center justify-center text-on-surface/10">
                   <span class="material-symbols-outlined text-xs">image</span>
                 </div>
               </div>
@@ -304,8 +304,8 @@ async function removeInstrument(instrumentId: string | number) {
       </div>
 
       <!-- Empty Orders -->
-      <div v-else class="flex flex-col items-center justify-center py-20 glass-heavy rounded-[3rem] border border-outline-variant/20 dark:border-white/5 bg-surface-container-low/50 dark:bg-transparent">
-        <div class="size-20 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mb-6 shadow-inner">
+      <div v-else class="flex flex-col items-center justify-center py-20 glass-heavy rounded-[3rem] border border-outline-variant/20 dark:border-on-surface/5 bg-surface-container-low/50 dark:bg-transparent">
+        <div class="size-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 shadow-inner">
           <span class="material-symbols-outlined text-4xl">history</span>
         </div>
         <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-2">No orders yet</h3>
@@ -317,10 +317,10 @@ async function removeInstrument(instrumentId: string | number) {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl shadow-2xl;
+  @apply bg-on-surface/70 dark:bg-zinc-900/70 shadow-2xl;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

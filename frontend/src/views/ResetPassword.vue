@@ -111,7 +111,7 @@ const submit = async () => {
         <button
           :disabled="!canSubmit"
           type="submit"
-          class="w-full h-14 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white uppercase active:scale-[0.98] transition-all disabled:opacity-50"
+          class="w-full h-14 bg-primary hover:bg-primary-dim rounded-xl font-bold text-on-primary uppercase active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {{ isLoading ? 'Saving…' : 'Save new password' }}
         </button>

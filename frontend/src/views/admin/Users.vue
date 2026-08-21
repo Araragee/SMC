@@ -189,7 +189,7 @@ const handleDeleteUser = async (user: User) => {
                 <div class="flex items-center justify-end gap-2">
                   <button
                     v-if="user.role === 'student'"
-                    class="w-10 h-10 rounded-xl bg-surface-container-highest/20 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 border border-transparent hover:border-secondary/20 transition-all active:scale-90"
+                    class="icon-btn"
                     title="View Records"
                     @click="navigateToRecords(user.id)"
                   >
@@ -239,7 +239,7 @@ const handleDeleteUser = async (user: User) => {
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showEditModal = false"
         >
-          <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-sm" @click="showEditModal = false" />
+          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="showEditModal = false" />
           <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-3xl p-8 shadow-2xl overflow-hidden">
             <div class="absolute top-0 right-0 size-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
 
@@ -261,13 +261,13 @@ const handleDeleteUser = async (user: User) => {
                 </div>
                 <div class="space-y-1.5">
                   <label class="field-label">Email Address</label>
-                  <input v-model="editForm.email" type="email" required class="input opacity-70" readonly />
+                  <input v-model="editForm.email" type="email" required class="input" readonly />
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                   <div class="space-y-1.5">
                     <label class="field-label">System Role</label>
                     <div class="relative">
-                      <select v-model="editForm.role" class="select">
+                      <select v-model="editForm.role" class="input appearance-none">
                         <option value="student" class="bg-surface-container">Student</option>
                         <option value="teacher" class="bg-surface-container">Teacher</option>
                         <option value="admin" class="bg-surface-container">Admin</option>
@@ -283,7 +283,7 @@ const handleDeleteUser = async (user: User) => {
               </div>
 
               <div class="flex gap-3 pt-6">
-                <button type="submit" :disabled="isSubmitting" class="btn-primary flex-1">
+                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-on-primary text-sm font-semibold uppercase transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
                   {{ isSubmitting ? 'Updating...' : 'Save Changes' }}
                 </button>
               </div>

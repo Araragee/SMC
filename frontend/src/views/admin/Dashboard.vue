@@ -54,8 +54,8 @@ onMounted(async () => {
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
     paymentsStore.fetchPayments(),
-    // Roster load is best-effort: the rest of the dashboard should still render
-    // if the roster endpoints are unavailable.
+    // Best-effort: the rest of the dashboard still renders if roster
+    // endpoints are unavailable.
     rosterStore.fetchAll().catch(() => {}),
   ])
   if (authStore.currentUser?.id) {
@@ -180,14 +180,14 @@ const statusClass = (status: string) => ({
   'bg-emerald-500/20 text-emerald-400': status === 'completed',
   'bg-blue-500/20 text-blue-400': status === 'scheduled',
   'bg-amber-500/20 text-amber-400': status === 'pending_teacher' || status === 'ongoing',
-  'bg-orange-500/20 text-orange-400': status === 'pending_student',
+  'bg-primary/20 text-primary': status === 'pending_student',
   'bg-blue-600/20 text-blue-300': status === 'pending_admin',
   'bg-red-500/20 text-red-400': status === 'rejected' || status === 'cancelled',
 })
 
 const borderColor = (status: string) => ({
   'border-emerald-500 dark:border-emerald-400/20': status === 'completed',
-  'border-orange-500 dark:border-orange-400/20': status === 'scheduled' || status === 'pending_student',
+  'border-primary dark:border-primary/20': status === 'scheduled' || status === 'pending_student',
   'border-amber-500 dark:border-amber-400/20': status === 'pending_teacher' || status === 'ongoing',
   'border-blue-500 dark:border-blue-400/20': status === 'pending_admin',
   'border-red-500 dark:border-red-400/20': status === 'rejected' || status === 'cancelled',
@@ -195,7 +195,7 @@ const borderColor = (status: string) => ({
 
 const iconClass = (status: string) => ({
   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
-  'bg-orange-500/10 text-orange-400 border-orange-500/20':
+  'bg-primary/10 text-primary border-primary/20':
     status === 'scheduled' || status === 'pending_student',
   'bg-amber-500/10 text-amber-400 border-amber-500/20':
     status === 'pending_teacher' || status === 'ongoing',
@@ -363,17 +363,17 @@ const openLiveAnalytics = function () {
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <!-- Live Analytics (col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2) -->
       <div
-        class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 liquid-glass p-6 rounded-3xl border border-black/[0.04] dark:border-white/5 flex flex-col justify-between cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-all group active:scale-[0.99] shadow-lg shadow-black/[0.02]"
+        class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 liquid-glass p-6 rounded-3xl border border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col justify-between cursor-pointer hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all group active:scale-[0.99] shadow-lg shadow-e2/[0.02]"
         @click="openLiveAnalytics"
       >
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-xs font-semibold text-orange-500 uppercase"
+            <span class="text-xs font-semibold text-primary uppercase"
               >Live Analytics</span
             >
             <div
               v-if="scheduleStore.isLoading"
-              class="h-10 w-48 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+              class="h-10 w-48 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
             />
             <h2
               v-else
@@ -433,31 +433,31 @@ const openLiveAnalytics = function () {
 
       <!-- Retention Rate (orange gradient) -->
       <div
-        class="bg-orange-500 p-4 rounded-3xl shadow-xl shadow-orange-900/30 flex flex-col justify-between relative overflow-hidden group"
+        class="bg-primary-container text-on-primary-container p-4 rounded-3xl shadow-e1 flex flex-col justify-between relative overflow-hidden group"
       >
         <div class="absolute -right-6 -bottom-6 opacity-20 size-40">
           <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
         </div>
         <div class="relative z-10">
-          <span class="text-xs font-semibold text-white/70 uppercase"
+          <span class="text-xs font-semibold text-on-surface/70 uppercase"
             >Retention Rate</span
           >
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-20 rounded bg-white/20 animate-pulse mt-2"
+            class="h-14 w-20 rounded bg-on-surface/20 animate-pulse mt-2"
           />
-          <h2 v-else class="text-5xl font-semibold mt-2 tracking-tighter text-white">
+          <h2 v-else class="text-5xl font-semibold mt-2 tracking-tighter text-on-surface">
             {{ stats.completionRate }}%
           </h2>
         </div>
-        <p class="text-xs text-white/80 font-medium relative z-10">
+        <p class="text-xs text-on-surface/80 font-medium relative z-10">
           Exceeding national music academy benchmarks
         </p>
       </div>
 
       <!-- New Registrations -->
       <div
-        class="liquid-glass p-4 rounded-3xl border border-black/[0.04] dark:border-white/5 flex flex-col justify-between"
+        class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col justify-between"
       >
         <div>
           <span
@@ -466,7 +466,7 @@ const openLiveAnalytics = function () {
           >
           <div
             v-if="usersStore.isLoading"
-            class="h-14 w-16 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2
             v-else
@@ -479,14 +479,14 @@ const openLiveAnalytics = function () {
           <div
             v-for="(s, i) in students.slice(0, 3)"
             :key="s.id"
-            class="w-10 h-10 rounded-full border-2 border-surface-container-highest bg-surface-container-highest flex items-center justify-center text-on-surface dark:text-on-surface font-black text-xs"
+            class="size-10 rounded-full border-2 border-surface-container-highest bg-surface-container-highest flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-xs"
             :style="{ zIndex: 3 - i }"
           >
             {{ s.name.charAt(0) }}
           </div>
           <div
             v-if="students.length > 3"
-            class="w-10 h-10 rounded-full border-2 border-surface-container-highest bg-gradient-to-br from-orange-500 to-orange-700 text-white text-[10px] font-black flex items-center justify-center"
+            class="size-10 rounded-full border-2 border-surface-container-highest bg-primary text-on-primary text-xs font-semibold flex items-center justify-center"
           >
             +{{ students.length - 3 }}
           </div>
@@ -504,7 +504,7 @@ const openLiveAnalytics = function () {
           >
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-16 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2
             v-else
@@ -532,7 +532,7 @@ const openLiveAnalytics = function () {
           >
           <div
             v-if="paymentsStore.isLoading"
-            class="h-14 w-24 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+            class="h-14 w-24 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2
             v-else
@@ -559,7 +559,7 @@ const openLiveAnalytics = function () {
           >
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-16 rounded bg-black/[0.04] dark:bg-white/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2
             v-else
@@ -583,7 +583,7 @@ const openLiveAnalytics = function () {
       <div class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 space-y-4">
         <!-- Music Schedule -->
         <section
-          class="liquid-glass rounded-3xl p-6 border border-black/[0.04] dark:border-white/5"
+          class="liquid-glass rounded-3xl p-6 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
@@ -597,18 +597,18 @@ const openLiveAnalytics = function () {
             <div class="flex items-center gap-2">
               <!-- View Mode Toggle -->
               <div
-                class="flex bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/5 mr-2"
+                class="flex bg-on-surface/5 dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/5 dark:border-on-surface/5 mr-2"
               >
                 <button
                   class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
-                  :class="viewMode === 'daily' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                  :class="viewMode === 'daily' ? 'bg-primary text-on-primary shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                   @click="viewMode = 'daily'"
                 >
                   Today
                 </button>
                 <button
                   class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
-                  :class="viewMode === 'weekly' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                  :class="viewMode === 'weekly' ? 'bg-primary text-on-primary shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                   @click="viewMode = 'weekly'"
                 >
                   Weekly
@@ -617,14 +617,14 @@ const openLiveAnalytics = function () {
 
               <div v-if="viewMode === 'daily'" class="flex gap-2">
                 <button
-                  class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   :disabled="!canGoPrev"
                   @click="sessionPage--"
                 >
                   <span class="material-symbols-outlined text-sm">chevron_left</span>
                 </button>
                 <button
-                  class="p-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   :disabled="!canGoNext"
                   @click="sessionPage++"
                 >
@@ -638,7 +638,7 @@ const openLiveAnalytics = function () {
           <div v-if="viewMode === 'daily'">
             <!-- Column headers -->
             <div
-              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-black/[0.04] dark:border-white/5 mb-4 px-2"
+              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5 mb-4 px-2"
             >
               <div
                 class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase col-span-1"
@@ -657,7 +657,7 @@ const openLiveAnalytics = function () {
               <div
                 v-for="i in 3"
                 :key="i"
-                class="h-20 rounded-3xl bg-black/[0.04] dark:bg-white/5 animate-pulse"
+                class="h-20 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse"
               />
             </div>
 
@@ -683,7 +683,7 @@ const openLiveAnalytics = function () {
               <div
                 v-for="session in pagedSessions"
                 :key="session.id"
-                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 group hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-3xl p-2 px-4 -mx-2"
+                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all rounded-3xl p-2 px-4 -mx-2"
               >
                 <div class="col-span-1 flex flex-col justify-center">
                   <span class="text-sm font-semibold">{{ formatTime(session.startTime) }}</span>
@@ -693,13 +693,13 @@ const openLiveAnalytics = function () {
                   >
                 </div>
                 <div
-                  class="col-span-5 bg-black/[0.04] dark:bg-white/5 border-y p-3 rounded-3xl flex items-center justify-between cursor-pointer hover:bg-black/[0.08] dark:hover:bg-white/10 transition-colors"
+                  class="col-span-5 bg-on-surface/[0.04] dark:bg-on-surface/5 border-y p-3 rounded-3xl flex items-center justify-between cursor-pointer hover:bg-on-surface/[0.08] dark:hover:bg-on-surface/10 transition-colors"
                   :class="borderColor(session.status)"
                   @click="openSessionDetail(session)"
                 >
                   <div class="flex items-center gap-4">
                     <div
-                      class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border"
+                      class="size-10 rounded-xl flex items-center justify-center shadow-sm border"
                       :class="iconClass(session.status)"
                     >
                       <span class="material-symbols-outlined">music_note</span>
@@ -737,7 +737,7 @@ const openLiveAnalytics = function () {
                 <div
                   v-for="day in weeklySessions"
                   :key="day.date.toDateString()"
-                  class="flex-1 min-w-[180px] bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 flex flex-col"
+                  class="flex-1 min-w-[180px] bg-on-surface/[0.02] dark:bg-on-surface/[0.02] rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col"
                 >
                   <div class="mb-4 text-center">
                     <p class="text-xs font-semibold text-primary uppercase mb-1">
@@ -750,8 +750,8 @@ const openLiveAnalytics = function () {
                     <div
                       v-for="session in day.sessions"
                       :key="session.id"
-                      class="bg-white dark:bg-white/5 p-3 rounded-2xl border-l-[3px] border shadow-sm hover:scale-[1.02] transition-all cursor-pointer"
-                      :class="[borderColor(session.status), 'border-black/5 dark:border-white/10']"
+                      class="bg-surface-container-lowest dark:bg-on-surface/5 p-3 rounded-2xl border-l-[3px] border shadow-sm hover:scale-[1.02] transition-all cursor-pointer"
+                      :class="[borderColor(session.status), 'border-on-surface/5 dark:border-on-surface/10']"
                       @click="openSessionDetail(session)"
                     >
                       <p class="text-[8px] font-bold text-on-surface-variant uppercase mb-1">
@@ -764,7 +764,7 @@ const openLiveAnalytics = function () {
 
                     <div
                       v-if="day.sessions.length === 0"
-                      class="h-20 border border-dashed border-black/10 dark:border-white/10 rounded-2xl flex items-center justify-center opacity-30"
+                      class="h-20 border border-dashed border-on-surface/10 dark:border-on-surface/10 rounded-2xl flex items-center justify-center opacity-30"
                     >
                       <span class="material-symbols-outlined text-sm">event_busy</span>
                     </div>
@@ -780,7 +780,7 @@ const openLiveAnalytics = function () {
           >
             <div class="col-span-1"></div>
             <button
-              class="col-span-5 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-on-surface-variant dark:text-on-surface-variant hover:border-orange-500/50 hover:text-orange-500 transition-all cursor-pointer bg-black/[0.02] dark:bg-white/[0.02] uppercase text-sm font-bold"
+              class="col-span-5 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-on-surface-variant dark:text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all cursor-pointer bg-on-surface/[0.02] dark:bg-on-surface/[0.02] uppercase text-sm font-bold"
               @click="showAddSessionModal = true"
             >
               <span class="material-symbols-outlined">add_circle</span>
@@ -791,7 +791,7 @@ const openLiveAnalytics = function () {
 
         <!-- Faculty & Staff -->
         <section
-          class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 overflow-hidden"
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 overflow-hidden"
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <h3 class="text-2xl font-semibold tracking-tight text-on-surface dark:text-on-surface">
@@ -803,7 +803,7 @@ const openLiveAnalytics = function () {
                   v-model="teacherSearch"
                   type="text"
                   placeholder="Search faculty..."
-                  class="pl-10 pr-4 py-2 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl text-xs focus:outline-none focus:ring-1 focus:ring-orange-500/50 w-48 transition-all"
+                  class="pl-10 pr-4 py-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 w-48 transition-all"
                   @keyup.esc="showTeacherSearch = false; teacherSearch = ''"
                 />
                 <span
@@ -812,8 +812,8 @@ const openLiveAnalytics = function () {
                 >
               </div>
               <button
-                :class="{ 'text-orange-500 bg-orange-500/5': showTeacherSearch }"
-                class="px-4 py-2 bg-black/[0.04] dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant text-xs font-semibold uppercase border border-black/[0.08] dark:border-white/10 rounded-2xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-2"
+                :class="{ 'text-primary bg-primary/5': showTeacherSearch }"
+                class="px-4 py-2 bg-on-surface/[0.04] dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant text-xs font-semibold uppercase border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-colors flex items-center gap-2"
                 @click="showTeacherSearch = !showTeacherSearch"
               >
                 <span class="material-symbols-outlined text-sm">filter_list</span>
@@ -821,7 +821,7 @@ const openLiveAnalytics = function () {
               </button>
               <RouterLink
                 to="/admin/users?action=create"
-                class="px-4 py-2 bg-orange-500 text-white text-xs font-semibold uppercase rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg shadow-orange-900/30"
+                class="px-4 py-2 bg-primary text-on-primary text-xs font-semibold uppercase rounded-2xl hover:opacity-90 transition-opacity flex items-center gap-2 shadow-lg"
               >
                 <span class="material-symbols-outlined text-sm">person_add</span>
                 Add Member
@@ -833,7 +833,7 @@ const openLiveAnalytics = function () {
             <div
               v-for="i in 3"
               :key="i"
-              class="h-16 rounded-2xl bg-black/[0.04] dark:bg-white/5 animate-pulse"
+              class="h-16 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse"
             />
           </div>
 
@@ -860,16 +860,16 @@ const openLiveAnalytics = function () {
                   <th class="pb-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-black/[0.04] dark:divide-white/5">
+              <tbody class="divide-y divide-on-surface/[0.04] dark:divide-on-surface/5">
                 <tr
                   v-for="teacher in filteredTeachers"
                   :key="teacher.id"
-                  class="group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                  class="group hover:bg-on-surface/[0.02] dark:hover:bg-on-surface/[0.02] transition-colors"
                 >
                   <td>
                     <div class="flex items-center gap-4">
                       <div
-                        class="size-12 rounded-[18px] bg-surface-container-highest border border-black/[0.08] dark:border-white/10 flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-lg"
+                        class="size-12 rounded-[18px] bg-surface-container-highest border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-lg"
                       >
                         {{ teacher.name.charAt(0) }}
                       </div>
@@ -932,7 +932,7 @@ const openLiveAnalytics = function () {
       <div class="space-y-4">
         <!-- Alerts & Updates -->
         <section
-          class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5"
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-lg font-semibold tracking-tight text-on-surface dark:text-on-surface">
@@ -941,9 +941,9 @@ const openLiveAnalytics = function () {
             <div class="flex items-center gap-2">
               <span
                 v-if="notifStore.unreadCount > 0"
-                class="text-xs font-semibold text-orange-500 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20 flex items-center gap-1"
+                class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 flex items-center gap-1"
               >
-                <span class="size-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                <span class="size-1.5 rounded-full bg-primary animate-pulse"></span>
                 {{ notifStore.unreadCount }} NEW
               </span>
               <button
@@ -959,13 +959,13 @@ const openLiveAnalytics = function () {
             <!-- System Status (always show if relevant) -->
             <div
               v-if="stats.scheduledSessions > 0"
-              class="bg-black/[0.04] dark:bg-white/5 p-3 rounded-3xl border-y border-orange-500/40 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-3xl border-y border-primary/40 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-colors"
             >
               <div class="flex gap-4">
-                <span class="material-symbols-outlined text-orange-500 text-xl">warning</span>
+                <span class="material-symbols-outlined text-primary text-xl">warning</span>
                 <div>
                   <h4
-                    class="text-xs font-semibold uppercase mb-1 text-orange-400"
+                    class="text-xs font-semibold uppercase mb-1 text-primary"
                   >
                     Schedule Alert
                   </h4>
@@ -988,7 +988,7 @@ const openLiveAnalytics = function () {
             <div
               v-for="notif in notifStore.notifications"
               :key="notif.id"
-              class="bg-black/[0.04] dark:bg-white/5 p-3 rounded-3xl border-y transition-all hover:bg-black/5 dark:hover:bg-white/10 relative group"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-3xl border-y transition-all hover:bg-on-surface/5 dark:hover:bg-on-surface/10 relative group"
               :class="[ notif.isRead ? 'border-zinc-500 opacity-60' : 'border-primary/30 ring-1 ring-primary/10 shadow-lg shadow-primary/5', ]"
             >
               <div class="flex gap-4">
@@ -1037,13 +1037,12 @@ const openLiveAnalytics = function () {
           </div>
           <RouterLink
             to="/admin/activity-log"
-            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-3xl hover:bg-black/5 dark:hover:bg-white/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase"
+            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase"
           >
             <span class="material-symbols-outlined text-base">history</span>
             View All Activity
           </RouterLink>
         </section>
-
 
         <!-- Roster -->
         <section class="card card-pad space-y-6">
@@ -1089,22 +1088,22 @@ const openLiveAnalytics = function () {
 
         <!-- Quick Assign -->
         <section
-          class="bg-orange-500 rounded-3xl p-4 text-white shadow-xl shadow-orange-900/30 relative overflow-hidden"
+          class="bg-primary-container text-on-primary-container rounded-3xl p-4 shadow-e1 relative overflow-hidden"
         >
           <div
-            class="absolute -top-10 -right-10 size-40 bg-black/[0.06] dark:bg-white/10 rounded-full blur-3xl"
+            class="absolute -top-10 -right-10 size-40 bg-on-surface/[0.06] dark:bg-on-surface/10 rounded-full blur-3xl"
           ></div>
           <div class="relative z-10">
             <h3 class="text-xl font-semibold mb-6 tracking-tight">Quick Assign</h3>
             <div class="space-y-4">
               <div>
                 <label
-                  class="text-xs font-semibold uppercase text-white/60 block mb-2"
+                  class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Teacher</label
                 >
                 <select
                   v-model="quickTeacherId"
-                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                  class="input appearance-none"
                 >
                   <option value="" class="text-on-surface">Select Faculty</option>
                   <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">
@@ -1114,12 +1113,12 @@ const openLiveAnalytics = function () {
               </div>
               <div>
                 <label
-                  class="text-xs font-semibold uppercase text-white/60 block mb-2"
+                  class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Student</label
                 >
                 <select
                   v-model="quickStudentId"
-                  class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all appearance-none cursor-pointer text-white"
+                  class="input appearance-none"
                 >
                   <option value="" class="text-on-surface">Select Student</option>
                   <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">
@@ -1131,30 +1130,30 @@ const openLiveAnalytics = function () {
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label
-                    class="text-xs font-semibold uppercase text-white/60 block mb-2"
+                    class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                     >Date</label
                   >
                   <input
                     v-model="quickDate"
                     type="date"
-                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
+                    class="input [color-scheme:dark]"
                   />
                 </div>
                 <div>
                   <label
-                    class="text-xs font-semibold uppercase text-white/60 block mb-2"
+                    class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                     >Time</label
                   >
                   <input
                     v-model="quickTime"
                     type="time"
-                    class="w-full bg-white/20 backdrop-blur-md rounded-2xl px-4 py-3 text-xs font-bold border border-white/20 focus:outline-none focus:ring-1 focus:ring-white/40 hover:bg-white/30 transition-all cursor-pointer text-white [color-scheme:dark]"
+                    class="input [color-scheme:dark]"
                   />
                 </div>
               </div>
               <button
                 :disabled="!quickTeacherId || !quickStudentId || isQuickAssigning"
-                class="w-full bg-black/30 backdrop-blur-xl border border-white/20 text-white font-semibold py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all uppercase text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-on-surface/30 border border-on-surface/20 text-on-surface font-semibold py-4 rounded-3xl shadow-lg mt-4 active:scale-95 transition-all uppercase text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="confirmQuickAssign"
               >
                 {{ isQuickAssigning ? 'Scheduling...' : 'Confirm Schedule' }}

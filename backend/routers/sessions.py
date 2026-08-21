@@ -12,7 +12,13 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from .. import models, schemas
 from ..config import settings
 from ..database import SessionLocal, get_db
-from ..dependencies import get_current_active_user, require_admin, require_student, require_teacher
+from ..dependencies import (
+    get_current_active_user,
+    require_admin,
+    require_can_view_user,
+    require_student,
+    require_teacher,
+)
 from ..services.notifier import safe_notify
 from ..utils.signed_urls import sign_url
 from ..utils.uploads import save_upload
@@ -550,8 +556,9 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
 
 @router.get("/sessions/student/{student_id}/records", response_model=list[schemas.Session])
 def get_student_records(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role.name.lower() == "student" and current_user.id != student_id:
-         raise HTTPException(status_code=403, detail="Not authorized")
+    # Previously only blocked students reading other students, which left every
+    # teacher able to read the full lesson history of any student in the school.
+    require_can_view_user(db, current_user, student_id)
     sessions = (
         db.query(models.Session)
         .options(*_session_eager_options())
@@ -702,6 +709,7 @@ def read_user_sessions(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user),
 ):
+    require_can_view_user(db, current_user, user_id)
     sessions = (
         db.query(models.Session)
         .options(*_session_eager_options())
@@ -1636,6 +1644,7 @@ def update_enrollment(
 
 @router.get("/enrollments/student/{student_id}", response_model=list[schemas.Enrollment])
 def read_student_enrollments(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    require_can_view_user(db, current_user, student_id)
     enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()
     return enrollments
 

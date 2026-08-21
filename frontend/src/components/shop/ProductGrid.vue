@@ -33,9 +33,9 @@ const filteredProducts = computed(() => {
 <template>
   <div class="space-y-8">
     <!-- Filters -->
-    <div class="flex flex-col md:flex-row gap-4 items-center justify-between glass-thin p-4 rounded-3xl border border-outline-variant/20 dark:border-white/5 bg-surface-container-low/50 dark:bg-transparent">
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-between glass-thin p-4 rounded-3xl border border-outline-variant/20 dark:border-on-surface/5 bg-surface-container-low/50 dark:bg-transparent">
       <div class="relative w-full md:w-96 group">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant group-focus-within:text-orange-500 transition-colors">search</span>
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant dark:text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
         <input
           v-model="searchQuery"
           type="text"
@@ -48,7 +48,7 @@ const filteredProducts = computed(() => {
         <button
           @click="selectedCategory = null"
           class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all shrink-0"
-          :class="!selectedCategory ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-black/5 dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
+          :class="!selectedCategory ? 'bg-primary text-on-surface shadow-lg' : 'bg-on-surface/5 dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
         >
           All
         </button>
@@ -57,7 +57,7 @@ const filteredProducts = computed(() => {
           :key="cat.id"
           @click="selectedCategory = cat.id"
           class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all shrink-0"
-          :class="selectedCategory === cat.id ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-black/5 dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
+          :class="selectedCategory === cat.id ? 'bg-primary text-on-surface shadow-lg' : 'bg-on-surface/5 dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface'"
         >
           {{ cat.name }}
         </button>
@@ -75,8 +75,8 @@ const filteredProducts = computed(() => {
     </div>
 
     <!-- Empty State -->
-    <div v-else class="py-40 flex flex-col items-center justify-center glass-thin rounded-[3rem] border border-white/5">
-      <div class="size-20 rounded-full bg-white/5 flex items-center justify-center text-on-surface-variant mb-6">
+    <div v-else class="py-40 flex flex-col items-center justify-center glass-thin rounded-[3rem] border border-on-surface/5">
+      <div class="size-20 rounded-full bg-on-surface/5 flex items-center justify-center text-on-surface-variant mb-6">
         <span class="material-symbols-outlined text-4xl">search_off</span>
       </div>
       <h3 class="text-xl font-semibold text-on-surface mb-2">No instruments found</h3>

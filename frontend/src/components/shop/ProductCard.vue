@@ -23,27 +23,27 @@ const handleAddToCart = function(e: Event) {
 </script>
 
 <template>
-  <div class="glass-thin rounded-3xl overflow-hidden border border-outline-variant/20 dark:border-white/5 hover:border-orange-500/30 transition-all group flex flex-col h-full bg-surface-container-low/50 dark:bg-transparent">
+  <div class="glass-thin rounded-3xl overflow-hidden border border-outline-variant/20 dark:border-on-surface/5 hover:border-primary/30 transition-all group flex flex-col h-full bg-surface-container-low/50 dark:bg-transparent">
     <!-- Image -->
-    <div class="aspect-square relative overflow-hidden bg-black/5 dark:bg-black/40">
+    <div class="aspect-square relative overflow-hidden bg-on-surface/5 dark:bg-on-surface/40">
       <img
         v-if="product.imageUrl"
         :src="product.imageUrl.startsWith('http') ? product.imageUrl : `${API_URL}${product.imageUrl}`"
         class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
-      <div v-else class="w-full h-full flex items-center justify-center text-white/5">
+      <div v-else class="w-full h-full flex items-center justify-center text-on-surface/5">
         <span class="material-symbols-outlined text-6xl">image</span>
       </div>
 
       <!-- Category Badge -->
       <div v-if="product.category" class="absolute top-4 left-4">
-        <span class="px-4 py-1.5 rounded-full bg-black/40 dark:bg-black/60 backdrop-blur-md border border-white/10 text-xs font-semibold uppercase text-white">
+        <span class="px-4 py-1.5 rounded-full bg-on-surface/40 dark:bg-on-surface/60 border border-on-surface/10 text-xs font-semibold uppercase text-on-surface">
           {{ product.category.name }}
         </span>
       </div>
 
       <!-- Out of Stock Overlay -->
-      <div v-if="product.stock <= 0" class="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+      <div v-if="product.stock <= 0" class="absolute inset-0 bg-on-surface/60 flex items-center justify-center">
         <span class="px-6 py-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-500 font-semibold uppercase tracking-tighter text-sm">
           Out of Stock
         </span>
@@ -60,13 +60,13 @@ const handleAddToCart = function(e: Event) {
       <div class="mt-auto flex items-center justify-between gap-4">
         <div>
           <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-0.5">Price</p>
-          <p class="text-xl font-semibold text-orange-500 tracking-tighter">{{ formatPrice(product.priceCents) }}</p>
+          <p class="text-xl font-semibold text-primary tracking-tighter">{{ formatPrice(product.priceCents) }}</p>
         </div>
 
         <button
           @click="handleAddToCart"
           :disabled="product.stock <= 0"
-          class="h-12 w-12 rounded-2xl bg-on-surface text-surface dark:bg-white dark:text-black hover:bg-orange-500 hover:text-white dark:hover:bg-orange-500 dark:hover:text-white disabled:opacity-20 transition-all flex items-center justify-center shadow-lg shadow-black/5 dark:shadow-white/5 active:scale-90"
+          class="h-12 w-12 rounded-2xl bg-on-surface text-surface dark:bg-surface-container-lowest dark:text-on-surface hover:bg-primary hover:text-on-surface dark:hover:bg-primary dark:hover:text-on-surface disabled:opacity-20 transition-all flex items-center justify-center shadow-lg shadow-e2 dark:shadow-e2 active:scale-90"
         >
           <span class="material-symbols-outlined font-semibold">add_shopping_cart</span>
         </button>

@@ -135,7 +135,7 @@ const formatDay = function (iso: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-orange-500 text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-primary text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -188,12 +188,12 @@ const formatDay = function (iso: string): string {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
       <h3
         class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6"
       >
         <span
-          class="w-10 h-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500"
+          class="size-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500"
         >
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
             >calendar_month</span
@@ -209,13 +209,13 @@ const formatDay = function (iso: string): string {
     </section>
 
     <!-- Upcoming Sessions -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
       <h3
         class="text-xl font-semibold text-on-surface dark:text-on-surface mb-6 flex items-center gap-3"
       >
-        <span class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
+        <span class="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-orange-500"
+            class="material-symbols-outlined text-primary"
             style="font-variation-settings: 'FILL' 1"
             >event_upcoming</span
           >
@@ -227,13 +227,13 @@ const formatDay = function (iso: string): string {
         <div
           v-for="session in upcomingSessions"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 hover:border-white/10 transition-all group"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-on-surface/[0.02] dark:bg-on-surface/[0.02] border border-on-surface/[0.04] dark:border-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-on-surface/10 transition-all group"
         >
           <!-- Date badge -->
           <div
-            class="size-14 rounded-2xl bg-orange-500/20 border border-orange-500/20 flex flex-col items-center justify-center shrink-0"
+            class="size-14 rounded-2xl bg-primary/20 border border-primary/20 flex flex-col items-center justify-center shrink-0"
           >
-            <p class="text-xs font-semibold text-orange-500 uppercase">
+            <p class="text-xs font-semibold text-primary uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
             <p class="text-xl font-semibold text-on-surface dark:text-on-surface leading-none">

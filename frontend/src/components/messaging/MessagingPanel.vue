@@ -27,17 +27,17 @@ const back = function() {
       <div v-if="store.isOpen" class="fixed inset-0 z-[300] flex justify-end pointer-events-none">
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-black/20 backdrop-blur-sm pointer-events-auto"
+          class="absolute inset-0 bg-on-surface/20 pointer-events-auto"
           @click="store.closePanel()"
         />
 
         <!-- Drawer -->
         <div class="relative w-full max-w-sm h-full glass-heavy flex flex-col pointer-events-auto shadow-2xl">
           <!-- Header -->
-          <div class="flex items-center gap-3 px-4 py-4 border-b border-black/[0.04] dark:border-white/5 shrink-0">
+          <div class="flex items-center gap-3 px-4 py-4 border-b border-on-surface/[0.04] dark:border-on-surface/5 shrink-0">
             <button
               v-if="store.activeConversationId"
-              class="size-9 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+              class="size-9 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
               @click="back"
             >
               <span class="material-symbols-outlined">arrow_back</span>
@@ -46,7 +46,7 @@ const back = function() {
               {{ store.activeConversationId ? (store.activeConversation?.name ?? 'Chat') : 'Messages' }}
             </h2>
             <button
-              class="size-9 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+              class="size-9 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
               @click="store.closePanel()"
             >
               <span class="material-symbols-outlined">close</span>
