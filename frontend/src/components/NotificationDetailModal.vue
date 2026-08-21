@@ -75,7 +75,7 @@ const formatTime = function (iso: string) {
       >
         <!-- Backdrop (slightly darker to focus on the detail) -->
         <div
-          class="absolute inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-md"
+          class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/50"
           @click="$emit('close')"
         />
 
@@ -115,7 +115,7 @@ const formatTime = function (iso: string) {
                 </div>
               </div>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all group"
+                class="w-10 h-10 rounded-2xl bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all group"
                 @click="$emit('close')"
               >
                 <span
@@ -135,19 +135,19 @@ const formatTime = function (iso: string) {
           <!-- Content Section -->
           <div class="px-8 py-6">
             <div
-              class="h-px bg-gradient-to-r from-outline-variant/40 via-outline-variant/20 to-transparent mb-8"
+              class="h-px bg-outline-variant mb-8"
             ></div>
 
             <div class="prose max-w-none">
               <p
-                class="text-lg text-on-surface-variant dark:text-on-surface-variant leading-[1.8] font-medium selection:bg-orange-500/30"
+                class="text-lg text-on-surface-variant dark:text-on-surface-variant leading-[1.8] font-medium selection:bg-primary/30"
               >
                 {{ notification.message }}
               </p>
             </div>
 
             <div
-              class="h-px bg-gradient-to-r from-transparent via-outline-variant/20 to-outline-variant/40 mt-8"
+              class="h-px bg-outline-variant mt-8"
             ></div>
           </div>
 
@@ -156,10 +156,10 @@ const formatTime = function (iso: string) {
             <div class="flex flex-col gap-2">
               <div
                 v-if="!notification.isRead"
-                class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 w-max"
+                class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 w-max"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                <span class="text-[10px] font-black text-orange-500 uppercase tracking-widest"
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                <span class="text-[10px] font-black text-primary uppercase tracking-widest"
                   >New</span
                 >
               </div>
@@ -182,14 +182,14 @@ const formatTime = function (iso: string) {
               <router-link
                 v-if="notification.link"
                 :to="notification.link"
-                class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
+                class="px-6 py-3 bg-primary text-on-primary font-bold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 text-sm flex items-center gap-2"
                 @click="$emit('close')"
               >
                 <span class="material-symbols-outlined text-sm">open_in_new</span>
                 View Details
               </router-link>
               <button
-                class="px-6 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface dark:text-on-surface font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
+                class="px-6 py-3 bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 text-on-surface dark:text-on-surface font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
                 @click="$emit('close')"
               >
                 Dismiss

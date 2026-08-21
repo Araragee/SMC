@@ -277,19 +277,19 @@ const stopCountering = () => {
         </h2>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium mb-6">
           Your next recital rehearsal is in
-          <span class="text-orange-500 font-bold">{{ nextSessionCountdown }}</span
+          <span class="text-primary font-bold">{{ nextSessionCountdown }}</span
           >.
         </p>
         <div class="flex gap-4">
           <RouterLink
             to="/student/schedule"
-            class="px-6 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 active:scale-95 transition-all flex items-center gap-2"
+            class="px-6 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 active:scale-95 transition-all flex items-center gap-2"
           >
             <span class="material-symbols-outlined text-lg">calendar_today</span>
             Schedule
           </RouterLink>
           <button
-            class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
+            class="px-6 py-3 bg-primary text-on-primary font-bold rounded-3xl shadow-lg active:scale-95 hover:scale-[1.02] transition-all flex items-center gap-2"
             @click="openRequestModal"
           >
             <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -314,11 +314,11 @@ const stopCountering = () => {
       <!-- Left Column -->
       <div class="col-span-1 md:col-span-8 space-y-4">
         <!-- My Sessions -->
-        <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3">
               <span
-                class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
+                class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
               >
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >event_note</span
@@ -328,12 +328,12 @@ const stopCountering = () => {
             </h3>
             <div class="flex gap-2">
               <button
-                class="p-2 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full border border-black/[0.04] dark:border-white/5 transition-colors"
+                class="p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-full border border-on-surface/[0.04] dark:border-on-surface/5 transition-colors"
               >
                 <span class="material-symbols-outlined text-sm">chevron_left</span>
               </button>
               <button
-                class="p-2 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full border border-black/[0.04] dark:border-white/5 transition-colors"
+                class="p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-full border border-on-surface/[0.04] dark:border-on-surface/5 transition-colors"
               >
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
               </button>
@@ -342,7 +342,7 @@ const stopCountering = () => {
 
           <!-- Loading -->
           <div v-if="scheduleStore.isLoading" class="space-y-4">
-            <div v-for="i in 3" :key="i" class="h-24 rounded-3xl bg-black/[0.04] dark:bg-white/5 animate-pulse" />
+            <div v-for="i in 3" :key="i" class="h-24 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse" />
           </div>
 
           <!-- Empty -->
@@ -360,7 +360,7 @@ const stopCountering = () => {
               Request a session with your teacher to get started!
             </p>
             <button
-              class="mt-4 px-5 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
+              class="mt-4 px-5 py-2.5 bg-primary text-on-primary rounded-2xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95"
               @click="openRequestModal"
             >
               Request a Session
@@ -372,7 +372,7 @@ const stopCountering = () => {
             <div
               v-for="session in mySessions"
               :key="session.id"
-              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-black/5 dark:hover:bg-white/10 hover:translate-x-1 transition-all cursor-pointer group"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-5 rounded-3xl flex items-center gap-6 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 hover:translate-x-1 transition-all cursor-pointer group"
               @click="selectSession(session.id)"
             >
               <!-- Date badge -->
@@ -384,12 +384,12 @@ const stopCountering = () => {
                     : session.status === 'pending_teacher'
                       ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
                       : session.status === 'pending_student'
-                        ? 'bg-orange-500/20 border border-orange-500/40 text-orange-400'
+                        ? 'bg-primary/20 border border-primary/40 text-primary'
                       : session.status === 'pending_admin'
                         ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
                         : session.status === 'rejected'
                           ? 'bg-red-900 text-red-300'
-                          : 'bg-orange-500 text-white shadow-orange-900/30'
+                          : 'bg-primary text-on-surface'
                 "
               >
                 <span class="text-[10px] uppercase font-black">{{
@@ -412,7 +412,7 @@ const stopCountering = () => {
                             ? 'bg-red-500/20 border-red-500/30 text-red-400'
                             : session.status === 'completed'
                               ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                              : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                              : 'bg-primary/20 border-primary/30 text-primary'
                     "
                   >
                     {{
@@ -451,7 +451,7 @@ const stopCountering = () => {
                   >HW Done ✓</span
                 >
                 <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 transition-colors"
+                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary transition-colors"
                   >arrow_forward</span
                 >
               </div>
@@ -460,10 +460,10 @@ const stopCountering = () => {
         </section>
 
         <!-- Session Proofs & Homework -->
-        <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
           <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3 mb-8">
             <span
-              class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500"
+              class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
             >
               <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                 >cloud_upload</span
@@ -474,16 +474,16 @@ const stopCountering = () => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Upload area -->
             <label
-              class="relative overflow-hidden border-2 border-dashed border-black/[0.08] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
+              class="relative overflow-hidden border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
               :class="
                 proofPreviewUrl
-                  ? 'border-orange-500/50'
-                  : 'hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50'
+                  ? 'border-primary/50'
+                  : 'hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50'
               "
             >
               <template v-if="!proofPreviewUrl">
                 <div
-                  class="w-14 h-14 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+                  class="w-14 h-14 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
                 >
                   <span
                     class="material-symbols-outlined text-3xl"
@@ -511,7 +511,7 @@ const stopCountering = () => {
                   >
                 </div>
                 <p
-                  class="relative z-10 font-black text-on-surface dark:text-on-surface text-sm bg-black/40 px-3 py-1 rounded-full backdrop-blur-md"
+                  class="relative z-10 font-black text-on-surface dark:text-on-surface text-sm bg-on-surface/40 px-3 py-1 rounded-full"
                 >
                   Image Selected
                 </p>
@@ -527,7 +527,7 @@ const stopCountering = () => {
             </label>
             <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
               <button
-                class="px-6 py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 text-white text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+                class="px-6 py-2.5 bg-primary text-on-primary text-sm font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
                 @click="handleGenericProofUpload"
               >
                 Submit Proof
@@ -537,7 +537,7 @@ const stopCountering = () => {
             <!-- Pending homework -->
             <div
               v-if="pendingHomework"
-              class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-black/5 dark:hover:bg-white/10 transition-all"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all"
             >
               <div
                 class="w-12 h-12 bg-surface-container-high text-on-surface-variant dark:text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
@@ -550,7 +550,7 @@ const stopCountering = () => {
                 <p class="font-bold text-sm text-on-surface dark:text-on-surface">{{ pendingHomework.homeworkAssigned }}</p>
                 <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-0.5">Due for next session</p>
                 <button
-                  class="mt-2 text-orange-500 font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
+                  class="mt-2 text-primary font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
                   @click="markHomeworkDone(pendingHomework.id)"
                 >
                   Submit Work
@@ -560,7 +560,7 @@ const stopCountering = () => {
             </div>
             <div
               v-else
-              class="bg-black/[0.04] dark:bg-white/5 border border-dashed border-black/[0.08] dark:border-white/10 rounded-3xl p-6 flex items-center justify-center"
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl p-6 flex items-center justify-center"
             >
               <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">No homework pending ✓</p>
             </div>
@@ -572,7 +572,7 @@ const stopCountering = () => {
       <div class="col-span-1 md:col-span-4 space-y-4">
         <!-- Enrollment Status -->
         <section
-          class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5 relative overflow-hidden group"
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 relative overflow-hidden group"
         >
           <div class="relative z-10">
             <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-8">Enrollment Status</h3>
@@ -588,7 +588,7 @@ const stopCountering = () => {
                   r="84"
                   fill="none"
                   stroke="currentColor"
-                  class="text-black/[0.06] dark:text-white/5"
+                  class="text-on-surface/[0.06] dark:text-on-surface/5"
                   stroke-width="10"
                 />
                 <circle
@@ -596,7 +596,7 @@ const stopCountering = () => {
                   cy="96"
                   r="84"
                   fill="none"
-                  stroke="#f97316"
+                  stroke="var(--primary)"
                   stroke-width="10"
                   stroke-linecap="round"
                   :stroke-dasharray="`${(sessionProgress * 527.8) / 100} 527.8`"
@@ -615,36 +615,36 @@ const stopCountering = () => {
             </div>
             <div class="space-y-4 mb-8">
               <div
-                class="flex justify-between items-center p-3 rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
+                class="flex justify-between items-center p-3 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
               >
                 <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Package</span>
                 <span class="text-xs font-bold text-on-surface dark:text-on-surface">Term B - Intensive</span>
               </div>
               <div
-                class="flex justify-between items-center p-3 rounded-2xl bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5"
+                class="flex justify-between items-center p-3 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
               >
                 <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Valid Until</span>
                 <span class="text-xs font-bold text-on-surface dark:text-on-surface">Dec 15, 2026</span>
               </div>
             </div>
             <button
-              class="w-full py-3 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-black/[0.08] dark:border-white/10 transition-all active:scale-95"
+              class="w-full py-3 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 transition-all active:scale-95"
               @click="router.push('/student/payments')"
             >
               Manage Subscription
             </button>
           </div>
           <div
-            class="absolute -right-20 -bottom-20 w-48 h-48 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all "
+            class="absolute -right-20 -bottom-20 w-48 h-48 bg-primary/10 rounded-full blur-[80px] group-hover:bg-primary/20 transition-all "
           ></div>
         </section>
 
         <!-- Notice Board -->
-        <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3">
               <span
-                class="material-symbols-outlined text-orange-500"
+                class="material-symbols-outlined text-primary"
                 style="font-variation-settings: 'FILL' 1"
                 >campaign</span
               >
@@ -659,19 +659,19 @@ const stopCountering = () => {
           </div>
           <div class="space-y-4">
             <div
-              class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl p-6 text-white relative overflow-hidden group/promo cursor-pointer"
+              class="bg-primary-container text-on-primary-container rounded-3xl p-6 relative overflow-hidden group/promo cursor-pointer"
             >
               <div class="relative z-10">
                 <span
-                  class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[9px] font-black uppercase tracking-widest mb-3"
+                  class="inline-block px-2 py-1 bg-on-surface/20 rounded-lg text-[9px] font-black uppercase tracking-widest mb-3"
                   >Limited Offer</span
                 >
                 <h4 class="font-bold text-lg leading-tight mb-2">Summer Masterclass Series</h4>
-                <p class="text-xs text-white/80 mb-4 font-medium">
+                <p class="text-xs text-on-surface/80 mb-4 font-medium">
                   Get 20% off if you book before Friday evening.
                 </p>
                 <button
-                  class="bg-white text-orange-600 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all"
+                  class="bg-surface-container-lowest text-primary px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all"
                 >
                   Learn More
                 </button>
@@ -682,12 +682,12 @@ const stopCountering = () => {
                 >music_note</span
               >
             </div>
-            <div class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.04] dark:border-white/5 p-4 rounded-3xl flex items-start gap-4">
+            <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-4 rounded-3xl flex items-start gap-4">
               <div
                 class="w-10 h-10 bg-surface-container-highest rounded-2xl flex items-center justify-center shrink-0"
               >
                 <span
-                  class="material-symbols-outlined text-orange-500 text-xl"
+                  class="material-symbols-outlined text-primary text-xl"
                   style="font-variation-settings: 'FILL' 1"
                   >lightbulb</span
                 >
@@ -706,13 +706,13 @@ const stopCountering = () => {
 
         <!-- Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="liquid-glass rounded-3xl p-6 text-center border border-black/[0.04] dark:border-white/5">
-            <p class="text-3xl font-black text-orange-500">{{ mySessions.length * 60 }}</p>
+          <div class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5">
+            <p class="text-3xl font-black text-primary">{{ mySessions.length * 60 }}</p>
             <p class="text-[9px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1">
               Practice Hours
             </p>
           </div>
-          <div class="liquid-glass rounded-3xl p-6 text-center border border-black/[0.04] dark:border-white/5">
+          <div class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5">
             <p class="text-3xl font-black text-on-surface dark:text-on-surface">A+</p>
             <p class="text-[9px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mt-1">
               Avg Grade
@@ -741,7 +741,7 @@ const stopCountering = () => {
         aria-labelledby="session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="closeSessionModal" />
+        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
@@ -759,7 +759,7 @@ const stopCountering = () => {
                         ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
                         : selectedSession.status === 'rejected'
                           ? 'bg-red-900 text-red-300'
-                          : 'bg-orange-500 text-white shadow-orange-900/30'
+                          : 'bg-primary text-on-surface'
                 "
               >
                 <span class="text-[9px] uppercase font-black">{{
@@ -782,7 +782,7 @@ const stopCountering = () => {
                           ? 'bg-red-500/20 border-red-500/30 text-red-400'
                           : selectedSession.status === 'completed'
                             ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
-                            : 'bg-orange-500/20 border-orange-500/30 text-orange-400'
+                            : 'bg-primary/20 border-primary/30 text-primary'
                   "
                 >
                   {{
@@ -810,19 +810,19 @@ const stopCountering = () => {
 
           <!-- Info rows -->
           <div class="space-y-4">
-            <div class="flex justify-between items-center py-2 border-b border-black/[0.04] dark:border-white/5">
+            <div class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5">
               <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Teacher</span>
               <span class="text-sm font-bold text-on-surface dark:text-on-surface"
                 >Teacher #{{ selectedSession.teacherId }}</span
               >
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-black/[0.04] dark:border-white/5">
+            <div class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5">
               <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Time</span>
               <span class="text-sm font-bold text-on-surface dark:text-on-surface">{{
                 formatTime(selectedSession.startTime)
               }}</span>
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-black/[0.04] dark:border-white/5">
+            <div class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5">
               <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Homework</span>
               <span
                 class="text-sm font-bold"
@@ -852,7 +852,7 @@ const stopCountering = () => {
           <!-- Proof Section -->
           <div
             v-if="['scheduled', 'overdue', 'completed', 'pending_verification', 'overdue_rejected'].includes(selectedSession.status)"
-            class="bg-black/[0.04] dark:bg-white/5 rounded-xl p-4 border border-black/[0.04] dark:border-white/5"
+            class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
           >
             <h4 class="text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-3">
               Session Proofs
@@ -891,17 +891,17 @@ const stopCountering = () => {
                   </div>
                 </div>
                 <button
-                  class="px-4 py-2 bg-black/[0.06] dark:bg-white/10 hover:bg-black/8 dark:hover:bg-white/20 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg transition-all border border-black/[0.08] dark:border-white/10"
+                  class="px-4 py-2 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg transition-all border border-on-surface/[0.08] dark:border-on-surface/10"
                   @click="showProofViewer = true; proofPreviewUrl = selectedSession.proofs?.find(p => p.uploaderRole === 'student')?.imageUrl || null"
                 >
                   View
                 </button>
               </div>
 
-              <div v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)" class="mt-2 pt-3 border-t border-black/[0.04] dark:border-white/5 space-y-3">
+              <div v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)" class="mt-2 pt-3 border-t border-outline/[0.04] dark:border-on-surface/5 space-y-3">
                 <label class="block text-xs text-on-surface-variant mb-1 font-bold">Add a note for the Admin (Optional)</label>
-                <textarea v-model="approvalJustification" rows="2" class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none placeholder:text-on-surface-variant/50" placeholder="E.g. Class was conducted successfully..."></textarea>
-                <button class="w-full py-2.5 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] active:scale-95 text-white font-bold rounded-xl transition-all text-sm shadow-md" @click="submitApprovalRequest(selectedSession.id)">
+                <textarea v-model="approvalJustification" rows="2" class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none placeholder:text-on-surface-variant/50" placeholder="E.g. Class was conducted successfully..."></textarea>
+                <button class="w-full py-2.5 bg-primary hover:scale-[1.02] active:scale-95 text-on-primary font-bold rounded-xl transition-all text-sm shadow-md" @click="submitApprovalRequest(selectedSession.id)">
                   Submit Request for Approval
                 </button>
               </div>
@@ -913,8 +913,8 @@ const stopCountering = () => {
             </div>
 
             <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
-              <div class="bg-orange-500/10 p-4 rounded-2xl border border-orange-500/20">
-                <p class="text-sm font-bold text-orange-400 mb-2">Teacher proposed a new time</p>
+              <div class="bg-primary/10 p-4 rounded-2xl border border-primary/20">
+                <p class="text-sm font-bold text-primary mb-2">Teacher proposed a new time</p>
                 <div v-if="!isCountering" class="flex gap-3">
                   <button
                     class="flex-1 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
@@ -924,7 +924,7 @@ const stopCountering = () => {
                     Approve Time
                   </button>
                   <button
-                    class="flex-1 py-2 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                    class="flex-1 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
                     @click="startCountering(selectedSession)"
                   >
                     <span class="material-symbols-outlined text-sm">edit_calendar</span>
@@ -935,22 +935,22 @@ const stopCountering = () => {
                   <input
                     v-model="counterForm.startTime"
                     type="datetime-local"
-                    class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
+                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
                   />
                   <input
                     v-model="counterForm.endTime"
                     type="datetime-local"
-                    class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
+                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
                   />
                   <div class="flex gap-2">
                     <button
-                      class="flex-1 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl"
+                      class="flex-1 py-2 bg-primary text-on-surface text-xs font-bold rounded-xl"
                       @click="submitStudentCounter"
                     >
                       Send Proposal
                     </button>
                     <button
-                      class="px-4 py-2 bg-black/5 dark:bg-white/5 text-xs font-bold rounded-xl"
+                      class="px-4 py-2 bg-on-surface/5 dark:bg-on-surface/5 text-xs font-bold rounded-xl"
                       @click="stopCountering"
                     >
                       Cancel
@@ -969,7 +969,7 @@ const stopCountering = () => {
                 </div>
                 <div>
                   <p class="text-sm font-bold text-on-surface dark:text-on-surface">Ready to save</p>
-                  <label class="text-xs text-orange-500 cursor-pointer hover:underline">
+                  <label class="text-xs text-primary cursor-pointer hover:underline">
                     Replace
                     <input
                       type="file"
@@ -981,7 +981,7 @@ const stopCountering = () => {
                 </div>
               </div>
               <button
-                class="w-full py-2 bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-xs font-black rounded-lg transition-all active:scale-95"
+                class="w-full py-2 bg-primary hover:scale-[1.02] text-on-primary text-xs font-black rounded-lg transition-all active:scale-95"
                 @click="saveStagedProof"
               >
                 Save Proof
@@ -990,14 +990,14 @@ const stopCountering = () => {
 
             <div v-else-if="['scheduled', 'overdue', 'overdue_rejected'].includes(selectedSession.status)">
               <label
-                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-black/[0.08] dark:border-white/10 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 hover:border-orange-500/50 transition-all cursor-pointer group text-center"
+                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50 transition-all cursor-pointer group text-center"
               >
                 <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-orange-500 text-2xl mb-1"
+                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary text-2xl mb-1"
                   >upload</span
                 >
                 <span
-                  class="text-sm font-bold text-on-surface dark:text-on-surface group-hover:text-orange-400 transition-colors"
+                  class="text-sm font-bold text-on-surface dark:text-on-surface group-hover:text-primary transition-colors"
                   >Select Image</span
                 >
                 <span class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
@@ -1027,18 +1027,18 @@ const stopCountering = () => {
     >
       <div
         v-if="showProofViewer && selectedSession?.imageProofUrl"
-        class="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+        class="fixed inset-0 z-[300] flex items-center justify-center bg-on-surface/90 p-4"
         @click.self="showProofViewer = false"
       >
         <button
-          class="absolute top-6 right-6 text-white/50 hover:text-on-surface dark:hover:text-on-surface transition-colors bg-black/10 dark:bg-black/50 p-2 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/10"
+          class="absolute top-6 right-6 text-on-surface/50 hover:text-on-surface dark:hover:text-on-surface transition-colors bg-on-surface/10 dark:bg-on-surface/50 p-2 rounded-full border border-on-surface/[0.08] dark:border-on-surface/10"
           @click="showProofViewer = false"
         >
           <span class="material-symbols-outlined text-2xl">close</span>
         </button>
         <img
           :src="selectedSession.imageProofUrl"
-          class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-black/[0.08] dark:border-white/10"
+          class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-on-surface/[0.08] dark:border-on-surface/10"
         />
       </div>
     </Transition>
@@ -1063,7 +1063,7 @@ const stopCountering = () => {
         @click.self="closeRequestModal"
       >
         <div
-          class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm"
+          class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70"
           @click="closeRequestModal"
         />
         <div
@@ -1092,7 +1092,7 @@ const stopCountering = () => {
                 id="req-teacher"
                 v-model="requestForm.teacherId"
                 required
-                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="w-full bg-surface-container-highest border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 <option :value="null">Select a teacher...</option>
                 <option v-for="t in allTeachers" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -1109,13 +1109,13 @@ const stopCountering = () => {
                 v-model="requestForm.startTime"
                 type="datetime-local"
                 required
-                class="w-full bg-surface-container-highest border border-black/[0.08] dark:border-white/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                class="w-full bg-surface-container-highest border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface dark:text-on-surface rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
             <div class="flex gap-3 pt-2">
               <button
                 type="button"
-                class="flex-1 py-3 rounded-xl border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
+                class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
                 @click="closeRequestModal"
               >
                 Cancel
@@ -1123,7 +1123,7 @@ const stopCountering = () => {
               <button
                 type="submit"
                 :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 hover:scale-[1.02] text-white text-sm font-black transition-all active:scale-95 disabled:opacity-50"
+                class="flex-1 py-3 rounded-xl bg-primary hover:scale-[1.02] text-on-primary text-sm font-black transition-all active:scale-95 disabled:opacity-50"
               >
                 {{ scheduleStore.isLoading ? 'Submitting...' : 'Request Session' }}
               </button>

@@ -34,19 +34,19 @@ const handleCheckout = async function() {
     role="dialog"
     aria-modal="true"
   >
-    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-on-surface/80 transition-opacity" @click="emit('close')"></div>
 
     <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
       <div class="pointer-events-auto w-screen max-w-md transform transition-transform duration-500 ease-in-out">
-        <div class="flex h-full flex-col bg-surface dark:bg-[#0e0e0e] border-l border-outline-variant/20 dark:border-white/5 shadow-2xl shadow-black/10 dark:shadow-black">
+        <div class="flex h-full flex-col bg-surface border-l border-outline-variant/20 dark:border-on-surface/5 shadow-e3">
           <!-- Header -->
-          <div class="p-8 border-b border-outline-variant/20 dark:border-white/5 flex items-center justify-between">
+          <div class="p-8 border-b border-outline-variant/20 dark:border-on-surface/5 flex items-center justify-between">
             <h2 class="text-2xl font-black text-on-surface dark:text-on-surface uppercase tracking-tight" id="slide-over-title">
-              Shopping <span class="text-orange-500">Cart</span>
+              Shopping <span class="text-primary">Cart</span>
             </h2>
             <button
               @click="emit('close')"
-              class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-white transition-all flex items-center justify-center"
+              class="w-10 h-10 rounded-xl bg-on-surface/5 dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all flex items-center justify-center"
             >
               <span class="material-symbols-outlined">close</span>
             </button>
@@ -58,37 +58,37 @@ const handleCheckout = async function() {
               <div
                 v-for="item in shopStore.cart"
                 :key="item.productId"
-                class="flex gap-4 p-4 rounded-3xl bg-black/5 dark:bg-white/5 border border-outline-variant/20 dark:border-white/5"
+                class="flex gap-4 p-4 rounded-3xl bg-on-surface/5 dark:bg-on-surface/5 border border-outline-variant/20 dark:border-on-surface/5"
               >
-                <div class="w-20 h-20 rounded-2xl overflow-hidden bg-black/20 dark:bg-black/40 shrink-0">
+                <div class="w-20 h-20 rounded-2xl overflow-hidden bg-on-surface/20 dark:bg-on-surface/40 shrink-0">
                   <img
                     v-if="shopStore.getCartProduct(item.productId)?.imageUrl"
                     :src="shopStore.getCartProduct(item.productId)?.imageUrl?.startsWith('http') ? shopStore.getCartProduct(item.productId)?.imageUrl : `${API_URL}${shopStore.getCartProduct(item.productId)?.imageUrl}`"
                     class="w-full h-full object-cover"
                   />
-                  <div v-else class="w-full h-full flex items-center justify-center text-white/5">
+                  <div v-else class="w-full h-full flex items-center justify-center text-on-surface/5">
                     <span class="material-symbols-outlined">image</span>
                   </div>
                 </div>
 
                 <div class="flex-1 min-w-0">
                   <h4 class="font-black text-on-surface dark:text-on-surface truncate">{{ shopStore.getCartProduct(item.productId)?.name }}</h4>
-                  <p class="text-sm font-black text-orange-500 mb-3">
+                  <p class="text-sm font-black text-primary mb-3">
                     {{ formatPrice(shopStore.getCartProduct(item.productId)?.priceCents || 0) }}
                   </p>
 
                   <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3 bg-black/5 dark:bg-black/20 rounded-xl px-2 py-1">
+                    <div class="flex items-center gap-3 bg-on-surface/5 dark:bg-on-surface/20 rounded-xl px-2 py-1">
                       <button
                         @click="shopStore.updateCartItem(item.productId, item.quantity - 1)"
-                        class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-white transition-colors"
+                        class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
                       >
                         <span class="material-symbols-outlined text-sm">remove</span>
                       </button>
                       <span class="text-xs font-black text-on-surface dark:text-on-surface w-4 text-center">{{ item.quantity }}</span>
                       <button
                         @click="shopStore.updateCartItem(item.productId, item.quantity + 1)"
-                        class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-white transition-colors"
+                        class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
                       >
                         <span class="material-symbols-outlined text-sm">add</span>
                       </button>
@@ -110,13 +110,13 @@ const handleCheckout = async function() {
                 <textarea
                   v-model="notes"
                   placeholder="Anything we should know? (e.g. delivery preferences)"
-                  class="w-full bg-black/5 dark:bg-white/5 border border-outline-variant/20 dark:border-white/10 rounded-2xl p-4 text-xs font-bold text-on-surface dark:text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-orange-500/50 transition-all outline-none resize-none h-24"
+                  class="w-full bg-on-surface/5 dark:bg-on-surface/5 border border-outline-variant/20 dark:border-on-surface/10 rounded-2xl p-4 text-xs font-bold text-on-surface dark:text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/50 transition-all outline-none resize-none h-24"
                 ></textarea>
               </div>
             </div>
 
             <div v-else class="h-full flex flex-col items-center justify-center text-center py-20">
-              <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-on-surface-variant mb-6">
+              <div class="w-20 h-20 rounded-full bg-on-surface/5 flex items-center justify-center text-on-surface-variant mb-6">
                 <span class="material-symbols-outlined text-4xl">shopping_basket</span>
               </div>
               <h3 class="text-xl font-black text-on-surface mb-2">Cart is empty</h3>
@@ -125,7 +125,7 @@ const handleCheckout = async function() {
           </div>
 
           <!-- Footer -->
-          <div v-if="shopStore.cart.length > 0" class="p-8 border-t border-outline-variant/20 dark:border-white/5 bg-surface-container dark:bg-black/20">
+          <div v-if="shopStore.cart.length > 0" class="p-8 border-t border-outline-variant/20 dark:border-on-surface/5 bg-surface-container dark:bg-on-surface/20">
             <div class="flex items-center justify-between mb-6">
               <span class="text-sm font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest">Total Amount</span>
               <span class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tighter">{{ formatPrice(shopStore.cartTotalCents) }}</span>
@@ -133,7 +133,7 @@ const handleCheckout = async function() {
 
             <button
               @click="handleCheckout"
-              class="w-full h-16 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-orange-500/20"
+              class="w-full h-16 bg-primary hover:bg-primary-dim text-on-surface rounded-2xl font-black text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl"
             >
               Place Order Request
             </button>

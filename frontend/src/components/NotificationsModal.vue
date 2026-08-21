@@ -127,14 +127,14 @@ const closeModal = () => {
         @click.self="closeModal"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm" @click="closeModal" />
+        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60" @click="closeModal" />
 
         <!-- Modal -->
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5 shrink-0">
+          <div class="flex items-center justify-between p-6 border-b border-on-surface/5 dark:border-on-surface/5 shrink-0">
             <div>
-              <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">Stay Updated</p>
+              <p class="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Stay Updated</p>
               <h3 class="text-xl font-black text-on-surface dark:text-on-surface">Notifications</h3>
             </div>
             <div class="flex items-center gap-2">
@@ -146,7 +146,7 @@ const closeModal = () => {
                 Mark all as read
               </button>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
+                class="w-10 h-10 rounded-2xl bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
                 @click="closeModal"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
@@ -155,14 +155,14 @@ const closeModal = () => {
           </div>
 
           <!-- Filter Pills -->
-          <div class="px-6 py-2.5 flex gap-1.5 overflow-x-auto custom-scrollbar shrink-0 border-b border-black/5 dark:border-white/5 bg-black/[0.01] dark:bg-white/[0.01]">
+          <div class="px-6 py-2.5 flex gap-1.5 overflow-x-auto custom-scrollbar shrink-0 border-b border-on-surface/5 dark:border-on-surface/5 bg-on-surface/[0.01] dark:bg-on-surface/[0.01]">
             <button
               v-for="filter in (['all', 'unread', 'sessions', 'shop', 'payments', 'auth'] as const)"
               :key="filter"
               class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
               :class="activeFilter === filter 
-                ? 'bg-orange-500 text-white shadow-sm' 
-                : 'bg-black/[0.04] dark:bg-white/5 text-on-surface-variant hover:text-on-surface'"
+                ? 'bg-primary text-on-surface shadow-sm' 
+                : 'bg-on-surface/[0.04] dark:bg-on-surface/5 text-on-surface-variant hover:text-on-surface'"
               @click="activeFilter = filter"
             >
               {{ filter }}
@@ -172,7 +172,7 @@ const closeModal = () => {
           <!-- Notification List -->
           <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             <div v-if="notifications.length === 0" class="text-center py-12">
-              <div class="w-16 h-16 bg-black/[0.04] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/40 dark:border-white/5">
+              <div class="w-16 h-16 bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-on-surface/40 dark:border-on-surface/5">
                 <span class="material-symbols-outlined text-3xl text-on-surface-variant/60 dark:text-on-surface-variant/40">notifications_off</span>
               </div>
               <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">All caught up!</p>
@@ -185,8 +185,8 @@ const closeModal = () => {
               class="group relative rounded-2xl p-4 border transition-all cursor-pointer"
               :class="[
                 notif.isRead 
-                  ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.05] dark:border-white/5 opacity-60' 
-                  : 'bg-orange-500/5 border-orange-500/20 hover:bg-orange-500/10'
+                  ? 'bg-on-surface/[0.02] dark:bg-on-surface/[0.02] border-on-surface/[0.05] dark:border-on-surface/5 opacity-60' 
+                  : 'bg-primary/5 border-primary/20 hover:bg-primary/10'
               ]"
               @click="handleNotifClick(notif)"
             >
@@ -202,7 +202,7 @@ const closeModal = () => {
                 <!-- Content -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2 mb-1">
-                    <h4 class="text-sm font-bold text-on-surface dark:text-on-surface truncate group-hover:text-orange-400 transition-colors">
+                    <h4 class="text-sm font-bold text-on-surface dark:text-on-surface truncate group-hover:text-primary transition-colors">
                       {{ notif.title || 'Notification' }}
                     </h4>
                     <span class="text-[10px] text-on-surface-variant dark:text-on-surface-variant whitespace-nowrap font-medium">
@@ -218,13 +218,13 @@ const closeModal = () => {
               <!-- Unread Dot -->
               <div 
                 v-if="!notif.isRead"
-                class="absolute top-4 right-4 w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                class="absolute top-4 right-4 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
               ></div>
             </div>
           </div>
 
           <!-- Footer -->
-          <div class="p-4 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] shrink-0 text-center">
+          <div class="p-4 border-t border-on-surface/5 dark:border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] shrink-0 text-center">
             <p class="text-[10px] text-on-surface-variant dark:text-on-surface-variant font-bold uppercase tracking-tighter">
               Showing last {{ notifications.length }} notifications
             </p>

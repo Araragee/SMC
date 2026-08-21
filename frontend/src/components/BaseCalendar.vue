@@ -152,7 +152,7 @@ const themeStatusStyles = (status: string) => {
     pending_teacher:
       'bg-amber-100/60 border-amber-300 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-300',
     pending_student:
-      'bg-orange-100/60 border-orange-300 text-orange-800 dark:bg-orange-500/10 dark:border-orange-500/30 dark:text-orange-300',
+      'bg-primary-container/60 border-primary text-primary dark:bg-primary/10 dark:border-primary/30 dark:text-primary',
     pending_admin:
       'bg-blue-100/60 border-blue-300 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/30 dark:text-blue-300',
     pending_verification:
@@ -193,7 +193,7 @@ const statusDotColor = function(status: string): string  {
     scheduled:            'bg-teal-400',
     completed:            'bg-emerald-400',
     pending_teacher:      'bg-amber-400',
-    pending_student:      'bg-orange-400',
+    pending_student:      'bg-primary',
     pending_admin:        'bg-blue-400',
     pending_verification: 'bg-violet-400',
     overdue:              'bg-rose-400',
@@ -264,7 +264,7 @@ const limitForView = computed(() => {
         </h3>
         <button
           v-if="offset !== 0"
-          class="px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-wider hover:bg-orange-200 dark:hover:bg-orange-500/20 transition-colors"
+          class="px-3 py-1.5 rounded-full bg-primary-container dark:bg-primary/10 text-primary dark:text-primary text-[10px] font-black uppercase tracking-wider hover:bg-primary-container dark:hover:bg-primary/20 transition-colors"
           @click="resetToToday"
         >
           Today
@@ -280,7 +280,7 @@ const limitForView = computed(() => {
             :key="view"
             class="px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
             :class="activeView === view 
-              ? 'bg-orange-500 text-white shadow-md' 
+              ? 'bg-primary text-on-surface shadow-md' 
               : 'text-on-surface-variant hover:text-on-surface'"
             @click="activeView = view"
           >
@@ -292,13 +292,13 @@ const limitForView = computed(() => {
           class="flex items-center gap-2 bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant"
         >
           <button
-            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-on-surface/10 shadow-sm dark:shadow-none transition-all"
             @click="previous"
           >
             <span class="material-symbols-outlined text-lg">chevron_left</span>
           </button>
           <button
-            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-white/10 shadow-sm dark:shadow-none transition-all"
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-on-surface/10 shadow-sm dark:shadow-none transition-all"
             @click="next"
           >
             <span class="material-symbols-outlined text-lg">chevron_right</span>
@@ -349,7 +349,7 @@ const limitForView = computed(() => {
             class="w-8 h-8 rounded-full flex items-center justify-center mx-auto text-sm font-black transition-all"
             :class="
               day.isToday
-                ? 'bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-md shadow-teal-500/20'
+                ? 'bg-primary text-on-primary shadow-e1'
                 : 'text-on-surface dark:text-on-surface'
             "
           >
@@ -383,7 +383,7 @@ const limitForView = computed(() => {
             class="mt-1"
           >
             <button
-              class="w-full text-center py-1 text-[9px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 rounded-md transition-colors"
+              class="w-full text-center py-1 text-[9px] font-black uppercase tracking-wider text-primary dark:text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
               @click.stop="toggleOverflow(day.iso, day.sessions)"
             >
               +{{ day.sessions.length - limitForView }} more
@@ -440,7 +440,7 @@ const limitForView = computed(() => {
       <span class="flex items-center gap-1 text-[9px] font-bold text-teal-600 dark:text-teal-400"><span class="w-2 h-2 rounded-full bg-teal-400 shrink-0"></span>Confirmed</span>
       <span class="flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>Done</span>
       <span class="flex items-center gap-1 text-[9px] font-bold text-amber-600 dark:text-amber-400"><span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>Aw. Teacher</span>
-      <span class="flex items-center gap-1 text-[9px] font-bold text-orange-600 dark:text-orange-400"><span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span>Countered</span>
+      <span class="flex items-center gap-1 text-[9px] font-bold text-primary dark:text-primary"><span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>Countered</span>
       <span class="flex items-center gap-1 text-[9px] font-bold text-blue-600 dark:text-blue-400"><span class="w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>Aw. Admin</span>
       <span class="flex items-center gap-1 text-[9px] font-bold text-violet-600 dark:text-violet-400"><span class="w-2 h-2 rounded-full bg-violet-400 shrink-0"></span>In Review</span>
       <span class="flex items-center gap-1 text-[9px] font-bold text-rose-600 dark:text-rose-400"><span class="w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>Overdue</span>

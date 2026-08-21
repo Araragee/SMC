@@ -278,18 +278,18 @@ const formatDateLong = function(iso: string) {
 const statusConfig = computed(() => {
   const s = props.session?.status ?? ''
   const map: Record<string, { label: string; icon: string; badge: string; dot: string; cardBg: string; headerBg: string }> = {
-    scheduled:           { label: 'Confirmed',           icon: 'check_circle',    badge: 'bg-teal-500/20 border-teal-500/40 text-teal-400',   dot: 'bg-teal-400',   cardBg: 'bg-teal-500/5 border-teal-500/20',       headerBg: 'from-teal-500/10 to-transparent' },
-    completed:           { label: 'Completed',           icon: 'verified',        badge: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400', dot: 'bg-emerald-400', cardBg: 'bg-emerald-500/5 border-emerald-500/20', headerBg: 'from-emerald-500/10 to-transparent' },
-    pending_teacher:     { label: 'Awaiting Teacher',    icon: 'pending',         badge: 'bg-amber-500/20 border-amber-500/40 text-amber-400',  dot: 'bg-amber-400',  cardBg: 'bg-amber-500/5 border-amber-500/20',     headerBg: 'from-amber-500/10 to-transparent' },
-    pending_student:     { label: 'Awaiting Student',    icon: 'swap_horiz',      badge: 'bg-orange-500/20 border-orange-500/40 text-orange-400', dot: 'bg-orange-400', cardBg: 'bg-orange-500/5 border-orange-500/20', headerBg: 'from-orange-500/10 to-transparent' },
-    pending_admin:       { label: 'Awaiting Admin',      icon: 'admin_panel_settings', badge: 'bg-blue-500/20 border-blue-500/40 text-blue-400', dot: 'bg-blue-400', cardBg: 'bg-blue-500/5 border-blue-500/20',       headerBg: 'from-blue-500/10 to-transparent' },
-    pending_verification:{ label: 'Proof Under Review',  icon: 'fact_check',      badge: 'bg-violet-500/20 border-violet-500/40 text-violet-400', dot: 'bg-violet-400', cardBg: 'bg-violet-500/5 border-violet-500/20', headerBg: 'from-violet-500/10 to-transparent' },
-    overdue:             { label: 'Overdue',             icon: 'schedule_send',   badge: 'bg-rose-500/20 border-rose-500/40 text-rose-400',     dot: 'bg-rose-400',   cardBg: 'bg-rose-500/5 border-rose-500/30',       headerBg: 'from-rose-500/10 to-transparent' },
-    overdue_rejected:    { label: 'Proof Rejected',      icon: 'cancel',          badge: 'bg-red-500/20 border-red-500/40 text-red-400',        dot: 'bg-red-500',    cardBg: 'bg-red-500/5 border-red-500/30',         headerBg: 'from-red-500/10 to-transparent' },
-    rejected:            { label: 'Declined',            icon: 'block',           badge: 'bg-red-500/20 border-red-500/30 text-red-400',        dot: 'bg-red-400',    cardBg: 'bg-red-500/5 border-red-500/20',         headerBg: 'from-red-500/10 to-transparent' },
-    cancelled:           { label: 'Cancelled',           icon: 'do_not_disturb',  badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',     dot: 'bg-zinc-400',   cardBg: 'bg-zinc-500/5 border-zinc-500/20',       headerBg: 'from-zinc-500/10 to-transparent' },
+    scheduled:           { label: 'Confirmed',           icon: 'check_circle',    badge: 'bg-teal-500/20 border-teal-500/40 text-teal-400',   dot: 'bg-teal-400',   cardBg: 'bg-teal-500/5 border-teal-500/20',       headerBg: 'bg-teal-500/10' },
+    completed:           { label: 'Completed',           icon: 'verified',        badge: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400', dot: 'bg-emerald-400', cardBg: 'bg-emerald-500/5 border-emerald-500/20', headerBg: 'bg-emerald-500/10' },
+    pending_teacher:     { label: 'Awaiting Teacher',    icon: 'pending',         badge: 'bg-amber-500/20 border-amber-500/40 text-amber-400',  dot: 'bg-amber-400',  cardBg: 'bg-amber-500/5 border-amber-500/20',     headerBg: 'bg-amber-500/10' },
+    pending_student:     { label: 'Awaiting Student',    icon: 'swap_horiz',      badge: 'bg-primary/20 border-primary/40 text-primary', dot: 'bg-primary', cardBg: 'bg-primary/5 border-primary/20', headerBg: '' },
+    pending_admin:       { label: 'Awaiting Admin',      icon: 'admin_panel_settings', badge: 'bg-blue-500/20 border-blue-500/40 text-blue-400', dot: 'bg-blue-400', cardBg: 'bg-blue-500/5 border-blue-500/20',       headerBg: 'bg-blue-500/10' },
+    pending_verification:{ label: 'Proof Under Review',  icon: 'fact_check',      badge: 'bg-violet-500/20 border-violet-500/40 text-violet-400', dot: 'bg-violet-400', cardBg: 'bg-violet-500/5 border-violet-500/20', headerBg: 'bg-violet-500/10' },
+    overdue:             { label: 'Overdue',             icon: 'schedule_send',   badge: 'bg-rose-500/20 border-rose-500/40 text-rose-400',     dot: 'bg-rose-400',   cardBg: 'bg-rose-500/5 border-rose-500/30',       headerBg: 'bg-rose-500/10' },
+    overdue_rejected:    { label: 'Proof Rejected',      icon: 'cancel',          badge: 'bg-red-500/20 border-red-500/40 text-red-400',        dot: 'bg-red-500',    cardBg: 'bg-red-500/5 border-red-500/30',         headerBg: 'bg-red-500/10' },
+    rejected:            { label: 'Declined',            icon: 'block',           badge: 'bg-red-500/20 border-red-500/30 text-red-400',        dot: 'bg-red-400',    cardBg: 'bg-red-500/5 border-red-500/20',         headerBg: 'bg-red-500/10' },
+    cancelled:           { label: 'Cancelled',           icon: 'do_not_disturb',  badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',     dot: 'bg-zinc-400',   cardBg: 'bg-zinc-500/5 border-zinc-500/20',       headerBg: 'bg-zinc-500/10' },
   }
-  return map[s] ?? { label: s, icon: 'info', badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400', dot: 'bg-zinc-400', cardBg: 'bg-black/5', headerBg: 'from-zinc-500/10 to-transparent' }
+  return map[s] ?? { label: s, icon: 'info', badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400', dot: 'bg-zinc-400', cardBg: 'bg-on-surface/5', headerBg: 'bg-zinc-500/10' }
 })
 
 const canForceComplete = function(session: Session) {
@@ -321,8 +321,8 @@ const statusContext = computed(() => {
   }
   if (status === 'pending_student') {
     return role === 'student'
-      ? { icon: 'swap_horiz', color: 'text-orange-400', text: 'Your teacher has proposed a different time. Accept or suggest another.' }
-      : { icon: 'hourglass_top', color: 'text-orange-400', text: 'Waiting for the student to respond to the counter-proposal.' }
+      ? { icon: 'swap_horiz', color: 'text-primary', text: 'Your teacher has proposed a different time. Accept or suggest another.' }
+      : { icon: 'hourglass_top', color: 'text-primary', text: 'Waiting for the student to respond to the counter-proposal.' }
   }
   if (status === 'pending_admin') {
     return role === 'admin'
@@ -367,14 +367,14 @@ const statusContext = computed(() => {
       >
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm"
+          class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/70"
           @click="$emit('close')"
         />
 
         <!-- Modal -->
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <!-- Coloured header stripe -->
-          <div :class="`bg-gradient-to-b ${statusConfig.headerBg} p-5 pb-4 border-b border-black/5 dark:border-white/5`">
+          <div :class="`${statusConfig.headerBg} p-5 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`">
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <span
@@ -398,7 +398,7 @@ const statusContext = computed(() => {
                 </div>
                 <!-- Copy link button -->
                 <button
-                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
+                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-on-surface/[0.06] dark:bg-on-surface/[0.06] hover:bg-on-surface/10 dark:hover:bg-on-surface/10 text-on-surface-variant hover:text-on-surface transition-all"
                   title="Copy session link"
                   @click="copySessionLink"
                 >
@@ -406,7 +406,7 @@ const statusContext = computed(() => {
                 </button>
                 <!-- Universal close button -->
                 <button
-                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-all"
+                  class="w-10 h-10 rounded-2xl flex items-center justify-center bg-on-surface/[0.06] dark:bg-on-surface/[0.06] hover:bg-on-surface/10 dark:hover:bg-on-surface/10 text-on-surface-variant hover:text-on-surface transition-all"
                   @click="emit('close')"
                 >
                   <span class="material-symbols-outlined text-lg">close</span>
@@ -419,17 +419,17 @@ const statusContext = computed(() => {
           <div class="overflow-y-auto flex-1 p-5 space-y-4 custom-scrollbar">
 
             <!-- Tabs -->
-            <div class="flex bg-black/[0.04] dark:bg-white/5 p-1 rounded-2xl border border-black/[0.06] dark:border-white/10">
+            <div class="flex bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/[0.06] dark:border-on-surface/10">
               <button
                 class="flex-1 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
-                :class="activeTab === 'overview' ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                :class="activeTab === 'overview' ? 'bg-primary text-on-surface shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                 @click="activeTab = 'overview'"
               >
                 Overview
               </button>
               <button
                 class="flex-1 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all"
-                :class="activeTab === 'history' ? 'bg-orange-500 text-white shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                :class="activeTab === 'history' ? 'bg-primary text-on-surface shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
                 @click="activeTab = 'history'"
               >
                 History
@@ -440,7 +440,7 @@ const statusContext = computed(() => {
               <!-- Context message -->
               <div
                 v-if="statusContext"
-                class="flex items-start gap-2.5 p-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/5"
+                class="flex items-start gap-2.5 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.04] border border-on-surface/[0.04] dark:border-on-surface/5"
               >
                 <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="statusContext.color">{{ statusContext.icon }}</span>
                 <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">{{ statusContext.text }}</p>
@@ -448,18 +448,18 @@ const statusContext = computed(() => {
 
               <!-- Participants -->
               <div class="grid grid-cols-2 gap-2">
-                <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
+                <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
                   <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Teacher</p>
                   <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.teacherId) }}</p>
                 </div>
-                <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
+                <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
                   <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Student</p>
                   <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.studentId) }}</p>
                 </div>
               </div>
 
               <!-- Notes -->
-              <div v-if="session.notes" class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-3">
+              <div v-if="session.notes" class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
                 <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest mb-1">Notes</p>
                 <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
               </div>
@@ -475,11 +475,11 @@ const statusContext = computed(() => {
                   <button
                     v-for="proof in session.proofs"
                     :key="proof.id"
-                    class="w-16 h-16 rounded-2xl overflow-hidden border border-black/[0.08] dark:border-white/10 hover:brightness-110 transition-all relative shrink-0"
+                    class="w-16 h-16 rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10 hover:brightness-110 transition-all relative shrink-0"
                     @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
                   >
                     <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
-                    <div class="absolute bottom-0 inset-x-0 bg-black/50 text-[8px] text-white font-bold text-center py-0.5">
+                    <div class="absolute bottom-0 inset-x-0 bg-on-surface/50 text-[8px] text-on-surface font-bold text-center py-0.5">
                       {{ proof.uploaderRole === 'teacher' ? 'Teacher' : 'Student' }}
                     </div>
                   </button>
@@ -490,7 +490,7 @@ const statusContext = computed(() => {
               <!-- OVERDUE / OVERDUE_REJECTED / PENDING_VERIFICATION: proof status -->
               <div v-if="['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)" class="space-y-4">
                 <!-- Proof status table -->
-                <div class="bg-black/[0.04] dark:bg-white/5 rounded-2xl p-4 space-y-3">
+                <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-4 space-y-3">
                   <p class="text-[9px] text-on-surface-variant uppercase font-black tracking-widest">Proof Status</p>
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-on-surface-variant">Teacher</span>
@@ -502,7 +502,7 @@ const statusContext = computed(() => {
                         v-if="!session.proofs?.some(p => p.uploaderRole === 'teacher') && !session.isForceCompleted"
                         v-tooltip="isNudgeOnCooldown(session.id) ? `Cooldown: ${nudgeCooldownLabel(session.id)}` : 'Nudge Teacher to upload proof'"
                         class="p-1 rounded-lg transition-colors"
-                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-black/5 dark:hover:bg-white/5 hover:text-amber-400'"
+                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-amber-400'"
                         :disabled="isNudgeOnCooldown(session.id)"
                         @click="sendNudge(session.id)"
                       >
@@ -520,7 +520,7 @@ const statusContext = computed(() => {
                         v-if="!session.proofs?.some(p => p.uploaderRole === 'student') && !session.isForceCompleted"
                         v-tooltip="isNudgeOnCooldown(session.id) ? `Cooldown: ${nudgeCooldownLabel(session.id)}` : 'Nudge Student to upload proof'"
                         class="p-1 rounded-lg transition-colors"
-                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-black/5 dark:hover:bg-white/5 hover:text-amber-400'"
+                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-amber-400'"
                         :disabled="isNudgeOnCooldown(session.id)"
                         @click="sendNudge(session.id)"
                       >
@@ -554,7 +554,7 @@ const statusContext = computed(() => {
                 <div
                   v-for="log in historyLogs"
                   :key="log.id"
-                  class="bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/5 rounded-2xl p-3 flex flex-col space-y-1"
+                  class="bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.04] dark:border-on-surface/5 rounded-2xl p-3 flex flex-col space-y-1"
                 >
                   <div class="flex items-center justify-between text-[10px] text-on-surface-variant font-bold">
                     <span>{{ log.actorName || 'System' }}</span>
@@ -579,7 +579,7 @@ const statusContext = computed(() => {
                 "
               >
                 <div class="flex gap-2 mb-2">
-                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse" @click="$emit('counter-teacher', session)">
+                  <button class="flex-1 py-2.5 rounded-2xl bg-primary hover:bg-primary-dim text-on-surface text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse" @click="$emit('counter-teacher', session)">
                     <span class="material-symbols-outlined text-base">build</span> Propose New Time (Fix Conflict)
                   </button>
                 </div>
@@ -596,7 +596,7 @@ const statusContext = computed(() => {
                   <button class="flex-1 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-teacher', session.id)">
                     <span class="material-symbols-outlined text-base">check_circle</span> Approve
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-teacher', session)">
+                  <button class="flex-1 py-2.5 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-teacher', session)">
                     <span class="material-symbols-outlined text-base">swap_horiz</span> Counter
                   </button>
                   <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-teacher', session.id)">
@@ -616,7 +616,7 @@ const statusContext = computed(() => {
                   <button class="flex-1 py-2.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-student', session.id)">
                     <span class="material-symbols-outlined text-base">check_circle</span> Accept Time
                   </button>
-                  <button class="flex-1 py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-student', session)">
+                  <button class="flex-1 py-2.5 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-student', session)">
                     <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest Other
                   </button>
                   <button class="flex-1 py-2.5 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-student', session.id)">
@@ -652,7 +652,7 @@ const statusContext = computed(() => {
               <!-- Admin: force complete (overdue/overdue_rejected/scheduled) -->
               <template v-if="userRole === 'admin' && ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)">
                 <button
-                  class="w-full py-2.5 rounded-2xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  class="w-full py-2.5 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                   :title="canForceComplete(session) ? 'Overrides proof requirements and finalizes session' : 'Only available 24h after session end time'"
                   :disabled="!canForceComplete(session)"
                   @click="$emit('complete-admin', session.id)"
@@ -665,7 +665,7 @@ const statusContext = computed(() => {
               <!-- Admin edit button (always visible for admin) -->
               <button
                 v-if="userRole === 'admin' && !['completed', 'cancelled', 'rejected'].includes(session.status)"
-                class="w-full py-2.5 rounded-2xl bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-black/[0.06] dark:border-white/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                class="w-full py-2.5 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 border border-on-surface/[0.06] dark:border-on-surface/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
                 @click="$emit('edit-admin', session)"
               >
                 <span class="material-symbols-outlined text-base">edit</span> Edit Session
@@ -718,11 +718,11 @@ const statusContext = computed(() => {
     >
       <div
         v-if="showProofViewer"
-        class="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+        class="fixed inset-0 z-[300] flex items-center justify-center bg-on-surface/90 p-4"
         @click="showProofViewer = null"
       >
         <button
-          class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all"
+          class="absolute top-5 right-5 w-10 h-10 rounded-full bg-on-surface/10 hover:bg-on-surface/20 border border-on-surface/10 flex items-center justify-center text-on-surface transition-all"
           @click="showProofViewer = null"
         >
           <span class="material-symbols-outlined">close</span>
@@ -731,7 +731,7 @@ const statusContext = computed(() => {
         <!-- Prev Button -->
         <button
           v-if="proofUrls.length > 1"
-          class="absolute left-5 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
+          class="absolute left-5 w-12 h-12 rounded-full bg-on-surface/10 hover:bg-on-surface/20 border border-on-surface/10 flex items-center justify-center text-on-surface transition-all select-none"
           @click.stop="prevProof"
         >
           <span class="material-symbols-outlined">chevron_left</span>
@@ -739,13 +739,13 @@ const statusContext = computed(() => {
 
         <img
           :src="showProofViewer"
-          class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+          class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-on-surface/10"
         />
 
         <!-- Next Button -->
         <button
           v-if="proofUrls.length > 1"
-          class="absolute right-5 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-white transition-all select-none"
+          class="absolute right-5 w-12 h-12 rounded-full bg-on-surface/10 hover:bg-on-surface/20 border border-on-surface/10 flex items-center justify-center text-on-surface transition-all select-none"
           @click.stop="nextProof"
         >
           <span class="material-symbols-outlined">chevron_right</span>

@@ -89,7 +89,7 @@ const submit = async () => {
             required
             autocomplete="new-password"
             placeholder="••••••••"
-            class="w-full h-14 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            class="w-full h-14 bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
           />
         </div>
         <div class="space-y-2">
@@ -102,7 +102,7 @@ const submit = async () => {
             required
             autocomplete="new-password"
             placeholder="••••••••"
-            class="w-full h-14 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+            class="w-full h-14 bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl px-5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
           />
         </div>
 
@@ -111,7 +111,7 @@ const submit = async () => {
         <button
           :disabled="!canSubmit"
           type="submit"
-          class="w-full h-14 bg-gradient-to-br from-primary to-tertiary-container rounded-lg font-bold text-white uppercase tracking-wider active:scale-[0.98] transition-all disabled:opacity-50"
+          class="w-full h-14 bg-primary hover:bg-primary-dim rounded-xl font-bold text-on-primary uppercase tracking-wider active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {{ isLoading ? 'Saving…' : 'Save new password' }}
         </button>

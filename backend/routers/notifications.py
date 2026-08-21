@@ -4,7 +4,11 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
-from ..dependencies import get_current_active_user, require_admin
+from ..dependencies import (
+    get_current_active_user,
+    require_admin,
+    require_self_or_admin,
+)
 
 router = APIRouter()
 
@@ -46,6 +50,7 @@ def create_notification(
 
 @router.get("/notifications/user/{user_id}", response_model=list[schemas.Notification])
 def read_user_notifications(user_id: int, skip: int = Query(default=0, ge=0), limit: int = Query(default=100, le=500), db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    require_self_or_admin(current_user, user_id)
     notifications = db.query(models.Notification).filter(
         models.Notification.user_id == user_id
     ).order_by(models.Notification.created_at.desc()).offset(skip).limit(limit).all()

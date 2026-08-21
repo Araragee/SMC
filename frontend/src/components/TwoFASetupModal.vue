@@ -90,20 +90,20 @@ const handleConfirm = async () => {
         class="fixed inset-0 z-[230] flex items-center justify-center p-4"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/80 backdrop-blur-md" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="$emit('close')" />
 
         <!-- Modal Card -->
         <div class="relative w-full max-w-lg glass-heavy rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col p-8 max-h-[90vh]">
-          <div class="h-2 w-full bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600 absolute top-0 left-0"></div>
+          <div class="h-2 w-full bg-primary absolute top-0 left-0"></div>
 
           <!-- Header -->
           <div class="flex justify-between items-start mt-4">
             <div>
-              <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] mb-1">Security Setup</p>
+              <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Security Setup</p>
               <h2 class="text-2xl font-black text-on-surface dark:text-on-surface tracking-tight">Enable 2FA</h2>
             </div>
             <button
-              class="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
+              class="w-10 h-10 rounded-xl bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
               @click="$emit('close')"
             >
               <span class="material-symbols-outlined">close</span>
@@ -114,7 +114,7 @@ const handleConfirm = async () => {
           <div class="flex-1 overflow-y-auto space-y-6 pt-4 pr-1 custom-scrollbar">
             <!-- Loading state -->
             <div v-if="loading" class="flex flex-col items-center justify-center py-12 space-y-4">
-              <div class="w-10 h-10 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
+              <div class="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
               <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Generating keys...</p>
             </div>
 
@@ -128,7 +128,7 @@ const handleConfirm = async () => {
                 <p class="text-xs text-on-surface-variant dark:text-on-surface-variant leading-relaxed">
                   Open your authenticator app (Google Authenticator, Microsoft Authenticator, 1Password, Duo, etc.) and scan the QR code below.
                 </p>
-                <div class="flex items-center justify-center p-4 bg-white rounded-3xl w-48 h-48 mx-auto border border-black/5 dark:border-white/10 shadow-lg">
+                <div class="flex items-center justify-center p-4 bg-surface-container-lowest rounded-3xl w-48 h-48 mx-auto border border-on-surface/5 dark:border-on-surface/10 shadow-lg">
                   <img :src="`data:image/png;base64,${setupData.qr_code_png_base64}`" alt="2FA QR Code" class="w-full h-full object-contain" />
                 </div>
               </div>
@@ -141,11 +141,11 @@ const handleConfirm = async () => {
                 <p class="text-xs text-on-surface-variant dark:text-on-surface-variant leading-relaxed">
                   If you cannot scan the QR code, type this secret key into your authenticator app.
                 </p>
-                <div class="flex items-center justify-between gap-3 bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl p-4">
+                <div class="flex items-center justify-between gap-3 bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl p-4">
                   <span class="font-mono text-sm tracking-wider font-bold text-on-surface select-all overflow-x-auto break-all">{{ setupData.secret }}</span>
                   <button
                     type="button"
-                    class="px-4 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                    class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
                     @click="handleCopySecret"
                   >
                     {{ isCopied ? 'Copied!' : 'Copy' }}
@@ -168,7 +168,7 @@ const handleConfirm = async () => {
                   pattern="[0-9]*"
                   inputmode="numeric"
                   placeholder="000000"
-                  class="w-full h-14 text-center text-xl font-bold tracking-[0.2em] bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/40 text-on-surface dark:text-on-surface transition-all"
+                  class="w-full h-14 text-center text-xl font-bold tracking-[0.2em] bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-on-surface dark:text-on-surface transition-all"
                   @input="code = code.replace(/[^0-9]/g, '')"
                 />
               </div>
@@ -182,7 +182,7 @@ const handleConfirm = async () => {
               <p class="text-sm font-bold text-on-surface">{{ errorMsg || 'An unexpected error occurred' }}</p>
               <button
                 type="button"
-                class="px-6 py-3 bg-orange-500 text-white font-bold rounded-2xl text-xs uppercase tracking-widest"
+                class="px-6 py-3 bg-primary text-on-surface font-bold rounded-2xl text-xs uppercase tracking-widest"
                 @click="loadSetup"
               >
                 Retry
@@ -191,7 +191,7 @@ const handleConfirm = async () => {
           </div>
 
           <!-- Footer -->
-          <div class="pt-6 border-t border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02] -mx-8 -mb-8 p-8 flex items-center justify-end gap-4 shrink-0">
+          <div class="pt-6 border-t border-on-surface/5 dark:border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] -mx-8 -mb-8 p-8 flex items-center justify-end gap-4 shrink-0">
             <button
               class="px-6 py-3 text-sm font-bold text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-colors"
               @click="$emit('close')"
@@ -201,7 +201,7 @@ const handleConfirm = async () => {
             <button
               v-if="setupData"
               :disabled="isEnabling || code.length < 6"
-              class="px-10 py-3 bg-gradient-to-br from-orange-500 to-orange-700 hover:from-orange-400 hover:to-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+              class="px-10 py-3 bg-primary text-on-primary font-black rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
               @click="handleConfirm"
             >
               <span v-if="isEnabling" class="material-symbols-outlined animate-spin text-sm">progress_activity</span>

@@ -54,7 +54,7 @@ const computedClasses = computed(() => {
   // Error state
   const stateClasses = props.error
     ? 'bg-error/10 text-error-dim focus:ring-error-dim border border-error/30'
-    : 'bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10';
+    : 'bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10';
 
   const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : '';
 

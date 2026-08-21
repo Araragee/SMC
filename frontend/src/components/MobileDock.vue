@@ -75,17 +75,17 @@ onUnmounted(() => {
     class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]"
     :class="isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90'"
   >
-    <nav class="flex items-center gap-1 p-2 bg-surface-container-low/80 backdrop-blur-2xl rounded-full border border-white/10 shadow-2xl shadow-black/40">
+    <nav class="flex items-center gap-1 p-2 bg-surface-container-low/80 rounded-full border border-on-surface/10 shadow-2xl shadow-e2">
       <router-link
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
         class="relative p-3 rounded-full group"
-        :class="isActive(item.path) ? 'bg-orange-500 scale-110 shadow-lg shadow-orange-500/40' : 'hover:bg-white/5'"
+        :class="isActive(item.path) ? 'bg-primary scale-110 shadow-lg' : 'hover:bg-on-surface/5'"
       >
         <span 
           class="material-symbols-outlined"
-          :class="isActive(item.path) ? 'text-white' : 'text-on-surface-variant group-hover:text-on-surface'"
+          :class="isActive(item.path) ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'"
           :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
           aria-hidden="true"
         >
@@ -95,21 +95,21 @@ onUnmounted(() => {
         <!-- Subtle Active Indicator Dot -->
         <div 
           v-if="isActive(item.path)"
-          class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full"
+          class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-surface-container-lowest rounded-full"
         ></div>
       </router-link>
 
-      <div class="w-px h-6 bg-white/10 mx-1"></div>
+      <div class="w-px h-6 bg-on-surface/10 mx-1"></div>
 
       <!-- Notifications -->
       <button 
-        class="relative p-3 rounded-full hover:bg-white/5 group"
+        class="relative p-3 rounded-full hover:bg-on-surface/5 group"
         @click="modalStore.openNotifications()"
       >
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">notifications</span>
         <span 
           v-if="notifStore.unreadCount > 0"
-          class="absolute top-2 right-2 w-4 h-4 bg-orange-500 rounded-full border-2 border-surface-container-low text-[8px] font-black text-white flex items-center justify-center"
+          class="absolute top-2 right-2 w-4 h-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-black text-on-surface flex items-center justify-center"
         >
           {{ notifStore.unreadCount > 9 ? '9+' : notifStore.unreadCount }}
         </span>
@@ -117,13 +117,13 @@ onUnmounted(() => {
 
       <!-- Messaging -->
       <button 
-        class="relative p-3 rounded-full hover:bg-white/5 group"
+        class="relative p-3 rounded-full hover:bg-on-surface/5 group"
         @click="messagingStore.isOpen = true"
       >
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">chat</span>
         <span 
           v-if="messagingStore.totalUnread > 0"
-          class="absolute top-2 right-2 w-4 h-4 bg-orange-500 rounded-full border-2 border-surface-container-low text-[8px] font-black text-white flex items-center justify-center"
+          class="absolute top-2 right-2 w-4 h-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-black text-on-surface flex items-center justify-center"
         >
           {{ messagingStore.totalUnread > 9 ? '9+' : messagingStore.totalUnread }}
         </span>
@@ -131,7 +131,7 @@ onUnmounted(() => {
 
       <!-- Profile/Logout -->
       <button 
-        class="w-10 h-10 rounded-full border border-orange-500/30 overflow-hidden ml-1 hover:border-orange-500/60"
+        class="w-10 h-10 rounded-full border border-primary/30 overflow-hidden ml-1 hover:border-primary/60"
         @click="modalStore.openSettings()"
       >
         <img 
@@ -139,7 +139,7 @@ onUnmounted(() => {
           :src="authStore.currentUser.avatarUrl" 
           class="w-full h-full object-cover" 
         />
-        <div v-else class="w-full h-full bg-orange-500/20 flex items-center justify-center text-orange-400 text-xs font-black uppercase">
+        <div v-else class="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-black uppercase">
           {{ authStore.currentUser?.name?.charAt(0) || '?' }}
         </div>
       </button>

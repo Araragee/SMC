@@ -243,7 +243,7 @@ async function submitPayment() {
           </p>
         </div>
         <button
-          class="flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
+          class="flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-on-surface rounded-2xl font-black text-sm transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
           @click="showAddModal = true"
         >
           <span class="material-symbols-outlined text-lg">add</span>
@@ -415,14 +415,14 @@ async function submitPayment() {
           <!-- Actions -->
           <div class="flex items-center gap-1 justify-end">
             <button
-              class="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-on-surface-variant transition-colors"
+              class="p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
               title="Print receipt"
               @click="printReceipt(pay.id)"
             >
               <span class="material-symbols-outlined text-xl">receipt_long</span>
             </button>
             <button
-              class="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-on-surface-variant transition-colors"
+              class="p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
               title="Edit payment"
               @click="openEditModal(pay)"
             >
@@ -461,7 +461,7 @@ async function submitPayment() {
   <Teleport to="body">
     <div
       v-if="showAddModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-on-surface/50"
       @click.self="showAddModal = false"
     >
       <div
@@ -470,7 +470,7 @@ async function submitPayment() {
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-black text-on-surface">Record Payment</h2>
           <button
-            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
+            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-on-surface/10 dark:hover:bg-on-surface/10"
             @click="showAddModal = false"
           >
             <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
@@ -560,7 +560,7 @@ async function submitPayment() {
 
         <button
           :disabled="isSaving"
-          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all"
+          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-on-surface rounded-2xl font-black text-sm transition-all"
           @click="submitPayment"
         >
           <span v-if="isSaving">Saving…</span>
@@ -574,7 +574,7 @@ async function submitPayment() {
   <Teleport to="body">
     <div
       v-if="showEditModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-on-surface/50"
       @click.self="showEditModal = false"
     >
       <div
@@ -583,7 +583,7 @@ async function submitPayment() {
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-black text-on-surface">Edit Payment</h2>
           <button
-            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
+            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-on-surface/10 dark:hover:bg-on-surface/10"
             @click="showEditModal = false"
           >
             <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
@@ -597,7 +597,7 @@ async function submitPayment() {
               class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-1.5"
               >Student</label
             >
-            <div class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-black/5">
+            <div class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-on-surface/5">
               {{ students.find(s => s.id === editingPayment.student_id)?.name || 'Unknown Student' }}
             </div>
           </div>
@@ -669,7 +669,7 @@ async function submitPayment() {
 
         <button
           :disabled="isUpdating"
-          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm transition-all"
+          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-on-surface rounded-2xl font-black text-sm transition-all"
           @click="submitUpdate"
         >
           <span v-if="isUpdating">Updating…</span>
@@ -682,9 +682,9 @@ async function submitPayment() {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-lg;
+  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-lg;
 }
 .glass-medium {
-  @apply bg-white/40 dark:bg-white/5 backdrop-blur-md;
+  @apply bg-on-surface/40 dark:bg-on-surface/5;
 }
 </style>

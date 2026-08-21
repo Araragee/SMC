@@ -195,7 +195,7 @@ function statusBadge(status: string) {
     scheduled:            'bg-teal-500/20 border-teal-500/30 text-teal-400',
     completed:            'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',
     pending_teacher:      'bg-amber-500/20 border-amber-500/30 text-amber-400',
-    pending_student:      'bg-orange-500/20 border-orange-500/30 text-orange-400',
+    pending_student:      'bg-primary/20 border-primary/30 text-primary',
     pending_admin:        'bg-blue-500/20 border-blue-500/30 text-blue-400',
     pending_verification: 'bg-violet-500/20 border-violet-500/30 text-violet-400',
     overdue:              'bg-rose-500/20 border-rose-500/30 text-rose-400',
@@ -278,7 +278,7 @@ async function handleRejectStudent(sessionId: number) {
         >
           <button
             v-if="search"
-            class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-xl bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-xl bg-on-surface/[0.06] dark:bg-on-surface/[0.06] hover:bg-on-surface/10 dark:hover:bg-on-surface/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
             @click="search = ''"
           >
             <span class="material-symbols-outlined text-base">close</span>
@@ -295,8 +295,8 @@ async function handleRejectStudent(sessionId: number) {
             :key="f.key"
             class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all "
             :class="listFilter === f.key
-              ? 'bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-500/30'
-              : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.08] dark:hover:bg-white/[0.08]'"
+              ? 'bg-teal-500 border-teal-500 text-on-surface shadow-md shadow-teal-500/30'
+              : 'bg-on-surface/[0.04] dark:bg-on-surface/[0.04] border-on-surface/[0.06] dark:border-on-surface/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.08] dark:hover:bg-on-surface/[0.08]'"
             @click="listFilter = listFilter === f.key && f.key !== 'all' ? 'all' : f.key"
           >
             <span class="material-symbols-outlined" style="font-size:14px">{{ f.icon }}</span>
@@ -310,8 +310,8 @@ async function handleRejectStudent(sessionId: number) {
           <button
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all  whitespace-nowrap"
             :class="sortOpen
-              ? 'bg-black/[0.08] dark:bg-white/[0.08] border-black/10 dark:border-white/10 text-on-surface'
-              : 'bg-black/[0.04] dark:bg-white/[0.04] border-black/[0.06] dark:border-white/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-black/[0.07]'"
+              ? 'bg-on-surface/[0.08] dark:bg-on-surface/[0.08] border-on-surface/10 dark:border-on-surface/10 text-on-surface'
+              : 'bg-on-surface/[0.04] dark:bg-on-surface/[0.04] border-on-surface/[0.06] dark:border-on-surface/[0.06] text-on-surface-variant hover:text-on-surface hover:bg-on-surface/[0.07]'"
             @click.stop="sortOpen = !sortOpen"
           >
             <span class="material-symbols-outlined" style="font-size:14px">swap_vert</span>
@@ -334,7 +334,7 @@ async function handleRejectStudent(sessionId: number) {
               <button
                 v-for="opt in sortOptions"
                 :key="opt.key"
-                class="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-left transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+                class="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-left transition-colors hover:bg-on-surface/[0.04] dark:hover:bg-on-surface/[0.04]"
                 :class="sortBy === opt.key ? 'text-teal-400' : 'text-on-surface-variant hover:text-on-surface'"
                 @click="sortBy = opt.key; sortOpen = false"
               >
@@ -373,7 +373,7 @@ async function handleRejectStudent(sessionId: number) {
     </div>
 
     <!-- Student List -->
-    <section class="liquid-glass rounded-3xl border border-black/[0.04] dark:border-white/5 overflow-hidden">
+    <section class="liquid-glass rounded-3xl border border-on-surface/[0.04] dark:border-on-surface/5 overflow-hidden">
       <div v-if="usersStore.isLoading || scheduleStore.isLoading" class="p-12 text-center text-on-surface-variant">
         <span class="material-symbols-outlined text-4xl block mb-3 animate-spin">progress_activity</span>
         Loading students…
@@ -388,11 +388,11 @@ async function handleRejectStudent(sessionId: number) {
         <p class="font-bold mb-1">No students match</p>
         <button class="text-sm text-teal-400 hover:text-teal-300 font-bold mt-2 transition-colors" @click="clearAll">Clear filters</button>
       </div>
-      <div v-else class="divide-y divide-black/[0.04] dark:divide-white/5">
+      <div v-else class="divide-y divide-on-surface/[0.04] dark:divide-on-surface/5">
         <button
           v-for="student in myStudents"
           :key="student.id"
-          class="w-full flex items-center gap-4 px-6 py-4 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors text-left group"
+          class="w-full flex items-center gap-4 px-6 py-4 hover:bg-on-surface/[0.02] dark:hover:bg-on-surface/[0.02] transition-colors text-left group"
           @click="openStudent(student)"
         >
           <!-- Avatar -->
@@ -435,11 +435,11 @@ async function handleRejectStudent(sessionId: number) {
         leave-to-class="opacity-0 translate-x-8"
       >
         <div v-if="selectedStudent" class="fixed inset-0 z-[200] flex items-center justify-center p-4" @click.self="closeStudent">
-          <div class="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-sm" @click="closeStudent" />
+          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/70" @click="closeStudent" />
 
           <div class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
             <!-- Header -->
-            <div class="flex items-center gap-4 p-6 border-b border-black/5 dark:border-white/5">
+            <div class="flex items-center gap-4 p-6 border-b border-on-surface/5 dark:border-on-surface/5">
               <div class="w-14 h-14 rounded-2xl bg-teal-500/20 border border-teal-500/20 flex items-center justify-center text-teal-400 font-black text-xl overflow-hidden shrink-0">
                 <img v-if="selectedStudent.avatarUrl" :src="selectedStudent.avatarUrl" class="w-full h-full object-cover" />
                 <span v-else>{{ selectedStudent.name.charAt(0).toUpperCase() }}</span>
@@ -449,7 +449,7 @@ async function handleRejectStudent(sessionId: number) {
                 <p class="text-on-surface-variant text-sm">{{ selectedStudent.email }}</p>
               </div>
               <button
-                class="w-10 h-10 rounded-2xl bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
+                class="w-10 h-10 rounded-2xl bg-on-surface/[0.06] dark:bg-on-surface/[0.06] hover:bg-on-surface/10 dark:hover:bg-on-surface/10 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
                 @click="closeStudent"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
@@ -460,15 +460,15 @@ async function handleRejectStudent(sessionId: number) {
             <div class="overflow-y-auto flex-1 p-6 space-y-5 custom-scrollbar">
               <!-- Info grid -->
               <div class="grid grid-cols-2 gap-3">
-                <div v-if="selectedStudent.school" class="bg-black/[0.04] dark:bg-white/[0.04] rounded-2xl p-3">
+                <div v-if="selectedStudent.school" class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3">
                   <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">School</p>
                   <p class="text-sm font-bold text-on-surface">{{ selectedStudent.school }}</p>
                 </div>
-                <div v-if="selectedStudent.contactNumber" class="bg-black/[0.04] dark:bg-white/[0.04] rounded-2xl p-3">
+                <div v-if="selectedStudent.contactNumber" class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3">
                   <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Contact</p>
                   <p class="text-sm font-bold text-on-surface">{{ selectedStudent.contactNumber }}</p>
                 </div>
-                <div v-if="selectedStudent.parentName" class="bg-black/[0.04] dark:bg-white/[0.04] rounded-2xl p-3">
+                <div v-if="selectedStudent.parentName" class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3">
                   <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Parent</p>
                   <p class="text-sm font-bold text-on-surface">{{ selectedStudent.parentName }}</p>
                 </div>
@@ -504,7 +504,7 @@ async function handleRejectStudent(sessionId: number) {
                 <button
                   v-for="session in filteredSessions"
                   :key="session.id"
-                  class="w-full flex items-center gap-3 p-3 rounded-2xl bg-black/[0.03] dark:bg-white/[0.03] border border-black/[0.05] dark:border-white/5 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] transition-all text-left group"
+                  class="w-full flex items-center gap-3 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.05] dark:border-on-surface/5 hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.06] transition-all text-left group"
                   @click="selectedSession = session"
                 >
                   <div class="flex-1 min-w-0">
