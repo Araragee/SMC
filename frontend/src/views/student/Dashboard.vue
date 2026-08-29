@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BaseDropdown from '@/components/BaseDropdown.vue';
+import HomeworkModal from '@/components/HomeworkModal.vue'
 import { useRouter } from 'vue-router'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -126,9 +127,11 @@ const submitRequest = async function() {
   }
 }
 
-const markHomeworkDone = async function(sessionId: number) {
-  await interactionsStore.completeHomework(sessionId)
-  toast.success('Homework submitted!', 'Great work — keep it up.')
+const isHomeworkModalOpen = ref(false)
+
+const openHomeworkModal = function() {
+  if (!pendingHomework.value) return
+  isHomeworkModalOpen.value = true
 }
 
 const handleStagedProofUpload = function(event: Event) {
@@ -451,8 +454,11 @@ const stopCountering = () => {
             Session Proofs &amp; Homework
           </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <!-- Upload area -->
+            <!-- Upload area — only when there is homework waiting. With
+                 nothing pending there is nothing to upload, so the dropzone
+                 was an affordance that led nowhere. -->
             <label
+              v-if="pendingHomework"
               class="relative overflow-hidden border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
               :class="proofPreviewUrl ? 'border-primary/50' : 'hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50'"
             >
@@ -500,7 +506,7 @@ const stopCountering = () => {
                 @change="handleGenericProofSelection"
               />
             </label>
-            <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
+            <div v-if="pendingHomework && proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
               <button
                 class="px-6 py-2 bg-primary text-on-primary text-sm font-semibold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
                 @click="handleGenericProofUpload"
@@ -526,7 +532,7 @@ const stopCountering = () => {
                 <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-0.5">Due for next session</p>
                 <button
                   class="mt-2 text-primary font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
-                  @click="markHomeworkDone(pendingHomework.id)"
+                  @click="openHomeworkModal"
                 >
                   Submit Work
                   <span class="material-symbols-outlined text-xs">north_east</span>
@@ -1074,4 +1080,11 @@ const stopCountering = () => {
       </div>
     </Transition>
   </Teleport>
+
+  <HomeworkModal
+    :is-open="isHomeworkModalOpen"
+    :session="pendingHomework"
+    @close="isHomeworkModalOpen = false"
+    @submitted="authStore.currentUser && scheduleStore.fetchUserSessions(authStore.currentUser.id)"
+  />
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { Session } from '@types'
+import BaseDropdown from '@/components/BaseDropdown.vue'
 
 interface DayData {
   label: string
@@ -250,16 +251,36 @@ const limitForView = computed(() => {
   if (activeView.value === 'month') return 3
   return 4
 })
+
+// Legend lives behind a button rather than as a wrapping row: on a phone the
+// eight entries wrapped to three lines and pushed the grid off screen.
+const legendOpen = ref(false)
+const legendItems = [
+  { dot: 'bg-teal-400',    text: 'text-teal-600 dark:text-teal-400',       label: 'Confirmed' },
+  { dot: 'bg-emerald-400', text: 'text-emerald-600 dark:text-emerald-400', label: 'Done' },
+  { dot: 'bg-amber-400',   text: 'text-amber-600 dark:text-amber-400',     label: 'Aw. Teacher' },
+  { dot: 'bg-primary',     text: 'text-primary',                           label: 'Countered' },
+  { dot: 'bg-blue-400',    text: 'text-blue-600 dark:text-blue-400',       label: 'Aw. Admin' },
+  { dot: 'bg-violet-400',  text: 'text-violet-600 dark:text-violet-400',   label: 'In Review' },
+  { dot: 'bg-rose-400',    text: 'text-rose-600 dark:text-rose-400',       label: 'Overdue' },
+  { dot: 'bg-red-500',     text: 'text-red-600 dark:text-red-400',         label: 'Proof Rej.' },
+]
+
+const viewOptions = [
+  { value: 'day', label: 'Day' },
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' },
+]
 </script>
 
 <template>
   <div
-    class="bg-surface-container-lowest dark:bg-surface-container-lowest liquid-glass rounded-3xl p-6 border border-outline-variant dark:border-outline-variant shadow-xl transition-colors duration-300 flex flex-col h-full space-y-6 overflow-x-auto custom-scrollbar"
+    class="bg-surface-container-lowest dark:bg-surface-container-lowest liquid-glass rounded-3xl p-4 sm:p-6 border border-outline-variant dark:border-outline-variant shadow-xl transition-colors duration-300 flex flex-col h-full space-y-4 sm:space-y-6"
   >
     <!-- Calendar Controls -->
-    <div class="flex items-center justify-between min-w-[700px]">
-      <div class="flex items-center gap-4">
-        <h3 class="text-2xl font-semibold text-on-surface dark:text-on-surface tracking-tight min-w-[200px]">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3">
+        <h3 class="text-lg sm:text-2xl font-semibold text-on-surface dark:text-on-surface tracking-tight">
           {{ displayMonthYear }}
         </h3>
         <button
@@ -272,48 +293,83 @@ const limitForView = computed(() => {
       </div>
 
       <!-- View Toggle & Navigation -->
-      <div class="flex items-center gap-4">
-        <!-- View Toggle Buttons -->
-        <div class="flex bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Phone: the three views collapse into the shared dropdown. -->
+        <div class="sm:hidden flex-1">
+          <BaseDropdown
+            v-model="activeView"
+            size="sm"
+            :options="viewOptions"
+          />
+        </div>
+
+        <!-- Tablet and up: segmented control. rounded-full on the track so it
+             matches the pill it contains — a rounded-2xl track left visible
+             corner gaps around the selected pill. -->
+        <div class="hidden sm:flex bg-surface-container-high dark:bg-surface-container-high p-1 rounded-full border border-outline-variant dark:border-outline-variant">
           <button
             v-for="view in (['day', 'week', 'month'] as const)"
             :key="view"
-            class="px-4 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
-            :class="activeView === view ? 'bg-primary text-on-surface shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+            class="px-4 py-1.5 rounded-full text-xs font-semibold uppercase transition-all"
+            :class="activeView === view ? 'bg-primary text-on-primary shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
             @click="activeView = view"
           >
             {{ view }}
           </button>
         </div>
 
-        <div
-          class="flex items-center gap-2 bg-surface-container-high dark:bg-surface-container-high p-1 rounded-2xl border border-outline-variant dark:border-outline-variant"
-        >
+        <!-- Pagination sits as two standalone buttons rather than sharing one
+             bordered track with each other. -->
+        <button class="icon-btn rounded-full border border-outline-variant" @click="previous">
+          <span class="material-symbols-outlined text-lg">chevron_left</span>
+        </button>
+        <button class="icon-btn rounded-full border border-outline-variant" @click="next">
+          <span class="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
+
+        <!-- Legend, on demand -->
+        <div class="relative">
           <button
-            class="icon-btn"
-            @click="previous"
+            class="icon-btn rounded-full border border-outline-variant"
+            aria-label="Show status legend"
+            @click="legendOpen = !legendOpen"
           >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
+            <span class="material-symbols-outlined text-lg">palette</span>
           </button>
-          <button
-            class="icon-btn"
-            @click="next"
+          <div
+            v-if="legendOpen"
+            class="absolute right-0 top-full z-30 mt-2 w-52 rounded-2xl border border-outline-variant bg-surface-container p-3 shadow-2xl"
           >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
+            <div class="mb-2 flex items-center justify-between border-b border-outline-variant pb-1.5">
+              <span class="text-xs font-semibold uppercase text-on-surface">Legend</span>
+              <button class="text-on-surface-variant hover:text-on-surface" @click="legendOpen = false">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+            <div class="grid grid-cols-1 gap-1.5">
+              <span
+                v-for="item in legendItems"
+                :key="item.label"
+                class="flex items-center gap-2 text-xs font-bold"
+                :class="item.text"
+              >
+                <span class="size-2 shrink-0 rounded-full" :class="item.dot"></span>{{ item.label }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div 
-      class="grid gap-3 min-w-[700px] flex-1"
-      :class="{ 'grid-cols-1': activeView === 'day', 'grid-cols-7': activeView === 'week' || activeView === 'month' }"
+    <div
+      class="grid flex-1 gap-2 sm:gap-3"
+      :class="{ 'grid-cols-1': activeView === 'day', 'grid-cols-1 sm:grid-cols-7': activeView === 'week' || activeView === 'month' }"
     >
       <div
         v-for="day in calendarDays"
         :key="day.iso"
-        class="flex flex-col h-full bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors group relative"
+        class="flex h-full flex-row sm:flex-col bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors group relative"
         :class="{ 'ring-2 ring-teal-400 border-transparent': day.isToday }"
         @dragover.prevent
         @drop="onDrop($event, day.date)"
@@ -321,7 +377,7 @@ const limitForView = computed(() => {
       >
         <!-- Day Header -->
         <div
-          class="p-2 text-center border-b border-outline-variant dark:border-outline-variant"
+          class="flex w-16 shrink-0 flex-col items-center justify-center border-r p-2 text-center border-outline-variant dark:border-outline-variant sm:w-auto sm:border-b sm:border-r-0"
           :class="day.isToday ? 'bg-teal-500/10 dark:bg-teal-500/10' : 'bg-surface-container-high dark:bg-surface-container-high'"
         >
           <p
@@ -339,7 +395,10 @@ const limitForView = computed(() => {
         </div>
 
         <!-- Session List -->
-        <div class="p-1.5 space-y-1.5 flex-1 relative" :class="activeView === 'month' ? 'min-h-[90px]' : 'min-h-[120px]'">
+        <div
+          class="relative flex-1 space-y-1.5 p-1.5 min-h-[64px]"
+          :class="activeView === 'month' ? 'sm:min-h-[90px]' : 'sm:min-h-[120px]'"
+        >
           <div
             v-for="session in day.sessions.slice(0, limitForView)"
             :key="session.id"
@@ -415,17 +474,5 @@ const limitForView = computed(() => {
       </div>
     </div>
 
-    <!-- Legend -->
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-3 border-t border-outline-variant dark:border-outline-variant min-w-[700px]">
-      <span class="text-xs font-semibold uppercase text-on-surface-variant mr-1">Legend</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-teal-600 dark:text-teal-400"><span class="size-2 rounded-full bg-teal-400 shrink-0"></span>Confirmed</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400"><span class="size-2 rounded-full bg-emerald-400 shrink-0"></span>Done</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400"><span class="size-2 rounded-full bg-amber-400 shrink-0"></span>Aw. Teacher</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-primary dark:text-primary"><span class="size-2 rounded-full bg-primary shrink-0"></span>Countered</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400"><span class="size-2 rounded-full bg-blue-400 shrink-0"></span>Aw. Admin</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-violet-600 dark:text-violet-400"><span class="size-2 rounded-full bg-violet-400 shrink-0"></span>In Review</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400"><span class="size-2 rounded-full bg-rose-400 shrink-0"></span>Overdue</span>
-      <span class="flex items-center gap-1 text-xs font-bold text-red-600 dark:text-red-400"><span class="size-2 rounded-full bg-red-500 shrink-0"></span>Proof Rej.</span>
-    </div>
   </div>
 </template>

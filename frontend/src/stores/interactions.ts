@@ -215,6 +215,41 @@ export const useInteractionsStore = defineStore('interactions', {
       } finally {
         this.isLoading = false;
       }
+    },
+
+    /**
+     * Upload the student's homework file. The backend marks the homework
+     * completed as part of the same request, so this replaces — rather than
+     * accompanies — a completeHomework call.
+     */
+    async uploadHomeworkFile(sessionId: number, file: File) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const sessionResponse = await axios.get(`${API_URL}/sessions/`, { headers: authHeaders() });
+        const sessionData = sessionResponse.data.find((s: any) => s.id === Number(sessionId));
+        const homeworkId = sessionData?.homeworks?.[0]?.id;
+        if (!homeworkId) throw new Error('No homework found for this session');
+
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await axios.post(
+          `${API_URL}/homework/${homeworkId}/upload`,
+          formData,
+          { headers: { 'Content-Type': 'multipart/form-data', ...authHeaders() } }
+        );
+
+        const scheduleStore = useScheduleStore();
+        const session = scheduleStore.allSessions.find(s => s.id === sessionId);
+        if (session) session.homeworkCompleted = true;
+        return response.data;
+      } catch (err: any) {
+        this.error = err.response?.data?.detail || err.message || 'Failed to upload homework';
+        useToastStore().error('Upload failed', this.error ?? undefined);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
     }
   }
 });
