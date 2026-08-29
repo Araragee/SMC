@@ -111,21 +111,3 @@ def test_enrollment_cannot_drop_below_used(client):
     assert "already used" in refused.json()["detail"]
 
 
-def test_teacher_student_roster_lists_assignments(client):
-    assigned = client.post(
-        "/teacher-students/",
-        json={"teacher_id": client.ids["teacher"], "student_id": client.ids["student"]},
-    )
-    assert assigned.status_code == 200, assigned.text
-
-    # A duplicate assignment is rejected — this is what the bulk-add flow
-    # reports back per student instead of silently double-adding.
-    duplicate = client.post(
-        "/teacher-students/",
-        json={"teacher_id": client.ids["teacher"], "student_id": client.ids["student"]},
-    )
-    assert duplicate.status_code == 400
-
-    roster = client.get("/teacher-students/")
-    assert roster.status_code == 200
-    assert [a["student_id"] for a in roster.json()] == [client.ids["student"]]

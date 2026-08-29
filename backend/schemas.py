@@ -54,17 +54,6 @@ class Instrument(InstrumentBase):
     id: int
     model_config = {"from_attributes": True}
 
-class TeacherStudentBase(BaseModel):
-    teacher_id: int
-    student_id: int
-
-class TeacherStudentCreate(TeacherStudentBase):
-    pass
-
-class TeacherStudent(TeacherStudentBase):
-    id: int
-    assigned_at: datetime
-    model_config = {"from_attributes": True}
 
 class NotificationBase(BaseModel):
     message: Annotated[str, Field(min_length=1, max_length=NOTE_LEN)]
@@ -168,6 +157,14 @@ class SessionPropose(BaseModel):
 
 # Used by admin to edit a session
 class SessionEdit(BaseModel):
+    """Admin edit of a session's details. Status is deliberately absent —
+    lifecycle transitions go through the dedicated endpoints, which enforce the
+    proof rules, charge credits and notify. Unknown fields are rejected rather
+    than dropped, so a client sending ``status`` here gets a 422 instead of a
+    200 that silently changed nothing.
+    """
+    model_config = {"extra": "forbid"}
+
     teacher_id: int | None = None
     student_id: int | None = None
     start_time: datetime | None = None

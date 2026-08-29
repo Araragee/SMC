@@ -317,60 +317,6 @@ def get_instruments(db: Session = Depends(get_db), current_user: models.User = D
     instruments = db.query(models.Instrument).all()
     return instruments
 
-@router.post("/teacher-students/", response_model=schemas.TeacherStudent)
-def assign_teacher_student(assignment: schemas.TeacherStudentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    existing = db.query(models.TeacherStudent).filter(
-        models.TeacherStudent.teacher_id == assignment.teacher_id,
-        models.TeacherStudent.student_id == assignment.student_id
-    ).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Student is already assigned to this teacher")
-
-    new_assignment = models.TeacherStudent(
-        teacher_id=assignment.teacher_id,
-        student_id=assignment.student_id
-    )
-    db.add(new_assignment)
-    db.commit()
-    db.refresh(new_assignment)
-
-    teacher = db.query(models.User).filter(models.User.id == assignment.teacher_id).first()
-    student = db.query(models.User).filter(models.User.id == assignment.student_id).first()
-    log_activity(db, action_type="student_assigned",
-                 description=f"Admin {current_user.name} assigned student {student.name if student else assignment.student_id} to teacher {teacher.name if teacher else assignment.teacher_id}",
-                 actor_id=current_user.id, actor_name=current_user.name,
-                 target_type="teacher_student", target_id=new_assignment.id)
-
-    return new_assignment
-
-@router.get("/teacher-students/", response_model=list[schemas.TeacherStudent])
-def get_all_teacher_students(db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    """Full teacher-student roster. Admin-only: it exposes the whole school's
-    assignment graph, which a single teacher has no business reading."""
-    return db.query(models.TeacherStudent).all()
-
-@router.get("/teacher-students/teacher/{teacher_id}", response_model=list[schemas.TeacherStudent])
-def get_students_for_teacher(teacher_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    require_self_or_admin(current_user, teacher_id)
-    assignments = db.query(models.TeacherStudent).filter(models.TeacherStudent.teacher_id == teacher_id).all()
-    return assignments
-
-@router.delete("/teacher-students/{assignment_id}")
-def unassign_teacher_student(assignment_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
-    assignment = db.query(models.TeacherStudent).filter(models.TeacherStudent.id == assignment_id).first()
-    if not assignment:
-        raise HTTPException(status_code=404, detail="Assignment not found")
-
-    teacher = db.query(models.User).filter(models.User.id == assignment.teacher_id).first()
-    student = db.query(models.User).filter(models.User.id == assignment.student_id).first()
-    db.delete(assignment)
-    db.commit()
-    log_activity(db, action_type="student_unassigned",
-                 description=f"Admin {current_user.name} unassigned student {student.name if student else '?'} from teacher {teacher.name if teacher else '?'}",
-                 actor_id=current_user.id, actor_name=current_user.name,
-                 target_type="teacher_student", target_id=assignment_id)
-    return {"message": "Assignment deleted successfully"}
-
 @router.post("/roles/", response_model=schemas.Role)
 def create_role(role: schemas.RoleCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     db_role = models.Role(name=role.name)

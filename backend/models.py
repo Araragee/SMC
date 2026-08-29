@@ -37,16 +37,6 @@ class UserInstrument(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
     instrument_id = Column(Integer, ForeignKey("instruments.id"), primary_key=True, index=True)
 
-class TeacherStudent(Base):
-    __tablename__ = "teacher_students"
-
-    id = Column(Integer, primary_key=True, index=True)
-    teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
-    student_id = Column(Integer, ForeignKey("users.id"), index=True)
-    assigned_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
-
-    teacher = relationship("User", foreign_keys=[teacher_id], back_populates="students_assigned")
-    student = relationship("User", foreign_keys=[student_id], back_populates="teachers_assigned")
 
 class User(Base):
     __tablename__ = "users"
@@ -95,8 +85,6 @@ class User(Base):
     must_change_password = Column(Boolean, default=False, nullable=False, server_default="0")
 
     instruments = relationship("Instrument", secondary="user_instruments")
-    teachers_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.student_id", back_populates="student")
-    students_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.teacher_id", back_populates="teacher")
 
 
     role = relationship("Role", back_populates="users")

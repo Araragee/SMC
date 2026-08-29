@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { Enrollment, TeacherAssignment } from '@types'
+import type { Enrollment } from '@types'
 import { useAuthStore } from '@stores/auth'
 import { API_URL } from '@typescript/constants'
 
@@ -9,12 +9,6 @@ const authHeaders = function () {
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 }
 
-const mapAssignment = (a: any): TeacherAssignment => ({
-  id: Number(a.id),
-  teacherId: Number(a.teacher_id),
-  studentId: Number(a.student_id),
-  assignedAt: a.assigned_at,
-})
 
 const mapEnrollment = (e: any): Enrollment => ({
   id: Number(e.id),
@@ -38,7 +32,6 @@ const reasonOf = (err: any): string =>
   err?.response?.data?.detail || err?.message || 'Unknown error'
 
 interface RosterState {
-  assignments: TeacherAssignment[]
   enrollments: Enrollment[]
   isLoading: boolean
   error: string | null
@@ -46,33 +39,28 @@ interface RosterState {
 
 export const useRosterStore = defineStore('roster', {
   state: (): RosterState => ({
-    assignments: [],
     enrollments: [],
     isLoading: false,
     error: null,
   }),
   getters: {
-    assignmentsByTeacher: (state) => (teacherId: number) =>
-      state.assignments.filter((a) => a.teacherId === teacherId),
+
     enrollmentsByStudent: (state) => (studentId: number) =>
       state.enrollments.filter((e) => e.studentId === studentId),
     /** Student-initiated requests awaiting an admin decision. */
     pendingEnrollments: (state) => state.enrollments.filter((e) => e.status === 'pending'),
-    /** Student ids already on a given teacher's roster — drives the "already added" state in the picker. */
+    /** Student ids already enrolled with a teacher — drives the "already added"
+     * state in the picker. */
     assignedStudentIds: (state) => (teacherId: number) =>
-      new Set(state.assignments.filter((a) => a.teacherId === teacherId).map((a) => a.studentId)),
+      new Set(state.enrollments.filter((e) => e.teacherId === teacherId).map((e) => e.studentId)),
   },
   actions: {
     async fetchAll() {
       this.isLoading = true
       this.error = null
       try {
-        const [assignments, enrollments] = await Promise.all([
-          axios.get(`${API_URL}/teacher-students/`, { headers: authHeaders() }),
-          axios.get(`${API_URL}/enrollments/`, { headers: authHeaders() }),
-        ])
-        this.assignments = assignments.data.map(mapAssignment)
-        this.enrollments = enrollments.data.map(mapEnrollment)
+        const { data } = await axios.get(`${API_URL}/enrollments/`, { headers: authHeaders() })
+        this.enrollments = data.map(mapEnrollment)
       } catch (err: any) {
         this.error = reasonOf(err)
         throw err
@@ -81,40 +69,7 @@ export const useRosterStore = defineStore('roster', {
       }
     },
 
-    async assignStudent(teacherId: number, studentId: number) {
-      const { data } = await axios.post(
-        `${API_URL}/teacher-students/`,
-        { teacher_id: teacherId, student_id: studentId },
-        { headers: authHeaders() },
-      )
-      const assignment = mapAssignment(data)
-      this.assignments.push(assignment)
-      return assignment
-    },
 
-    // ponytail: sequential-ish fan-out over the single-assign endpoint rather
-    // than a dedicated bulk route. Partial failures are reported per student,
-    // which is what the admin actually needs (e.g. "already assigned").
-    // Add a real bulk endpoint if rosters ever grow past a few hundred rows.
-    async bulkAssignStudents(teacherId: number, studentIds: number[]): Promise<BulkResult> {
-      this.isLoading = true
-      try {
-        const results = await Promise.allSettled(
-          studentIds.map((id) => this.assignStudent(teacherId, id)),
-        )
-        const failed = results.flatMap((r, i) =>
-          r.status === 'rejected' ? [{ studentId: studentIds[i], reason: reasonOf(r.reason) }] : [],
-        )
-        return { ok: results.length - failed.length, failed }
-      } finally {
-        this.isLoading = false
-      }
-    },
-
-    async unassignStudent(assignmentId: number) {
-      await axios.delete(`${API_URL}/teacher-students/${assignmentId}`, { headers: authHeaders() })
-      this.assignments = this.assignments.filter((a) => a.id !== assignmentId)
-    },
 
     async createEnrollment(payload: { studentId: number; teacherId: number; sessionsPurchased: number }) {
       const { data } = await axios.post(

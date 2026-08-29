@@ -52,12 +52,12 @@ class _FakeQuery:
 class _FakeDB:
     """Returns a canned row per queried model.
 
-    ``require_can_view_user`` queries TeacherStudent first, then Session, so
-    the mapping keys off the model's class name.
+    ``require_can_view_user`` queries Enrollment first, then Session, so the
+    mapping keys off the model's class name.
     """
 
-    def __init__(self, *, assignment=None, enrollment=None, session=None):
-        self._rows = {"TeacherStudent": assignment, "Enrollment": enrollment, "Session": session}
+    def __init__(self, *, enrollment=None, session=None):
+        self._rows = {"Enrollment": enrollment, "Session": session}
         self.queried: list[str] = []
 
     def query(self, model):
@@ -124,36 +124,30 @@ def test_admin_short_circuits_without_querying():
     assert db.queried == []
 
 
-def test_assigned_teacher_may_view_their_student():
-    db = _FakeDB(assignment=object())
-    require_can_view_user(db, TEACHER, STUDENT.id)
-    # Resolved on the assignment lookup; no need to fall through to sessions.
-    assert db.queried == ["TeacherStudent"]
-
-
 def test_enrolled_teacher_may_view_their_student():
-    db = _FakeDB(assignment=None, enrollment=object())
+    db = _FakeDB(enrollment=object())
     require_can_view_user(db, TEACHER, STUDENT.id)
-    assert db.queried == ["TeacherStudent", "Enrollment"]
+    # Resolved on the enrollment lookup; no need to fall through to sessions.
+    assert db.queried == ["Enrollment"]
 
 
-def test_shared_session_grants_access_without_an_assignment():
-    db = _FakeDB(assignment=None, enrollment=None, session=object())
+def test_shared_session_grants_access_without_an_enrollment():
+    db = _FakeDB(enrollment=None, session=object())
     require_can_view_user(db, TEACHER, STUDENT.id)
-    assert db.queried == ["TeacherStudent", "Enrollment", "Session"]
+    assert db.queried == ["Enrollment", "Session"]
 
 
 
 def test_unrelated_student_is_blocked():
     """The core regression: student A reading student B's records."""
-    db = _FakeDB(assignment=None, session=None)
+    db = _FakeDB(enrollment=None, session=None)
     with pytest.raises(HTTPException) as exc:
         require_can_view_user(db, STUDENT, OTHER_STUDENT.id)
     assert exc.value.status_code == 403
 
 
 def test_unrelated_teacher_is_blocked():
-    db = _FakeDB(assignment=None, session=None)
+    db = _FakeDB(enrollment=None, session=None)
     with pytest.raises(HTTPException) as exc:
         require_can_view_user(db, TEACHER, STUDENT.id)
     assert exc.value.status_code == 403

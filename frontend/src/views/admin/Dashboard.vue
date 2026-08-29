@@ -36,9 +36,16 @@ const quickDate = ref(new Date().toISOString().split('T')[0])
 const quickTime = ref(
   new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 )
+// "Unassigned" now means no approved enrollment — a student in that state
+// cannot book anyone, which is the thing worth surfacing. Assignments used to
+// answer this and were a second, unrelated roster.
 const unassignedStudents = computed(() => {
-  const assigned = new Set(rosterStore.assignments.map((a) => a.studentId))
-  return students.value.filter((s) => !assigned.has(s.id))
+  const enrolled = new Set(
+    rosterStore.enrollments
+      .filter((e) => (e.status ?? 'active') === 'active' && e.isActive !== false)
+      .map((e) => e.studentId),
+  )
+  return students.value.filter((s) => !enrolled.has(s.id))
 })
 const activeEnrollments = computed(
   () => rosterStore.enrollments.filter((e) => e.isActive !== false).length
@@ -1057,8 +1064,8 @@ const openLiveAnalytics = function () {
 
           <dl class="grid grid-cols-3 gap-4">
             <div class="space-y-1">
-              <dd class="num text-2xl font-semibold text-on-surface">{{ rosterStore.assignments.length }}</dd>
-              <dt class="text-xs text-on-surface-variant">Assignments</dt>
+              <dd class="num text-2xl font-semibold text-on-surface">{{ rosterStore.enrollments.length }}</dd>
+              <dt class="text-xs text-on-surface-variant">Enrollments</dt>
             </div>
             <div class="space-y-1">
               <dd class="num text-2xl font-semibold text-on-surface">{{ activeEnrollments }}</dd>
@@ -1066,7 +1073,7 @@ const openLiveAnalytics = function () {
             </div>
             <div class="space-y-1">
               <dd class="num text-2xl font-semibold text-on-surface">{{ unassignedStudents.length }}</dd>
-              <dt class="text-xs text-on-surface-variant">Unassigned</dt>
+              <dt class="text-xs text-on-surface-variant">Not enrolled</dt>
             </div>
           </dl>
 

@@ -169,7 +169,6 @@ def main():
                 db.add(s)
                 db.flush()
                 db.add(models.UserInstrument(user_id=s.id, instrument_id=instr_id))
-                db.add(models.TeacherStudent(teacher_id=teacher_id, student_id=s.id))
                 db.add(models.Enrollment(
                     student_id=s.id, teacher_id=teacher_id,
                     sessions_purchased=sess_enrolled, sessions_used=sess_enrolled - sess_left,

@@ -201,7 +201,7 @@ export interface ActivityLogResponse {
   created_at: string
 }
 
-// ── Enrollment / TeacherStudent ───────────────────────────────────────────────
+// ── Enrollment ───────────────────────────────────────────────────────────────
 
 /** Backend `Enrollment` schema. */
 export interface EnrollmentResponse {
@@ -215,13 +215,6 @@ export interface EnrollmentResponse {
   created_at: string
 }
 
-/** Backend `TeacherStudent` schema. */
-export interface TeacherStudentResponse {
-  id: number
-  teacher_id: number
-  student_id: number
-  assigned_at: string
-}
 
 // ── Shop ──────────────────────────────────────────────────────────────────────
 
