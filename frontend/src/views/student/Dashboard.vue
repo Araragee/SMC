@@ -123,7 +123,9 @@ const submitRequest = async function() {
     showRequestModal.value = false
     Object.assign(requestForm, { teacherId: null, startTime: '' })
   } catch {
-    toast.error('Request failed', 'Please try again or contact your teacher.')
+    // The store already toasts the API's reason (e.g. "You are not assigned to
+    // or enrolled with this teacher"). A second generic toast on top of it just
+    // buried the only message that told the student what to do.
   }
 }
 

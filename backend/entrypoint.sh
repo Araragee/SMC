@@ -12,7 +12,7 @@ echo "Migrations applied."
 if [ "${SEED_DEMO_DATA:-false}" != "true" ]; then
     echo "==> SEED_DEMO_DATA is not 'true' — skipping demo seed."
     echo "==> Starting server..."
-    exec uvicorn backend.main:app --host 0.0.0.0 --port 8000
+    exec uvicorn backend.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:+--reload}
 fi
 
 echo "==> Checking if seeding is needed..."
@@ -37,4 +37,4 @@ else
 fi
 
 echo "==> Starting server..."
-exec uvicorn backend.main:app --host 0.0.0.0 --port 8000
+exec uvicorn backend.main:app --host 0.0.0.0 --port 8000 ${UVICORN_RELOAD:+--reload}
