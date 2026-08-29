@@ -27,7 +27,7 @@ const back = function() {
       <div v-if="store.isOpen" class="fixed inset-0 z-[300] flex justify-end pointer-events-none">
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-on-surface/20 pointer-events-auto"
+          class="absolute inset-0 bg-black/40 dark:bg-black/70 pointer-events-auto"
           @click="store.closePanel()"
         />
 

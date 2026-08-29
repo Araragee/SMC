@@ -425,7 +425,7 @@ async function handleRejectProof(sessionId: number) {
         leave-to-class="opacity-0 translate-x-8"
       >
         <div v-if="selectedTeacher" class="fixed inset-0 z-[200] flex items-center justify-center p-4" @click.self="closeTeacher">
-          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/70" @click="closeTeacher" />
+          <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeTeacher" />
 
           <div class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
             <!-- Header -->
@@ -462,7 +462,7 @@ async function handleRejectProof(sessionId: number) {
                   <p class="text-xs font-semibold text-primary uppercase mb-1">Students Taught</p>
                   <p class="text-2xl font-semibold text-primary">{{ uniqueStudentCount }}</p>
                 </div>
-                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-3">
+                <div class="alert-success">
                   <p class="text-xs font-semibold text-emerald-400 uppercase mb-1">Sessions Done</p>
                   <p class="text-2xl font-semibold text-emerald-400">{{ stats.completed }}</p>
                 </div>

@@ -34,7 +34,7 @@ const handleCheckout = async function() {
     role="dialog"
     aria-modal="true"
   >
-    <div class="absolute inset-0 bg-on-surface/80 transition-opacity" @click="emit('close')"></div>
+    <div class="absolute inset-0 bg-black/40 dark:bg-black/70 transition-opacity" @click="emit('close')"></div>
 
     <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
       <div class="pointer-events-auto w-screen max-w-md transform transition-transform duration-500 ease-in-out">

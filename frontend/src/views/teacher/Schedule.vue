@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
@@ -26,7 +26,9 @@ const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
 const counterModal = ref({ open: false, sessionId: 0, startTime: '', endTime: '', notes: '' })
 
 const myId = computed(() => authStore.currentUser?.id ?? 0)
-const students = computed(() => usersStore.getUsersByRole('student'))
+// Only students enrolled with this teacher. The role-wide list shows the whole
+// school, and proposing for a student with no enrollment is rejected server-side.
+const students = computed(() => usersStore.myStudents)
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
@@ -46,14 +48,28 @@ const upcomingSessions = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([
-    scheduleStore.fetchUserSessions(myId.value),
+  usersStore.fetchMyStudents()
+  const tasks: Promise<any>[] = [
     usersStore.fetchUsersByRole('student'),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchInstruments(),
-    notifStore.fetchNotifications(myId.value),
-  ])
+  ]
+  if (myId.value > 0) {
+    tasks.push(
+      scheduleStore.fetchUserSessions(myId.value),
+      notifStore.fetchNotifications(myId.value)
+    )
+  }
+  await Promise.all(tasks)
 })
+
+watch(myId, (newId) => {
+  if (newId > 0) {
+    scheduleStore.fetchUserSessions(newId)
+    notifStore.fetchNotifications(newId)
+  }
+})
+
 
 const getStudentName = function(id: number): string  {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Student #${id}`
@@ -141,9 +157,10 @@ const onProposeSubmit = async function(session: Session) {
     toast.success('Proposal submitted!', 'Awaiting admin approval.')
     showProposeModal.value = false
   } catch {
-    toast.error('Failed to submit proposal')
+    // Error is toasted with detailed server message by scheduleStore
   }
 }
+
 
 const formatDateTime = function(iso: string): string  {
   return new Date(iso).toLocaleString('en-US', {
@@ -231,7 +248,7 @@ const formatDay = function(iso: string): string  {
         <div
           v-for="session in studentProposals"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20"
+          class="alert-warning items-center gap-4"
         >
           <div
             class="size-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-semibold text-sm shrink-0"
@@ -336,7 +353,7 @@ const formatDay = function(iso: string): string  {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
             @click="rejectModal.open = false"
           />
           <div
@@ -386,7 +403,7 @@ const formatDay = function(iso: string): string  {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
             @click="counterModal.open = false"
           />
           <div

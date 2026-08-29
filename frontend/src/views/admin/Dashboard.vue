@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { PAGE_SIZE } from '@typescript/constants'
 import { onMounted, computed, ref } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -35,9 +36,16 @@ const quickDate = ref(new Date().toISOString().split('T')[0])
 const quickTime = ref(
   new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
 )
+// "Unassigned" now means no approved enrollment — a student in that state
+// cannot book anyone, which is the thing worth surfacing. Assignments used to
+// answer this and were a second, unrelated roster.
 const unassignedStudents = computed(() => {
-  const assigned = new Set(rosterStore.assignments.map((a) => a.studentId))
-  return students.value.filter((s) => !assigned.has(s.id))
+  const enrolled = new Set(
+    rosterStore.enrollments
+      .filter((e) => (e.status ?? 'active') === 'active' && e.isActive !== false)
+      .map((e) => e.studentId),
+  )
+  return students.value.filter((s) => !enrolled.has(s.id))
 })
 const activeEnrollments = computed(
   () => rosterStore.enrollments.filter((e) => e.isActive !== false).length
@@ -1056,8 +1064,8 @@ const openLiveAnalytics = function () {
 
           <dl class="grid grid-cols-3 gap-4">
             <div class="space-y-1">
-              <dd class="num text-2xl font-semibold text-on-surface">{{ rosterStore.assignments.length }}</dd>
-              <dt class="text-xs text-on-surface-variant">Assignments</dt>
+              <dd class="num text-2xl font-semibold text-on-surface">{{ rosterStore.enrollments.length }}</dd>
+              <dt class="text-xs text-on-surface-variant">Enrollments</dt>
             </div>
             <div class="space-y-1">
               <dd class="num text-2xl font-semibold text-on-surface">{{ activeEnrollments }}</dd>
@@ -1065,7 +1073,7 @@ const openLiveAnalytics = function () {
             </div>
             <div class="space-y-1">
               <dd class="num text-2xl font-semibold text-on-surface">{{ unassignedStudents.length }}</dd>
-              <dt class="text-xs text-on-surface-variant">Unassigned</dt>
+              <dt class="text-xs text-on-surface-variant">Not enrolled</dt>
             </div>
           </dl>
 
@@ -1101,30 +1109,14 @@ const openLiveAnalytics = function () {
                   class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Teacher</label
                 >
-                <select
-                  v-model="quickTeacherId"
-                  class="input appearance-none"
-                >
-                  <option value="" class="text-on-surface">Select Faculty</option>
-                  <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">
-                    {{ t.name }}
-                  </option>
-                </select>
+                <BaseDropdown v-model="quickTeacherId" :options="[{ value: '', label: 'Select Faculty' }, ...teachers.map(t => ({ value: t.id, label: t.name }))]" />
               </div>
               <div>
                 <label
                   class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Student</label
                 >
-                <select
-                  v-model="quickStudentId"
-                  class="input appearance-none"
-                >
-                  <option value="" class="text-on-surface">Select Student</option>
-                  <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">
-                    {{ s.name }}
-                  </option>
-                </select>
+                <BaseDropdown v-model="quickStudentId" :options="[{ value: '', label: 'Select Student' }, ...students.map(s => ({ value: s.id, label: s.name }))]" />
               </div>
 
               <div class="grid grid-cols-2 gap-4">

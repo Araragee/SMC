@@ -297,7 +297,7 @@ async function removeInstrument(instrumentId: string | number) {
           </div>
 
           <!-- Rejection Reason -->
-          <div v-if="order.status === 'rejected' && order.rejectionReason" class="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-bold">
+          <div v-if="order.status === 'rejected' && order.rejectionReason" class="alert-error mt-4 text-xs font-bold">
             Rejection Reason: {{ order.rejectionReason }}
           </div>
         </div>

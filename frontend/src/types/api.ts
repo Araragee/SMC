@@ -201,7 +201,7 @@ export interface ActivityLogResponse {
   created_at: string
 }
 
-// ── Enrollment / TeacherStudent ───────────────────────────────────────────────
+// ── Enrollment ───────────────────────────────────────────────────────────────
 
 /** Backend `Enrollment` schema. */
 export interface EnrollmentResponse {
@@ -211,16 +211,10 @@ export interface EnrollmentResponse {
   sessions_purchased: number
   sessions_used: number
   sessions_left: number
+  status?: 'pending' | 'active' | 'rejected'
   created_at: string
 }
 
-/** Backend `TeacherStudent` schema. */
-export interface TeacherStudentResponse {
-  id: number
-  teacher_id: number
-  student_id: number
-  assigned_at: string
-}
 
 // ── Shop ──────────────────────────────────────────────────────────────────────
 

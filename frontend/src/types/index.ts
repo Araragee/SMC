@@ -22,12 +22,6 @@ export interface UserInstrument {
   instrumentId: number;
 }
 
-export interface TeacherStudent {
-  id: number;
-  teacherId: number;
-  studentId: number;
-  assignedAt: string;
-}
 
 export interface User {
   id: number;
@@ -123,17 +117,12 @@ export interface Enrollment {
   sessionsPurchased: number;
   sessionsUsed: number;
   sessionsLeft: number;
+  /** pending → awaiting admin decision; active → bookable; rejected → declined. */
+  status?: 'pending' | 'active' | 'rejected';
   isActive?: boolean;
   createdAt: string;
 }
 
-/** A student placed on a teacher's roster (backend: `teacher_students`). */
-export interface TeacherAssignment {
-  id: number;
-  teacherId: number;
-  studentId: number;
-  assignedAt: string;
-}
 
 // ── Messaging ─────────────────────────────────────────────────────────────────
 

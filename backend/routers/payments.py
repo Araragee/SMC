@@ -73,9 +73,14 @@ def read_payments(
     if current_user.role.name.lower() == "admin":
         payments = base_query.order_by(models.Payment.date.desc()).offset(skip).limit(limit).all()
     elif current_user.role.name.lower() == "teacher":
+        # Enrollment is the teacher-student relationship of record.
         student_ids = (
-            db.query(models.TeacherStudent.student_id)
-            .filter(models.TeacherStudent.teacher_id == current_user.id)
+            db.query(models.Enrollment.student_id)
+            .filter(
+                models.Enrollment.teacher_id == current_user.id,
+                models.Enrollment.status == "active",
+                models.Enrollment.is_active.is_(True),
+            )
             .all()
         )
         ids = [sid[0] for sid in student_ids]
@@ -109,10 +114,10 @@ def read_student_payments(
         pass
     elif role == "teacher":
         has_link = (
-            db.query(models.TeacherStudent)
+            db.query(models.Enrollment)
             .filter(
-                models.TeacherStudent.teacher_id == current_user.id,
-                models.TeacherStudent.student_id == student_id,
+                models.Enrollment.teacher_id == current_user.id,
+                models.Enrollment.student_id == student_id,
             )
             .first()
         )
@@ -241,9 +246,9 @@ def receipt(
     if role != "admin" and payment.student_id != current_user.id:
         if role == "teacher":
             has_link = (
-                db.query(models.TeacherStudent).filter(
-                    models.TeacherStudent.teacher_id == current_user.id,
-                    models.TeacherStudent.student_id == payment.student_id,
+                db.query(models.Enrollment).filter(
+                    models.Enrollment.teacher_id == current_user.id,
+                    models.Enrollment.student_id == payment.student_id,
                 ).first()
             )
             if not has_link:

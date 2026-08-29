@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUsersStore } from '@stores/users'
@@ -239,7 +240,7 @@ const handleDeleteUser = async (user: User) => {
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showEditModal = false"
         >
-          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="showEditModal = false" />
+          <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="showEditModal = false" />
           <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-3xl p-8 shadow-2xl overflow-hidden">
             <div class="absolute top-0 right-0 size-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
 
@@ -267,11 +268,7 @@ const handleDeleteUser = async (user: User) => {
                   <div class="space-y-1.5">
                     <label class="field-label">System Role</label>
                     <div class="relative">
-                      <select v-model="editForm.role" class="input appearance-none">
-                        <option value="student" class="bg-surface-container">Student</option>
-                        <option value="teacher" class="bg-surface-container">Teacher</option>
-                        <option value="admin" class="bg-surface-container">Admin</option>
-                      </select>
+                      <BaseDropdown v-model="editForm.role" :options="[{ value: 'student', label: 'Student' }, { value: 'teacher', label: 'Teacher' }, { value: 'admin', label: 'Admin' }]" />
                       <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
                     </div>
                   </div>

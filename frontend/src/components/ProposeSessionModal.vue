@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { ref, computed, watch, onMounted } from 'vue'
 import type { User, Session, InstrumentRecord } from '@types'
 import { useScheduleStore } from '@stores/schedule'
@@ -20,13 +21,28 @@ const emit = defineEmits<{
 
 const scheduleStore = useScheduleStore()
 
-const todayStr = new Date().toISOString().split('T')[0]
+const getLocalDateStr = (d = new Date()) => {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const getDefaultTimeStr = () => {
+  const now = new Date()
+  let targetHour = now.getHours() + 1
+  if (targetHour < 8) targetHour = 9
+  if (targetHour > 20) targetHour = 10
+  return `${String(targetHour).padStart(2, '0')}:00`
+}
+
+const todayStr = getLocalDateStr()
 
 const form = ref({
   teacherId: props.userRole === 'teacher' ? (props.currentUserId as number | null) : null as number | null,
   studentId: props.userRole === 'student' ? (props.currentUserId as number | null) : null as number | null,
-  date: props.initialDate ? props.initialDate.toISOString().split('T')[0] : todayStr,
-  time: '10:00',
+  date: props.initialDate ? getLocalDateStr(props.initialDate) : todayStr,
+  time: getDefaultTimeStr(),
   durationHours: '1',
   notes: '',
   instrumentId: null as number | null,
@@ -35,19 +51,39 @@ const form = ref({
 const isSubmitting = ref(false)
 
 watch(() => props.initialDate, (d) => {
-  if (d) form.value.date = d.toISOString().split('T')[0]
+  if (d) form.value.date = getLocalDateStr(d)
+})
+
+const loadTeacherBusySlots = (teacherId: number | null) => {
+  if (props.isOpen && teacherId && Number(teacherId) > 0) {
+    scheduleStore.fetchTeacherPublicSessions(Number(teacherId))
+  }
+}
+
+watch(() => props.isOpen, (open) => {
+  if (open) {
+    loadTeacherBusySlots(form.value.teacherId)
+    // If opening with today's date and past time, update time
+    if (form.value.date === todayStr && isPastDateTime.value) {
+      form.value.time = getDefaultTimeStr()
+    }
+  }
 })
 
 watch(() => form.value.teacherId, (newId) => {
-  if (newId) {
-    scheduleStore.fetchTeacherPublicSessions(Number(newId))
-  }
+  loadTeacherBusySlots(newId)
 }, { immediate: true })
 
 onMounted(() => {
-  if (form.value.teacherId) {
-    scheduleStore.fetchTeacherPublicSessions(Number(form.value.teacherId))
-  }
+  loadTeacherBusySlots(form.value.teacherId)
+})
+
+const isPastDateTime = computed(() => {
+  if (!form.value.date || !form.value.time) return false
+  const [y, m, d] = form.value.date.split('-').map(Number)
+  const [hr, min] = form.value.time.split(':').map(Number)
+  const startDt = new Date(y, m - 1, d, hr, min)
+  return startDt.getTime() < Date.now() - 60000
 })
 
 const busySlotsOnSelectedDate = computed(() => {
@@ -84,9 +120,11 @@ const isValid = computed(() => {
     form.value.time &&
     (!needsTeacher || form.value.teacherId) &&
     (!needsStudent || form.value.studentId) &&
+    !isPastDateTime.value &&
     !overlapsWithBusySlot.value
   )
 })
+
 
 const submitLabel = computed(() => {
   if (isSubmitting.value) return 'Submitting...'
@@ -124,11 +162,12 @@ const submit = async function() {
   <Teleport to="body">
     <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
-        v-if="true"
+        v-if="isOpen"
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="$emit('close')" />
+
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
           <!-- Header -->
@@ -152,25 +191,13 @@ const submit = async function() {
             <!-- Teacher select (for student / admin) -->
             <div v-if="userRole === 'student' || userRole === 'admin'">
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Teacher</label>
-              <select
-                v-model="form.teacherId"
-                class="input"
-              >
-                <option :value="null" disabled class="bg-surface-container">Select a teacher</option>
-                <option v-for="t in teachers" :key="t.id" :value="t.id" class="bg-surface-container">{{ t.name }}</option>
-              </select>
+              <BaseDropdown v-model="form.teacherId" placeholder="Select a teacher" :options="[...teachers.map(t => ({ value: t.id, label: t.name }))]" />
             </div>
 
             <!-- Student select (for teacher / admin) -->
             <div v-if="userRole === 'teacher' || userRole === 'admin'">
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Student</label>
-              <select
-                v-model="form.studentId"
-                class="input"
-              >
-                <option :value="null" disabled class="bg-surface-container">Select a student</option>
-                <option v-for="s in students" :key="s.id" :value="s.id" class="bg-surface-container">{{ s.name }}</option>
-              </select>
+              <BaseDropdown v-model="form.studentId" placeholder="Select a student" :options="[...students.map(s => ({ value: s.id, label: s.name }))]" />
             </div>
 
             <!-- Date & Time -->
@@ -193,23 +220,19 @@ const submit = async function() {
                 />
               </div>
             </div>
+            <p v-if="isPastDateTime" class="text-xs font-semibold text-red-600 dark:text-red-400 -mt-2">
+              ⚠️ Selected date & time cannot be in the past.
+            </p>
+
 
             <!-- Duration -->
             <div>
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Duration</label>
-              <select
-                v-model="form.durationHours"
-                class="input"
-              >
-                <option value="0.5" class="bg-surface-container">30 minutes</option>
-                <option value="1" class="bg-surface-container">1 hour</option>
-                <option value="1.5" class="bg-surface-container">1.5 hours</option>
-                <option value="2" class="bg-surface-container">2 hours</option>
-              </select>
+              <BaseDropdown v-model="form.durationHours" :options="[{ value: '0.5', label: '30 minutes' }, { value: '1', label: '1 hour' }, { value: '1.5', label: '1.5 hours' }, { value: '2', label: '2 hours' }]" />
             </div>
 
             <!-- Busy slots helper & overlap warning -->
-            <div v-if="busySlotsOnSelectedDate.length > 0" class="p-3 bg-red-500/5 border border-red-500/20 rounded-2xl">
+            <div v-if="busySlotsOnSelectedDate.length > 0" class="alert-error">
               <p class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">warning</span>
                 Teacher Busy Slots on this Date:
@@ -229,13 +252,7 @@ const submit = async function() {
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">
                 Instrument <span class="normal-case font-medium">(optional)</span>
               </label>
-              <select
-                v-model="form.instrumentId"
-                class="input"
-              >
-                <option :value="null" class="bg-surface-container">No specific instrument</option>
-                <option v-for="inst in instruments" :key="inst.id" :value="inst.id" class="bg-surface-container">{{ inst.name }}</option>
-              </select>
+              <BaseDropdown v-model="form.instrumentId" :options="[{ value: null, label: 'No specific instrument' }, ...instruments.map(inst => ({ value: inst.id, label: inst.name }))]" />
             </div>
 
             <!-- Notes -->
@@ -250,7 +267,7 @@ const submit = async function() {
             </div>
 
             <!-- Approval notice for non-admin -->
-            <div v-if="userRole !== 'admin'" class="flex items-start gap-2 p-3 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div v-if="userRole !== 'admin'" class="alert-info">
               <span class="material-symbols-outlined text-blue-400 text-base mt-0.5">info</span>
               <p class="text-blue-700 dark:text-blue-300 text-xs leading-relaxed">
                 <template v-if="userRole === 'student'">Your request will be sent to your teacher for review, then forwarded to admin for final approval.</template>

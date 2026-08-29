@@ -270,7 +270,7 @@ const updateOrderStatus = async function(id: number, status: OrderStatus) {
 
     <!-- Product Editor Modal -->
     <div v-if="isEditorOpen && selectedProduct" class="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div class="absolute inset-0 bg-on-surface/90" @click="isEditorOpen = false"></div>
+      <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="isEditorOpen = false"></div>
       <div class="relative w-full max-w-lg glass-thin rounded-[3rem] border border-on-surface/10 p-10">
         <h2 class="text-3xl font-semibold text-on-surface mb-8">{{ selectedProduct?.id ? 'Edit' : 'New' }} Product</h2>
 
@@ -318,7 +318,7 @@ const updateOrderStatus = async function(id: number, status: OrderStatus) {
 
     <!-- Order Detail Modal -->
     <div v-if="isOrderDetailOpen && selectedOrder" class="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div class="absolute inset-0 bg-on-surface/90" @click="isOrderDetailOpen = false"></div>
+      <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="isOrderDetailOpen = false"></div>
       <div class="relative w-full max-w-2xl glass-thin rounded-[3rem] border border-on-surface/10 p-10 max-h-[90vh] overflow-y-auto scrollbar-hide">
         <div class="flex items-center justify-between mb-8">
           <h2 class="text-3xl font-semibold text-on-surface">Order Details</h2>

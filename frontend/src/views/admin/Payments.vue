@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { usePaymentsStore } from '@stores/payments'
@@ -294,37 +295,11 @@ async function submitPayment() {
         />
       </div>
 
-      <select
-        v-model="statusFilter"
-        class="glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface outline-none bg-transparent cursor-pointer"
-      >
-        <option value="all">All Statuses</option>
-        <option value="completed">Completed</option>
-        <option value="pending">Pending</option>
-        <option value="failed">Failed</option>
-      </select>
+      <BaseDropdown v-model="statusFilter" :options="[{ value: 'all', label: 'All Statuses' }, { value: 'completed', label: 'Completed' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }]" />
 
-      <select
-        v-model="methodFilter"
-        class="glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface outline-none bg-transparent cursor-pointer"
-      >
-        <option value="all">All Methods</option>
-        <option value="cash">Cash</option>
-        <option value="bank_transfer">Bank Transfer</option>
-        <option value="card">Card</option>
-        <option value="gcash">GCash</option>
-        <option value="maya">Maya</option>
-      </select>
+      <BaseDropdown v-model="methodFilter" :options="[{ value: 'all', label: 'All Methods' }, { value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank Transfer' }, { value: 'card', label: 'Card' }, { value: 'gcash', label: 'GCash' }, { value: 'maya', label: 'Maya' }]" />
 
-      <select
-        v-model="sortBy"
-        class="glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface outline-none bg-transparent cursor-pointer"
-      >
-        <option value="date-desc">Newest First</option>
-        <option value="date-asc">Oldest First</option>
-        <option value="amount-desc">Highest Amount</option>
-        <option value="amount-asc">Lowest Amount</option>
-      </select>
+      <BaseDropdown v-model="sortBy" :options="[{ value: 'date-desc', label: 'Newest First' }, { value: 'date-asc', label: 'Oldest First' }, { value: 'amount-desc', label: 'Highest Amount' }, { value: 'amount-asc', label: 'Lowest Amount' }]" />
     </div>
 
     <!-- Table / List -->
@@ -461,7 +436,7 @@ async function submitPayment() {
   <Teleport to="body">
     <div
       v-if="showAddModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-on-surface/50"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 dark:bg-black/70"
       @click.self="showAddModal = false"
     >
       <div
@@ -484,13 +459,7 @@ async function submitPayment() {
               class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Student *</label
             >
-            <select
-              v-model="newPayment.student_id"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
-            >
-              <option :value="null" disabled>Select a student…</option>
-              <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }}</option>
-            </select>
+            <BaseDropdown v-model="newPayment.student_id" placeholder="Select a student…" :options="[...students.map(s => ({ value: s.id, label: s.name }))]" />
           </div>
 
           <!-- Amount -->
@@ -515,16 +484,7 @@ async function submitPayment() {
               class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
             >
-            <select
-              v-model="newPayment.method"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
-            >
-              <option value="cash">Cash</option>
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="card">Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-            </select>
+            <BaseDropdown v-model="newPayment.method" :options="[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank Transfer' }, { value: 'card', label: 'Card' }, { value: 'gcash', label: 'GCash' }, { value: 'maya', label: 'Maya' }]" />
           </div>
 
           <!-- Status -->
@@ -533,14 +493,7 @@ async function submitPayment() {
               class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
             >
-            <select
-              v-model="newPayment.status"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
-            >
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-            </select>
+            <BaseDropdown v-model="newPayment.status" :options="[{ value: 'completed', label: 'Completed' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }]" />
           </div>
 
           <!-- Notes -->
@@ -574,7 +527,7 @@ async function submitPayment() {
   <Teleport to="body">
     <div
       v-if="showEditModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-on-surface/50"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 dark:bg-black/70"
       @click.self="showEditModal = false"
     >
       <div
@@ -624,16 +577,7 @@ async function submitPayment() {
               class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
             >
-            <select
-              v-model="editingPayment.method"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
-            >
-              <option value="cash">Cash</option>
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="card">Card</option>
-              <option value="gcash">GCash</option>
-              <option value="maya">Maya</option>
-            </select>
+            <BaseDropdown v-model="editingPayment.method" :options="[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank Transfer' }, { value: 'card', label: 'Card' }, { value: 'gcash', label: 'GCash' }, { value: 'maya', label: 'Maya' }]" />
           </div>
 
           <!-- Status -->
@@ -642,14 +586,7 @@ async function submitPayment() {
               class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
             >
-            <select
-              v-model="editingPayment.status"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent cursor-pointer"
-            >
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-            </select>
+            <BaseDropdown v-model="editingPayment.status" :options="[{ value: 'completed', label: 'Completed' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }]" />
           </div>
 
           <!-- Notes -->

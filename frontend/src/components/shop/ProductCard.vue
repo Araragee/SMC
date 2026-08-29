@@ -43,7 +43,7 @@ const handleAddToCart = function(e: Event) {
       </div>
 
       <!-- Out of Stock Overlay -->
-      <div v-if="product.stock <= 0" class="absolute inset-0 bg-on-surface/60 flex items-center justify-center">
+      <div v-if="product.stock <= 0" class="absolute inset-0 bg-black/40 dark:bg-black/70 flex items-center justify-center">
         <span class="px-6 py-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-500 font-semibold uppercase tracking-tighter text-sm">
           Out of Stock
         </span>

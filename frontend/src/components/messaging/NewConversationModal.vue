@@ -66,7 +66,7 @@ const getRoleColor = function(role: string) {
       class="fixed inset-0 z-[400] flex items-center justify-center p-4"
       @click.self="emit('close')"
     >
-      <div class="absolute inset-0 bg-on-surface/40" @click="emit('close')" />
+      <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="emit('close')" />
       <div class="relative w-full max-w-md glass-heavy rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh]">
         <!-- Header -->
         <div class="flex items-center justify-between">

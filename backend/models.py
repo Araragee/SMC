@@ -37,16 +37,6 @@ class UserInstrument(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
     instrument_id = Column(Integer, ForeignKey("instruments.id"), primary_key=True, index=True)
 
-class TeacherStudent(Base):
-    __tablename__ = "teacher_students"
-
-    id = Column(Integer, primary_key=True, index=True)
-    teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
-    student_id = Column(Integer, ForeignKey("users.id"), index=True)
-    assigned_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
-
-    teacher = relationship("User", foreign_keys=[teacher_id], back_populates="students_assigned")
-    student = relationship("User", foreign_keys=[student_id], back_populates="teachers_assigned")
 
 class User(Base):
     __tablename__ = "users"
@@ -95,8 +85,6 @@ class User(Base):
     must_change_password = Column(Boolean, default=False, nullable=False, server_default="0")
 
     instruments = relationship("Instrument", secondary="user_instruments")
-    teachers_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.student_id", back_populates="student")
-    students_assigned = relationship("TeacherStudent", foreign_keys="TeacherStudent.teacher_id", back_populates="teacher")
 
 
     role = relationship("Role", back_populates="users")
@@ -171,8 +159,15 @@ class Enrollment(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("users.id"), index=True)
     teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
+    # Credits are per enrollment, not per student: a student enrolled with two
+    # teachers holds a separate balance with each. users.sessions_left is the
+    # derived sum of these and is recalculated rather than authoritative.
     sessions_purchased = Column(Integer, default=0)
     sessions_used = Column(Integer, default=0)
+    # pending → student asked, admin has not decided; active → approved and
+    # bookable; rejected → declined. Distinct from is_active, which is the
+    # soft-delete flag for enrollments that were once approved.
+    status = Column(String, default="active", server_default="active", nullable=False)
     is_active = Column(Boolean, default=True, server_default="1", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 

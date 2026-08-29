@@ -9,3 +9,7 @@ services:
       - ./uploads:/app/uploads
     environment:
       - SEED_DEMO_DATA=true
+      # The source tree is bind-mounted above, but uvicorn loads its modules
+      # once at start — without this, edits to backend/ appear on disk and are
+      # silently ignored by the running process until the container restarts.
+      - UVICORN_RELOAD=1

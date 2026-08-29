@@ -8,12 +8,10 @@ const props = withDefaults(
     students: User[]
     teacherName?: string
     /** 'assign' puts students on a roster; 'enroll' also grants session credits. */
-    mode?: 'assign' | 'enroll'
     isSubmitting?: boolean
   }>(),
   {
     teacherName: '',
-    mode: 'assign',
     isSubmitting: false,
   },
 )
@@ -84,7 +82,7 @@ watch(
         <header class="card-header">
           <div class="space-y-1">
             <h2 id="student-picker-title" class="section-title">
-              {{ mode === 'enroll' ? 'Bulk enroll students' : 'Add students to roster' }}
+              Bulk enroll students
             </h2>
             <p class="section-caption">
               {{ teacherName ? `Teacher: ${teacherName}` : 'Select existing student accounts.' }}
@@ -107,7 +105,7 @@ watch(
             />
           </div>
 
-          <div v-if="mode === 'enroll'" class="field">
+          <div class="field">
             <label for="picker-sessions" class="field-label">Sessions per student</label>
             <input
               id="picker-sessions"
@@ -166,7 +164,7 @@ watch(
             :disabled="!selected.length || isSubmitting"
             @click="submit"
           >
-            {{ isSubmitting ? 'Working…' : mode === 'enroll' ? 'Enroll selected' : 'Add selected' }}
+            {{ isSubmitting ? 'Working…' : 'Enroll selected' }}
           </button>
         </footer>
       </div>

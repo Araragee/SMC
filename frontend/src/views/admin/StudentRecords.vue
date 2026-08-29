@@ -6,6 +6,7 @@ import { useScheduleStore } from '@stores/schedule';
 import { useInteractionsStore } from '@stores/interactions';
 
 import BaseCard from '@components/BaseCard.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import BaseButton from '@components/BaseButton.vue';
 import AddPastSessionModal from '@components/AddPastSessionModal.vue';
 import type { User, Session, InstrumentRecord, Enrollment } from '@types';
@@ -191,16 +192,8 @@ const handleRecalculate = async () => {
     <!-- Controls -->
     <section class="flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex gap-4 w-full sm:w-auto">
-        <select v-model="filters.status" class="bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
-          <option value="all">All Statuses</option>
-          <option value="completed">Completed</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-        <select v-model="filters.instrument" class="bg-surface-container-highest/50 border border-outline-variant/30 text-on-surface rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
-          <option value="all">All Instruments</option>
-          <option v-for="inst in usersStore.instruments" :key="inst.id" :value="inst.id">{{ inst.name }}</option>
-        </select>
+        <BaseDropdown v-model="filters.status" :options="[{ value: 'all', label: 'All Statuses' }, { value: 'completed', label: 'Completed' }, { value: 'scheduled', label: 'Scheduled' }, { value: 'cancelled', label: 'Cancelled' }]" />
+        <BaseDropdown v-model="filters.instrument" :options="[{ value: 'all', label: 'All Instruments' }, ...usersStore.instruments.map(inst => ({ value: inst.id, label: inst.name }))]" />
       </div>
 
       <BaseButton @click="showAddPastSession = true" class="w-full sm:w-auto">

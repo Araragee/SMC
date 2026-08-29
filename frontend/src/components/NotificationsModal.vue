@@ -127,7 +127,7 @@ const closeModal = () => {
         @click.self="closeModal"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60" @click="closeModal" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeModal" />
 
         <!-- Modal -->
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">

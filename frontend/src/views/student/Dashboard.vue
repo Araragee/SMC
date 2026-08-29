@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
+import HomeworkModal from '@/components/HomeworkModal.vue'
 import { useRouter } from 'vue-router'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -40,11 +42,29 @@ onMounted(async () => {
       scheduleStore.fetchUserSessions(authStore.currentUser.id),
       usersStore.fetchUsersByRole('teacher'),
       interactionsStore.fetchStudentEnrollments(authStore.currentUser.id),
+      interactionsStore.fetchMyTeachers(),
     ])
   }
 })
 
 const myId = computed(() => authStore.currentUser?.id ?? 0)
+
+const enrollRequestTeacherId = ref<number | null>(null)
+
+const teacherName = (teacherId: number) =>
+  usersStore.getUsersByRole('teacher').find((t: any) => t.id === teacherId)?.name
+    ?? interactionsStore.myTeachers.find(t => t.id === teacherId)?.name
+    ?? `Teacher #${teacherId}`
+
+const submitEnrollmentRequest = async function() {
+  if (!enrollRequestTeacherId.value) return
+  try {
+    await interactionsStore.requestEnrollment(enrollRequestTeacherId.value)
+    enrollRequestTeacherId.value = null
+  } catch {
+    // requestEnrollment already surfaced the reason.
+  }
+}
 
 const mySessions = computed(() =>
   scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
@@ -84,7 +104,17 @@ const sessionProgress = computed(() => {
   return Math.min((used / totalSessions) * 100, 100)
 })
 
-const allTeachers = computed(() => usersStore.getUsersByRole('teacher'))
+// Only teachers this student has an approved enrollment with. The full
+// teacher list would offer people the booking guard rejects with a 403.
+const myTeachers = computed(() => interactionsStore.myTeachers)
+
+/** Teachers with no enrollment yet — the ones a student can request. */
+const requestableTeachers = computed(() => {
+  const linked = new Set(interactionsStore.enrollments
+    .filter(e => e.status === 'active' || e.status === 'pending')
+    .map(e => e.teacherId))
+  return usersStore.getUsersByRole('teacher').filter((t: any) => !linked.has(t.id))
+})
 
 const formatTime = (dt: string | undefined) => {
   if (!dt) return '—'
@@ -121,13 +151,17 @@ const submitRequest = async function() {
     showRequestModal.value = false
     Object.assign(requestForm, { teacherId: null, startTime: '' })
   } catch {
-    toast.error('Request failed', 'Please try again or contact your teacher.')
+    // The store already toasts the API's reason (e.g. "You are not assigned to
+    // or enrolled with this teacher"). A second generic toast on top of it just
+    // buried the only message that told the student what to do.
   }
 }
 
-const markHomeworkDone = async function(sessionId: number) {
-  await interactionsStore.completeHomework(sessionId)
-  toast.success('Homework submitted!', 'Great work — keep it up.')
+const isHomeworkModalOpen = ref(false)
+
+const openHomeworkModal = function() {
+  if (!pendingHomework.value) return
+  isHomeworkModalOpen.value = true
 }
 
 const handleStagedProofUpload = function(event: Event) {
@@ -300,12 +334,12 @@ const stopCountering = () => {
     </div>
 
     <!-- Overdue Warning -->
-    <div v-if="overdueSessions.length > 0" class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 text-red-700 dark:text-red-400">
-      <span class="material-symbols-outlined shrink-0 text-red-500" style="font-variation-settings: 'FILL' 1">warning</span>
+    <div v-if="overdueSessions.length > 0" class="alert-error mb-6">
+      <span class="material-symbols-outlined shrink-0 text-error" style="font-variation-settings: 'FILL' 1">warning</span>
       <div>
-        <h4 class="font-bold mb-1">Action Required: Overdue Sessions</h4>
-        <p class="text-sm">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
-        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="resolveOverdue">Resolve Now</button>
+        <h4 class="alert-title mb-1">Action Required: Overdue Sessions</h4>
+        <p class="alert-body">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
+        <button class="mt-2 text-sm font-semibold underline" @click="resolveOverdue">Resolve Now</button>
       </div>
     </div>
 
@@ -450,8 +484,11 @@ const stopCountering = () => {
             Session Proofs &amp; Homework
           </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <!-- Upload area -->
+            <!-- Upload area — only when there is homework waiting. With
+                 nothing pending there is nothing to upload, so the dropzone
+                 was an affordance that led nowhere. -->
             <label
+              v-if="pendingHomework"
               class="relative overflow-hidden border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
               :class="proofPreviewUrl ? 'border-primary/50' : 'hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50'"
             >
@@ -499,7 +536,7 @@ const stopCountering = () => {
                 @change="handleGenericProofSelection"
               />
             </label>
-            <div v-if="proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
+            <div v-if="pendingHomework && proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
               <button
                 class="px-6 py-2 bg-primary text-on-primary text-sm font-semibold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
                 @click="handleGenericProofUpload"
@@ -525,7 +562,7 @@ const stopCountering = () => {
                 <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-0.5">Due for next session</p>
                 <button
                   class="mt-2 text-primary font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
-                  @click="markHomeworkDone(pendingHomework.id)"
+                  @click="openHomeworkModal"
                 >
                   Submit Work
                   <span class="material-symbols-outlined text-xs">north_east</span>
@@ -611,6 +648,56 @@ const stopCountering = () => {
           <div
             class="absolute -right-20 -bottom-20 size-48 bg-primary/10 rounded-full blur-[80px] group-hover:bg-primary/20 transition-all"
           ></div>
+        </section>
+
+        <!-- My Teachers: per-teacher credit balances and enrollment requests.
+             Credits are held per enrollment, so a single total would hide that
+             hours with one teacher cannot be spent with another. -->
+        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+          <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-6">My Teachers</h3>
+
+          <div v-if="interactionsStore.activeEnrollments.length" class="space-y-2 mb-4">
+            <div
+              v-for="e in interactionsStore.activeEnrollments"
+              :key="e.id"
+              class="flex items-center justify-between rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 p-3"
+            >
+              <span class="text-sm font-semibold text-on-surface">{{ teacherName(e.teacherId) }}</span>
+              <span class="text-xs font-bold" :class="e.sessionsLeft > 0 ? 'text-primary' : 'text-error'">
+                {{ e.sessionsLeft }} {{ e.sessionsLeft === 1 ? 'hour' : 'hours' }} left
+              </span>
+            </div>
+          </div>
+          <p v-else class="mb-4 text-sm text-on-surface-variant">
+            No approved enrollments yet.
+          </p>
+
+          <div v-if="interactionsStore.pendingRequests.length" class="mb-4 space-y-2">
+            <div
+              v-for="e in interactionsStore.pendingRequests"
+              :key="e.id"
+              class="flex items-center justify-between rounded-2xl bg-warning-container p-3 text-on-warning-container"
+            >
+              <span class="text-sm font-semibold">{{ teacherName(e.teacherId) }}</span>
+              <span class="text-xs font-bold uppercase">Awaiting approval</span>
+            </div>
+          </div>
+
+          <div v-if="requestableTeachers.length" class="space-y-2">
+            <BaseDropdown
+              v-model="enrollRequestTeacherId"
+              label="Request a teacher"
+              placeholder="Select a teacher..."
+              :options="requestableTeachers.map(t => ({ value: t.id, label: t.name }))"
+            />
+            <button
+              class="btn-primary w-full"
+              :disabled="!enrollRequestTeacherId || interactionsStore.isLoading"
+              @click="submitEnrollmentRequest"
+            >
+              Request enrollment
+            </button>
+          </div>
         </section>
 
         <!-- Notice Board -->
@@ -715,7 +802,7 @@ const stopCountering = () => {
         aria-labelledby="session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="closeSessionModal" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
@@ -806,7 +893,7 @@ const stopCountering = () => {
               Session Proofs
             </h4>
 
-            <div v-if="selectedSession.status === 'overdue_rejected'" class="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+            <div v-if="selectedSession.status === 'overdue_rejected'" class="alert-error mb-4">
               <p class="text-xs font-semibold uppercase text-red-500 mb-1">Proof Rejected</p>
               <p class="text-xs text-red-400 font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
               <p class="text-xs text-on-surface-variant">Please upload a valid proof and provide justification below.</p>
@@ -855,7 +942,7 @@ const stopCountering = () => {
               </div>
             </div>
 
-            <div v-else-if="selectedSession.status === 'pending_verification'" class="mt-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-center">
+            <div v-else-if="selectedSession.status === 'pending_verification'" class="alert-success mt-4">
               <p class="text-xs font-bold text-emerald-500">Approval Request Pending</p>
               <p class="text-xs text-emerald-400 mt-1">An admin or teacher is reviewing your proof.</p>
             </div>
@@ -975,7 +1062,7 @@ const stopCountering = () => {
     >
       <div
         v-if="showProofViewer && selectedSession?.imageProofUrl"
-        class="fixed inset-0 z-[300] flex items-center justify-center bg-on-surface/90 p-4"
+        class="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 dark:bg-black/70 p-4"
         @click.self="showProofViewer = false"
       >
         <button
@@ -1011,7 +1098,7 @@ const stopCountering = () => {
         @click.self="closeRequestModal"
       >
         <div
-          class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70"
+          class="absolute inset-0 bg-black/40 dark:bg-black/70"
           @click="closeRequestModal"
         />
         <div
@@ -1036,15 +1123,13 @@ const stopCountering = () => {
                 for="req-teacher"
                 >Preferred Teacher</label
               >
-              <select
-                id="req-teacher"
+              <BaseDropdown
                 v-model="requestForm.teacherId"
-                required
-                class="input"
-              >
-                <option :value="null">Select a teacher...</option>
-                <option v-for="t in allTeachers" :key="t.id" :value="t.id">{{ t.name }}</option>
-              </select>
+                :options="[{ value: null, label: 'Select a teacher...' }, ...myTeachers.map(t => ({ value: t.id, label: t.name }))]"
+              />
+              <p v-if="!myTeachers.length" class="mt-2 text-xs text-on-surface-variant">
+                You are not enrolled with any teacher yet. Request enrollment below to start booking.
+              </p>
             </div>
             <div>
               <label
@@ -1081,4 +1166,11 @@ const stopCountering = () => {
       </div>
     </Transition>
   </Teleport>
+
+  <HomeworkModal
+    :is-open="isHomeworkModalOpen"
+    :session="pendingHomework"
+    @close="isHomeworkModalOpen = false"
+    @submitted="authStore.currentUser && scheduleStore.fetchUserSessions(authStore.currentUser.id)"
+  />
 </template>

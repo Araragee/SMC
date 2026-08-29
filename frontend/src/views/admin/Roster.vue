@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useRosterStore, type BulkResult } from '@stores/roster'
@@ -7,19 +8,47 @@ import { useDialog } from '@composables/useDialog'
 import StudentPickerModal from '@components/StudentPickerModal.vue'
 import type { Enrollment } from '@types'
 
-type Tab = 'assignments' | 'enrollments'
+type Tab = 'enrollments' | 'requests'
 
 const usersStore = useUsersStore()
 const rosterStore = useRosterStore()
 const toast = useToastStore()
 const dialog = useDialog()
 
-const activeTab = ref<Tab>('assignments')
+const activeTab = ref<Tab>('enrollments')
 const selectedTeacherId = ref<number | null>(null)
 const search = ref('')
 const showPicker = ref(false)
-const pickerMode = ref<'assign' | 'enroll'>('assign')
 const isSubmitting = ref(false)
+
+const approvingId = ref<number | null>(null)
+const approveHours = ref<number>(8)
+
+const approveRequest = async function(enrollment: Enrollment) {
+  isSubmitting.value = true
+  try {
+    await rosterStore.approveEnrollment(enrollment.id, approveHours.value)
+    toast.success('Enrollment approved', `${userName(enrollment.studentId)} now has ${approveHours.value} hours.`)
+    approvingId.value = null
+  } catch (err: any) {
+    toast.error('Approve failed', err?.response?.data?.detail ?? err?.message)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const rejectRequest = async function(enrollment: Enrollment) {
+  const ok = await dialog.confirm(
+    `Reject ${userName(enrollment.studentId)}'s request to enrol with ${userName(enrollment.teacherId)}?`,
+  )
+  if (!ok) return
+  try {
+    await rosterStore.rejectEnrollment(enrollment.id)
+    toast.success('Request rejected')
+  } catch (err: any) {
+    toast.error('Reject failed', err?.response?.data?.detail ?? err?.message)
+  }
+}
 
 const editing = ref<Enrollment | null>(null)
 const editForm = reactive({ teacherId: 0, sessionsPurchased: 0, isActive: true })
@@ -29,14 +58,6 @@ const students = computed(() => usersStore.getUsersByRole('student'))
 
 const userName = (id: number) => usersStore.users.find((u) => u.id === id)?.name ?? `#${id}`
 
-const rosterRows = computed(() => {
-  if (!selectedTeacherId.value) return []
-  const term = search.value.trim().toLowerCase()
-  return rosterStore
-    .assignmentsByTeacher(selectedTeacherId.value)
-    .map((a) => ({ ...a, student: usersStore.users.find((u) => u.id === a.studentId) }))
-    .filter((row) => !term || (row.student?.name ?? '').toLowerCase().includes(term))
-})
 
 const enrollmentRows = computed(() => {
   const term = search.value.trim().toLowerCase()
@@ -48,9 +69,9 @@ const enrollmentRows = computed(() => {
   )
 })
 
-/** Students not already on the selected teacher's roster — the picker's candidate pool. */
+/** Students not already enrolled with the selected teacher. */
 const pickerCandidates = computed(() => {
-  if (pickerMode.value === 'enroll' || !selectedTeacherId.value) return students.value
+  if (!selectedTeacherId.value) return students.value
   const taken = rosterStore.assignedStudentIds(selectedTeacherId.value)
   return students.value.filter((s) => !taken.has(s.id))
 })
@@ -62,12 +83,11 @@ const reportBulk = (result: BulkResult, verb: string) => {
   }
 }
 
-const openPicker = (mode: 'assign' | 'enroll') => {
+const openPicker = () => {
   if (!selectedTeacherId.value) {
-    toast.error('Pick a teacher first', 'Choose whose roster these students belong to.')
+    toast.error('Pick a teacher first', 'Choose who these students are enrolling with.')
     return
   }
-  pickerMode.value = mode
   showPicker.value = true
 }
 
@@ -76,29 +96,14 @@ const handlePicked = async (studentIds: number[], sessions: number) => {
   if (!teacherId || studentIds.length === 0) return
   isSubmitting.value = true
   try {
-    const result =
-      pickerMode.value === 'assign'
-        ? await rosterStore.bulkAssignStudents(teacherId, studentIds)
-        : await rosterStore.bulkEnroll(teacherId, studentIds, sessions)
-    reportBulk(result, pickerMode.value === 'assign' ? 'added to roster' : 'enrolled')
+    const result = await rosterStore.bulkEnroll(teacherId, studentIds, sessions)
+    reportBulk(result, 'enrolled')
     showPicker.value = false
   } finally {
     isSubmitting.value = false
   }
 }
 
-const handleUnassign = async (assignmentId: number, studentName: string) => {
-  const ok = await dialog.confirm(`Remove ${studentName} from this teacher's roster?`, {
-    title: 'Remove from roster',
-  })
-  if (!ok) return
-  try {
-    await rosterStore.unassignStudent(assignmentId)
-    toast.success('Removed', `${studentName} is no longer on this roster.`)
-  } catch (err: any) {
-    toast.error('Remove failed', err?.response?.data?.detail || err.message)
-  }
-}
 
 const openEdit = (enrollment: Enrollment) => {
   editing.value = enrollment
@@ -171,13 +176,9 @@ onMounted(async () => {
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
-        <button class="btn-subtle" @click="openPicker('enroll')">
+        <button class="btn-primary" @click="openPicker()">
           <span class="material-symbols-outlined text-lg" aria-hidden="true">library_add</span>
           Bulk enroll
-        </button>
-        <button class="btn-primary" @click="openPicker('assign')">
-          <span class="material-symbols-outlined text-lg" aria-hidden="true">group_add</span>
-          Add students
         </button>
       </div>
     </header>
@@ -188,11 +189,7 @@ onMounted(async () => {
         <div class="field">
           <label for="roster-teacher" class="field-label">Teacher</label>
           <div class="relative">
-            <select id="roster-teacher" v-model.number="selectedTeacherId" class="select">
-              <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
-                {{ teacher.name }}
-              </option>
-            </select>
+            <BaseDropdown :options="[...teachers.map(teacher => ({ value: teacher.id, label: teacher.name }))]" />
             <span
               class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
               aria-hidden="true"
@@ -208,7 +205,7 @@ onMounted(async () => {
 
       <div class="flex gap-2 border-b border-outline-variant/20" role="tablist">
         <button
-          v-for="tab in (['assignments', 'enrollments'] as Tab[])"
+          v-for="tab in (['enrollments', 'requests'] as Tab[])"
           :key="tab"
           role="tab"
           :aria-selected="activeTab === tab"
@@ -216,47 +213,57 @@ onMounted(async () => {
           :class="activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'"
           @click="activeTab = tab"
         >
-          {{ tab === 'assignments' ? 'Teacher roster' : 'Enrollments' }}
+          {{ tab === 'enrollments' ? 'Enrollments' : 'Requests' }}
+          <span
+            v-if="tab === 'requests' && rosterStore.pendingEnrollments.length"
+            class="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-xs text-on-primary"
+          >{{ rosterStore.pendingEnrollments.length }}</span>
         </button>
       </div>
 
-      <!-- Teacher roster -->
-      <div v-if="activeTab === 'assignments'">
-        <div v-if="rosterStore.isLoading && !rosterRows.length" class="space-y-3">
-          <div v-for="i in 4" :key="i" class="skeleton-row" />
-        </div>
-        <div v-else-if="!rosterRows.length" class="empty-state">
-          <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">group_off</span>
-          <p class="section-title">No students on this roster</p>
-          <p class="section-caption">Add existing student accounts instead of creating new ones.</p>
-          <button class="btn-primary btn-sm" @click="openPicker('assign')">Add students</button>
+      <!-- Enrollments -->
+      <!-- Pending student requests -->
+      <div v-if="activeTab === 'requests'">
+        <div v-if="!rosterStore.pendingEnrollments.length" class="empty-state">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">inbox</span>
+          <p class="section-title">No pending requests</p>
+          <p class="section-caption">Student enrollment requests will appear here for approval.</p>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="data-table">
             <thead>
               <tr>
                 <th scope="col">Student</th>
-                <th scope="col">Credits</th>
-                <th scope="col">Added</th>
+                <th scope="col">Teacher</th>
+                <th scope="col">Requested</th>
                 <th scope="col" class="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in rosterRows" :key="row.id">
-                <td>
-                  <p class="cell-strong">{{ row.student?.name ?? `#${row.studentId}` }}</p>
-                  <p class="cell-muted truncate">{{ row.student?.email }}</p>
-                </td>
-                <td class="num">{{ row.student?.sessionsLeft ?? 0 }}</td>
-                <td class="cell-muted num">{{ new Date(row.assignedAt).toLocaleDateString() }}</td>
+              <tr v-for="req in rosterStore.pendingEnrollments" :key="req.id">
+                <td class="cell-strong">{{ userName(req.studentId) }}</td>
+                <td>{{ userName(req.teacherId) }}</td>
+                <td class="cell-muted">{{ new Date(req.createdAt).toLocaleDateString() }}</td>
                 <td class="text-right">
-                  <button
-                    class="icon-btn-danger"
-                    :aria-label="`Remove ${row.student?.name ?? 'student'} from roster`"
-                    @click="handleUnassign(row.id, row.student?.name ?? 'this student')"
-                  >
-                    <span class="material-symbols-outlined text-lg" aria-hidden="true">person_remove</span>
-                  </button>
+                  <!-- Hours are set at approval because they follow payment;
+                       the request itself carries none. -->
+                  <div v-if="approvingId === req.id" class="flex items-center justify-end gap-2">
+                    <input
+                      v-model.number="approveHours"
+                      type="number"
+                      min="1"
+                      class="input w-24 py-1.5 text-sm"
+                      aria-label="Hours to grant"
+                    />
+                    <button class="btn-primary btn-sm" :disabled="isSubmitting || approveHours < 1" @click="approveRequest(req)">
+                      Grant
+                    </button>
+                    <button class="btn-ghost btn-sm" @click="approvingId = null">Cancel</button>
+                  </div>
+                  <div v-else class="flex items-center justify-end gap-2">
+                    <button class="btn-primary btn-sm" @click="approvingId = req.id; approveHours = 8">Approve</button>
+                    <button class="btn-subtle btn-sm" @click="rejectRequest(req)">Reject</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -264,8 +271,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Enrollments -->
-      <div v-else>
+      <div v-else-if="activeTab === 'enrollments'">
         <div v-if="rosterStore.isLoading && !enrollmentRows.length" class="space-y-3">
           <div v-for="i in 4" :key="i" class="skeleton-row" />
         </div>
@@ -273,7 +279,7 @@ onMounted(async () => {
           <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">receipt_long</span>
           <p class="section-title">No enrollments yet</p>
           <p class="section-caption">Enroll students in bulk to grant session credits.</p>
-          <button class="btn-primary btn-sm" @click="openPicker('enroll')">Bulk enroll</button>
+          <button class="btn-primary btn-sm" @click="openPicker()">Bulk enroll</button>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="data-table">
@@ -332,7 +338,6 @@ onMounted(async () => {
       :is-open="showPicker"
       :students="pickerCandidates"
       :is-submitting="isSubmitting"
-      :mode="pickerMode"
       :teacher-name="teachers.find((t) => t.id === selectedTeacherId)?.name ?? ''"
       @close="showPicker = false"
       @confirm="handlePicked"
@@ -362,11 +367,7 @@ onMounted(async () => {
           <form class="space-y-4" @submit.prevent="saveEdit">
             <div class="field">
               <label for="edit-teacher" class="field-label">Teacher</label>
-              <select id="edit-teacher" v-model.number="editForm.teacherId" class="select">
-                <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
-                  {{ teacher.name }}
-                </option>
-              </select>
+              <BaseDropdown :options="[...teachers.map(teacher => ({ value: teacher.id, label: teacher.name }))]" />
             </div>
             <div class="field">
               <label for="edit-purchased" class="field-label">Sessions purchased</label>

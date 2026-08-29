@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
+import { useInteractionsStore } from '@stores/interactions'
 import { useAuthStore } from '@stores/auth'
 import { useNotificationStore } from '@stores/notification'
 import { useToastStore } from '@stores/toast'
@@ -12,6 +13,7 @@ import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
+const interactionsStore = useInteractionsStore()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
@@ -22,7 +24,9 @@ const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 
 const myId = computed(() => authStore.currentUser?.id ?? 0)
-const teachers = computed(() => usersStore.getUsersByRole('teacher'))
+// Only teachers with an approved enrollment — the full list would offer
+// teachers the booking guard rejects.
+const teachers = computed(() => interactionsStore.myTeachers)
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
@@ -46,14 +50,29 @@ const upcomingSessions = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([
-    scheduleStore.fetchUserSessions(myId.value),
+  interactionsStore.fetchMyTeachers()
+  const tasks: Promise<any>[] = [
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
     usersStore.fetchInstruments(),
-    notifStore.fetchNotifications(myId.value),
-  ])
+  ]
+  if (myId.value > 0) {
+    tasks.push(
+      scheduleStore.fetchUserSessions(myId.value),
+      notifStore.fetchNotifications(myId.value)
+    )
+  }
+  await Promise.all(tasks)
 })
+
+watch(myId, (newId) => {
+  if (newId > 0) {
+    scheduleStore.fetchUserSessions(newId)
+    notifStore.fetchNotifications(newId)
+  }
+})
+
+
 
 const getTeacherName = function (id: number): string {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Teacher #${id}`
@@ -81,9 +100,10 @@ const onProposeSubmit = async function (session: Session) {
     toast.success('Request submitted!', 'Your teacher will review it and forward to admin.')
     showProposeModal.value = false
   } catch {
-    toast.error('Failed to submit request')
+    // Error is toasted with detailed server message by scheduleStore
   }
 }
+
 
 const formatDateTime = function (iso: string): string {
   return new Date(iso).toLocaleString('en-US', {

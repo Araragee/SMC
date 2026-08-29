@@ -13,12 +13,15 @@ const authHeaders = function() {
 interface UsersState {
   users: User[];
   instruments: InstrumentRecord[];
+  /** Students enrolled with the signed-in teacher (teacher portal only). */
+  myStudents: User[];
   isLoading: boolean;
   error: string | null;
 }
 
 export const useUsersStore = defineStore('users', {
   state: (): UsersState => ({
+    myStudents: [] as User[],
     users: [],
     instruments: [],
     isLoading: false,
@@ -30,6 +33,32 @@ export const useUsersStore = defineStore('users', {
     },
   },
   actions: {
+    /** Students enrolled with the signed-in teacher. The role-wide student
+     * list would show the whole school, and booking any of them is rejected
+     * by the enrollment guard. */
+    async fetchMyStudents() {
+      const { data } = await axios.get(`${API_URL}/enrollments/my-students`, { headers: authHeaders() });
+      this.myStudents = data.map((user: any) => ({
+        id: Number(user.id),
+        name: user.name,
+        email: user.email,
+        role: (user.role?.name?.toLowerCase() as Role) || 'student',
+        avatarUrl: user.avatar_url,
+        sessionsLeft: user.sessions_left,
+        username: user.username,
+        contactNumber: user.contact_number,
+        homeAddress: user.home_address,
+        birthday: user.birthday,
+        age: user.age,
+        school: user.school,
+        parentName: user.parent_name,
+        parentContact: user.parent_contact,
+        sessionsEnrolled: user.sessions_enrolled,
+        instruments: user.instruments,
+      }));
+      return this.myStudents;
+    },
+
     async fetchUsers() {
       this.isLoading = true;
       this.error = null;

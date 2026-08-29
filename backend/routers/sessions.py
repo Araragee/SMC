@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
@@ -158,13 +159,22 @@ def _validate_session_window(
             )
 
     if not is_admin:
-        if start.date() != end.date():
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo(settings.SCHOOL_TIMEZONE)
+            start_local = start.astimezone(tz)
+            end_local = end.astimezone(tz)
+        except Exception:
+            start_local = start
+            end_local = end
+
+        if start_local.date() != end_local.date():
             raise HTTPException(
                 status_code=400,
                 detail="Session cannot span across multiple days.",
             )
-        start_hour_val = start.hour + start.minute / 60.0 + start.second / 3600.0
-        end_hour_val = end.hour + end.minute / 60.0 + end.second / 3600.0
+        start_hour_val = start_local.hour + start_local.minute / 60.0 + start_local.second / 3600.0
+        end_hour_val = end_local.hour + end_local.minute / 60.0 + end_local.second / 3600.0
         if start_hour_val < settings.WORKING_HOURS_START or end_hour_val > settings.WORKING_HOURS_END:
             raise HTTPException(
                 status_code=400,
@@ -175,6 +185,7 @@ def _validate_session_window(
             )
 
     return end
+
 
 
 
@@ -499,28 +510,10 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     db.refresh(db_session)
 
     # Update analytics — atomic decrement to prevent going negative
-    db.execute(
-        text(
-            "UPDATE users SET sessions_left = sessions_left - 1 "
-            "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
-        ),
-        {"uid": db_session.student_id},
+    _charge_enrollment(
+        db, db_session.student_id, db_session.teacher_id,
+        _session_credits(db_session.start_time, db_session.end_time),
     )
-    enrollment = db.query(models.Enrollment).filter(
-        models.Enrollment.student_id == db_session.student_id,
-        models.Enrollment.teacher_id == db_session.teacher_id,
-        models.Enrollment.is_active.is_(True)
-    ).order_by(models.Enrollment.id.desc()).first()
-    if enrollment:
-        db.execute(
-            text(
-                "UPDATE enrollments SET sessions_used = sessions_used + 1 "
-                "WHERE id = :eid"
-            ),
-            {"eid": enrollment.id},
-        )
-        db.expire(enrollment, ["sessions_used"])
-    db.commit()
     # Re-query student so sessions_left reflects the DB value after the raw UPDATE
     student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
 
@@ -729,13 +722,9 @@ def read_teacher_public_sessions(
     current_user: models.User = Depends(get_current_active_user),
 ):
     """Fetch sanitized busy time slots for a specific teacher's active sessions."""
-    if current_user.role.name == "student":
-        assignment = db.query(models.TeacherStudent).filter_by(
-            teacher_id=teacher_id,
-            student_id=current_user.id
-        ).first()
-        if not assignment:
-            raise HTTPException(status_code=403, detail="You are not assigned to this teacher")
+    teacher = db.query(models.User).filter(models.User.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
 
     sessions = (
         db.query(models.Session)
@@ -746,6 +735,7 @@ def read_teacher_public_sessions(
         .all()
     )
     return [schemas.PublicBusySlot(start_time=s.start_time, end_time=s.end_time) for s in sessions]
+
 
 
 TERMINAL_STATUSES = {"completed", "cancelled", "rejected"}
@@ -831,23 +821,12 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
                 detail="Cannot delete completed session older than 30 days. Edit the audit log instead.",
             )
 
-        student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
-        if student and student.sessions_left is not None:
-            student.sessions_left += 1
-
-        enrollment = db.query(models.Enrollment).filter(
-            models.Enrollment.student_id == db_session.student_id,
-            models.Enrollment.teacher_id == db_session.teacher_id
-        ).order_by(models.Enrollment.id.desc()).first()
-        if enrollment and enrollment.sessions_used > 0:
-            db.execute(
-                text(
-                    "UPDATE enrollments SET sessions_used = sessions_used - 1 "
-                    "WHERE id = :eid AND sessions_used > 0"
-                ),
-                {"eid": enrollment.id},
-            )
-            db.expire(enrollment, ["sessions_used"])
+        # Refund exactly what the session cost, not a flat 1 — a 3-hour
+        # session consumed 3 credits.
+        _charge_enrollment(
+            db, db_session.student_id, db_session.teacher_id,
+            -_session_credits(db_session.start_time, db_session.end_time),
+        )
 
     log_activity(
         db,
@@ -941,19 +920,38 @@ def propose_session_as_student(
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    # Guard: student must be assigned to this teacher
-    assignment = db.query(models.TeacherStudent).filter_by(
-        teacher_id=proposal.teacher_id,
-        student_id=current_user.id
-    ).first()
-    if not assignment:
-        raise HTTPException(status_code=403, detail="You are not assigned to this teacher")
+    # Guard: the student must hold an approved enrollment with THIS teacher.
+    # Credits are per teacher, so a balance with someone else does not entitle
+    # them to book here.
+    enrollment = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == current_user.id,
+            models.Enrollment.teacher_id == proposal.teacher_id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .first()
+    )
+    if not enrollment:
+        raise HTTPException(
+            status_code=403,
+            detail=f"You are not enrolled with {teacher.name}. Request enrollment first.",
+        )
 
-    # Guard: student must have remaining sessions
-    if current_user.sessions_left is not None and current_user.sessions_left <= 0:
+    # Guard: enough hours on that specific enrollment for the length asked for.
+    # One credit is one hour, so a 3-hour booking needs 3 credits.
+    hours_left = max(0, enrollment.sessions_purchased - enrollment.sessions_used)
+    cost = _session_credits(proposal.start_time, proposal.end_time)
+    if hours_left < cost:
         raise HTTPException(
             status_code=400,
-            detail="No sessions remaining. Please contact admin to enroll in more."
+            detail=(
+                f"This {cost}-hour session needs {cost} credits but you have "
+                f"{hours_left} left with {teacher.name}."
+                if hours_left
+                else f"No hours remaining with {teacher.name}. Please contact admin to add more."
+            ),
         )
 
     end_time = _validate_session_window(proposal.start_time, proposal.end_time, is_admin=(current_user.role.name == "admin"))
@@ -1495,28 +1493,10 @@ def complete_session_as_admin(
 
     # Atomic decrement: only subtract if sessions_left > 0 to prevent going
     # negative under concurrent completion requests (race condition guard).
-    db.execute(
-        text(
-            "UPDATE users SET sessions_left = sessions_left - 1 "
-            "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
-        ),
-        {"uid": db_session.student_id},
+    _charge_enrollment(
+        db, db_session.student_id, db_session.teacher_id,
+        _session_credits(db_session.start_time, db_session.end_time),
     )
-
-    enrollment = db.query(models.Enrollment).filter(
-        models.Enrollment.student_id == db_session.student_id,
-        models.Enrollment.teacher_id == db_session.teacher_id,
-        models.Enrollment.is_active.is_(True)
-    ).order_by(models.Enrollment.id.desc()).first()
-    if enrollment:
-        db.execute(
-            text(
-                "UPDATE enrollments SET sessions_used = sessions_used + 1 "
-                "WHERE id = :eid"
-            ),
-            {"eid": enrollment.id},
-        )
-        db.expire(enrollment, ["sessions_used"])
 
     db.commit()
     # Refresh student after the raw UPDATE so ORM object reflects DB value
@@ -1551,6 +1531,78 @@ def complete_session_as_admin(
     return map_session(db_session)
 
 # --- Enrollments ---
+
+def _session_credits(start: datetime, end: datetime | None) -> int:
+    """Credits a session costs. One credit is one hour, so a 3-hour session
+    costs 3 — students often book a longer stay at the clinic.
+
+    Balances are whole numbers, so a part hour rounds up: a 90-minute session
+    costs 2. Charging 1 for it would let a student book unlimited half hours
+    against a single credit.
+    """
+    if end is None:
+        return 1
+    hours = (end - start).total_seconds() / 3600
+    return max(1, math.ceil(hours - 1e-9))
+
+
+def _charge_enrollment(db: Session, student_id: int, teacher_id: int, credits: int) -> None:
+    """Move ``credits`` on the student's enrollment with this teacher. Positive
+    consumes, negative refunds (used when a completed session is deleted).
+
+    Credits live on the enrollment, so this finds the one for that specific
+    teacher, then recomputes the cached users.sessions_left total rather than
+    adjusting it separately — the two used to be updated independently and
+    drifted apart.
+    """
+    enrollment = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == student_id,
+            models.Enrollment.teacher_id == teacher_id,
+            models.Enrollment.is_active.is_(True),
+        )
+        .order_by(models.Enrollment.id.desc())
+        .first()
+    )
+    if enrollment:
+        db.execute(
+            text(
+                "UPDATE enrollments SET sessions_used = "
+                "GREATEST(0, sessions_used + :delta) WHERE id = :eid"
+            ),
+            {"delta": credits, "eid": enrollment.id},
+        )
+        db.expire(enrollment, ["sessions_used"])
+        db.commit()
+    _recalculate_sessions_left(db, student_id)
+
+
+def _recalculate_sessions_left(db: Session, student_id: int) -> int:
+    """Recompute users.sessions_left as the sum of remaining per-enrollment
+    credits. Credits live on the enrollment (one balance per teacher); the
+    column on the user is a cached total for the dashboard, so any code that
+    changes a balance must call this rather than adjusting the total directly.
+
+    Only approved, non-deleted enrollments count — a pending request has no
+    hours to spend yet.
+    """
+    enrollments = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == student_id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .all()
+    )
+    total = sum(max(0, e.sessions_purchased - e.sessions_used) for e in enrollments)
+    student = db.query(models.User).filter(models.User.id == student_id).first()
+    if student is not None:
+        student.sessions_left = total
+        db.commit()
+    return total
+
 
 @router.post("/enrollments/", response_model=schemas.Enrollment)
 def create_enrollment(enrollment: schemas.EnrollmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
@@ -1647,6 +1699,192 @@ def read_student_enrollments(student_id: int, db: Session = Depends(get_db), cur
     require_can_view_user(db, current_user, student_id)
     enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()
     return enrollments
+
+@router.get("/enrollments/my-teachers", response_model=list[schemas.User])
+def read_my_teachers(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student),
+):
+    """Teachers this student may book: an approved enrollment, still active.
+
+    The student portal drives its teacher picker off this rather than the full
+    teacher list, so the picker cannot offer someone the booking guard will
+    reject.
+    """
+    rows = (
+        db.query(models.User)
+        .join(models.Enrollment, models.Enrollment.teacher_id == models.User.id)
+        .filter(
+            models.Enrollment.student_id == current_user.id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .distinct()
+        .all()
+    )
+    return rows
+
+
+@router.get("/enrollments/my-students", response_model=list[schemas.User])
+def read_my_students(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher),
+):
+    """Students enrolled with this teacher — the mirror of my-teachers."""
+    rows = (
+        db.query(models.User)
+        .join(models.Enrollment, models.Enrollment.student_id == models.User.id)
+        .filter(
+            models.Enrollment.teacher_id == current_user.id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .distinct()
+        .all()
+    )
+    return rows
+
+
+@router.post("/enrollments/request", response_model=schemas.Enrollment, status_code=201)
+def request_enrollment(
+    payload: schemas.EnrollmentRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student),
+):
+    """Student asks to study with a teacher. Creates a pending enrollment with
+    zero hours — the admin sets the hours when approving, since that follows
+    payment."""
+    teacher = db.query(models.User).filter(models.User.id == payload.teacher_id).first()
+    if not teacher or not teacher.role or teacher.role.name.lower() != "teacher":
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    existing = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == current_user.id,
+            models.Enrollment.teacher_id == payload.teacher_id,
+            models.Enrollment.status.in_(["pending", "active"]),
+            models.Enrollment.is_active.is_(True),
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "You already have a pending request with this teacher."
+                if existing.status == "pending"
+                else "You are already enrolled with this teacher."
+            ),
+        )
+
+    db_enrollment = models.Enrollment(
+        student_id=current_user.id,
+        teacher_id=payload.teacher_id,
+        sessions_purchased=0,
+        sessions_used=0,
+        status="pending",
+        is_active=True,
+    )
+    db.add(db_enrollment)
+    db.commit()
+    db.refresh(db_enrollment)
+
+    log_activity(
+        db,
+        action_type="enrollment_requested",
+        description=f"Student {current_user.name} requested enrollment with {teacher.name}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=db_enrollment.id,
+    )
+    notify_users(db, get_admin_ids(db),
+        f"📝 {current_user.name} requested enrollment with {teacher.name}. Approve and set the lesson count to activate it.")
+    notify_users(db, [payload.teacher_id],
+        f"📝 {current_user.name} asked to enrol with you. An admin will confirm the lesson count.")
+
+    return db_enrollment
+
+
+@router.post("/enrollments/{enrollment_id}/approve", response_model=schemas.Enrollment)
+def approve_enrollment(
+    enrollment_id: int,
+    payload: schemas.EnrollmentApprove,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Admin approves a pending request and grants the paid-for hours."""
+    enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    if enrollment.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Enrollment is already {enrollment.status}")
+
+    enrollment.status = "active"
+    enrollment.sessions_purchased = payload.sessions_purchased
+    db.commit()
+    db.refresh(enrollment)
+    _recalculate_sessions_left(db, enrollment.student_id)
+
+    student = db.query(models.User).filter(models.User.id == enrollment.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == enrollment.teacher_id).first()
+    log_activity(
+        db,
+        action_type="enrollment_approved",
+        description=(
+            f"Admin {current_user.name} approved enrollment for "
+            f"{student.name if student else enrollment.student_id} with "
+            f"{teacher.name if teacher else enrollment.teacher_id} "
+            f"({payload.sessions_purchased} hours)"
+        ),
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=enrollment.id,
+    )
+    notify_users(db, [enrollment.student_id],
+        f"✅ Your enrollment with {teacher.name if teacher else 'your teacher'} is approved — {payload.sessions_purchased} hours added. You can now book sessions.")
+    notify_users(db, [enrollment.teacher_id],
+        f"✅ {student.name if student else 'A student'} is now enrolled with you ({payload.sessions_purchased} hours).")
+
+    return enrollment
+
+
+@router.post("/enrollments/{enrollment_id}/reject", response_model=schemas.Enrollment)
+def reject_enrollment(
+    enrollment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Admin declines a pending request. The row is kept so the student sees the
+    outcome instead of the request silently vanishing."""
+    enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    if enrollment.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Enrollment is already {enrollment.status}")
+
+    enrollment.status = "rejected"
+    enrollment.is_active = False
+    db.commit()
+    db.refresh(enrollment)
+
+    teacher = db.query(models.User).filter(models.User.id == enrollment.teacher_id).first()
+    log_activity(
+        db,
+        action_type="enrollment_rejected",
+        description=f"Admin {current_user.name} rejected enrollment #{enrollment.id}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=enrollment.id,
+    )
+    notify_users(db, [enrollment.student_id],
+        f"Your enrollment request with {teacher.name if teacher else 'that teacher'} was not approved. Please contact the office.")
+
+    return enrollment
+
 
 @router.delete("/enrollments/{enrollment_id}", status_code=204)
 def delete_enrollment(
@@ -1978,28 +2216,10 @@ def bulk_session_action(
             s.status = "completed"
             _bump_version(s)
 
-            db.execute(
-                text(
-                    "UPDATE users SET sessions_left = sessions_left - 1 "
-                    "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
-                ),
-                {"uid": s.student_id},
+            _charge_enrollment(
+                db, s.student_id, s.teacher_id,
+                _session_credits(s.start_time, s.end_time),
             )
-
-            enrollment = db.query(models.Enrollment).filter(
-                models.Enrollment.student_id == s.student_id,
-                models.Enrollment.teacher_id == s.teacher_id,
-                models.Enrollment.is_active.is_(True)
-            ).order_by(models.Enrollment.id.desc()).first()
-            if enrollment:
-                db.execute(
-                    text(
-                        "UPDATE enrollments SET sessions_used = sessions_used + 1 "
-                        "WHERE id = :eid"
-                    ),
-                    {"eid": enrollment.id},
-                )
-                db.expire(enrollment, ["sessions_used"])
 
             dt_str = format_dt(s.start_time)
             msg = f"Session from {dt_str} has been marked complete by admin."
@@ -2027,22 +2247,10 @@ def bulk_session_action(
                 raise HTTPException(status_code=409, detail=f"Session #{s.id} is already in terminal status '{s.status}'")
 
             if s.status == "completed":
-                student = db.query(models.User).filter(models.User.id == s.student_id).first()
-                if student and student.sessions_left is not None:
-                    student.sessions_left += 1
-                enrollment = db.query(models.Enrollment).filter(
-                    models.Enrollment.student_id == s.student_id,
-                    models.Enrollment.teacher_id == s.teacher_id
-                ).order_by(models.Enrollment.id.desc()).first()
-                if enrollment and enrollment.sessions_used > 0:
-                    db.execute(
-                        text(
-                            "UPDATE enrollments SET sessions_used = sessions_used - 1 "
-                            "WHERE id = :eid AND sessions_used > 0"
-                        ),
-                        {"eid": enrollment.id},
-                    )
-                    db.expire(enrollment, ["sessions_used"])
+                _charge_enrollment(
+                    db, s.student_id, s.teacher_id,
+                    -_session_credits(s.start_time, s.end_time),
+                )
 
             s.status = "cancelled"
             _bump_version(s)
