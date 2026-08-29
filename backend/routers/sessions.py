@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
@@ -509,28 +510,10 @@ def record_past_session(session: schemas.SessionCreate, db: Session = Depends(ge
     db.refresh(db_session)
 
     # Update analytics — atomic decrement to prevent going negative
-    db.execute(
-        text(
-            "UPDATE users SET sessions_left = sessions_left - 1 "
-            "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
-        ),
-        {"uid": db_session.student_id},
+    _charge_enrollment(
+        db, db_session.student_id, db_session.teacher_id,
+        _session_credits(db_session.start_time, db_session.end_time),
     )
-    enrollment = db.query(models.Enrollment).filter(
-        models.Enrollment.student_id == db_session.student_id,
-        models.Enrollment.teacher_id == db_session.teacher_id,
-        models.Enrollment.is_active.is_(True)
-    ).order_by(models.Enrollment.id.desc()).first()
-    if enrollment:
-        db.execute(
-            text(
-                "UPDATE enrollments SET sessions_used = sessions_used + 1 "
-                "WHERE id = :eid"
-            ),
-            {"eid": enrollment.id},
-        )
-        db.expire(enrollment, ["sessions_used"])
-    db.commit()
     # Re-query student so sessions_left reflects the DB value after the raw UPDATE
     student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
 
@@ -838,23 +821,12 @@ def delete_session(session_id: int, db: Session = Depends(get_db), current_user:
                 detail="Cannot delete completed session older than 30 days. Edit the audit log instead.",
             )
 
-        student = db.query(models.User).filter(models.User.id == db_session.student_id).first()
-        if student and student.sessions_left is not None:
-            student.sessions_left += 1
-
-        enrollment = db.query(models.Enrollment).filter(
-            models.Enrollment.student_id == db_session.student_id,
-            models.Enrollment.teacher_id == db_session.teacher_id
-        ).order_by(models.Enrollment.id.desc()).first()
-        if enrollment and enrollment.sessions_used > 0:
-            db.execute(
-                text(
-                    "UPDATE enrollments SET sessions_used = sessions_used - 1 "
-                    "WHERE id = :eid AND sessions_used > 0"
-                ),
-                {"eid": enrollment.id},
-            )
-            db.expire(enrollment, ["sessions_used"])
+        # Refund exactly what the session cost, not a flat 1 — a 3-hour
+        # session consumed 3 credits.
+        _charge_enrollment(
+            db, db_session.student_id, db_session.teacher_id,
+            -_session_credits(db_session.start_time, db_session.end_time),
+        )
 
     log_activity(
         db,
@@ -967,13 +939,19 @@ def propose_session_as_student(
             detail=f"You are not enrolled with {teacher.name}. Request enrollment first.",
         )
 
-    # Guard: hours remaining on that specific enrollment. One credit is one
-    # hour, so a longer session costs proportionally more.
+    # Guard: enough hours on that specific enrollment for the length asked for.
+    # One credit is one hour, so a 3-hour booking needs 3 credits.
     hours_left = max(0, enrollment.sessions_purchased - enrollment.sessions_used)
-    if hours_left <= 0:
+    cost = _session_credits(proposal.start_time, proposal.end_time)
+    if hours_left < cost:
         raise HTTPException(
             status_code=400,
-            detail=f"No hours remaining with {teacher.name}. Please contact admin to add more.",
+            detail=(
+                f"This {cost}-hour session needs {cost} credits but you have "
+                f"{hours_left} left with {teacher.name}."
+                if hours_left
+                else f"No hours remaining with {teacher.name}. Please contact admin to add more."
+            ),
         )
 
     end_time = _validate_session_window(proposal.start_time, proposal.end_time, is_admin=(current_user.role.name == "admin"))
@@ -1515,28 +1493,10 @@ def complete_session_as_admin(
 
     # Atomic decrement: only subtract if sessions_left > 0 to prevent going
     # negative under concurrent completion requests (race condition guard).
-    db.execute(
-        text(
-            "UPDATE users SET sessions_left = sessions_left - 1 "
-            "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
-        ),
-        {"uid": db_session.student_id},
+    _charge_enrollment(
+        db, db_session.student_id, db_session.teacher_id,
+        _session_credits(db_session.start_time, db_session.end_time),
     )
-
-    enrollment = db.query(models.Enrollment).filter(
-        models.Enrollment.student_id == db_session.student_id,
-        models.Enrollment.teacher_id == db_session.teacher_id,
-        models.Enrollment.is_active.is_(True)
-    ).order_by(models.Enrollment.id.desc()).first()
-    if enrollment:
-        db.execute(
-            text(
-                "UPDATE enrollments SET sessions_used = sessions_used + 1 "
-                "WHERE id = :eid"
-            ),
-            {"eid": enrollment.id},
-        )
-        db.expire(enrollment, ["sessions_used"])
 
     db.commit()
     # Refresh student after the raw UPDATE so ORM object reflects DB value
@@ -1571,6 +1531,52 @@ def complete_session_as_admin(
     return map_session(db_session)
 
 # --- Enrollments ---
+
+def _session_credits(start: datetime, end: datetime | None) -> int:
+    """Credits a session costs. One credit is one hour, so a 3-hour session
+    costs 3 — students often book a longer stay at the clinic.
+
+    Balances are whole numbers, so a part hour rounds up: a 90-minute session
+    costs 2. Charging 1 for it would let a student book unlimited half hours
+    against a single credit.
+    """
+    if end is None:
+        return 1
+    hours = (end - start).total_seconds() / 3600
+    return max(1, math.ceil(hours - 1e-9))
+
+
+def _charge_enrollment(db: Session, student_id: int, teacher_id: int, credits: int) -> None:
+    """Move ``credits`` on the student's enrollment with this teacher. Positive
+    consumes, negative refunds (used when a completed session is deleted).
+
+    Credits live on the enrollment, so this finds the one for that specific
+    teacher, then recomputes the cached users.sessions_left total rather than
+    adjusting it separately — the two used to be updated independently and
+    drifted apart.
+    """
+    enrollment = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == student_id,
+            models.Enrollment.teacher_id == teacher_id,
+            models.Enrollment.is_active.is_(True),
+        )
+        .order_by(models.Enrollment.id.desc())
+        .first()
+    )
+    if enrollment:
+        db.execute(
+            text(
+                "UPDATE enrollments SET sessions_used = "
+                "GREATEST(0, sessions_used + :delta) WHERE id = :eid"
+            ),
+            {"delta": credits, "eid": enrollment.id},
+        )
+        db.expire(enrollment, ["sessions_used"])
+        db.commit()
+    _recalculate_sessions_left(db, student_id)
+
 
 def _recalculate_sessions_left(db: Session, student_id: int) -> int:
     """Recompute users.sessions_left as the sum of remaining per-enrollment
@@ -2210,28 +2216,10 @@ def bulk_session_action(
             s.status = "completed"
             _bump_version(s)
 
-            db.execute(
-                text(
-                    "UPDATE users SET sessions_left = sessions_left - 1 "
-                    "WHERE id = :uid AND sessions_left IS NOT NULL AND sessions_left > 0"
-                ),
-                {"uid": s.student_id},
+            _charge_enrollment(
+                db, s.student_id, s.teacher_id,
+                _session_credits(s.start_time, s.end_time),
             )
-
-            enrollment = db.query(models.Enrollment).filter(
-                models.Enrollment.student_id == s.student_id,
-                models.Enrollment.teacher_id == s.teacher_id,
-                models.Enrollment.is_active.is_(True)
-            ).order_by(models.Enrollment.id.desc()).first()
-            if enrollment:
-                db.execute(
-                    text(
-                        "UPDATE enrollments SET sessions_used = sessions_used + 1 "
-                        "WHERE id = :eid"
-                    ),
-                    {"eid": enrollment.id},
-                )
-                db.expire(enrollment, ["sessions_used"])
 
             dt_str = format_dt(s.start_time)
             msg = f"Session from {dt_str} has been marked complete by admin."
@@ -2259,22 +2247,10 @@ def bulk_session_action(
                 raise HTTPException(status_code=409, detail=f"Session #{s.id} is already in terminal status '{s.status}'")
 
             if s.status == "completed":
-                student = db.query(models.User).filter(models.User.id == s.student_id).first()
-                if student and student.sessions_left is not None:
-                    student.sessions_left += 1
-                enrollment = db.query(models.Enrollment).filter(
-                    models.Enrollment.student_id == s.student_id,
-                    models.Enrollment.teacher_id == s.teacher_id
-                ).order_by(models.Enrollment.id.desc()).first()
-                if enrollment and enrollment.sessions_used > 0:
-                    db.execute(
-                        text(
-                            "UPDATE enrollments SET sessions_used = sessions_used - 1 "
-                            "WHERE id = :eid AND sessions_used > 0"
-                        ),
-                        {"eid": enrollment.id},
-                    )
-                    db.expire(enrollment, ["sessions_used"])
+                _charge_enrollment(
+                    db, s.student_id, s.teacher_id,
+                    -_session_credits(s.start_time, s.end_time),
+                )
 
             s.status = "cancelled"
             _bump_version(s)
