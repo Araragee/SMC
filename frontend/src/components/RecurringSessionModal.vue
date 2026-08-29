@@ -70,7 +70,7 @@ const submit = async function () {
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/50 p-4" @click.self="emit('close')">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/70 p-4" @click.self="emit('close')">
     <div class="w-full max-w-lg bg-surface-container-lowest dark:bg-zinc-900 rounded-3xl p-6 shadow-2xl space-y-4">
       <h2 class="text-2xl font-semibold text-on-surface dark:text-on-surface">Recurring Lessons</h2>
       <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">Create a series of scheduled sessions.</p>

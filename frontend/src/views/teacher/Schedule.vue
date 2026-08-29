@@ -231,7 +231,7 @@ const formatDay = function(iso: string): string  {
         <div
           v-for="session in studentProposals"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20"
+          class="alert-warning items-center gap-4"
         >
           <div
             class="size-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-semibold text-sm shrink-0"
@@ -336,7 +336,7 @@ const formatDay = function(iso: string): string  {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
             @click="rejectModal.open = false"
           />
           <div
@@ -386,7 +386,7 @@ const formatDay = function(iso: string): string  {
           class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         >
           <div
-            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
             @click="counterModal.open = false"
           />
           <div

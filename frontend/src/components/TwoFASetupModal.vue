@@ -90,11 +90,10 @@ const handleConfirm = async () => {
         class="fixed inset-0 z-[230] flex items-center justify-center p-4"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <!-- Modal Card -->
         <div class="relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col p-8 max-h-[90vh]">
-          <div class="h-2 w-full bg-primary absolute top-0 left-0"></div>
 
           <!-- Header -->
           <div class="flex justify-between items-start mt-4">

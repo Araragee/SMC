@@ -103,17 +103,12 @@ const handleLogout = () => {
         @click.self="$emit('close')"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/80" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <!-- Modal Card -->
         <div
           class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
-          <!-- Decorative Header -->
-          <div
-            class="h-2 w-full bg-primary"
-          ></div>
-
           <!-- Header Section -->
           <div class="p-8 pb-0 flex items-start justify-between">
             <div>
@@ -152,7 +147,7 @@ const handleLogout = () => {
 
                     <!-- Overlay for upload (mock) -->
                     <div
-                      class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                      class="absolute inset-0 bg-black/40 dark:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                     >
                       <span class="material-symbols-outlined text-on-surface dark:text-on-surface text-2xl">add_a_photo</span>
                     </div>
@@ -354,7 +349,7 @@ const handleLogout = () => {
                   Danger Zone
                 </h3>
               </div>
-              <div class="bg-red-500/5 border border-red-500/10 rounded-3xl p-6">
+              <div class="alert-error rounded-3xl p-6">
                 <button
                   class="w-full py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-semibold rounded-2xl transition-all flex items-center justify-center gap-3 group"
                   @click="handleLogout"

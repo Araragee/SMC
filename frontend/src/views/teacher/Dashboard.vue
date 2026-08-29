@@ -285,13 +285,13 @@ const formatTime = (dt: string | undefined) => {
         <!-- Current Session Card -->
         <div
           v-if="currentSession"
-          class="liquid-glass border border-primary/20 rounded-3xl overflow-hidden cursor-pointer hover:border-primary/50 transition-all flex flex-col group"
+          class="relative liquid-glass border border-primary/20 rounded-3xl overflow-hidden cursor-pointer hover:border-primary/50 transition-all flex flex-col group"
           @click="openSessionModal(currentSession)"
         >
-          <div class="h-2 bg-primary w-full relative">
-            <div class="absolute right-2 -top-1 size-3 bg-surface-container-lowest rounded-full animate-ping"></div>
-            <div class="absolute right-2 -top-1 size-3 bg-surface-container-lowest rounded-full"></div>
-          </div>
+          <!-- Live indicator: the accent bar it used to sit on is gone, so it
+               anchors to the card itself. -->
+          <div class="absolute right-3 top-3 size-3 rounded-full bg-primary animate-ping"></div>
+          <div class="absolute right-3 top-3 size-3 rounded-full bg-primary"></div>
           <div class="p-4 flex-1 flex flex-col justify-center">
             <p
               class="text-xs font-semibold text-primary uppercase mb-1 flex items-center gap-2"
@@ -459,7 +459,7 @@ const formatTime = (dt: string | undefined) => {
               <!-- Has session -->
               <div
                 v-if="day.session"
-                class="rounded-2xl p-4 border-l-2 min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
+                class="rounded-2xl p-4 border min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
                 :class="day.session.status === 'scheduled' ? 'bg-primary/10 border-primary' : day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' : day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' : 'bg-on-surface/5 dark:bg-on-surface/5 border-on-surface/10 dark:border-on-surface/20'"
                 @click="day.session && openSessionModal(day.session)"
               >
@@ -582,7 +582,7 @@ const formatTime = (dt: string | undefined) => {
         aria-labelledby="teacher-session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="closeSessionModal" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-lg bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
         >
@@ -642,7 +642,7 @@ const formatTime = (dt: string | undefined) => {
                 class="w-full h-auto object-cover max-h-48"
               />
               <div
-                class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                class="absolute inset-0 bg-black/40 dark:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
                 <label
                   class="px-4 py-2 bg-on-surface/20 hover:bg-on-surface/10 dark:hover:bg-on-surface/30 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors"
@@ -782,7 +782,7 @@ const formatTime = (dt: string | undefined) => {
         class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         @click.self="showCounterModal = false"
       >
-        <div class="absolute inset-0 bg-on-surface/40" @click="showCounterModal = false" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="showCounterModal = false" />
         <div class="relative w-full max-w-sm liquid-glass border border-on-surface/10 rounded-3xl p-6 space-y-4 shadow-2xl">
           <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Suggest New Time</h3>
           <div class="space-y-4">

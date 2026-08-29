@@ -239,7 +239,7 @@ const handleDeleteUser = async (user: User) => {
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showEditModal = false"
         >
-          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="showEditModal = false" />
+          <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="showEditModal = false" />
           <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-3xl p-8 shadow-2xl overflow-hidden">
             <div class="absolute top-0 right-0 size-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
 

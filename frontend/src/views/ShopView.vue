@@ -159,7 +159,7 @@ const handleAddToCart = function(product: any) {
           </div>
 
           <!-- Rejection Reason -->
-          <div v-if="order.status === 'rejected' && order.rejectionReason" class="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-bold">
+          <div v-if="order.status === 'rejected' && order.rejectionReason" class="alert-error mt-4 text-xs font-bold">
             Rejection Reason: {{ order.rejectionReason }}
           </div>
         </div>
@@ -183,7 +183,7 @@ const handleAddToCart = function(product: any) {
 
     <!-- Product Detail Modal -->
     <div v-if="isProductModalOpen && selectedProduct" class="fixed inset-0 z-[60] flex items-center justify-center p-6">
-      <div class="absolute inset-0 bg-on-surface/80 transition-opacity" @click="isProductModalOpen = false"></div>
+      <div class="absolute inset-0 bg-black/40 dark:bg-black/70 transition-opacity" @click="isProductModalOpen = false"></div>
 
       <div class="relative w-full max-w-4xl glass-heavy rounded-[3rem] border border-outline-variant/20 dark:border-on-surface/10 overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
         <!-- Product Image -->

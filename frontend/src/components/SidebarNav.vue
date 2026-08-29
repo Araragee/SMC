@@ -133,7 +133,7 @@ onMounted(() => {
 
   <div
     v-if="isSidebarOpen"
-    class="fixed inset-0 bg-on-surface/50 z-[90] lg:hidden"
+    class="fixed inset-0 bg-black/40 dark:bg-black/70 z-[90] lg:hidden"
     @click="closeSidebar"
   ></div>
 

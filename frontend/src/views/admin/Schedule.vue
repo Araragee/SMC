@@ -531,7 +531,7 @@ const statusBadgeClass = function(status: string): string  {
           @click.self="rejectModal.open = false"
         >
           <div
-            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
             @click="rejectModal.open = false"
           />
           <div
@@ -582,7 +582,7 @@ const statusBadgeClass = function(status: string): string  {
           @click.self="editModal.open = false"
         >
           <div
-            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
             @click="editModal.open = false"
           />
           <div

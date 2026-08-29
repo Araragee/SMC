@@ -367,7 +367,7 @@ const statusContext = computed(() => {
       >
         <!-- Backdrop -->
         <div
-          class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/70"
+          class="absolute inset-0 bg-black/40 dark:bg-black/70"
           @click="$emit('close')"
         />
 
@@ -532,7 +532,7 @@ const statusContext = computed(() => {
               </div>
 
               <!-- Verif status pill -->
-              <div v-if="session.status === 'pending_verification'" class="flex items-center gap-2 p-3 bg-violet-500/10 border border-violet-500/20 rounded-xl">
+              <div v-if="session.status === 'pending_verification'" class="alert-info">
                 <span class="material-symbols-outlined text-violet-400 text-lg">hourglass_top</span>
                 <div>
                   <p class="text-xs font-bold text-violet-400">Awaiting Admin Review</p>
@@ -718,7 +718,7 @@ const statusContext = computed(() => {
     >
       <div
         v-if="showProofViewer"
-        class="fixed inset-0 z-[300] flex items-center justify-center bg-on-surface/90 p-4"
+        class="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 dark:bg-black/70 p-4"
         @click="showProofViewer = null"
       >
         <button

@@ -583,6 +583,25 @@ p {
   .cell-muted   { @apply text-sm text-on-surface-variant; }
   .num          { @apply tabular-nums; }
 
+  /* — Alerts —————————————————————————————
+     Status banners use the pastel container tokens rather than a translucent
+     slice of a raw palette colour. The old bg-red-500/10 pattern let whatever
+     sat behind the banner bleed through and decide its final contrast; the
+     container/on-container pairs are verified at WCAG AA in both themes.
+
+     No border: only some tokens carry an -rgb variant for opacity modifiers,
+     and a solid status border reads far too loud next to a pastel fill. The
+     container colour alone separates the banner from the page. */
+  .alert {
+    @apply flex items-start gap-3 rounded-2xl p-4;
+  }
+  .alert-error   { @apply alert bg-error-container   text-on-error-container; }
+  .alert-warning { @apply alert bg-warning-container text-on-warning-container; }
+  .alert-success { @apply alert bg-success-container text-on-success-container; }
+  .alert-info    { @apply alert bg-primary-container text-on-primary-container; }
+  .alert-title   { @apply font-bold; }
+  .alert-body    { @apply text-sm opacity-90; }
+
   /* — Bits ————————————————————————————————— */
   .badge     { @apply inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium; }
   .empty-state { @apply flex flex-col items-center gap-3 px-6 py-16 text-center; }

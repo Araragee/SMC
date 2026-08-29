@@ -79,7 +79,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/60">
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70">
     <BaseCard class="w-full max-w-md max-h-[90vh] overflow-y-auto liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
       <button @click="$emit('close')" class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined">close</button>
 

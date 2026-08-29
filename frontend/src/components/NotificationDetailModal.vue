@@ -75,7 +75,7 @@ const formatTime = function (iso: string) {
       >
         <!-- Backdrop (slightly darker to focus on the detail) -->
         <div
-          class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/50"
+          class="absolute inset-0 bg-black/40 dark:bg-black/70"
           @click="$emit('close')"
         />
 

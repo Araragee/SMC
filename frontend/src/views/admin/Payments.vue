@@ -461,7 +461,7 @@ async function submitPayment() {
   <Teleport to="body">
     <div
       v-if="showAddModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-on-surface/50"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 dark:bg-black/70"
       @click.self="showAddModal = false"
     >
       <div
@@ -574,7 +574,7 @@ async function submitPayment() {
   <Teleport to="body">
     <div
       v-if="showEditModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-on-surface/50"
+      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 dark:bg-black/70"
       @click.self="showEditModal = false"
     >
       <div

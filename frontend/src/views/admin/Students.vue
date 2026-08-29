@@ -429,7 +429,7 @@ async function handleRejectProof(sessionId: number) {
         leave-to-class="opacity-0 translate-x-8"
       >
         <div v-if="selectedStudent" class="fixed inset-0 z-[200] flex items-center justify-center p-4" @click.self="closeStudent">
-          <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/70" @click="closeStudent" />
+          <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeStudent" />
 
           <div class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
             <!-- Header -->

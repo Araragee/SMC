@@ -300,12 +300,12 @@ const stopCountering = () => {
     </div>
 
     <!-- Overdue Warning -->
-    <div v-if="overdueSessions.length > 0" class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-4 text-red-700 dark:text-red-400">
-      <span class="material-symbols-outlined shrink-0 text-red-500" style="font-variation-settings: 'FILL' 1">warning</span>
+    <div v-if="overdueSessions.length > 0" class="alert-error mb-6">
+      <span class="material-symbols-outlined shrink-0 text-error" style="font-variation-settings: 'FILL' 1">warning</span>
       <div>
-        <h4 class="font-bold mb-1">Action Required: Overdue Sessions</h4>
-        <p class="text-sm">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
-        <button class="mt-2 text-sm font-semibold underline text-red-600 dark:text-red-300" @click="resolveOverdue">Resolve Now</button>
+        <h4 class="alert-title mb-1">Action Required: Overdue Sessions</h4>
+        <p class="alert-body">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
+        <button class="mt-2 text-sm font-semibold underline" @click="resolveOverdue">Resolve Now</button>
       </div>
     </div>
 
@@ -715,7 +715,7 @@ const stopCountering = () => {
         aria-labelledby="session-modal-title"
         @click.self="closeSessionModal"
       >
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="closeSessionModal" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
         <div
           class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
@@ -806,7 +806,7 @@ const stopCountering = () => {
               Session Proofs
             </h4>
 
-            <div v-if="selectedSession.status === 'overdue_rejected'" class="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+            <div v-if="selectedSession.status === 'overdue_rejected'" class="alert-error mb-4">
               <p class="text-xs font-semibold uppercase text-red-500 mb-1">Proof Rejected</p>
               <p class="text-xs text-red-400 font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
               <p class="text-xs text-on-surface-variant">Please upload a valid proof and provide justification below.</p>
@@ -855,7 +855,7 @@ const stopCountering = () => {
               </div>
             </div>
 
-            <div v-else-if="selectedSession.status === 'pending_verification'" class="mt-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-center">
+            <div v-else-if="selectedSession.status === 'pending_verification'" class="alert-success mt-4">
               <p class="text-xs font-bold text-emerald-500">Approval Request Pending</p>
               <p class="text-xs text-emerald-400 mt-1">An admin or teacher is reviewing your proof.</p>
             </div>
@@ -975,7 +975,7 @@ const stopCountering = () => {
     >
       <div
         v-if="showProofViewer && selectedSession?.imageProofUrl"
-        class="fixed inset-0 z-[300] flex items-center justify-center bg-on-surface/90 p-4"
+        class="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 dark:bg-black/70 p-4"
         @click.self="showProofViewer = false"
       >
         <button
@@ -1011,7 +1011,7 @@ const stopCountering = () => {
         @click.self="closeRequestModal"
       >
         <div
-          class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70"
+          class="absolute inset-0 bg-black/40 dark:bg-black/70"
           @click="closeRequestModal"
         />
         <div

@@ -57,11 +57,10 @@ const handleCancel = () => {
         class="fixed inset-0 z-[220] flex items-center justify-center p-4"
       >
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-on-surface/40 dark:bg-on-surface/80" @click="handleCancel" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="handleCancel" />
 
         <!-- Modal Card -->
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col p-8 space-y-6">
-          <div class="h-2 w-full bg-primary absolute top-0 left-0"></div>
 
           <div class="text-center space-y-2 mt-4">
             <div class="size-16 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-primary mx-auto shadow-inner">

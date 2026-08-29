@@ -128,7 +128,7 @@ const submit = async function() {
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
           <!-- Header -->
@@ -209,7 +209,7 @@ const submit = async function() {
             </div>
 
             <!-- Busy slots helper & overlap warning -->
-            <div v-if="busySlotsOnSelectedDate.length > 0" class="p-3 bg-red-500/5 border border-red-500/20 rounded-2xl">
+            <div v-if="busySlotsOnSelectedDate.length > 0" class="alert-error">
               <p class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">warning</span>
                 Teacher Busy Slots on this Date:
@@ -250,7 +250,7 @@ const submit = async function() {
             </div>
 
             <!-- Approval notice for non-admin -->
-            <div v-if="userRole !== 'admin'" class="flex items-start gap-2 p-3 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div v-if="userRole !== 'admin'" class="alert-info">
               <span class="material-symbols-outlined text-blue-400 text-base mt-0.5">info</span>
               <p class="text-blue-700 dark:text-blue-300 text-xs leading-relaxed">
                 <template v-if="userRole === 'student'">Your request will be sent to your teacher for review, then forwarded to admin for final approval.</template>
