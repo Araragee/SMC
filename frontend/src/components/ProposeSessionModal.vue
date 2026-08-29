@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { ref, computed, watch, onMounted } from 'vue'
 import type { User, Session, InstrumentRecord } from '@types'
 import { useScheduleStore } from '@stores/schedule'
@@ -152,25 +153,13 @@ const submit = async function() {
             <!-- Teacher select (for student / admin) -->
             <div v-if="userRole === 'student' || userRole === 'admin'">
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Teacher</label>
-              <select
-                v-model="form.teacherId"
-                class="input"
-              >
-                <option :value="null" disabled class="bg-surface-container">Select a teacher</option>
-                <option v-for="t in teachers" :key="t.id" :value="t.id" class="bg-surface-container">{{ t.name }}</option>
-              </select>
+              <BaseDropdown v-model="form.teacherId" placeholder="Select a teacher" :options="[...teachers.map(t => ({ value: t.id, label: t.name }))]" />
             </div>
 
             <!-- Student select (for teacher / admin) -->
             <div v-if="userRole === 'teacher' || userRole === 'admin'">
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Student</label>
-              <select
-                v-model="form.studentId"
-                class="input"
-              >
-                <option :value="null" disabled class="bg-surface-container">Select a student</option>
-                <option v-for="s in students" :key="s.id" :value="s.id" class="bg-surface-container">{{ s.name }}</option>
-              </select>
+              <BaseDropdown v-model="form.studentId" placeholder="Select a student" :options="[...students.map(s => ({ value: s.id, label: s.name }))]" />
             </div>
 
             <!-- Date & Time -->
@@ -197,15 +186,7 @@ const submit = async function() {
             <!-- Duration -->
             <div>
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Duration</label>
-              <select
-                v-model="form.durationHours"
-                class="input"
-              >
-                <option value="0.5" class="bg-surface-container">30 minutes</option>
-                <option value="1" class="bg-surface-container">1 hour</option>
-                <option value="1.5" class="bg-surface-container">1.5 hours</option>
-                <option value="2" class="bg-surface-container">2 hours</option>
-              </select>
+              <BaseDropdown v-model="form.durationHours" :options="[{ value: '0.5', label: '30 minutes' }, { value: '1', label: '1 hour' }, { value: '1.5', label: '1.5 hours' }, { value: '2', label: '2 hours' }]" />
             </div>
 
             <!-- Busy slots helper & overlap warning -->
@@ -229,13 +210,7 @@ const submit = async function() {
               <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">
                 Instrument <span class="normal-case font-medium">(optional)</span>
               </label>
-              <select
-                v-model="form.instrumentId"
-                class="input"
-              >
-                <option :value="null" class="bg-surface-container">No specific instrument</option>
-                <option v-for="inst in instruments" :key="inst.id" :value="inst.id" class="bg-surface-container">{{ inst.name }}</option>
-              </select>
+              <BaseDropdown v-model="form.instrumentId" :options="[{ value: null, label: 'No specific instrument' }, ...instruments.map(inst => ({ value: inst.id, label: inst.name }))]" />
             </div>
 
             <!-- Notes -->

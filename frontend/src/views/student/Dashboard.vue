@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { useRouter } from 'vue-router'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -1036,15 +1037,7 @@ const stopCountering = () => {
                 for="req-teacher"
                 >Preferred Teacher</label
               >
-              <select
-                id="req-teacher"
-                v-model="requestForm.teacherId"
-                required
-                class="input"
-              >
-                <option :value="null">Select a teacher...</option>
-                <option v-for="t in allTeachers" :key="t.id" :value="t.id">{{ t.name }}</option>
-              </select>
+              <BaseDropdown v-model="requestForm.teacherId" :options="[{ value: null, label: 'Select a teacher...' }, ...allTeachers.map(t => ({ value: t.id, label: t.name }))]" />
             </div>
             <div>
               <label

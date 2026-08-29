@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useRosterStore, type BulkResult } from '@stores/roster'
@@ -188,11 +189,7 @@ onMounted(async () => {
         <div class="field">
           <label for="roster-teacher" class="field-label">Teacher</label>
           <div class="relative">
-            <select id="roster-teacher" v-model.number="selectedTeacherId" class="select">
-              <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
-                {{ teacher.name }}
-              </option>
-            </select>
+            <BaseDropdown :options="[...teachers.map(teacher => ({ value: teacher.id, label: teacher.name }))]" />
             <span
               class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
               aria-hidden="true"
@@ -362,11 +359,7 @@ onMounted(async () => {
           <form class="space-y-4" @submit.prevent="saveEdit">
             <div class="field">
               <label for="edit-teacher" class="field-label">Teacher</label>
-              <select id="edit-teacher" v-model.number="editForm.teacherId" class="select">
-                <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
-                  {{ teacher.name }}
-                </option>
-              </select>
+              <BaseDropdown :options="[...teachers.map(teacher => ({ value: teacher.id, label: teacher.name }))]" />
             </div>
             <div class="field">
               <label for="edit-purchased" class="field-label">Sessions purchased</label>

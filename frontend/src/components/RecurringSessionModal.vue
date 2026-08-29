@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { API_URL } from '@typescript/constants'
@@ -78,17 +79,11 @@ const submit = async function () {
       <div class="grid grid-cols-2 gap-3">
         <label class="space-y-1">
           <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant">Teacher</span>
-          <select v-model="form.teacherId" class="w-full px-3 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-on-surface dark:text-on-surface">
-            <option :value="null">Select…</option>
-            <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
+          <BaseDropdown v-model="form.teacherId" :options="[{ value: null, label: 'Select…' }, ...teachers.map(t => ({ value: t.id, label: t.name }))]" />
         </label>
         <label class="space-y-1">
           <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant">Student</span>
-          <select v-model="form.studentId" class="w-full px-3 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-on-surface dark:text-on-surface">
-            <option :value="null">Select…</option>
-            <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }}</option>
-          </select>
+          <BaseDropdown v-model="form.studentId" :options="[{ value: null, label: 'Select…' }, ...students.map(s => ({ value: s.id, label: s.name }))]" />
         </label>
         <label class="space-y-1">
           <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant">First date</span>
@@ -104,11 +99,7 @@ const submit = async function () {
         </label>
         <label class="space-y-1">
           <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant">Cadence</span>
-          <select v-model="form.cadence" class="w-full px-3 py-2 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-on-surface dark:text-on-surface">
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Biweekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
+          <BaseDropdown v-model="form.cadence" :options="[{ value: 'weekly', label: 'Weekly' }, { value: 'biweekly', label: 'Biweekly' }, { value: 'monthly', label: 'Monthly' }]" />
         </label>
         <label class="col-span-2 space-y-1">
           <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant">Occurrences (2–52)</span>

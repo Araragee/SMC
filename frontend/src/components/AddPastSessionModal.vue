@@ -3,6 +3,7 @@ import { API_URL } from '@typescript/constants'
 import { ref, computed, watch } from 'vue';
 import { useUsersStore } from '@stores/users';
 import BaseCard from '@components/BaseCard.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import BaseButton from '@components/BaseButton.vue';
 import BaseInput from '@components/BaseInput.vue';
 import type { User } from '@types';
@@ -90,19 +91,12 @@ const handleSubmit = async () => {
 
         <div>
           <label class="block text-sm font-medium text-on-surface/70 mb-1">Teacher</label>
-          <select v-model="formData.teacherId" required class="input appearance-none">
-            <option value="" disabled>Select a teacher</option>
-            <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
+          <BaseDropdown v-model="formData.teacherId" placeholder="Select a teacher" :options="[...teachers.map(t => ({ value: t.id, label: t.name }))]" />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-on-surface/70 mb-1">Instrument</label>
-          <select v-model="formData.instrumentId" class="input appearance-none">
-            <option value="">Select an instrument (Optional)</option>
-            <option v-for="inst in studentInstruments" :key="inst.id" :value="inst.id">{{ inst.name }}</option>
-            <option v-if="studentInstruments.length === 0" disabled value="">No instruments enrolled</option>
-          </select>
+          <BaseDropdown v-model="formData.instrumentId" placeholder="No instruments enrolled" :options="[{ value: '', label: 'Select an instrument (Optional)' }, ...studentInstruments.map(inst => ({ value: inst.id, label: inst.name }))]" />
         </div>
 
         <div class="grid grid-cols-2 gap-4">

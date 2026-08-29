@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { PAGE_SIZE } from '@typescript/constants'
 import { onMounted, computed, ref } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -1101,30 +1102,14 @@ const openLiveAnalytics = function () {
                   class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Teacher</label
                 >
-                <select
-                  v-model="quickTeacherId"
-                  class="input appearance-none"
-                >
-                  <option value="" class="text-on-surface">Select Faculty</option>
-                  <option v-for="t in teachers" :key="t.id" :value="t.id" class="text-zinc-900">
-                    {{ t.name }}
-                  </option>
-                </select>
+                <BaseDropdown v-model="quickTeacherId" :options="[{ value: '', label: 'Select Faculty' }, ...teachers.map(t => ({ value: t.id, label: t.name }))]" />
               </div>
               <div>
                 <label
                   class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Student</label
                 >
-                <select
-                  v-model="quickStudentId"
-                  class="input appearance-none"
-                >
-                  <option value="" class="text-on-surface">Select Student</option>
-                  <option v-for="s in students" :key="s.id" :value="s.id" class="text-zinc-900">
-                    {{ s.name }}
-                  </option>
-                </select>
+                <BaseDropdown v-model="quickStudentId" :options="[{ value: '', label: 'Select Student' }, ...students.map(s => ({ value: s.id, label: s.name }))]" />
               </div>
 
               <div class="grid grid-cols-2 gap-4">

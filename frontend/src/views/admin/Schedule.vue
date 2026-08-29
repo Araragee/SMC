@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { API_URL } from '@typescript/constants'
@@ -444,17 +445,7 @@ const statusBadgeClass = function(status: string): string  {
           >
             {{ selectedSessionIds.length === filteredSessions.length ? 'Deselect All' : 'Select All' }}
           </button>
-          <select
-            v-model="filterStatus"
-            class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl px-4 py-2 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
-          >
-            <option value="" class="bg-surface-container">All Statuses</option>
-            <option value="scheduled" class="bg-surface-container">Confirmed</option>
-            <option value="pending_admin" class="bg-surface-container">Awaiting Admin</option>
-            <option value="pending_teacher" class="bg-surface-container">Awaiting Teacher</option>
-            <option value="completed" class="bg-surface-container">Completed</option>
-            <option value="rejected" class="bg-surface-container">Rejected</option>
-          </select>
+          <BaseDropdown v-model="filterStatus" :options="[{ value: '', label: 'All Statuses' }, { value: 'scheduled', label: 'Confirmed' }, { value: 'pending_admin', label: 'Awaiting Admin' }, { value: 'pending_teacher', label: 'Awaiting Teacher' }, { value: 'completed', label: 'Completed' }, { value: 'rejected', label: 'Rejected' }]" />
         </div>
       </div>
 

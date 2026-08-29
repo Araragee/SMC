@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseDropdown from '@/components/BaseDropdown.vue';
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
@@ -258,14 +259,7 @@ function timeAgo(dateStr: string) {
           class="bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
         />
       </div>
-      <select
-        v-model="actionFilter"
-        @change="resetPage"
-        class="glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface outline-none bg-transparent cursor-pointer"
-      >
-        <option value="all">All Actions</option>
-        <option v-for="a in ACTION_TYPES" :key="a" :value="a">{{ actionLabel(a) }}</option>
-      </select>
+      <BaseDropdown v-model="actionFilter" @change="resetPage" :options="[{ value: 'all', label: 'All Actions' }, ...ACTION_TYPES.map(a => ({ value: a, label: actionLabel(a) }))]" />
     </div>
 
     <!-- Log Feed -->
