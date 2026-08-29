@@ -67,9 +67,8 @@ const on2FAVerified = () => {
               </div>
             </div>
             <p v-if="authStore.error" class="text-error dark:text-error text-sm text-center">{{ authStore.error }}</p>
-            <button :disabled="authStore.isLoading" class="group relative w-full h-16 bg-primary hover:bg-primary-dim rounded-xl font-bold text-on-primary uppercase active:scale-[0.98] transition-colors disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
-              <span class="relative z-10">{{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}</span>
-              <div class="absolute inset-0 bg-on-surface/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <button :disabled="authStore.isLoading" class="w-full h-16 bg-primary hover:bg-primary-dim rounded-xl font-bold text-on-primary uppercase active:scale-[0.98] transition-colors disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+              {{ authStore.isLoading ? 'Signing In...' : 'Sign In' }}
             </button>
             <div class="text-center">
               <router-link
