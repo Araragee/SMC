@@ -329,11 +329,15 @@ p {
 /* ── Focus ─────────────────────────────────────────────────────────────────
    Keyboard users need to see where they are. `:focus-visible` shows the ring
    for keyboard navigation only, so pointer users do not get a ring on every
-   click. Applied globally rather than per-component so nothing is missed. */
+   click. Applied globally rather than per-component so nothing is missed.
+
+   Deliberately no border-radius here: outline follows the element's own
+   border-radius in every browser we support, so setting one would instead
+   overwrite the element's real corners on focus — a rounded-xl button would
+   snap to 6px while focused, taking its background and any ring with it. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-  border-radius: 0.375rem;
 }
 
 /* Never remove the outline without replacing it. */
