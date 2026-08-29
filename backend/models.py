@@ -171,8 +171,15 @@ class Enrollment(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("users.id"), index=True)
     teacher_id = Column(Integer, ForeignKey("users.id"), index=True)
+    # Credits are per enrollment, not per student: a student enrolled with two
+    # teachers holds a separate balance with each. users.sessions_left is the
+    # derived sum of these and is recalculated rather than authoritative.
     sessions_purchased = Column(Integer, default=0)
     sessions_used = Column(Integer, default=0)
+    # pending → student asked, admin has not decided; active → approved and
+    # bookable; rejected → declined. Distinct from is_active, which is the
+    # soft-delete flag for enrollments that were once approved.
+    status = Column(String, default="active", server_default="active", nullable=False)
     is_active = Column(Boolean, default=True, server_default="1", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
 

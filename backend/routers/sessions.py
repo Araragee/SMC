@@ -948,17 +948,32 @@ def propose_session_as_student(
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    # Any student may propose to any teacher, mirroring the teacher and admin
-    # sides which never required a prior link. The teacher still has to accept
-    # the proposal, so an unwanted request costs a decline rather than being
-    # blocked outright — and the roster is small enough that a hard assignment
-    # rule mostly just stopped legitimate bookings.
+    # Guard: the student must hold an approved enrollment with THIS teacher.
+    # Credits are per teacher, so a balance with someone else does not entitle
+    # them to book here.
+    enrollment = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == current_user.id,
+            models.Enrollment.teacher_id == proposal.teacher_id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .first()
+    )
+    if not enrollment:
+        raise HTTPException(
+            status_code=403,
+            detail=f"You are not enrolled with {teacher.name}. Request enrollment first.",
+        )
 
-    # Guard: student must have remaining sessions
-    if current_user.sessions_left is not None and current_user.sessions_left <= 0:
+    # Guard: hours remaining on that specific enrollment. One credit is one
+    # hour, so a longer session costs proportionally more.
+    hours_left = max(0, enrollment.sessions_purchased - enrollment.sessions_used)
+    if hours_left <= 0:
         raise HTTPException(
             status_code=400,
-            detail="No sessions remaining. Please contact admin to enroll in more."
+            detail=f"No hours remaining with {teacher.name}. Please contact admin to add more.",
         )
 
     end_time = _validate_session_window(proposal.start_time, proposal.end_time, is_admin=(current_user.role.name == "admin"))
@@ -1557,6 +1572,32 @@ def complete_session_as_admin(
 
 # --- Enrollments ---
 
+def _recalculate_sessions_left(db: Session, student_id: int) -> int:
+    """Recompute users.sessions_left as the sum of remaining per-enrollment
+    credits. Credits live on the enrollment (one balance per teacher); the
+    column on the user is a cached total for the dashboard, so any code that
+    changes a balance must call this rather than adjusting the total directly.
+
+    Only approved, non-deleted enrollments count — a pending request has no
+    hours to spend yet.
+    """
+    enrollments = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == student_id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .all()
+    )
+    total = sum(max(0, e.sessions_purchased - e.sessions_used) for e in enrollments)
+    student = db.query(models.User).filter(models.User.id == student_id).first()
+    if student is not None:
+        student.sessions_left = total
+        db.commit()
+    return total
+
+
 @router.post("/enrollments/", response_model=schemas.Enrollment)
 def create_enrollment(enrollment: schemas.EnrollmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_admin)):
     db_enrollment = models.Enrollment(**enrollment.model_dump())
@@ -1652,6 +1693,192 @@ def read_student_enrollments(student_id: int, db: Session = Depends(get_db), cur
     require_can_view_user(db, current_user, student_id)
     enrollments = db.query(models.Enrollment).filter(models.Enrollment.student_id == student_id).all()
     return enrollments
+
+@router.get("/enrollments/my-teachers", response_model=list[schemas.User])
+def read_my_teachers(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student),
+):
+    """Teachers this student may book: an approved enrollment, still active.
+
+    The student portal drives its teacher picker off this rather than the full
+    teacher list, so the picker cannot offer someone the booking guard will
+    reject.
+    """
+    rows = (
+        db.query(models.User)
+        .join(models.Enrollment, models.Enrollment.teacher_id == models.User.id)
+        .filter(
+            models.Enrollment.student_id == current_user.id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .distinct()
+        .all()
+    )
+    return rows
+
+
+@router.get("/enrollments/my-students", response_model=list[schemas.User])
+def read_my_students(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher),
+):
+    """Students enrolled with this teacher — the mirror of my-teachers."""
+    rows = (
+        db.query(models.User)
+        .join(models.Enrollment, models.Enrollment.student_id == models.User.id)
+        .filter(
+            models.Enrollment.teacher_id == current_user.id,
+            models.Enrollment.status == "active",
+            models.Enrollment.is_active.is_(True),
+        )
+        .distinct()
+        .all()
+    )
+    return rows
+
+
+@router.post("/enrollments/request", response_model=schemas.Enrollment, status_code=201)
+def request_enrollment(
+    payload: schemas.EnrollmentRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_student),
+):
+    """Student asks to study with a teacher. Creates a pending enrollment with
+    zero hours — the admin sets the hours when approving, since that follows
+    payment."""
+    teacher = db.query(models.User).filter(models.User.id == payload.teacher_id).first()
+    if not teacher or not teacher.role or teacher.role.name.lower() != "teacher":
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    existing = (
+        db.query(models.Enrollment)
+        .filter(
+            models.Enrollment.student_id == current_user.id,
+            models.Enrollment.teacher_id == payload.teacher_id,
+            models.Enrollment.status.in_(["pending", "active"]),
+            models.Enrollment.is_active.is_(True),
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "You already have a pending request with this teacher."
+                if existing.status == "pending"
+                else "You are already enrolled with this teacher."
+            ),
+        )
+
+    db_enrollment = models.Enrollment(
+        student_id=current_user.id,
+        teacher_id=payload.teacher_id,
+        sessions_purchased=0,
+        sessions_used=0,
+        status="pending",
+        is_active=True,
+    )
+    db.add(db_enrollment)
+    db.commit()
+    db.refresh(db_enrollment)
+
+    log_activity(
+        db,
+        action_type="enrollment_requested",
+        description=f"Student {current_user.name} requested enrollment with {teacher.name}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=db_enrollment.id,
+    )
+    notify_users(db, get_admin_ids(db),
+        f"📝 {current_user.name} requested enrollment with {teacher.name}. Approve and set the lesson count to activate it.")
+    notify_users(db, [payload.teacher_id],
+        f"📝 {current_user.name} asked to enrol with you. An admin will confirm the lesson count.")
+
+    return db_enrollment
+
+
+@router.post("/enrollments/{enrollment_id}/approve", response_model=schemas.Enrollment)
+def approve_enrollment(
+    enrollment_id: int,
+    payload: schemas.EnrollmentApprove,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Admin approves a pending request and grants the paid-for hours."""
+    enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    if enrollment.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Enrollment is already {enrollment.status}")
+
+    enrollment.status = "active"
+    enrollment.sessions_purchased = payload.sessions_purchased
+    db.commit()
+    db.refresh(enrollment)
+    _recalculate_sessions_left(db, enrollment.student_id)
+
+    student = db.query(models.User).filter(models.User.id == enrollment.student_id).first()
+    teacher = db.query(models.User).filter(models.User.id == enrollment.teacher_id).first()
+    log_activity(
+        db,
+        action_type="enrollment_approved",
+        description=(
+            f"Admin {current_user.name} approved enrollment for "
+            f"{student.name if student else enrollment.student_id} with "
+            f"{teacher.name if teacher else enrollment.teacher_id} "
+            f"({payload.sessions_purchased} hours)"
+        ),
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=enrollment.id,
+    )
+    notify_users(db, [enrollment.student_id],
+        f"✅ Your enrollment with {teacher.name if teacher else 'your teacher'} is approved — {payload.sessions_purchased} hours added. You can now book sessions.")
+    notify_users(db, [enrollment.teacher_id],
+        f"✅ {student.name if student else 'A student'} is now enrolled with you ({payload.sessions_purchased} hours).")
+
+    return enrollment
+
+
+@router.post("/enrollments/{enrollment_id}/reject", response_model=schemas.Enrollment)
+def reject_enrollment(
+    enrollment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin),
+):
+    """Admin declines a pending request. The row is kept so the student sees the
+    outcome instead of the request silently vanishing."""
+    enrollment = db.query(models.Enrollment).filter(models.Enrollment.id == enrollment_id).first()
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    if enrollment.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Enrollment is already {enrollment.status}")
+
+    enrollment.status = "rejected"
+    enrollment.is_active = False
+    db.commit()
+    db.refresh(enrollment)
+
+    teacher = db.query(models.User).filter(models.User.id == enrollment.teacher_id).first()
+    log_activity(
+        db,
+        action_type="enrollment_rejected",
+        description=f"Admin {current_user.name} rejected enrollment #{enrollment.id}",
+        actor_id=current_user.id,
+        actor_name=current_user.name,
+        target_type="enrollment",
+        target_id=enrollment.id,
+    )
+    notify_users(db, [enrollment.student_id],
+        f"Your enrollment request with {teacher.name if teacher else 'that teacher'} was not approved. Please contact the office.")
+
+    return enrollment
+
 
 @router.delete("/enrollments/{enrollment_id}", status_code=204)
 def delete_enrollment(
