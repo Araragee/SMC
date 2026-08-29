@@ -25,7 +25,13 @@ RUN chmod +x /entrypoint.sh
 # write proofs or homework into it.
 RUN mkdir -p /app/uploads/shop /app/uploads/proofs /app/uploads/homework
 
-RUN useradd -m -u 1000 appuser && chown -R appuser /app
+# CockroachDB Cloud's CA cert (public, vendored at backend/certs/root.crt).
+# libpq looks in ~/.postgresql/root.crt by default, so sslmode=verify-full
+# works without an sslrootcert query param.
+RUN useradd -m -u 1000 appuser \
+    && mkdir -p /home/appuser/.postgresql \
+    && cp /app/backend/certs/root.crt /home/appuser/.postgresql/root.crt \
+    && chown -R appuser /app /home/appuser/.postgresql
 USER appuser
 
 EXPOSE 8000

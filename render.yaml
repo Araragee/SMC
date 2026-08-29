@@ -1,6 +1,6 @@
 # Render blueprint: FastAPI backend (Docker) + Vue SPA (static site).
 #
-# The database is Supabase Postgres and uploads live in a private Supabase
+# The database is CockroachDB Cloud and uploads live in a private Supabase
 # Storage bucket — Render's free web services have no persistent disk, so
 # anything written to the container filesystem is lost on every deploy.
 #
@@ -18,9 +18,9 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
-      # Supabase connection string. Use the **Session pooler** URI from
-      # Supabase → Project Settings → Database: Render's free tier is
-      # IPv4-only and the direct connection is IPv6-only.
+      # CockroachDB Cloud connection string (Postgres wire protocol).
+      # Cluster → Connect → General connection string; swap the scheme for
+      # postgresql+psycopg2:// and keep ?sslmode=verify-full.
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY
