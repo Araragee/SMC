@@ -54,7 +54,7 @@ const computedClasses = computed(() => {
   // Error state
   const stateClasses = props.error
     ? 'bg-error/10 text-error-dim focus:ring-error-dim border border-error/30'
-    : 'bg-black/5 dark:bg-white/5 border border-black/8 dark:border-white/10';
+    : 'bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10';
 
   const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : '';
 
@@ -65,7 +65,7 @@ const computedClasses = computed(() => {
 <template>
   <div class="space-y-2 w-full">
     <div v-if="label" class="flex justify-between items-center px-1">
-      <label :for="id" class="text-[10px] tracking-widest uppercase text-on-surface-variant font-bold">
+      <label :for="id" class="text-xs uppercase text-on-surface-variant font-bold">
         {{ label }}
       </label>
       <slot name="label-right"></slot>

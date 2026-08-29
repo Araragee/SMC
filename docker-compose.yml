@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-smc}
+      POSTGRES_USER: ${POSTGRES_USER:-smc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+    volumes:
+      - smc_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smc} -d ${POSTGRES_DB:-smc}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-smc}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}@db:5432/${POSTGRES_DB:-smc}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY required}
+      - PROJECT_NAME=Sernan's Music Clinic API
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  smc_pgdata:

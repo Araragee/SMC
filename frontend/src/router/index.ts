@@ -1,33 +1,50 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import Login from '../views/Login.vue'
-import PlaceholderView from '../components/PlaceholderView.vue'
+import { useAuthStore } from '@stores/auth'
+import Login from '@views/Login.vue'
+import NotFoundView from '@components/NotFoundView.vue'
 
 // Role-based layouts
-const AdminLayout = () => import('../layouts/AdminLayout.vue')
-const StudentLayout = () => import('../layouts/StudentLayout.vue')
-const TeacherLayout = () => import('../layouts/TeacherLayout.vue')
+const AdminLayout = () => import('@layouts/AdminLayout.vue')
+const StudentLayout = () => import('@layouts/StudentLayout.vue')
+const TeacherLayout = () => import('@layouts/TeacherLayout.vue')
 
 // Dashboards
-const AdminDashboard = () => import('../views/admin/Dashboard.vue')
-const StudentDashboard = () => import('../views/student/Dashboard.vue')
-const TeacherDashboard = () => import('../views/teacher/Dashboard.vue')
+const AdminDashboard = () => import('@views/admin/Dashboard.vue')
+const StudentDashboard = () => import('@views/student/Dashboard.vue')
+const StudentSchedule = () => import('@views/student/Schedule.vue')
+const StudentHomework = () => import('@views/student/Homework.vue')
+const StudentPayments = () => import('@views/student/Payments.vue')
+const TeacherDashboard = () => import('@views/teacher/Dashboard.vue')
 
 // Admin Views
-const AdminUsers = () => import('../views/admin/Users.vue')
-const AdminStudentRecords = () => import('../views/admin/StudentRecords.vue')
+const AdminUsers = () => import('@views/admin/Users.vue')
+const AdminStudentRecords = () => import('@views/admin/StudentRecords.vue')
+const AdminStudents = () => import('@views/admin/Students.vue')
+const AdminRoster = () => import('@views/admin/Roster.vue')
+const AdminTeachers = () => import('@views/admin/Teachers.vue')
+const AdminInstruments = () => import('@views/admin/Instruments.vue')
+const AdminPayments = () => import('@views/admin/Payments.vue')
+const AdminActivityLog = () => import('@views/admin/ActivityLog.vue')
+
+// Teacher Views
+const TeacherStudents = () => import('@views/teacher/Students.vue')
+const TeacherInstruments = () => import('@views/teacher/Instruments.vue')
+const TeacherPayments = () => import('@views/teacher/Payments.vue')
+const TeacherShop = () => import('@views/teacher/Shop.vue')
 
 // Schedule views
-const AdminSchedule = () => import('../views/admin/Schedule.vue')
-const TeacherSchedule = () => import('../views/teacher/Schedule.vue')
-const StudentSchedule = () => import('../views/student/Schedule.vue')
+const AdminSchedule = () => import('@views/admin/Schedule.vue')
+const TeacherSchedule = () => import('@views/teacher/Schedule.vue')
+
+// Student Views
+const StudentShop = () => import('@views/student/Shop.vue')
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/login',
-      component: () => import('../layouts/AuthLayout.vue'),
+      component: () => import('@layouts/AuthLayout.vue'),
       children: [
         {
           path: '',
@@ -36,6 +53,44 @@ const router = createRouter({
           meta: { requiresAuth: false }
         }
       ]
+    },
+    {
+      // Phase 2 password-reset flow: both pages re-use AuthLayout so they
+      // share the marketing/background chrome but skip the auth gate.
+      path: '/forgot-password',
+      component: () => import('@layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'forgot-password',
+          component: () => import('@views/ForgotPassword.vue'),
+          meta: { requiresAuth: false },
+        },
+      ],
+    },
+    {
+      path: '/reset-password',
+      component: () => import('@layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'reset-password',
+          component: () => import('@views/ResetPassword.vue'),
+          meta: { requiresAuth: false },
+        },
+      ],
+    },
+    {
+      path: '/change-password',
+      component: () => import('@layouts/AuthLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'change-password',
+          component: () => import('@views/ChangePassword.vue'),
+          meta: { requiresAuth: true },
+        },
+      ],
     },
     // Admin Routes
     {
@@ -46,8 +101,14 @@ const router = createRouter({
         { path: '', name: 'admin-dashboard', component: AdminDashboard },
         { path: 'schedule', name: 'admin-schedule', component: AdminSchedule },
         { path: 'users', name: 'admin-users', component: AdminUsers },
+        { path: 'students', name: 'admin-students', component: AdminStudents },
+        { path: 'roster', name: 'admin-roster', component: AdminRoster },
+        { path: 'teachers', name: 'admin-teachers', component: AdminTeachers },
+        { path: 'instruments', name: 'admin-instruments', component: AdminInstruments },
+        { path: 'payments', name: 'admin-payments', component: AdminPayments },
+        { path: 'activity-log', name: 'admin-activity-log', component: AdminActivityLog },
         { path: 'students/:id/records', name: 'admin-student-records', component: AdminStudentRecords },
-        { path: ':module', component: PlaceholderView }
+        { path: ':module', component: NotFoundView }
       ]
     },
     // Teacher Routes
@@ -58,7 +119,11 @@ const router = createRouter({
       children: [
         { path: '', name: 'teacher-dashboard', component: TeacherDashboard },
         { path: 'schedule', name: 'teacher-schedule', component: TeacherSchedule },
-        { path: ':module', component: PlaceholderView }
+        { path: 'students', name: 'teacher-students', component: TeacherStudents },
+        { path: 'instruments', name: 'teacher-instruments', component: TeacherInstruments },
+        { path: 'payments', name: 'teacher-payments', component: TeacherPayments },
+        { path: 'shop', name: 'teacher-shop', component: TeacherShop },
+        { path: ':module', component: NotFoundView }
       ]
     },
     // Student Routes
@@ -69,7 +134,10 @@ const router = createRouter({
       children: [
         { path: '', name: 'student-dashboard', component: StudentDashboard },
         { path: 'schedule', name: 'student-schedule', component: StudentSchedule },
-        { path: ':module', component: PlaceholderView }
+        { path: 'homework', name: 'student-homework', component: StudentHomework },
+        { path: 'payments', name: 'student-payments', component: StudentPayments },
+        { path: 'shop', name: 'student-shop', component: StudentShop },
+        { path: ':module', component: NotFoundView }
       ]
     },
     // General redirection
@@ -80,12 +148,31 @@ const router = createRouter({
         if (!auth.isAuthenticated) return '/login'
         return `/${auth.userRole}`
       }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      component: NotFoundView
     }
   ]
 })
 
 router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore()
+
+  // Phase 2: if the user has the must_change_password flag set, they
+  // cannot navigate anywhere except /change-password (or out via the
+  // public auth flows). This catches the default-admin first-login and
+  // any admin-initiated forced reset.
+  if (
+    auth.isAuthenticated &&
+    auth.user?.mustChangePassword &&
+    to.path !== '/change-password' &&
+    to.path !== '/login' &&
+    to.path !== '/forgot-password' &&
+    to.path !== '/reset-password'
+  ) {
+    return next('/change-password')
+  }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')

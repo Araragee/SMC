@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { useUsersStore } from '../stores/users';
-import BaseCard from './BaseCard.vue';
-import BaseButton from './BaseButton.vue';
-import BaseInput from './BaseInput.vue';
-import type { User, Role, InstrumentRecord } from '../types';
+import { useUsersStore } from '@stores/users';
+import BaseCard from '@components/BaseCard.vue';
+import BaseButton from '@components/BaseButton.vue';
+import BaseInput from '@components/BaseInput.vue';
+import type { User, Role, InstrumentRecord } from '@types';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -137,40 +137,82 @@ const copyToClipboard = async (text: string) => {
     console.error('Failed to copy', err);
   }
 };
+
+const closeModal = () => {
+  emit('close');
+};
+
+const selectStudentRole = () => {
+  selectedRole.value = 'student';
+};
+
+const selectTeacherRole = () => {
+  selectedRole.value = 'teacher';
+};
+
+const useSuggestedUsername = () => {
+  formData.value.username = suggestedUsername.value;
+};
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const copyGeneratedPassword = () => {
+  copyToClipboard(password.value || generatedPassword.value);
+};
+
+const setSessionOption = (opt: number) => {
+  formData.value.sessionsEnrolled = opt;
+  formData.value.sessionsLeft = opt;
+  enrollmentCustom.value = false;
+};
+
+const enableCustomEnrollment = () => {
+  enrollmentCustom.value = true;
+};
+
+const handleBackOrClose = () => {
+  if (!props.initialRole && step.value === 2) {
+    step.value = 1;
+  } else {
+    closeModal();
+  }
+};
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <BaseCard class="w-full max-w-2xl max-h-[90vh] overflow-y-auto liquid-glass border border-white/10 p-6 flex flex-col relative">
-      <button @click="$emit('close')" class="absolute top-4 right-4 text-white/50 hover:text-white material-symbols-outlined">close</button>
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/60">
+    <BaseCard class="w-full max-w-2xl max-h-[90vh] overflow-y-auto liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
+      <button @click="closeModal" class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined">close</button>
 
-      <h2 class="text-2xl font-bold text-white mb-6">
+      <h2 class="text-2xl font-bold text-on-surface mb-6">
         {{ step === 1 ? 'Select Member Role' : `Create New ${selectedRole === 'student' ? 'Student' : 'Teacher'}` }}
       </h2>
 
       <!-- Step 1: Role Selection -->
       <div v-if="step === 1" class="grid grid-cols-2 gap-4">
         <div
-          @click="selectedRole = 'student'"
+          @click="selectStudentRole"
           class="p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-4 text-center"
-          :class="selectedRole === 'student' ? 'border-primary bg-primary/10' : 'border-white/10 hover:border-white/30'"
+          :class="selectedRole === 'student' ? 'border-primary bg-primary/10' : 'border-on-surface/10 hover:border-on-surface/30'"
         >
-          <span class="material-symbols-outlined text-5xl" :class="selectedRole === 'student' ? 'text-primary' : 'text-white/50'">school</span>
+          <span class="material-symbols-outlined text-5xl" :class="selectedRole === 'student' ? 'text-primary' : 'text-on-surface/50'">school</span>
           <div>
-            <h3 class="text-xl font-bold text-white">Student</h3>
-            <p class="text-sm text-white/50 mt-2">Create a profile for a new student enrolling in classes.</p>
+            <h3 class="text-xl font-bold text-on-surface">Student</h3>
+            <p class="text-sm text-on-surface/50 mt-2">Create a profile for a new student enrolling in classes.</p>
           </div>
         </div>
 
         <div
-          @click="selectedRole = 'teacher'"
+          @click="selectTeacherRole"
           class="p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center gap-4 text-center"
-          :class="selectedRole === 'teacher' ? 'border-primary bg-primary/10' : 'border-white/10 hover:border-white/30'"
+          :class="selectedRole === 'teacher' ? 'border-primary bg-primary/10' : 'border-on-surface/10 hover:border-on-surface/30'"
         >
-          <span class="material-symbols-outlined text-5xl" :class="selectedRole === 'teacher' ? 'text-primary' : 'text-white/50'">music_note</span>
+          <span class="material-symbols-outlined text-5xl" :class="selectedRole === 'teacher' ? 'text-primary' : 'text-on-surface/50'">music_note</span>
           <div>
-            <h3 class="text-xl font-bold text-white">Teacher</h3>
-            <p class="text-sm text-white/50 mt-2">Create a profile for a new instructor.</p>
+            <h3 class="text-xl font-bold text-on-surface">Teacher</h3>
+            <p class="text-sm text-on-surface/50 mt-2">Create a profile for a new instructor.</p>
           </div>
         </div>
 
@@ -184,7 +226,7 @@ const copyToClipboard = async (text: string) => {
         <!-- Student Form -->
         <template v-if="selectedRole === 'student'">
           <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">person</span> Personal Information
             </h3>
             <div class="grid grid-cols-2 gap-4">
@@ -199,30 +241,30 @@ const copyToClipboard = async (text: string) => {
           </section>
 
           <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">shield_person</span> Account
             </h3>
             <div class="grid grid-cols-2 gap-4">
               <div class="relative">
                 <BaseInput v-model="formData.username" label="Username" />
-                <button v-if="suggestedUsername && !formData.username" type="button" @click="formData.username = suggestedUsername" class="absolute right-2 top-8 text-xs text-primary hover:underline">Use {{ suggestedUsername }}</button>
+                <button v-if="suggestedUsername && !formData.username" type="button" @click="useSuggestedUsername" class="absolute right-2 top-8 text-xs text-primary hover:underline">Use {{ suggestedUsername }}</button>
               </div>
               <BaseInput v-model="formData.email" label="Email Address" type="email" required />
               <div class="col-span-2 relative">
                 <BaseInput v-model="password" :label="password ? 'Password' : 'Password (Auto-generated if empty)'" :type="showPassword ? 'text' : 'password'" :placeholder="generatedPassword" />
-                <button type="button" @click="showPassword = !showPassword" class="absolute right-10 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm">
+                <button type="button" @click="togglePasswordVisibility" class="absolute right-10 top-8 text-on-surface/50 hover:text-on-surface material-symbols-outlined text-sm">
                   {{ showPassword ? 'visibility_off' : 'visibility' }}
                 </button>
-                <button type="button" @click="copyToClipboard(password || generatedPassword)" class="absolute right-2 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm" title="Copy password">
+                <button type="button" @click="copyGeneratedPassword" class="absolute right-2 top-8 text-on-surface/50 hover:text-on-surface material-symbols-outlined text-sm" title="Copy password">
                   content_copy
                 </button>
-                <p v-if="!password && generatedPassword" class="text-xs text-white/40 mt-1">Generated: {{ generatedPassword }}</p>
+                <p v-if="!password && generatedPassword" class="text-xs text-on-surface/40 mt-1">Generated: {{ generatedPassword }}</p>
               </div>
             </div>
           </section>
 
           <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">family_restroom</span> Parent/Guardian
             </h3>
             <div class="grid grid-cols-2 gap-4">
@@ -235,31 +277,31 @@ const copyToClipboard = async (text: string) => {
           </section>
 
           <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">music_cast</span> Enrollment
             </h3>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-white/70 mb-2">Sessions Enrolled</label>
+                <label class="block text-sm font-medium text-on-surface/70 mb-2">Sessions Enrolled</label>
                 <div class="flex flex-wrap gap-2">
                   <button v-for="opt in sessionOptions" :key="opt" type="button"
-                    @click="formData.sessionsEnrolled = opt; formData.sessionsLeft = opt; enrollmentCustom = false"
+                    @click="setSessionOption(opt)"
                     class="px-4 py-2 rounded-lg border text-sm transition-colors"
-                    :class="formData.sessionsEnrolled === opt && !enrollmentCustom ? 'border-primary bg-primary text-white' : 'border-white/10 text-white/70 hover:border-white/30'">
+                    :class="formData.sessionsEnrolled === opt && !enrollmentCustom ? 'border-primary bg-primary text-on-primary' : 'border-on-surface/10 text-on-surface/70 hover:border-on-surface/30'">
                     {{ opt }}
                   </button>
-                  <button type="button" @click="enrollmentCustom = true" class="px-4 py-2 rounded-lg border text-sm transition-colors" :class="enrollmentCustom ? 'border-primary bg-primary text-white' : 'border-white/10 text-white/70 hover:border-white/30'">Custom</button>
+                  <button type="button" @click="enableCustomEnrollment" class="px-4 py-2 rounded-lg border text-sm transition-colors" :class="enrollmentCustom ? 'border-primary bg-primary text-on-primary' : 'border-on-surface/10 text-on-surface/70 hover:border-on-surface/30'">Custom</button>
                   <BaseInput v-if="enrollmentCustom" v-model.number="formData.sessionsEnrolled" @input="formData.sessionsLeft = formData.sessionsEnrolled" type="number" class="w-24 ml-2 !mb-0" placeholder="Qty" />
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-white/70 mb-2">Instruments</label>
+                <label class="block text-sm font-medium text-on-surface/70 mb-2">Instruments</label>
                 <div class="flex flex-wrap gap-2">
                   <button v-for="inst in usersStore.instruments" :key="inst.id" type="button"
                     @click="toggleInstrument(inst)"
                     class="px-3 py-1.5 rounded-full text-sm border transition-colors flex items-center gap-1"
-                    :class="isInstrumentSelected(inst) ? 'border-primary bg-primary/20 text-primary' : 'border-white/10 text-white/50 hover:border-white/30'">
+                    :class="isInstrumentSelected(inst) ? 'border-primary bg-primary/20 text-primary' : 'border-on-surface/10 text-on-surface/50 hover:border-on-surface/30'">
                     <span v-if="isInstrumentSelected(inst)" class="material-symbols-outlined text-xs">check</span>
                     {{ inst.name }}
                   </button>
@@ -272,7 +314,7 @@ const copyToClipboard = async (text: string) => {
         <!-- Teacher Form -->
         <template v-if="selectedRole === 'teacher'">
            <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">person</span> Personal Information
             </h3>
             <div class="grid grid-cols-2 gap-4">
@@ -285,7 +327,7 @@ const copyToClipboard = async (text: string) => {
           </section>
 
           <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">shield_person</span> Account
             </h3>
             <div class="grid grid-cols-2 gap-4">
@@ -293,7 +335,7 @@ const copyToClipboard = async (text: string) => {
               <BaseInput v-model="formData.email" label="Email Address" type="email" required />
               <div class="col-span-2 relative">
                 <BaseInput v-model="password" label="Password" :type="showPassword ? 'text' : 'password'" required />
-                <button type="button" @click="showPassword = !showPassword" class="absolute right-2 top-8 text-white/50 hover:text-white material-symbols-outlined text-sm">
+                <button type="button" @click="togglePasswordVisibility" class="absolute right-2 top-8 text-on-surface/50 hover:text-on-surface material-symbols-outlined text-sm">
                   {{ showPassword ? 'visibility_off' : 'visibility' }}
                 </button>
               </div>
@@ -301,29 +343,29 @@ const copyToClipboard = async (text: string) => {
           </section>
 
           <section>
-            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">music_note</span> Teaching
             </h3>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-white/70 mb-2">Instruments Taught</label>
+                <label class="block text-sm font-medium text-on-surface/70 mb-2">Instruments Taught</label>
                 <div class="flex flex-wrap gap-2">
                   <button v-for="inst in usersStore.instruments" :key="inst.id" type="button"
                     @click="toggleInstrument(inst)"
                     class="px-3 py-1.5 rounded-full text-sm border transition-colors flex items-center gap-1"
-                    :class="isInstrumentSelected(inst) ? 'border-primary bg-primary/20 text-primary' : 'border-white/10 text-white/50 hover:border-white/30'">
+                    :class="isInstrumentSelected(inst) ? 'border-primary bg-primary/20 text-primary' : 'border-on-surface/10 text-on-surface/50 hover:border-on-surface/30'">
                     <span v-if="isInstrumentSelected(inst)" class="material-symbols-outlined text-xs">check</span>
                     {{ inst.name }}
                   </button>
                 </div>
               </div>
-              <p class="text-sm text-white/50 italic">Students can be assigned to this teacher later from the Student Records view.</p>
+              <p class="text-sm text-on-surface/50 italic">Students can be assigned to this teacher later from the Student Records view.</p>
             </div>
           </section>
         </template>
 
-        <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-white/5">
-          <BaseButton type="button" variant="secondary" @click="!props.initialRole && step === 2 ? step = 1 : $emit('close')">
+        <div class="flex justify-end gap-4 mt-8 pt-4 border-t border-on-surface/5">
+          <BaseButton type="button" variant="secondary" @click="handleBackOrClose">
             {{ !props.initialRole && step === 2 ? 'Back' : 'Cancel' }}
           </BaseButton>
           <BaseButton type="submit" :disabled="usersStore.isLoading">

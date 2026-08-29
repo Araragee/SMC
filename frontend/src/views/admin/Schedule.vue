@@ -1,30 +1,38 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { API_URL } from '@typescript/constants'
 import { useRoute } from 'vue-router'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import BaseCalendar from '../../components/BaseCalendar.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useToastStore } from '@stores/toast'
+import BaseCalendar from '@components/BaseCalendar.vue'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import RecurringSessionModal from '@components/RecurringSessionModal.vue'
+import type { Session } from '@types'
+import { useDialog } from '@composables/useDialog'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
+const dialog = useDialog()
 const route = useRoute()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
+const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
+const showRecurringModal = ref(false)
 const filterStatus = ref('')
+const selectedSessionIds = ref<number[]>([])
 
-const rejectModal = ref({ open: false, sessionId: '', notes: '' })
-const editModal = ref({ open: false, sessionId: '', date: '', time: '', notes: '' })
+const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
+const editModal = ref({ open: false, sessionId: 0, date: '', time: '', notes: '' })
 
 const teachers = computed(() => usersStore.getUsersByRole('teacher'))
 const students = computed(() => usersStore.getUsersByRole('student'))
@@ -34,21 +42,56 @@ const pendingSessions = computed(() => scheduleStore.pendingSessions)
 
 const filteredSessions = computed(() => {
   const all = [...scheduleStore.allSessions].sort(
-    (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    (a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
   )
   if (!filterStatus.value) return all
-  return all.filter((s) => s.status === filterStatus.value)
+  return all.filter((s: any) => s.status === filterStatus.value)
 })
+
+const toggleSelectAll = () => {
+  if (selectedSessionIds.value.length === filteredSessions.value.length) {
+    selectedSessionIds.value = []
+  } else {
+    selectedSessionIds.value = filteredSessions.value.map(s => s.id)
+  }
+}
+
+const handleBulkAction = async (action: 'approve' | 'cancel' | 'complete') => {
+  const count = selectedSessionIds.value.length
+  let message = `Are you sure you want to bulk ${action} ${count} selected session(s)?`
+  
+  if (action === 'cancel') {
+    const completedCount = scheduleStore.allSessions.filter(
+      s => selectedSessionIds.value.includes(s.id) && s.status === 'completed'
+    ).length
+    if (completedCount > 0) {
+      message += ` Warning: ${completedCount} of these are already completed and will be reverted (credits will be refunded).`
+    }
+  }
+
+  const ok = await dialog.confirm(message, {
+    title: `Bulk ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+    destructive: action === 'cancel'
+  })
+  if (!ok) return
+  try {
+    await scheduleStore.bulkAction(selectedSessionIds.value, action)
+    selectedSessionIds.value = []
+    await scheduleStore.fetchAllSessions()
+  } catch {
+    // Error notification handled by store
+  }
+}
 
 onMounted(async () => {
   await Promise.all([
     scheduleStore.fetchAllSessions(),
     usersStore.fetchUsers(),
-    notifStore.fetchNotifications(authStore.currentUser?.id ?? ''),
+    notifStore.fetchNotifications(authStore.currentUser?.id ?? 0),
   ])
 
   if (route.query.session_id) {
-    const sId = route.query.session_id as string
+    const sId = Number(route.query.session_id)
     const sessionToOpen = scheduleStore.allSessions.find(s => s.id === sId)
     if (sessionToOpen) {
       selectedDate.value = new Date(sessionToOpen.startTime)
@@ -60,17 +103,59 @@ onMounted(async () => {
   }
 })
 
-function getUserName(id: string): string {
-  return usersStore.users.find((u) => u.id === id)?.name ?? `User #${id}`
+const getUserName = function(id: number): string  {
+  return usersStore.users.find((u: any) => u.id === id)?.name ?? `User #${id}`
 }
 
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-async function handleApprove(sessionId: string) {
-  const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
+const onSessionClick = function(session: Session) {
+  selectedSession.value = session
+}
+
+const onReschedule = async function({ session, newStart, newEnd }: { session: Session; newStart: Date; newEnd: Date }) {
+  try {
+    await scheduleStore.editSession(session.id, {
+      startTime: newStart.toISOString(),
+      endTime: newEnd.toISOString(),
+    })
+    toast.success('Session rescheduled successfully')
+  } catch (err: any) {
+    const msg = err.response?.data?.detail || err.message || 'Reschedule failed'
+    toast.error('Reschedule failed', msg)
+  }
+}
+
+const exportingIcs = ref(false)
+const exportIcs = async function() {
+  if (exportingIcs.value) return
+  exportingIcs.value = true
+  try {
+    const res = await axios.get(`${API_URL}/sessions/export.ics`, {
+      headers: { Authorization: `Bearer ${authStore.token}` },
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(res.data as Blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'smc-schedule.ics'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.success('Calendar exported')
+  } catch {
+    toast.error('Export failed')
+  } finally {
+    exportingIcs.value = false
+  }
+}
+
+const handleApprove = async function(sessionId: number) {
+  const session = scheduleStore.allSessions.find((s: any) => s.id === sessionId)
   try {
     if (session?.status === 'pending_teacher') {
       await scheduleStore.approveAsTeacher(sessionId)
@@ -87,7 +172,7 @@ async function handleApprove(sessionId: string) {
   }
 }
 
-async function handleCompleteAdmin(sessionId: string) {
+const handleCompleteAdmin = async function(sessionId: number) {
   try {
     await scheduleStore.completeSession(sessionId)
     toast.success('Session Completed', 'The session has been successfully finalized.')
@@ -98,8 +183,11 @@ async function handleCompleteAdmin(sessionId: string) {
   }
 }
 
-async function handleRejectProofAdmin(sessionId: string) {
-  const reason = window.prompt("Enter a reason for rejecting this proof:")
+const handleRejectProofAdmin = async function(sessionId: number) {
+  const reason = await dialog.prompt('Enter a reason for rejecting this proof:', {
+    title: 'Reject Proof',
+    placeholder: 'e.g. Image is unclear or incorrect session'
+  })
   if (!reason) return
   try {
     await scheduleStore.rejectProof(sessionId, reason)
@@ -111,13 +199,13 @@ async function handleRejectProofAdmin(sessionId: string) {
   }
 }
 
-function openReject(sessionId: string) {
+const openReject = function(sessionId: number) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
 }
 
-async function confirmReject() {
-  const session = scheduleStore.allSessions.find((s) => s.id === rejectModal.value.sessionId)
+const confirmReject = async function() {
+  const session = scheduleStore.allSessions.find((s: any) => s.id === rejectModal.value.sessionId)
   try {
     if (session?.status === 'pending_teacher') {
       await scheduleStore.rejectAsTeacher(rejectModal.value.sessionId, rejectModal.value.notes)
@@ -132,7 +220,7 @@ async function confirmReject() {
   }
 }
 
-function openEdit(session: Session) {
+const openEdit = function(session: Session) {
   const d = new Date(session.startTime)
   editModal.value = {
     open: true,
@@ -144,11 +232,14 @@ function openEdit(session: Session) {
   selectedDate.value = null
 }
 
-async function confirmEdit() {
+const confirmEdit = async function() {
   const { sessionId, date, time, notes } = editModal.value
   try {
-    const startTime = new Date(`${date}T${time}:00`).toISOString()
-    const endTime = new Date(new Date(`${date}T${time}:00`).getTime() + 3600000).toISOString()
+    const [y, m, d] = date.split('-').map(Number)
+    const [hr, min] = time.split(':').map(Number)
+    const startTimeDt = new Date(y, m - 1, d, hr, min)
+    const startTime = startTimeDt.toISOString()
+    const endTime = new Date(startTimeDt.getTime() + 3600000).toISOString()
     await scheduleStore.editSession(sessionId, { startTime, endTime, notes })
     toast.success('Session updated!')
     editModal.value.open = false
@@ -157,7 +248,7 @@ async function confirmEdit() {
   }
 }
 
-async function onProposeSubmit(session: Session) {
+const onProposeSubmit = async function(session: Session) {
   try {
     await scheduleStore.bookSession(session)
     toast.success('Session scheduled!', 'The session has been confirmed and parties notified.')
@@ -167,7 +258,7 @@ async function onProposeSubmit(session: Session) {
   }
 }
 
-function formatDateTime(iso: string): string {
+const formatDateTime = function(iso: string): string  {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -178,7 +269,7 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function statusLabel(status: string): string {
+const statusLabel = function(status: string): string  {
   const map: Record<string, string> = {
     scheduled: 'Confirmed',
     completed: 'Completed',
@@ -190,9 +281,9 @@ function statusLabel(status: string): string {
   return map[status] ?? status
 }
 
-function statusBarClass(status: string): string {
+const statusBarClass = function(status: string): string  {
   const map: Record<string, string> = {
-    scheduled: 'bg-orange-500',
+    scheduled: 'bg-primary',
     completed: 'bg-emerald-500',
     pending_teacher: 'bg-amber-500',
     pending_admin: 'bg-blue-500',
@@ -202,32 +293,47 @@ function statusBarClass(status: string): string {
   return map[status] ?? 'bg-zinc-700'
 }
 
-function statusBadgeClass(status: string): string {
+const statusBadgeClass = function(status: string): string  {
   const map: Record<string, string> = {
-    scheduled: 'bg-orange-500/20 border-orange-500/30 text-orange-400',
+    scheduled: 'bg-primary/20 border-primary/30 text-primary',
     completed: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',
     pending_teacher: 'bg-amber-500/20 border-amber-500/30 text-amber-400',
     pending_admin: 'bg-blue-500/20 border-blue-500/30 text-blue-400',
     rejected: 'bg-red-500/20 border-red-500/30 text-red-400',
     cancelled: 'bg-zinc-500/20 border-zinc-500/30 text-zinc-400',
   }
-  return map[status] ?? 'bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 text-on-surface-variant dark:text-on-surface-variant'
+  return map[status] ?? 'bg-on-surface/5 dark:bg-on-surface/10 border-on-surface/10 dark:border-on-surface/20 text-on-surface-variant dark:text-on-surface-variant'
 }
 </script>
 
 <template>
-  <div class="w-full mx-auto pb-28 space-y-4">
+  <div class="page">
     <!-- Page Header -->
     <div
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">Schedule</h1>
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">Schedule</h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">Manage all sessions — approve, edit, and schedule.</p>
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-4 py-3 bg-on-surface/60 dark:bg-zinc-800/60 text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+          :disabled="exportingIcs"
+          @click="exportIcs"
+        >
+          <span class="material-symbols-outlined text-lg">calendar_month</span>
+          {{ exportingIcs ? 'Exporting…' : 'Export .ics' }}
+        </button>
+        <button
+          class="px-4 py-3 bg-on-surface/60 dark:bg-zinc-800/60 text-on-surface dark:text-on-surface font-semibold rounded-3xl shadow hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          @click="showRecurringModal = true"
+        >
+          <span class="material-symbols-outlined text-lg">repeat</span>
+          Recurring
+        </button>
+        <button
+          class="px-6 py-3 bg-primary text-on-primary font-bold rounded-3xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -242,7 +348,7 @@ function statusBadgeClass(status: string): string {
       class="liquid-glass rounded-3xl p-6 border border-amber-500/20"
     >
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
+        <div class="size-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-amber-400"
             style="font-variation-settings: 'FILL' 1"
@@ -250,7 +356,7 @@ function statusBadgeClass(status: string): string {
           >
         </div>
         <div>
-          <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Pending Approvals</h3>
+          <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Pending Approvals</h3>
           <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
             {{ pendingSessions.length }} session{{ pendingSessions.length !== 1 ? 's' : '' }}
             awaiting review
@@ -263,22 +369,14 @@ function statusBadgeClass(status: string): string {
           v-for="session in pendingSessions"
           :key="session.id"
           class="flex items-center gap-4 p-4 rounded-2xl border"
-          :class="
-            session.status === 'pending_admin'
-              ? 'bg-blue-500/5 border-blue-500/20'
-              : 'bg-amber-500/5 border-amber-500/20'
-          "
+          :class="session.status === 'pending_admin' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'"
         >
           <!-- Time & Participants -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
               <span
-                class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border"
-                :class="
-                  session.status === 'pending_admin'
-                    ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-                    : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                "
+                class="px-2 py-0.5 rounded-full text-xs font-semibold uppercase border"
+                :class="session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : 'bg-amber-500/20 border-amber-500/30 text-amber-400'"
               >
                 {{ session.status === 'pending_admin' ? 'Awaiting Admin' : 'Awaiting Teacher' }}
               </span>
@@ -318,50 +416,37 @@ function statusBadgeClass(status: string): string {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
-          <span
-            class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
-          >
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
-              >calendar_month</span
-            >
-          </span>
-          Weekly Overview
-        </h3>
-        <!-- Legend -->
-        <div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
-          <span class="flex items-center gap-1.5 text-orange-400"
-            ><span class="w-2 h-2 rounded-full bg-orange-400"></span>Scheduled</span
-          >
-          <span class="flex items-center gap-1.5 text-blue-400"
-            ><span class="w-2 h-2 rounded-full bg-blue-400"></span>Pending Admin</span
-          >
-          <span class="flex items-center gap-1.5 text-amber-400"
-            ><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pending Teacher</span
-          >
-          <span class="flex items-center gap-1.5 text-emerald-400"
-            ><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Completed</span
-          >
-        </div>
-      </div>
-      <BaseCalendar :sessions="scheduleStore.allSessions" @day-click="onDayClick" />
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+      <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
+        <span class="size-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
+        </span>
+        Weekly Overview
+      </h3>
+      <BaseCalendar :sessions="scheduleStore.allSessions" :is-admin="true" @day-click="onDayClick" @session-click="onSessionClick" @reschedule="onReschedule" />
     </section>
 
     <!-- All Sessions Table -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
-          <span class="w-10 h-10 rounded-2xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center">
+        <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3">
+          <span class="size-10 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center">
             <span class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant">list_alt</span>
           </span>
           All Sessions
         </h3>
         <div class="flex items-center gap-3">
+          <button
+            v-if="filteredSessions.length > 0"
+            type="button"
+            class="text-xs font-semibold uppercase text-on-surface-variant hover:text-on-surface px-4 py-2 bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl border border-on-surface/[0.08] dark:border-on-surface/10 transition-all"
+            @click="toggleSelectAll"
+          >
+            {{ selectedSessionIds.length === filteredSessions.length ? 'Deselect All' : 'Select All' }}
+          </button>
           <select
             v-model="filterStatus"
-            class="bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-2 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+            class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl px-4 py-2 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-1 focus:ring-primary/50"
           >
             <option value="" class="bg-surface-container">All Statuses</option>
             <option value="scheduled" class="bg-surface-container">Confirmed</option>
@@ -377,8 +462,14 @@ function statusBadgeClass(status: string): string {
         <div
           v-for="session in filteredSessions"
           :key="session.id"
-          class="flex items-center gap-4 p-4 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/5 dark:hover:bg-white/5 border border-black/[0.04] dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 transition-all"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-on-surface/[0.02] dark:bg-on-surface/[0.02] hover:bg-on-surface/5 dark:hover:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 hover:border-on-surface/10 dark:hover:border-on-surface/10 transition-all"
         >
+          <input
+            type="checkbox"
+            :value="session.id"
+            v-model="selectedSessionIds"
+            class="size-4 rounded border-on-surface/20 dark:border-on-surface/20 text-primary focus:ring-primary/50 bg-on-surface/10 dark:bg-on-surface/5 cursor-pointer accent-primary shrink-0"
+          />
           <div class="w-1 h-10 rounded-full shrink-0" :class="statusBarClass(session.status)"></div>
           <div class="flex-1 min-w-0">
             <p class="text-on-surface dark:text-on-surface font-bold text-sm">{{ formatDateTime(session.startTime) }}</p>
@@ -387,7 +478,7 @@ function statusBadgeClass(status: string): string {
             </p>
           </div>
           <span
-            class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border shrink-0"
+            class="px-2 py-1 rounded-full text-xs font-semibold uppercase border shrink-0"
             :class="statusBadgeClass(session.status)"
           >
             {{ statusLabel(session.status) }}
@@ -410,7 +501,7 @@ function statusBadgeClass(status: string): string {
               <span class="material-symbols-outlined text-sm">cancel</span>
             </button>
             <button
-              class="p-1.5 rounded-xl bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all"
+              class="p-1.5 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-all"
               title="Edit"
               @click="openEdit(session)"
             >
@@ -440,18 +531,21 @@ function statusBadgeClass(status: string): string {
           @click.self="rejectModal.open = false"
         >
           <div
-            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
             @click="rejectModal.open = false"
           />
           <div
-            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-4"
+            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
           >
-            <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Reject Session</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Reject Session</h3>
+              <button class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+            </div>
             <textarea
               v-model="rejectModal.notes"
               rows="3"
               placeholder="Reason for rejection (optional)..."
-              class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              class="input resize-none"
             />
             <div class="flex gap-3">
               <button
@@ -461,7 +555,7 @@ function statusBadgeClass(status: string): string {
                 Confirm Reject
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm transition-all"
+                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm transition-all"
                 @click="rejectModal.open = false"
               >
                 Cancel
@@ -488,16 +582,16 @@ function statusBadgeClass(status: string): string {
           @click.self="editModal.open = false"
         >
           <div
-            class="absolute inset-0 bg-black/30 dark:bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/60"
             @click="editModal.open = false"
           />
           <div
-            class="relative w-full max-w-md liquid-glass rounded-3xl border border-black/[0.08] dark:border-white/10 p-6 space-y-5"
+            class="relative w-full max-w-md liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-black text-on-surface dark:text-on-surface">Edit Session</h3>
+              <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Edit Session</h3>
               <button
-                class="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/5 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
+                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
                 @click="editModal.open = false"
               >
                 <span class="material-symbols-outlined text-base">close</span>
@@ -506,47 +600,47 @@ function statusBadgeClass(status: string): string {
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
-                  class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2"
+                  class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2"
                   >Date</label
                 >
                 <input
                   v-model="editModal.date"
                   type="date"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  class="input"
                 />
               </div>
               <div>
                 <label
-                  class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2"
+                  class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2"
                   >Time</label
                 >
                 <input
                   v-model="editModal.time"
                   type="time"
-                  class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-3 py-2.5 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  class="input"
                 />
               </div>
             </div>
             <div>
               <label
-                class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2"
+                class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2"
                 >Notes</label
               >
               <textarea
                 v-model="editModal.notes"
                 rows="2"
-                class="w-full bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
+                class="input resize-none"
               />
             </div>
             <div class="flex gap-3">
               <button
-                class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl text-sm"
+                class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl text-sm"
                 @click="confirmEdit"
               >
                 Save Changes
               </button>
               <button
-                class="px-5 py-3 bg-black/[0.04] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="editModal.open = false"
               >
                 Cancel
@@ -559,23 +653,23 @@ function statusBadgeClass(status: string): string {
 
     <!-- Session Detail Modal -->
     <SessionDetailModal
-      :date="selectedDate"
-      :sessions="selectedDaySessions"
+      :session="selectedSession"
       user-role="admin"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
-      @close="selectedDate = null"
-      @propose="((showProposeModal = true), (selectedDate = null))"
-      @approve-admin="handleApprove"
-      @reject-admin="openReject"
-      @complete-admin="handleCompleteAdmin"
-      @reject-proof-admin="handleRejectProofAdmin"
-      @approve-teacher="handleApprove"
-      @reject-teacher="openReject"
-      @counter-teacher="(s) => handleApprove(s.id)"
-      @approve-student="handleApprove"
-      @counter-student="(s) => handleApprove(s.id)"
-      @edit-admin="openEdit"
+      @close="selectedSession = null"
+    @approve-admin="(id: number) => { handleApprove(id); selectedSession = null }"
+    @reject-admin="(id: number) => { openReject(id); selectedSession = null }"
+    @complete-admin="(id: number) => { handleCompleteAdmin(id); selectedSession = null }"
+    @reject-proof-admin="(id: number) => { handleRejectProofAdmin(id); selectedSession = null }"
+    @approve-teacher="(id: number) => { handleApprove(id); selectedSession = null }"
+    @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
+    @counter-teacher="(s: Session) => { handleApprove(s.id); selectedSession = null }"
+    @approve-student="(id: number) => { handleApprove(id); selectedSession = null }"
+    @reject-student="async (id: number) => { try { await scheduleStore.rejectAsStudent(id); await scheduleStore.fetchAllSessions() } catch { toast.error('Action failed') }; selectedSession = null }"
+    @counter-student="(s: Session) => { handleApprove(s.id); selectedSession = null }"
+    @edit-admin="(s: Session) => { openEdit(s); selectedSession = null }"
+    @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->
@@ -583,12 +677,65 @@ function statusBadgeClass(status: string): string {
       v-if="showProposeModal"
       :is-open="showProposeModal"
       user-role="admin"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :teachers="teachers"
       :students="students"
       :initial-date="selectedDate ?? undefined"
       @close="showProposeModal = false"
       @submitted="onProposeSubmit"
     />
+    <RecurringSessionModal
+      v-if="showRecurringModal"
+      :is-open="showRecurringModal"
+      :teachers="teachers"
+      :students="students"
+      @close="showRecurringModal = false"
+      @created="scheduleStore.fetchAllSessions()"
+    />
+
+    <!-- Floating Bulk Action Bar -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-300 ease-out transform"
+        enter-from-class="translate-y-12 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in transform"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-12 opacity-0"
+      >
+        <div
+          v-if="selectedSessionIds.length > 0"
+          class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-4 px-6 py-4 rounded-full liquid-glass border border-on-surface/10 dark:border-on-surface/10 shadow-2xl animate-bounce-subtle"
+        >
+          <span class="text-xs font-semibold uppercase text-on-surface dark:text-on-surface">
+            {{ selectedSessionIds.length }} Selected
+          </span>
+          <div class="w-px h-6 bg-on-surface/10 dark:bg-on-surface/10"></div>
+          <div class="flex items-center gap-2">
+            <button
+              class="px-4 py-2 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleBulkAction('approve')"
+            >
+              <span class="material-symbols-outlined text-sm">check_circle</span>
+              Approve
+            </button>
+            <button
+              class="px-4 py-2 rounded-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleBulkAction('complete')"
+            >
+              <span class="material-symbols-outlined text-sm">done_all</span>
+              Complete
+            </button>
+            <button
+              class="px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              @click="handleBulkAction('cancel')"
+            >
+              <span class="material-symbols-outlined text-sm">cancel</span>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>

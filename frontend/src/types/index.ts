@@ -18,19 +18,19 @@ export interface InstrumentRecord {
 }
 
 export interface UserInstrument {
-  userId: string | number;
+  userId: number;
   instrumentId: number;
 }
 
 export interface TeacherStudent {
-  id: string | number;
-  teacherId: string | number;
-  studentId: string | number;
+  id: number;
+  teacherId: number;
+  studentId: number;
   assignedAt: string;
 }
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: Role;
@@ -39,6 +39,10 @@ export interface User {
   contactNumber?: string;
   homeAddress?: string;
   instruments?: InstrumentRecord[];
+  totpEnabled?: boolean;
+  /** Phase 2: when true, router gate forces the user to /change-password
+   *  before they can navigate to any role dashboard. */
+  mustChangePassword?: boolean;
 
   // Specific to students
   sessionsLeft?: number;
@@ -51,22 +55,31 @@ export interface User {
 }
 
 export interface SessionProof {
-  id: string;
-  sessionId: string;
+  id: number;
+  sessionId: number;
   imageUrl: string;
   uploadedAt: string;
-  uploaderId?: string;
+  uploaderId?: number;
   uploaderRole?: string;
 }
 
+export interface Homework {
+  id: number;
+  sessionId: number;
+  description: string;
+  isCompleted: boolean;
+  fileUrl?: string;
+  createdAt: string;
+}
+
 export interface Session {
-  id: string;
-  studentId: string;
-  teacherId: string;
+  id: number;
+  studentId: number;
+  teacherId: number;
   startTime: string; // ISO 8601 format
   endTime: string; // ISO 8601 format
   status: SessionStatus;
-  proposedBy?: string;
+  proposedBy?: number;
   notes?: string;
   imageProofUrl?: string; // Legacy/convenience
   proofs?: SessionProof[];
@@ -79,17 +92,22 @@ export interface Session {
   proofJustification?: string;
   rejectionReason?: string;
   isForceCompleted?: boolean;
+  counterCount?: number;
+  conflictSessionId?: number;
+  /** Optimistic-lock counter — pass back to write endpoints so the server can
+   *  detect concurrent modifications and respond with HTTP 409. */
+  version?: number;
 }
 
 export interface Schedule {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   sessions: Session[];
 }
 
 export interface Notification {
-  id: string;
-  userId: string | null; // Or null for global notifications
+  id: number;
+  userId: number | null; // Or null for global notifications
   title: string;
   message: string;
   type: 'info' | 'warning' | 'success' | 'error';
@@ -99,13 +117,22 @@ export interface Notification {
 }
 
 export interface Enrollment {
-  id: string;
-  studentId: string;
-  teacherId: string;
+  id: number;
+  studentId: number;
+  teacherId: number;
   sessionsPurchased: number;
   sessionsUsed: number;
   sessionsLeft: number;
+  isActive?: boolean;
   createdAt: string;
+}
+
+/** A student placed on a teacher's roster (backend: `teacher_students`). */
+export interface TeacherAssignment {
+  id: number;
+  teacherId: number;
+  studentId: number;
+  assignedAt: string;
 }
 
 // ── Messaging ─────────────────────────────────────────────────────────────────
@@ -113,16 +140,16 @@ export interface Enrollment {
 export type ConversationType = 'dm' | 'group' | 'session_thread'
 
 export interface ConversationParticipantInfo {
-  userId:     string
+  userId:     number
   joinedAt:   string
   lastReadAt: string | null
   name:       string | null
 }
 
 export interface ChatMessage {
-  id:             string
-  conversationId: string
-  senderId:       string
+  id:             number
+  conversationId: number
+  senderId:       number
   senderName:     string | null
   body:           string
   createdAt:      string
@@ -130,11 +157,52 @@ export interface ChatMessage {
 }
 
 export interface Conversation {
-  id:           string
+  id:           number
   type:         ConversationType
   name:         string | null
   createdAt:    string
   participants: ConversationParticipantInfo[]
   lastMessage:  ChatMessage | null
   unreadCount:  number
+}
+
+// ── Shop ──────────────────────────────────────────────────────────────────────
+
+export interface InstrumentProduct {
+  id: number
+  name: string
+  description?: string
+  priceCents: number
+  stock: number
+  imageUrl?: string
+  categoryId?: number
+  category?: InstrumentRecord
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type OrderStatus = 'pending' | 'approved' | 'fulfilled' | 'rejected' | 'cancelled'
+
+export interface OrderItem {
+  id: number
+  productId: number
+  quantity: number
+  priceCentsAtPurchase: number
+  product?: InstrumentProduct
+}
+
+export interface Order {
+  id: number
+  userId: number
+  user?: User
+  status: OrderStatus
+  notes?: string
+  totalCents: number
+  items: OrderItem[]
+  approvedBy?: number
+  approvedAt?: string
+  rejectionReason?: string
+  createdAt: string
+  updatedAt: string
 }

@@ -1,0 +1,154 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useMessagingStore } from '@stores/messaging'
+import { useModalStore } from '@stores/modal'
+
+const route = useRoute()
+const authStore = useAuthStore()
+const notifStore = useNotificationStore()
+const messagingStore = useMessagingStore()
+const modalStore = useModalStore()
+
+const isVisible = ref(true)
+let lastScrollY = 0
+
+type NavItem = { path: string; icon: string; label: string }
+
+const navsByRole: Record<string, NavItem[]> = {
+  admin: [
+    { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/admin/users', icon: 'manage_accounts', label: 'Users' },
+    { path: '/admin/schedule', icon: 'calendar_month', label: 'Schedule' },
+    { path: '/admin/students', icon: 'group', label: 'Students' },
+  ],
+  teacher: [
+    { path: '/teacher', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/teacher/schedule', icon: 'calendar_month', label: 'Schedule' },
+    { path: '/teacher/students', icon: 'group', label: 'Students' },
+    { path: '/teacher/payments', icon: 'payments', label: 'Payments' },
+  ],
+  student: [
+    { path: '/student', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/student/schedule', icon: 'calendar_today', label: 'Schedule' },
+    { path: '/student/homework', icon: 'school', label: 'Homework' },
+    { path: '/student/payments', icon: 'payments', label: 'Payments' },
+  ],
+}
+
+const navItems = computed<NavItem[]>(() => {
+  const role = authStore.currentUser?.role || ''
+  return navsByRole[role] ?? []
+})
+
+const isActive = (path: string) => {
+  // Dashboard routes require exact match to avoid matching all sub-paths
+  if (path === '/admin' || path === '/teacher' || path === '/student') {
+    return route.path === path
+  }
+  return route.path.startsWith(path)
+}
+
+const handleScroll = function() {
+  const currentScrollY = window.scrollY
+  if (currentScrollY > lastScrollY && currentScrollY > 100) {
+    isVisible.value = false
+  } else {
+    isVisible.value = true
+  }
+  lastScrollY = currentScrollY
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+</script>
+
+<template>
+  <div 
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]"
+    :class="isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90'"
+  >
+    <nav class="flex items-center gap-1 p-2 bg-surface-container-low/80 rounded-full border border-on-surface/10 shadow-2xl shadow-e2">
+      <router-link
+        v-for="item in navItems"
+        :key="item.path"
+        :to="item.path"
+        class="relative p-3 rounded-full group"
+        :class="isActive(item.path) ? 'bg-primary scale-110 shadow-lg' : 'hover:bg-on-surface/5'"
+      >
+        <span 
+          class="material-symbols-outlined"
+          :class="isActive(item.path) ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'"
+          :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
+          aria-hidden="true"
+        >
+          {{ item.icon }}
+        </span>
+        
+        <!-- Subtle Active Indicator Dot -->
+        <div 
+          v-if="isActive(item.path)"
+          class="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 bg-surface-container-lowest rounded-full"
+        ></div>
+      </router-link>
+
+      <div class="w-px h-6 bg-on-surface/10 mx-1"></div>
+
+      <!-- Notifications -->
+      <button 
+        class="relative p-3 rounded-full hover:bg-on-surface/5 group"
+        @click="modalStore.openNotifications()"
+      >
+        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">notifications</span>
+        <span 
+          v-if="notifStore.unreadCount > 0"
+          class="absolute top-2 right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
+        >
+          {{ notifStore.unreadCount > 9 ? '9+' : notifStore.unreadCount }}
+        </span>
+      </button>
+
+      <!-- Messaging -->
+      <button 
+        class="relative p-3 rounded-full hover:bg-on-surface/5 group"
+        @click="messagingStore.isOpen = true"
+      >
+        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">chat</span>
+        <span 
+          v-if="messagingStore.totalUnread > 0"
+          class="absolute top-2 right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
+        >
+          {{ messagingStore.totalUnread > 9 ? '9+' : messagingStore.totalUnread }}
+        </span>
+      </button>
+
+      <!-- Profile/Logout -->
+      <button 
+        class="icon-btn"
+        @click="modalStore.openSettings()"
+      >
+        <img 
+          v-if="authStore.currentUser?.avatarUrl" 
+          :src="authStore.currentUser.avatarUrl" 
+          class="w-full h-full object-cover" 
+        />
+        <div v-else class="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-semibold uppercase">
+          {{ authStore.currentUser?.name?.charAt(0) || '?' }}
+        </div>
+      </button>
+    </nav>
+  </div>
+</template>
+
+<style scoped>
+.material-symbols-outlined {
+  font-size: 24px;
+}
+</style>

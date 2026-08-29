@@ -1,0 +1,62 @@
+# Production overlay. Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# What it changes versus the dev compose file:
+# - Caddy terminates TLS and routes both hostnames; nothing else is public
+# - no source bind mounts, so containers run the code baked into the image
+# - uploads live in a named volume instead of a host directory
+# - demo seeding stays off; the app boots with just the bootstrap admin
+#
+# Required in the environment (or a .env file beside this one):
+#   PUBLIC_HOST   e.g. smc.duckdns.org
+#   API_HOST      e.g. smc-api.duckdns.org
+#   ACME_EMAIL    address Let's Encrypt uses for expiry notices
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - PUBLIC_HOST=${PUBLIC_HOST:?PUBLIC_HOST required, e.g. smc.duckdns.org}
+      - API_HOST=${API_HOST:?API_HOST required, e.g. smc-api.duckdns.org}
+      - ACME_EMAIL=${ACME_EMAIL:?ACME_EMAIL required}
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+
+  db:
+    # Reachable from the host for pg_dump, never from the internet.
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  backend:
+    volumes:
+      - smc_uploads:/app/uploads
+    environment:
+      - SEED_DEMO_DATA=false
+      - DEBUG=false
+      - UPLOADS_DIR=/app/uploads
+      - ALLOWED_ORIGINS=["https://${PUBLIC_HOST}"]
+      - REFRESH_COOKIE_SECURE=true
+      - REFRESH_COOKIE_SAMESITE=lax
+    # Caddy reaches this over the compose network; the published port is only
+    # for host-local debugging.
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    environment:
+      - VITE_API_BASE_URL=https://${API_HOST}
+    ports:
+      - "127.0.0.1:3000:80"
+
+volumes:
+  smc_uploads:
+  caddy_data:
+  caddy_config:

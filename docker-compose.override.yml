@@ -1,0 +1,11 @@
+# Local development overlay — Compose loads this automatically, so plain
+# `docker compose up` still gets live-reloading source and host-visible
+# uploads. Production explicitly passes -f docker-compose.prod.yml instead,
+# which never sees these bind mounts.
+services:
+  backend:
+    volumes:
+      - ./backend:/app/backend
+      - ./uploads:/app/uploads
+    environment:
+      - SEED_DEMO_DATA=true

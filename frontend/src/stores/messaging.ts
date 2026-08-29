@@ -1,21 +1,25 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import { useAuthStore } from './auth'
-import type { Conversation, ChatMessage } from '../types'
+import { useAuthStore } from '@stores/auth'
+import type { ChatMessage, Conversation } from '@types'
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-const WS_URL  = (import.meta.env.VITE_WS_BASE_URL  || 'ws://localhost:8000')
+import { API_URL } from '@typescript/constants'
 
-function authHeaders() {
+// Derive the WS origin from the runtime-resolved API origin (API_URL reads
+// window._env_ in prod), so the socket targets the backend, not the page host.
+// http -> ws, https -> wss. Override with VITE_WS_BASE_URL if WS lives elsewhere.
+const WS_URL = import.meta.env.VITE_WS_BASE_URL || API_URL.replace(/^http/, 'ws')
+
+const authHeaders = function() {
   const auth = useAuthStore()
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 }
 
-function mapMessage(raw: any): ChatMessage {
+const mapMessage = function(raw: any): ChatMessage  {
   return {
-    id:             String(raw.id),
-    conversationId: String(raw.conversation_id),
-    senderId:       String(raw.sender_id),
+    id:             Number(raw.id),
+    conversationId: Number(raw.conversation_id),
+    senderId:       Number(raw.sender_id),
     senderName:     raw.sender_name ?? null,
     body:           raw.body,
     createdAt:      raw.created_at,
@@ -23,18 +27,18 @@ function mapMessage(raw: any): ChatMessage {
   }
 }
 
-function mapParticipant(raw: any) {
+const mapParticipant = function(raw: any) {
   return {
-    userId:     String(raw.user_id),
+    userId:     Number(raw.user_id),
     joinedAt:   raw.joined_at,
     lastReadAt: raw.last_read_at ?? null,
     name:       raw.name ?? null,
   }
 }
 
-function mapConversation(raw: any): Conversation {
+const mapConversation = function(raw: any): Conversation  {
   return {
-    id:           String(raw.id),
+    id:           Number(raw.id),
     type:         raw.type,
     name:         raw.name ?? null,
     createdAt:    raw.created_at,
@@ -46,15 +50,16 @@ function mapConversation(raw: any): Conversation {
 
 interface MessagingState {
   conversations:        Conversation[]
-  activeConversationId: string | null
+  activeConversationId: number | null
   isOpen:               boolean
-  messages:             Record<string, ChatMessage[]>
-  unreadCounts:         Record<string, number>
-  typingUsers:          Record<string, string[]>
+  messages:             Record<number, ChatMessage[]>
+  unreadCounts:         Record<number, number>
+  typingUsers:          Record<number, number[]>
   wsStatus:             'connecting' | 'connected' | 'disconnected'
   _ws:                  WebSocket | null
   _typingTimers:        Record<string, ReturnType<typeof setTimeout>>
   _reconnectTimer:      ReturnType<typeof setTimeout> | null
+  _reconnectAttempts:   number
 }
 
 export const useMessagingStore = defineStore('messaging', {
@@ -69,6 +74,7 @@ export const useMessagingStore = defineStore('messaging', {
     _ws:                  null,
     _typingTimers:        {},
     _reconnectTimer:      null,
+    _reconnectAttempts:   0,
   }),
 
   getters: {
@@ -76,7 +82,7 @@ export const useMessagingStore = defineStore('messaging', {
       Object.values(state.unreadCounts).reduce((s, n) => s + n, 0),
 
     sortedConversations: (state): Conversation[] =>
-      [...state.conversations].sort((a, b) => {
+      [...state.conversations].sort((a: any, b: any) => {
         const ta = a.lastMessage?.createdAt ?? a.createdAt
         const tb = b.lastMessage?.createdAt ?? b.createdAt
         return new Date(tb).getTime() - new Date(ta).getTime()
@@ -97,11 +103,15 @@ export const useMessagingStore = defineStore('messaging', {
 
       this.wsStatus = 'connecting'
       const userId = auth.currentUser.id
-      const ws = new WebSocket(`${WS_URL}/ws/${userId}?token=${auth.token}`)
+      // Pass the JWT via the Sec-WebSocket-Protocol header instead of the URL
+      // so the token never lands in server access logs / referer headers.
+      // Backend reads it from `websocket.headers['sec-websocket-protocol']`.
+      const ws = new WebSocket(`${WS_URL}/ws/${userId}`, ['jwt', auth.token])
       this._ws = ws
 
       ws.onopen = () => {
         this.wsStatus = 'connected'
+        this._reconnectAttempts = 0
         this.fetchConversations()
       }
 
@@ -111,7 +121,12 @@ export const useMessagingStore = defineStore('messaging', {
         this.wsStatus = 'disconnected'
         this._ws = null
         if (this._reconnectTimer) clearTimeout(this._reconnectTimer)
-        this._reconnectTimer = setTimeout(() => this.connectWS(), 3000)
+        
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s, max 30s
+        const delay = Math.min(1000 * Math.pow(2, this._reconnectAttempts), 30000)
+        this._reconnectAttempts++
+        
+        this._reconnectTimer = setTimeout(() => this.connectWS(), delay)
       }
 
       ws.onerror = () => ws.close()
@@ -131,7 +146,7 @@ export const useMessagingStore = defineStore('messaging', {
     },
 
     _handleIncoming(event: MessageEvent) {
-      let data: any
+      let data: { type?: string; message?: unknown; [k: string]: unknown }
       try { data = JSON.parse(event.data) } catch { return }
 
       if (data.type === 'new_message') {
@@ -145,14 +160,14 @@ export const useMessagingStore = defineStore('messaging', {
         if (conv) conv.lastMessage = msg
 
       } else if (data.type === 'unread_update') {
-        const cid = String(data.conversation_id)
-        this.unreadCounts[cid] = data.count
+        const cid = Number(data.conversation_id)
+        this.unreadCounts[cid] = Number(data.count)
         const conv = this.conversations.find(c => c.id === cid)
-        if (conv) conv.unreadCount = data.count
+        if (conv) conv.unreadCount = Number(data.count)
 
       } else if (data.type === 'typing') {
-        const cid = String(data.conversation_id)
-        const uid = String(data.user_id)
+        const cid = Number(data.conversation_id)
+        const uid = Number(data.user_id)
         if (!this.typingUsers[cid]) this.typingUsers[cid] = []
         if (!this.typingUsers[cid].includes(uid)) this.typingUsers[cid].push(uid)
         const key = `${cid}:${uid}`
@@ -177,7 +192,7 @@ export const useMessagingStore = defineStore('messaging', {
       }
     },
 
-    async fetchMessages(conversationId: string, cursor?: string) {
+    async fetchMessages(conversationId: number, cursor?: string | number) {
       const params: any = { limit: 50 }
       if (cursor) params.cursor = cursor
       const res = await axios.get(`${API_URL}/conversations/${conversationId}/messages`, {
@@ -195,13 +210,13 @@ export const useMessagingStore = defineStore('messaging', {
 
     // ── Send / Mark Read / Typing ──────────────────────────────────────────────
 
-    sendMessage(conversationId: string, body: string) {
+    sendMessage(conversationId: number, body: string) {
       const trimmed = body.trim()
       if (!trimmed) return
       if (this._ws?.readyState === WebSocket.OPEN) {
         this._ws.send(JSON.stringify({
           type: 'send_message',
-          conversation_id: Number(conversationId),
+          conversation_id: conversationId,
           body: trimmed,
         }))
       } else {
@@ -220,11 +235,11 @@ export const useMessagingStore = defineStore('messaging', {
       }
     },
 
-    markRead(conversationId: string) {
+    markRead(conversationId: number) {
       if (this._ws?.readyState === WebSocket.OPEN) {
         this._ws.send(JSON.stringify({
           type: 'mark_read',
-          conversation_id: Number(conversationId),
+          conversation_id: conversationId,
         }))
       } else {
         axios.patch(
@@ -238,21 +253,21 @@ export const useMessagingStore = defineStore('messaging', {
       }
     },
 
-    sendTyping(conversationId: string) {
+    sendTyping(conversationId: number) {
       if (this._ws?.readyState === WebSocket.OPEN) {
         this._ws.send(JSON.stringify({
           type: 'typing',
-          conversation_id: Number(conversationId),
+          conversation_id: conversationId,
         }))
       }
     },
 
     // ── Conversation creation ──────────────────────────────────────────────────
 
-    async startDM(userId: string): Promise<string> {
+    async startDM(userId: number): Promise<number> {
       const res = await axios.post(
         `${API_URL}/conversations/dm`,
-        { other_user_id: Number(userId) },
+        { other_user_id: userId },
         { headers: authHeaders() }
       )
       const conv = mapConversation(res.data)
@@ -263,10 +278,10 @@ export const useMessagingStore = defineStore('messaging', {
       return conv.id
     },
 
-    async createGroup(name: string, participantIds: string[]): Promise<string> {
+    async createGroup(name: string, participantIds: number[]): Promise<number> {
       const res = await axios.post(
         `${API_URL}/conversations/group`,
-        { name, participant_ids: participantIds.map(Number) },
+        { name, participant_ids: participantIds },
         { headers: authHeaders() }
       )
       const conv = mapConversation(res.data)
@@ -275,7 +290,7 @@ export const useMessagingStore = defineStore('messaging', {
       return conv.id
     },
 
-    async getOrCreateSessionThread(sessionId: string): Promise<string> {
+    async getOrCreateSessionThread(sessionId: number): Promise<number> {
       const res = await axios.get(
         `${API_URL}/sessions/${sessionId}/thread`,
         { headers: authHeaders() }
@@ -290,7 +305,7 @@ export const useMessagingStore = defineStore('messaging', {
 
     // ── Panel helpers ──────────────────────────────────────────────────────────
 
-    openConversation(conversationId: string) {
+    openConversation(conversationId: number) {
       this.activeConversationId = conversationId
       this.isOpen = true
     },

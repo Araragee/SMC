@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import type { User, Session } from '../types'
+import { ref, computed, watch, onMounted } from 'vue'
+import type { User, Session, InstrumentRecord } from '@types'
+import { useScheduleStore } from '@stores/schedule'
 
 const props = defineProps<{
   isOpen: boolean
   userRole: 'admin' | 'teacher' | 'student'
-  currentUserId: string
+  currentUserId: number
   teachers: User[]
   students: User[]
+  instruments?: InstrumentRecord[]
   initialDate?: Date
 }>()
 
@@ -16,21 +18,62 @@ const emit = defineEmits<{
   submitted: [session: Session]
 }>()
 
+const scheduleStore = useScheduleStore()
+
 const todayStr = new Date().toISOString().split('T')[0]
 
 const form = ref({
-  teacherId: props.userRole === 'teacher' ? props.currentUserId : '',
-  studentId: props.userRole === 'student' ? props.currentUserId : '',
+  teacherId: props.userRole === 'teacher' ? (props.currentUserId as number | null) : null as number | null,
+  studentId: props.userRole === 'student' ? (props.currentUserId as number | null) : null as number | null,
   date: props.initialDate ? props.initialDate.toISOString().split('T')[0] : todayStr,
   time: '10:00',
   durationHours: '1',
   notes: '',
+  instrumentId: null as number | null,
 })
 
 const isSubmitting = ref(false)
 
 watch(() => props.initialDate, (d) => {
   if (d) form.value.date = d.toISOString().split('T')[0]
+})
+
+watch(() => form.value.teacherId, (newId) => {
+  if (newId) {
+    scheduleStore.fetchTeacherPublicSessions(Number(newId))
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  if (form.value.teacherId) {
+    scheduleStore.fetchTeacherPublicSessions(Number(form.value.teacherId))
+  }
+})
+
+const busySlotsOnSelectedDate = computed(() => {
+  if (!form.value.teacherId || !form.value.date) return []
+  return scheduleStore.teacherBusySlots.filter((slot: any) => {
+    const slotDateStr = slot.startTime.split('T')[0]
+    return slotDateStr === form.value.date
+  })
+})
+
+const formatSlotTime = (iso: string) => {
+  return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+const overlapsWithBusySlot = computed(() => {
+  if (!form.value.teacherId || !form.value.date || !form.value.time) return false
+  const [y, m, d] = form.value.date.split('-').map(Number)
+  const [hr, min] = form.value.time.split(':').map(Number)
+  const startDt = new Date(y, m - 1, d, hr, min)
+  const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
+
+  return scheduleStore.teacherBusySlots.some((slot: any) => {
+    const slotStart = new Date(slot.startTime)
+    const slotEnd = new Date(slot.endTime)
+    return startDt < slotEnd && endDt > slotStart
+  })
 })
 
 const isValid = computed(() => {
@@ -40,7 +83,8 @@ const isValid = computed(() => {
     form.value.date &&
     form.value.time &&
     (!needsTeacher || form.value.teacherId) &&
-    (!needsStudent || form.value.studentId)
+    (!needsStudent || form.value.studentId) &&
+    !overlapsWithBusySlot.value
   )
 })
 
@@ -50,21 +94,24 @@ const submitLabel = computed(() => {
   return 'Send Proposal'
 })
 
-async function submit() {
+const submit = async function() {
   if (!isValid.value || isSubmitting.value) return
   isSubmitting.value = true
   try {
-    const startDt = new Date(`${form.value.date}T${form.value.time}:00`)
+    const [y, m, d] = form.value.date.split('-').map(Number)
+    const [hr, min] = form.value.time.split(':').map(Number)
+    const startDt = new Date(y, m - 1, d, hr, min)
     const endDt = new Date(startDt.getTime() + parseFloat(form.value.durationHours) * 3600000)
 
     emit('submitted', {
-      id: '',
-      teacherId: form.value.teacherId,
-      studentId: form.value.studentId,
+      id: 0,
+      teacherId: Number(form.value.teacherId),
+      studentId: Number(form.value.studentId),
       startTime: startDt.toISOString(),
       endTime: endDt.toISOString(),
       status: 'scheduled',
       notes: form.value.notes || undefined,
+      instrumentId: form.value.instrumentId ?? undefined,
       homeworkCompleted: false,
     })
   } finally {
@@ -81,19 +128,19 @@ async function submit() {
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/70 backdrop-blur-sm" @click="$emit('close')" />
+        <div class="absolute inset-0 bg-on-surface/30 dark:bg-on-surface/70" @click="$emit('close')" />
 
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
           <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
+          <div class="flex items-center justify-between p-6 border-b border-on-surface/5 dark:border-on-surface/5">
             <div>
-              <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1">
+              <p class="text-xs font-semibold text-primary uppercase mb-1">
                 {{ userRole === 'admin' ? 'Direct Schedule' : 'Propose Session' }}
               </p>
-              <h3 class="text-xl font-black text-on-surface dark:text-on-surface">New Session Request</h3>
+              <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface">New Session Request</h3>
             </div>
             <button
-              class="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface transition-all"
+              class="icon-btn"
               @click="$emit('close')"
             >
               <span class="material-symbols-outlined text-lg">close</span>
@@ -101,27 +148,27 @@ async function submit() {
           </div>
 
           <!-- Form -->
-          <div class="p-6 space-y-5">
+          <div class="p-6 space-y-4">
             <!-- Teacher select (for student / admin) -->
             <div v-if="userRole === 'student' || userRole === 'admin'">
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Teacher</label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Teacher</label>
               <select
                 v-model="form.teacherId"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
-                <option value="" disabled class="bg-surface-container">Select a teacher</option>
+                <option :value="null" disabled class="bg-surface-container">Select a teacher</option>
                 <option v-for="t in teachers" :key="t.id" :value="t.id" class="bg-surface-container">{{ t.name }}</option>
               </select>
             </div>
 
             <!-- Student select (for teacher / admin) -->
             <div v-if="userRole === 'teacher' || userRole === 'admin'">
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Student</label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Student</label>
               <select
                 v-model="form.studentId"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
-                <option value="" disabled class="bg-surface-container">Select a student</option>
+                <option :value="null" disabled class="bg-surface-container">Select a student</option>
                 <option v-for="s in students" :key="s.id" :value="s.id" class="bg-surface-container">{{ s.name }}</option>
               </select>
             </div>
@@ -129,30 +176,30 @@ async function submit() {
             <!-- Date & Time -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Date</label>
+                <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Date</label>
                 <input
                   v-model="form.date"
                   type="date"
                   :min="todayStr"
-                  class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                  class="input"
                 />
               </div>
               <div>
-                <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Time</label>
+                <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Time</label>
                 <input
                   v-model="form.time"
                   type="time"
-                  class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                  class="input"
                 />
               </div>
             </div>
 
             <!-- Duration -->
             <div>
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Duration</label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Duration</label>
               <select
                 v-model="form.durationHours"
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50"
+                class="input"
               >
                 <option value="0.5" class="bg-surface-container">30 minutes</option>
                 <option value="1" class="bg-surface-container">1 hour</option>
@@ -161,19 +208,49 @@ async function submit() {
               </select>
             </div>
 
+            <!-- Busy slots helper & overlap warning -->
+            <div v-if="busySlotsOnSelectedDate.length > 0" class="p-3 bg-red-500/5 border border-red-500/20 rounded-2xl">
+              <p class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">warning</span>
+                Teacher Busy Slots on this Date:
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-1">
+                <span v-for="slot in busySlotsOnSelectedDate" class="text-xs font-bold bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-lg">
+                  {{ formatSlotTime(slot.startTime) }} - {{ formatSlotTime(slot.endTime) }}
+                </span>
+              </div>
+              <p v-if="overlapsWithBusySlot" class="text-xs font-semibold text-red-600 dark:text-red-400 mt-2">
+                ⚠️ Overlap conflict detected. Please select another time.
+              </p>
+            </div>
+
+            <!-- Instrument (optional, shown if instruments list is provided) -->
+            <div v-if="instruments && instruments.length > 0">
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">
+                Instrument <span class="normal-case font-medium">(optional)</span>
+              </label>
+              <select
+                v-model="form.instrumentId"
+                class="input"
+              >
+                <option :value="null" class="bg-surface-container">No specific instrument</option>
+                <option v-for="inst in instruments" :key="inst.id" :value="inst.id" class="bg-surface-container">{{ inst.name }}</option>
+              </select>
+            </div>
+
             <!-- Notes -->
             <div>
-              <label class="block text-[10px] font-black text-on-surface-variant dark:text-on-surface-variant uppercase tracking-widest mb-2">Notes <span class="text-on-surface-variant dark:text-on-surface-variant normal-case font-medium">(optional)</span></label>
+              <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Notes <span class="text-on-surface-variant dark:text-on-surface-variant normal-case font-medium">(optional)</span></label>
               <textarea
                 v-model="form.notes"
                 rows="3"
                 placeholder="Add context, instrument focus, or any special requests..."
-                class="w-full bg-black/5 dark:bg-white/[0.06] border border-black/8 dark:border-white/10 rounded-2xl px-4 py-3 text-on-surface dark:text-on-surface text-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 resize-none"
+                class="input resize-none"
               />
             </div>
 
             <!-- Approval notice for non-admin -->
-            <div v-if="userRole !== 'admin'" class="flex items-start gap-2.5 p-3 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+            <div v-if="userRole !== 'admin'" class="flex items-start gap-2 p-3 rounded-2xl bg-blue-500/5 border border-blue-500/20">
               <span class="material-symbols-outlined text-blue-400 text-base mt-0.5">info</span>
               <p class="text-blue-700 dark:text-blue-300 text-xs leading-relaxed">
                 <template v-if="userRole === 'student'">Your request will be sent to your teacher for review, then forwarded to admin for final approval.</template>
@@ -183,10 +260,10 @@ async function submit() {
           </div>
 
           <!-- Footer -->
-          <div class="p-4 border-t border-black/5 dark:border-white/5 flex gap-3">
+          <div class="p-4 border-t border-on-surface/5 dark:border-on-surface/5 flex gap-3">
             <button
               :disabled="!isValid || isSubmitting"
-              class="flex-1 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold rounded-2xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
+              class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100"
               @click="submit"
             >
               <span v-if="isSubmitting" class="material-symbols-outlined text-base animate-spin">refresh</span>
@@ -194,7 +271,7 @@ async function submit() {
               {{ submitLabel }}
             </button>
             <button
-              class="px-5 py-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/8 dark:border-white/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
+              class="px-4 py-3 bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface font-bold rounded-2xl transition-all text-sm"
               @click="$emit('close')"
             >
               Cancel

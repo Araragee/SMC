@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useScheduleStore } from '../../stores/schedule'
-import { useUsersStore } from '../../stores/users'
-import { useAuthStore } from '../../stores/auth'
-import { useNotificationStore } from '../../stores/notification'
-import { useToastStore } from '../../stores/toast'
-import BaseCalendar from '../../components/BaseCalendar.vue'
-import SessionDetailModal from '../../components/SessionDetailModal.vue'
-import ProposeSessionModal from '../../components/ProposeSessionModal.vue'
-import type { Session } from '../../types'
+import { useScheduleStore } from '@stores/schedule'
+import { useUsersStore } from '@stores/users'
+import { useAuthStore } from '@stores/auth'
+import { useNotificationStore } from '@stores/notification'
+import { useToastStore } from '@stores/toast'
+import BaseCalendar from '@components/BaseCalendar.vue'
+import SessionDetailModal from '@components/SessionDetailModal.vue'
+import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
@@ -18,20 +18,21 @@ const toast = useToastStore()
 
 const selectedDate = ref<Date | null>(null)
 const selectedDaySessions = ref<Session[]>([])
+const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 
-const myId = computed(() => authStore.currentUser?.id ?? '')
+const myId = computed(() => authStore.currentUser?.id ?? 0)
 const teachers = computed(() => usersStore.getUsersByRole('teacher'))
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
-  scheduleStore.allSessions.filter((s) => s.studentId === myId.value)
+  scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
 )
 
-const confirmedSessions = computed(() => mySessions.value.filter((s) => s.status === 'scheduled'))
+const confirmedSessions = computed(() => mySessions.value.filter((s: any) => s.status === 'scheduled'))
 
 const pendingSessions = computed(() =>
-  mySessions.value.filter((s) => s.status === 'pending_teacher' || s.status === 'pending_admin')
+  mySessions.value.filter((s: any) => s.status === 'pending_teacher' || s.status === 'pending_admin')
 )
 
 const pendingCount = computed(() => pendingSessions.value.length)
@@ -39,8 +40,8 @@ const pendingCount = computed(() => pendingSessions.value.length)
 const upcomingSessions = computed(() => {
   const now = new Date()
   return confirmedSessions.value
-    .filter((s) => new Date(s.startTime) >= now)
-    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    .filter((s: any) => new Date(s.startTime) >= now)
+    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
     .slice(0, 8)
 })
 
@@ -49,20 +50,25 @@ onMounted(async () => {
     scheduleStore.fetchUserSessions(myId.value),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),
+    usersStore.fetchInstruments(),
     notifStore.fetchNotifications(myId.value),
   ])
 })
 
-function getTeacherName(id: string): string {
-  return usersStore.users.find((u) => u.id === id)?.name ?? `Teacher #${id}`
+const getTeacherName = function (id: number): string {
+  return usersStore.users.find((u: any) => u.id === id)?.name ?? `Teacher #${id}`
 }
 
-function onDayClick({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function ({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-async function onProposeSubmit(session: Session) {
+const onSessionClick = function (session: Session) {
+  selectedSession.value = session
+}
+
+const onProposeSubmit = async function (session: Session) {
   try {
     await scheduleStore.proposeSessionAsStudent({
       teacherId: session.teacherId,
@@ -70,6 +76,7 @@ async function onProposeSubmit(session: Session) {
       startTime: session.startTime,
       endTime: session.endTime,
       notes: session.notes,
+      instrumentId: session.instrumentId ?? null,
     })
     toast.success('Request submitted!', 'Your teacher will review it and forward to admin.')
     showProposeModal.value = false
@@ -78,7 +85,7 @@ async function onProposeSubmit(session: Session) {
   }
 }
 
-function formatDateTime(iso: string): string {
+const formatDateTime = function (iso: string): string {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -89,7 +96,7 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function formatTime(iso: string): string {
+const formatTime = function (iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -97,11 +104,11 @@ function formatTime(iso: string): string {
   })
 }
 
-function formatMonth(iso: string): string {
+const formatMonth = function (iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
 }
 
-function formatDay(iso: string): string {
+const formatDay = function (iso: string): string {
   return String(new Date(iso).getDate())
 }
 </script>
@@ -113,10 +120,14 @@ function formatDay(iso: string): string {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-black tracking-tight text-on-surface dark:text-on-surface mb-2">My Schedule</h1>
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">
+          My Schedule
+        </h1>
         <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
-          <span class="text-on-surface dark:text-on-surface font-bold">{{ confirmedSessions.length }}</span> confirmed
-          sessions this month.
+          <span class="text-on-surface dark:text-on-surface font-bold">{{
+            confirmedSessions.length
+          }}</span>
+          confirmed sessions this month.
           <template v-if="pendingCount > 0">
             <span class="text-amber-400 font-bold">{{ pendingCount }}</span> pending approval.
           </template>
@@ -124,7 +135,7 @@ function formatDay(iso: string): string {
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-gradient-to-br from-orange-500 to-orange-700 text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg shadow-orange-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-primary text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -136,7 +147,7 @@ function formatDay(iso: string): string {
     <!-- Pending Sessions Notice -->
     <section
       v-if="pendingSessions.length > 0"
-      class="liquid-glass rounded-3xl p-5 border border-amber-500/20"
+      class="liquid-glass rounded-3xl p-4 border border-amber-500/20"
     >
       <div class="flex items-start gap-3">
         <span
@@ -154,23 +165,19 @@ function formatDay(iso: string): string {
               v-for="session in pendingSessions"
               :key="session.id"
               class="flex items-center justify-between p-3 rounded-2xl border"
-              :class="
-                session.status === 'pending_admin'
-                  ? 'bg-blue-500/5 border-blue-500/20'
-                  : 'bg-amber-500/5 border-amber-500/20'
-              "
+              :class="session.status === 'pending_admin' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'"
             >
               <div>
-                <p class="text-on-surface dark:text-on-surface text-sm font-bold">{{ formatDateTime(session.startTime) }}</p>
-                <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">with {{ getTeacherName(session.teacherId) }}</p>
+                <p class="text-on-surface dark:text-on-surface text-sm font-bold">
+                  {{ formatDateTime(session.startTime) }}
+                </p>
+                <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">
+                  with {{ getTeacherName(session.teacherId) }}
+                </p>
               </div>
               <span
-                class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border"
-                :class="
-                  session.status === 'pending_admin'
-                    ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-                    : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                "
+                class="px-2 py-1 rounded-full text-xs font-semibold uppercase border"
+                :class="session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : 'bg-amber-500/20 border-amber-500/30 text-amber-400'"
               >
                 {{ session.status === 'pending_admin' ? 'Awaiting Admin' : 'Awaiting Teacher' }}
               </span>
@@ -181,39 +188,34 @@ function formatDay(iso: string): string {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-black text-on-surface dark:text-on-surface flex items-center gap-3">
-          <span
-            class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500"
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+      <h3
+        class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6"
+      >
+        <span
+          class="size-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500"
+        >
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+            >calendar_month</span
           >
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
-              >calendar_month</span
-            >
-          </span>
-          My Calendar
-        </h3>
-        <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider">
-          <span class="flex items-center gap-1.5 text-orange-400"
-            ><span class="w-2 h-2 rounded-full bg-orange-400"></span>Confirmed</span
-          >
-          <span class="flex items-center gap-1.5 text-blue-400"
-            ><span class="w-2 h-2 rounded-full bg-blue-400"></span>Pending Admin</span
-          >
-          <span class="flex items-center gap-1.5 text-amber-400"
-            ><span class="w-2 h-2 rounded-full bg-amber-400"></span>Pending Teacher</span
-          >
-        </div>
-      </div>
-      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" />
+        </span>
+        My Calendar
+      </h3>
+      <BaseCalendar
+        :sessions="mySessions"
+        @day-click="onDayClick"
+        @session-click="onSessionClick"
+      />
     </section>
 
     <!-- Upcoming Sessions -->
-    <section class="liquid-glass rounded-3xl p-4 border border-black/[0.04] dark:border-white/5">
-      <h3 class="text-xl font-black text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
-        <span class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center">
+    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+      <h3
+        class="text-xl font-semibold text-on-surface dark:text-on-surface mb-6 flex items-center gap-3"
+      >
+        <span class="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-orange-500"
+            class="material-symbols-outlined text-primary"
             style="font-variation-settings: 'FILL' 1"
             >event_upcoming</span
           >
@@ -225,25 +227,30 @@ function formatDay(iso: string): string {
         <div
           v-for="session in upcomingSessions"
           :key="session.id"
-          class="flex items-center gap-5 p-5 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-black/[0.04] dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 hover:border-white/10 transition-all group"
+          class="flex items-center gap-4 p-4 rounded-2xl bg-on-surface/[0.02] dark:bg-on-surface/[0.02] border border-on-surface/[0.04] dark:border-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-on-surface/10 transition-all group"
         >
           <!-- Date badge -->
           <div
-            class="w-14 h-14 rounded-2xl bg-orange-500/20 border border-orange-500/20 flex flex-col items-center justify-center shrink-0"
+            class="size-14 rounded-2xl bg-primary/20 border border-primary/20 flex flex-col items-center justify-center shrink-0"
           >
-            <p class="text-[10px] font-black text-orange-500 uppercase tracking-wider">
+            <p class="text-xs font-semibold text-primary uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-xl font-black text-on-surface dark:text-on-surface leading-none">
+            <p class="text-xl font-semibold text-on-surface dark:text-on-surface leading-none">
               {{ formatDay(session.startTime) }}
             </p>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-on-surface dark:text-on-surface font-bold">{{ getTeacherName(session.teacherId) }}</p>
+            <p class="text-on-surface dark:text-on-surface font-bold">
+              {{ getTeacherName(session.teacherId) }}
+            </p>
             <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
-            <p v-if="session.notes" class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1 italic">
+            <p
+              v-if="session.notes"
+              class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1 italic"
+            >
               {{ session.notes }}
             </p>
           </div>
@@ -261,22 +268,48 @@ function formatDay(iso: string): string {
 
     <!-- Session Detail Modal -->
     <SessionDetailModal
-      :date="selectedDate"
-      :sessions="selectedDaySessions"
+      :session="selectedSession"
       user-role="student"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
-      @close="selectedDate = null"
-      @propose="((showProposeModal = true), (selectedDate = null))"
+      @close="selectedSession = null"
+      @approve-student="
+        async (id) => {
+          await scheduleStore.approveAsStudent(id)
+          selectedSession = null
+          await scheduleStore.fetchUserSessions(myId)
+        }
+      "
+      @reject-student="
+        async (id) => {
+          await scheduleStore.rejectAsStudent(id)
+          selectedSession = null
+          await scheduleStore.fetchUserSessions(myId)
+        }
+      "
+      @counter-student="
+        () => {
+          selectedSession = null
+          showProposeModal = true
+        }
+      "
+      @nudge="
+        (id: number) => {
+          scheduleStore.nudgeSession(id)
+          selectedSession = null
+        }
+      "
     />
 
     <!-- Propose Modal -->
-    <ProposeSessionModal :is-open="showProposeModal"
+    <ProposeSessionModal
+      :is-open="showProposeModal"
       v-if="showProposeModal"
       user-role="student"
-      :current-user-id="authStore.currentUser?.id ?? ''"
+      :current-user-id="authStore.currentUser?.id ?? 0"
       :teachers="teachers"
       :students="[]"
+      :instruments="usersStore.instruments"
       :initial-date="selectedDate ?? undefined"
       @close="showProposeModal = false"
       @submitted="onProposeSubmit"

@@ -44,7 +44,7 @@ const radiusClass: Record<RadiusSize, string> = {
   md:  'rounded-2xl',
   lg:  'rounded-[24px]',
   xl:  'rounded-3xl',
-  '2xl': 'rounded-[2rem]',
+  '2xl': 'rounded-3xl',
 };
 
 const paddingClass: Record<PaddingSize, string> = {

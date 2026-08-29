@@ -1,0 +1,22 @@
+# Reverse proxy + automatic HTTPS for the production stack.
+#
+# Caddy obtains and renews Let's Encrypt certificates on its own, provided
+# both hostnames resolve to this machine and ports 80/443 are reachable.
+# Hostnames come from the environment (see docker-compose.prod.yml).
+
+{
+	email {$ACME_EMAIL}
+}
+
+# Frontend — the Vue SPA served by nginx.
+{$PUBLIC_HOST} {
+	encode zstd gzip
+	reverse_proxy frontend:80
+}
+
+# Backend — FastAPI. reverse_proxy passes WebSocket upgrades through
+# unchanged, which is what /ws/{user_id} needs for messaging.
+{$API_HOST} {
+	encode zstd gzip
+	reverse_proxy backend:8000
+}
