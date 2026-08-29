@@ -1,9 +1,8 @@
 import json
 import os
-from typing import Annotated
+from functools import cached_property
 
-from pydantic import field_validator
-from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -76,42 +75,36 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_KEY: str = ""
     SUPABASE_BUCKET: str = ""
 
-    # CORS. NoDecode turns off pydantic-settings' automatic JSON parsing so the
-    # validator below sees the raw string: without it a value that is not valid
-    # JSON raises SettingsError at import and the process dies before it can
-    # serve anything — a misformatted origin list took the whole API down
-    # rather than just refusing that origin.
-    ALLOWED_ORIGINS: Annotated[list[str], NoDecode] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ]
+    # CORS. Declared as a plain string, not list[str]: pydantic-settings
+    # JSON-decodes complex annotations while building Settings, so a value that
+    # was not valid JSON raised SettingsError at import and the process died
+    # before it could serve anything — a misformatted origin list took the whole
+    # API down rather than just refusing that origin. Read `cors_origins`.
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173"
 
-    @field_validator("ALLOWED_ORIGINS", mode="before")
-    @classmethod
-    def _parse_allowed_origins(cls, value: object) -> list[str]:
-        """Accept a JSON list, a comma-separated list, or a single origin.
+    @cached_property
+    def cors_origins(self) -> list[str]:
+        """Origins allowed to call this API.
 
-        Dashboard env fields are free text and every hosting UI encourages a
-        different shape, so all three are treated as valid. Trailing slashes are
-        stripped because a browser's Origin header never carries one and the
-        comparison is exact.
+        Accepts a JSON list, a comma-separated list, or a single bare origin:
+        dashboard env fields are free text and every hosting UI encourages a
+        different shape. Trailing slashes are stripped because a browser's
+        Origin header never carries one and the comparison is exact.
         """
-        if value is None or isinstance(value, list):
-            return [str(v).strip().rstrip("/") for v in (value or [])]
-        text = str(value).strip()
+        text = (self.ALLOWED_ORIGINS or "").strip()
         if not text:
             return []
         if text.startswith("["):
             try:
                 parsed = json.loads(text)
             except json.JSONDecodeError:
-                # Tolerate single quotes and stray smart quotes from a paste.
-                cleaned = (
-                    text.replace("\u201c", '"').replace("\u201d", '"').replace("'", '"')
-                )
-                parsed = json.loads(cleaned)
-            return [str(v).strip().rstrip("/") for v in parsed]
+                # Tolerate single quotes and smart quotes from a paste.
+                cleaned = text.replace("\u201c", '"').replace("\u201d", '"').replace("'", '"')
+                try:
+                    parsed = json.loads(cleaned)
+                except json.JSONDecodeError:
+                    return []
+            return [str(v).strip().rstrip("/") for v in parsed if str(v).strip()]
         return [part.strip().rstrip("/") for part in text.split(",") if part.strip()]
 
     # Refresh-token cookie (Phase 2).
