@@ -1,0 +1,28 @@
+# Opt-in overlay: run the local stack against CockroachDB Cloud instead of the
+# local Postgres container.
+#
+#   export DATABASE_URL="$(grep -m1 '^DATABASE_URL=' backend/.env | cut -d= -f2-)"
+#   docker compose -f docker-compose.yml -f docker-compose.cockroach.yml up -d
+#
+# Note the missing -f docker-compose.override.yml. Compose loads that file
+# automatically only when you pass no -f flags at all, so naming files here
+# deliberately drops it — which is what we want, since it forces
+# SEED_DEMO_DATA=true and would write demo accounts into the real database.
+#
+# The URL has to come from the environment rather than backend/.env: compose's
+# `environment:` block wins over `env_file:`, so the base file's local-Postgres
+# value would otherwise take precedence no matter what .env says.
+#
+# The CA cert is already baked into the image at ~/.postgresql/root.crt, so
+# sslmode=verify-full works with no extra mounts.
+#
+# This points a local UI at real data: anything you create here is real. Use the
+# plain `docker compose up` stack for clicking around.
+services:
+  backend:
+    environment:
+      - DATABASE_URL=${DATABASE_URL:?export DATABASE_URL first - see the header of this file}
+    depends_on: !reset []
+
+  db:
+    profiles: ["donotstart"]
