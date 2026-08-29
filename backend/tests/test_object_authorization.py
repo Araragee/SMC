@@ -56,8 +56,8 @@ class _FakeDB:
     the mapping keys off the model's class name.
     """
 
-    def __init__(self, *, assignment=None, session=None):
-        self._rows = {"TeacherStudent": assignment, "Session": session}
+    def __init__(self, *, assignment=None, enrollment=None, session=None):
+        self._rows = {"TeacherStudent": assignment, "Enrollment": enrollment, "Session": session}
         self.queried: list[str] = []
 
     def query(self, model):
@@ -131,10 +131,17 @@ def test_assigned_teacher_may_view_their_student():
     assert db.queried == ["TeacherStudent"]
 
 
-def test_shared_session_grants_access_without_an_assignment():
-    db = _FakeDB(assignment=None, session=object())
+def test_enrolled_teacher_may_view_their_student():
+    db = _FakeDB(assignment=None, enrollment=object())
     require_can_view_user(db, TEACHER, STUDENT.id)
-    assert db.queried == ["TeacherStudent", "Session"]
+    assert db.queried == ["TeacherStudent", "Enrollment"]
+
+
+def test_shared_session_grants_access_without_an_assignment():
+    db = _FakeDB(assignment=None, enrollment=None, session=object())
+    require_can_view_user(db, TEACHER, STUDENT.id)
+    assert db.queried == ["TeacherStudent", "Enrollment", "Session"]
+
 
 
 def test_unrelated_student_is_blocked():

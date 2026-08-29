@@ -21,13 +21,28 @@ const emit = defineEmits<{
 
 const scheduleStore = useScheduleStore()
 
-const todayStr = new Date().toISOString().split('T')[0]
+const getLocalDateStr = (d = new Date()) => {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const getDefaultTimeStr = () => {
+  const now = new Date()
+  let targetHour = now.getHours() + 1
+  if (targetHour < 8) targetHour = 9
+  if (targetHour > 20) targetHour = 10
+  return `${String(targetHour).padStart(2, '0')}:00`
+}
+
+const todayStr = getLocalDateStr()
 
 const form = ref({
   teacherId: props.userRole === 'teacher' ? (props.currentUserId as number | null) : null as number | null,
   studentId: props.userRole === 'student' ? (props.currentUserId as number | null) : null as number | null,
-  date: props.initialDate ? props.initialDate.toISOString().split('T')[0] : todayStr,
-  time: '10:00',
+  date: props.initialDate ? getLocalDateStr(props.initialDate) : todayStr,
+  time: getDefaultTimeStr(),
   durationHours: '1',
   notes: '',
   instrumentId: null as number | null,
@@ -36,19 +51,39 @@ const form = ref({
 const isSubmitting = ref(false)
 
 watch(() => props.initialDate, (d) => {
-  if (d) form.value.date = d.toISOString().split('T')[0]
+  if (d) form.value.date = getLocalDateStr(d)
+})
+
+const loadTeacherBusySlots = (teacherId: number | null) => {
+  if (props.isOpen && teacherId && Number(teacherId) > 0) {
+    scheduleStore.fetchTeacherPublicSessions(Number(teacherId))
+  }
+}
+
+watch(() => props.isOpen, (open) => {
+  if (open) {
+    loadTeacherBusySlots(form.value.teacherId)
+    // If opening with today's date and past time, update time
+    if (form.value.date === todayStr && isPastDateTime.value) {
+      form.value.time = getDefaultTimeStr()
+    }
+  }
 })
 
 watch(() => form.value.teacherId, (newId) => {
-  if (newId) {
-    scheduleStore.fetchTeacherPublicSessions(Number(newId))
-  }
+  loadTeacherBusySlots(newId)
 }, { immediate: true })
 
 onMounted(() => {
-  if (form.value.teacherId) {
-    scheduleStore.fetchTeacherPublicSessions(Number(form.value.teacherId))
-  }
+  loadTeacherBusySlots(form.value.teacherId)
+})
+
+const isPastDateTime = computed(() => {
+  if (!form.value.date || !form.value.time) return false
+  const [y, m, d] = form.value.date.split('-').map(Number)
+  const [hr, min] = form.value.time.split(':').map(Number)
+  const startDt = new Date(y, m - 1, d, hr, min)
+  return startDt.getTime() < Date.now() - 60000
 })
 
 const busySlotsOnSelectedDate = computed(() => {
@@ -85,9 +120,11 @@ const isValid = computed(() => {
     form.value.time &&
     (!needsTeacher || form.value.teacherId) &&
     (!needsStudent || form.value.studentId) &&
+    !isPastDateTime.value &&
     !overlapsWithBusySlot.value
   )
 })
+
 
 const submitLabel = computed(() => {
   if (isSubmitting.value) return 'Submitting...'
@@ -125,10 +162,11 @@ const submit = async function() {
   <Teleport to="body">
     <Transition enter-active-class="transition-all duration-200 ease-out" enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]" enter-to-class="opacity-100 scale-100 translate-y-0 blur-0" leave-active-class="transition-all duration-200 ease-in" leave-from-class="opacity-100 scale-100 translate-y-0 blur-0" leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]">
       <div
-        v-if="true"
+        v-if="isOpen"
         class="fixed inset-0 z-[300] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
+
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
@@ -182,6 +220,10 @@ const submit = async function() {
                 />
               </div>
             </div>
+            <p v-if="isPastDateTime" class="text-xs font-semibold text-red-600 dark:text-red-400 -mt-2">
+              ⚠️ Selected date & time cannot be in the past.
+            </p>
+
 
             <!-- Duration -->
             <div>

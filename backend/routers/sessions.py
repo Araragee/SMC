@@ -158,13 +158,22 @@ def _validate_session_window(
             )
 
     if not is_admin:
-        if start.date() != end.date():
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo(settings.SCHOOL_TIMEZONE)
+            start_local = start.astimezone(tz)
+            end_local = end.astimezone(tz)
+        except Exception:
+            start_local = start
+            end_local = end
+
+        if start_local.date() != end_local.date():
             raise HTTPException(
                 status_code=400,
                 detail="Session cannot span across multiple days.",
             )
-        start_hour_val = start.hour + start.minute / 60.0 + start.second / 3600.0
-        end_hour_val = end.hour + end.minute / 60.0 + end.second / 3600.0
+        start_hour_val = start_local.hour + start_local.minute / 60.0 + start_local.second / 3600.0
+        end_hour_val = end_local.hour + end_local.minute / 60.0 + end_local.second / 3600.0
         if start_hour_val < settings.WORKING_HOURS_START or end_hour_val > settings.WORKING_HOURS_END:
             raise HTTPException(
                 status_code=400,
@@ -175,6 +184,7 @@ def _validate_session_window(
             )
 
     return end
+
 
 
 
@@ -729,13 +739,9 @@ def read_teacher_public_sessions(
     current_user: models.User = Depends(get_current_active_user),
 ):
     """Fetch sanitized busy time slots for a specific teacher's active sessions."""
-    if current_user.role.name == "student":
-        assignment = db.query(models.TeacherStudent).filter_by(
-            teacher_id=teacher_id,
-            student_id=current_user.id
-        ).first()
-        if not assignment:
-            raise HTTPException(status_code=403, detail="You are not assigned to this teacher")
+    teacher = db.query(models.User).filter(models.User.id == teacher_id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
 
     sessions = (
         db.query(models.Session)
@@ -746,6 +752,7 @@ def read_teacher_public_sessions(
         .all()
     )
     return [schemas.PublicBusySlot(start_time=s.start_time, end_time=s.end_time) for s in sessions]
+
 
 
 TERMINAL_STATUSES = {"completed", "cancelled", "rejected"}
@@ -941,13 +948,11 @@ def propose_session_as_student(
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    # Guard: student must be assigned to this teacher
-    assignment = db.query(models.TeacherStudent).filter_by(
-        teacher_id=proposal.teacher_id,
-        student_id=current_user.id
-    ).first()
-    if not assignment:
-        raise HTTPException(status_code=403, detail="You are not assigned to this teacher")
+    # Any student may propose to any teacher, mirroring the teacher and admin
+    # sides which never required a prior link. The teacher still has to accept
+    # the proposal, so an unwanted request costs a decline rather than being
+    # blocked outright — and the roster is small enough that a hard assignment
+    # rule mostly just stopped legitimate bookings.
 
     # Guard: student must have remaining sessions
     if current_user.sessions_left is not None and current_user.sessions_left <= 0:

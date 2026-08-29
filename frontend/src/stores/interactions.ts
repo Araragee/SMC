@@ -25,6 +25,7 @@ export const useInteractionsStore = defineStore('interactions', {
   }),
   actions: {
     async fetchStudentEnrollments(studentId: number) {
+      if (!studentId || studentId <= 0) return;
       this.isLoading = true;
       this.error = null;
       try {
@@ -46,6 +47,7 @@ export const useInteractionsStore = defineStore('interactions', {
         this.isLoading = false;
       }
     },
+
 
     async createEnrollment(payload: Omit<Enrollment, 'id' | 'createdAt' | 'sessionsLeft'>) {
       this.isLoading = true;

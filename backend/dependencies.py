@@ -104,6 +104,15 @@ def require_can_view_user(db: Session, current_user: models.User, user_id: int) 
     if linked:
         return
 
+    enrolled = db.query(models.Enrollment).filter(
+        ((models.Enrollment.teacher_id == current_user.id)
+         & (models.Enrollment.student_id == user_id))
+        | ((models.Enrollment.student_id == current_user.id)
+           & (models.Enrollment.teacher_id == user_id))
+    ).first()
+    if enrolled:
+        return
+
     shared = db.query(models.Session).filter(
         ((models.Session.teacher_id == current_user.id)
          & (models.Session.student_id == user_id))
@@ -114,3 +123,4 @@ def require_can_view_user(db: Session, current_user: models.User, user_id: int) 
         return
 
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+

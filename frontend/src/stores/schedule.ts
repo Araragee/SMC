@@ -13,10 +13,19 @@ const authHeaders = function() {
 }
 
 const errMsg = (e: unknown): string => {
+  if (axios.isAxiosError(e)) {
+    const detail = e.response?.data?.detail
+    if (typeof detail === 'string') return detail
+    if (Array.isArray(detail)) {
+      return detail.map((d: any) => d.msg || d.message || JSON.stringify(d)).join(', ')
+    }
+    return e.response?.data?.message || e.message
+  }
   if (e instanceof Error) return e.message
   if (typeof e === 'object' && e && 'message' in e) return String((e as { message?: unknown }).message ?? '')
   return String(e ?? '')
 }
+
 
 const mapSession = function(session: any): Session  {
   return {
@@ -122,6 +131,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
 
     async fetchUserSessions(userId: number) {
+      if (!userId || userId <= 0) return;
       this.isLoading = true;
       this.error = null;
       try {
@@ -139,6 +149,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
 
     async fetchTeacherPublicSessions(teacherId: number) {
+      if (!teacherId || teacherId <= 0) return;
       this.isLoading = true;
       this.error = null;
       try {
@@ -155,6 +166,7 @@ export const useScheduleStore = defineStore('schedule', {
         this.isLoading = false;
       }
     },
+
 
     async fetchPendingSessions() {
       this.isLoading = true;
@@ -463,6 +475,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
 
     async fetchStudentRecords(studentId: number) {
+      if (!studentId || studentId <= 0) return [];
       this.isLoading = true;
       this.error = null;
       try {
@@ -481,6 +494,7 @@ export const useScheduleStore = defineStore('schedule', {
         this.isLoading = false;
       }
     },
+
 
     async fetchStats() {
       this.isLoading = true;

@@ -35,10 +35,12 @@ const selectedSession = ref<Session | null>(null)
 onMounted(async () => {
   const myId = authStore.currentUser?.id
   await Promise.all([
-    usersStore.fetchUsers(),
+    usersStore.fetchUsersByRole('student'),
+    usersStore.fetchUsersByRole('teacher'),
     myId ? scheduleStore.fetchUserSessions(myId) : Promise.resolve(),
   ])
 })
+
 
 // ── sessions belonging to this teacher ────────────────────────────────────────
 const mySessions = computed(() => {

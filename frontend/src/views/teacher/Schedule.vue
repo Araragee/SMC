@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
 import { useAuthStore } from '@stores/auth'
@@ -46,14 +46,27 @@ const upcomingSessions = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([
-    scheduleStore.fetchUserSessions(myId.value),
+  const tasks: Promise<any>[] = [
     usersStore.fetchUsersByRole('student'),
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchInstruments(),
-    notifStore.fetchNotifications(myId.value),
-  ])
+  ]
+  if (myId.value > 0) {
+    tasks.push(
+      scheduleStore.fetchUserSessions(myId.value),
+      notifStore.fetchNotifications(myId.value)
+    )
+  }
+  await Promise.all(tasks)
 })
+
+watch(myId, (newId) => {
+  if (newId > 0) {
+    scheduleStore.fetchUserSessions(newId)
+    notifStore.fetchNotifications(newId)
+  }
+})
+
 
 const getStudentName = function(id: number): string  {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Student #${id}`
@@ -141,9 +154,10 @@ const onProposeSubmit = async function(session: Session) {
     toast.success('Proposal submitted!', 'Awaiting admin approval.')
     showProposeModal.value = false
   } catch {
-    toast.error('Failed to submit proposal')
+    // Error is toasted with detailed server message by scheduleStore
   }
 }
+
 
 const formatDateTime = function(iso: string): string  {
   return new Date(iso).toLocaleString('en-US', {
