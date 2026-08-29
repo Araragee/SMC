@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
+import { useInteractionsStore } from '@stores/interactions'
 import { useAuthStore } from '@stores/auth'
 import { useNotificationStore } from '@stores/notification'
 import { useToastStore } from '@stores/toast'
@@ -12,6 +13,7 @@ import type { Session } from '@types'
 
 const scheduleStore = useScheduleStore()
 const usersStore = useUsersStore()
+const interactionsStore = useInteractionsStore()
 const authStore = useAuthStore()
 const notifStore = useNotificationStore()
 const toast = useToastStore()
@@ -22,7 +24,9 @@ const selectedSession = ref<Session | null>(null)
 const showProposeModal = ref(false)
 
 const myId = computed(() => authStore.currentUser?.id ?? 0)
-const teachers = computed(() => usersStore.getUsersByRole('teacher'))
+// Only teachers with an approved enrollment — the full list would offer
+// teachers the booking guard rejects.
+const teachers = computed(() => interactionsStore.myTeachers)
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
@@ -46,6 +50,7 @@ const upcomingSessions = computed(() => {
 })
 
 onMounted(async () => {
+  interactionsStore.fetchMyTeachers()
   const tasks: Promise<any>[] = [
     usersStore.fetchUsersByRole('teacher'),
     usersStore.fetchUsersByRole('student'),

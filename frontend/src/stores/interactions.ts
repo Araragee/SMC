@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import type { Enrollment } from '@types';
+import type { Enrollment, Role, User } from '@types';
 import { useScheduleStore } from '@stores/schedule';
 import { useToastStore } from '@stores/toast';
 import { useAuthStore } from '@stores/auth';
@@ -13,6 +13,10 @@ const authHeaders = function() {
 
 interface InteractionsState {
   enrollments: Enrollment[];
+  /** Teachers this student may actually book — the ones with an approved
+   * enrollment. Kept separate from the full teacher list so the picker cannot
+   * offer someone the booking guard will reject. */
+  myTeachers: User[];
   isLoading: boolean;
   error: string | null;
 }
@@ -20,10 +24,84 @@ interface InteractionsState {
 export const useInteractionsStore = defineStore('interactions', {
   state: (): InteractionsState => ({
     enrollments: [],
+    myTeachers: [] as User[],
     isLoading: false,
     error: null,
   }),
+  getters: {
+    /** Approved enrollments with hours left, newest first. */
+    activeEnrollments: (state) =>
+      state.enrollments.filter((e) => (e.status ?? 'active') === 'active'),
+    pendingRequests: (state) => state.enrollments.filter((e) => e.status === 'pending'),
+    /** Total hours across every teacher — the dashboard counter. */
+    totalCreditsLeft: (state) =>
+      state.enrollments
+        .filter((e) => (e.status ?? 'active') === 'active')
+        .reduce((sum, e) => sum + Math.max(0, e.sessionsLeft), 0),
+  },
   actions: {
+    async fetchMyTeachers() {
+      try {
+        const { data } = await axios.get(`${API_URL}/enrollments/my-teachers`, { headers: authHeaders() });
+        this.myTeachers = data.map((user: any) => ({
+        id: Number(user.id),
+        name: user.name,
+        email: user.email,
+        role: (user.role?.name?.toLowerCase() as Role) || 'teacher',
+        avatarUrl: user.avatar_url,
+        sessionsLeft: user.sessions_left,
+        username: user.username,
+        contactNumber: user.contact_number,
+        homeAddress: user.home_address,
+        birthday: user.birthday,
+        age: user.age,
+        school: user.school,
+        parentName: user.parent_name,
+        parentContact: user.parent_contact,
+        sessionsEnrolled: user.sessions_enrolled,
+        instruments: user.instruments,
+      }));
+      } catch (err: any) {
+        this.error = err.response?.data?.detail || err.message || 'Failed to load your teachers';
+        console.error(err);
+      }
+      return this.myTeachers;
+    },
+
+    /** Ask to study with a teacher. Creates a pending enrollment; an admin
+     * approves it and sets the hours. */
+    async requestEnrollment(teacherId: number) {
+      this.isLoading = true;
+      this.error = null;
+      try {
+        const { data } = await axios.post(
+          `${API_URL}/enrollments/request`,
+          { teacher_id: teacherId },
+          { headers: authHeaders() },
+        );
+        const enrollment = {
+          id: Number(data.id),
+          studentId: Number(data.student_id),
+          teacherId: Number(data.teacher_id),
+          sessionsPurchased: data.sessions_purchased,
+          sessionsUsed: data.sessions_used,
+          sessionsLeft: data.sessions_left,
+          status: data.status,
+          isActive: data.is_active,
+          createdAt: data.created_at,
+        } as Enrollment;
+        this.enrollments.unshift(enrollment);
+        useToastStore().success('Request sent', 'An admin will confirm your lesson count.');
+        return enrollment;
+      } catch (err: any) {
+        this.error = err.response?.data?.detail || err.message || 'Failed to request enrollment';
+        useToastStore().error('Request failed', this.error ?? undefined);
+        throw err;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async fetchStudentEnrollments(studentId: number) {
       if (!studentId || studentId <= 0) return;
       this.isLoading = true;
@@ -37,6 +115,8 @@ export const useInteractionsStore = defineStore('interactions', {
           sessionsPurchased: enrollment.sessions_purchased,
           sessionsUsed: enrollment.sessions_used,
           sessionsLeft: enrollment.sessions_left,
+          status: enrollment.status ?? 'active',
+          isActive: enrollment.is_active,
           createdAt: enrollment.created_at,
         }));
       } catch (err: any) {

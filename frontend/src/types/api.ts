@@ -211,6 +211,7 @@ export interface EnrollmentResponse {
   sessions_purchased: number
   sessions_used: number
   sessions_left: number
+  status?: 'pending' | 'active' | 'rejected'
   created_at: string
 }
 

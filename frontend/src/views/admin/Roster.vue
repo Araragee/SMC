@@ -8,7 +8,7 @@ import { useDialog } from '@composables/useDialog'
 import StudentPickerModal from '@components/StudentPickerModal.vue'
 import type { Enrollment } from '@types'
 
-type Tab = 'assignments' | 'enrollments'
+type Tab = 'assignments' | 'enrollments' | 'requests'
 
 const usersStore = useUsersStore()
 const rosterStore = useRosterStore()
@@ -21,6 +21,35 @@ const search = ref('')
 const showPicker = ref(false)
 const pickerMode = ref<'assign' | 'enroll'>('assign')
 const isSubmitting = ref(false)
+
+const approvingId = ref<number | null>(null)
+const approveHours = ref<number>(8)
+
+const approveRequest = async function(enrollment: Enrollment) {
+  isSubmitting.value = true
+  try {
+    await rosterStore.approveEnrollment(enrollment.id, approveHours.value)
+    toast.success('Enrollment approved', `${userName(enrollment.studentId)} now has ${approveHours.value} hours.`)
+    approvingId.value = null
+  } catch (err: any) {
+    toast.error('Approve failed', err?.response?.data?.detail ?? err?.message)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const rejectRequest = async function(enrollment: Enrollment) {
+  const ok = await dialog.confirm(
+    `Reject ${userName(enrollment.studentId)}'s request to enrol with ${userName(enrollment.teacherId)}?`,
+  )
+  if (!ok) return
+  try {
+    await rosterStore.rejectEnrollment(enrollment.id)
+    toast.success('Request rejected')
+  } catch (err: any) {
+    toast.error('Reject failed', err?.response?.data?.detail ?? err?.message)
+  }
+}
 
 const editing = ref<Enrollment | null>(null)
 const editForm = reactive({ teacherId: 0, sessionsPurchased: 0, isActive: true })
@@ -205,7 +234,7 @@ onMounted(async () => {
 
       <div class="flex gap-2 border-b border-outline-variant/20" role="tablist">
         <button
-          v-for="tab in (['assignments', 'enrollments'] as Tab[])"
+          v-for="tab in (['assignments', 'enrollments', 'requests'] as Tab[])"
           :key="tab"
           role="tab"
           :aria-selected="activeTab === tab"
@@ -213,7 +242,11 @@ onMounted(async () => {
           :class="activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'"
           @click="activeTab = tab"
         >
-          {{ tab === 'assignments' ? 'Teacher roster' : 'Enrollments' }}
+          {{ tab === 'assignments' ? 'Teacher roster' : tab === 'enrollments' ? 'Enrollments' : 'Requests' }}
+          <span
+            v-if="tab === 'requests' && rosterStore.pendingEnrollments.length"
+            class="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-xs text-on-primary"
+          >{{ rosterStore.pendingEnrollments.length }}</span>
         </button>
       </div>
 
@@ -262,6 +295,55 @@ onMounted(async () => {
       </div>
 
       <!-- Enrollments -->
+      <!-- Pending student requests -->
+      <div v-else-if="activeTab === 'requests'">
+        <div v-if="!rosterStore.pendingEnrollments.length" class="empty-state">
+          <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">inbox</span>
+          <p class="section-title">No pending requests</p>
+          <p class="section-caption">Student enrollment requests will appear here for approval.</p>
+        </div>
+        <div v-else class="overflow-x-auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Student</th>
+                <th scope="col">Teacher</th>
+                <th scope="col">Requested</th>
+                <th scope="col" class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="req in rosterStore.pendingEnrollments" :key="req.id">
+                <td class="cell-strong">{{ userName(req.studentId) }}</td>
+                <td>{{ userName(req.teacherId) }}</td>
+                <td class="cell-muted">{{ new Date(req.createdAt).toLocaleDateString() }}</td>
+                <td class="text-right">
+                  <!-- Hours are set at approval because they follow payment;
+                       the request itself carries none. -->
+                  <div v-if="approvingId === req.id" class="flex items-center justify-end gap-2">
+                    <input
+                      v-model.number="approveHours"
+                      type="number"
+                      min="1"
+                      class="input w-24 py-1.5 text-sm"
+                      aria-label="Hours to grant"
+                    />
+                    <button class="btn-primary btn-sm" :disabled="isSubmitting || approveHours < 1" @click="approveRequest(req)">
+                      Grant
+                    </button>
+                    <button class="btn-ghost btn-sm" @click="approvingId = null">Cancel</button>
+                  </div>
+                  <div v-else class="flex items-center justify-end gap-2">
+                    <button class="btn-primary btn-sm" @click="approvingId = req.id; approveHours = 8">Approve</button>
+                    <button class="btn-subtle btn-sm" @click="rejectRequest(req)">Reject</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div v-else>
         <div v-if="rosterStore.isLoading && !enrollmentRows.length" class="space-y-3">
           <div v-for="i in 4" :key="i" class="skeleton-row" />

@@ -26,7 +26,9 @@ const rejectModal = ref({ open: false, sessionId: 0, notes: '' })
 const counterModal = ref({ open: false, sessionId: 0, startTime: '', endTime: '', notes: '' })
 
 const myId = computed(() => authStore.currentUser?.id ?? 0)
-const students = computed(() => usersStore.getUsersByRole('student'))
+// Only students enrolled with this teacher. The role-wide list shows the whole
+// school, and proposing for a student with no enrollment is rejected server-side.
+const students = computed(() => usersStore.myStudents)
 const allUsers = computed(() => usersStore.users)
 
 const mySessions = computed(() =>
@@ -46,6 +48,7 @@ const upcomingSessions = computed(() => {
 })
 
 onMounted(async () => {
+  usersStore.fetchMyStudents()
   const tasks: Promise<any>[] = [
     usersStore.fetchUsersByRole('student'),
     usersStore.fetchUsersByRole('teacher'),

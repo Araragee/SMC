@@ -123,6 +123,8 @@ export interface Enrollment {
   sessionsPurchased: number;
   sessionsUsed: number;
   sessionsLeft: number;
+  /** pending → awaiting admin decision; active → bookable; rejected → declined. */
+  status?: 'pending' | 'active' | 'rejected';
   isActive?: boolean;
   createdAt: string;
 }

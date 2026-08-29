@@ -23,6 +23,7 @@ const mapEnrollment = (e: any): Enrollment => ({
   sessionsPurchased: e.sessions_purchased,
   sessionsUsed: e.sessions_used,
   sessionsLeft: e.sessions_left,
+  status: e.status ?? 'active',
   isActive: e.is_active,
   createdAt: e.created_at,
 })
@@ -55,6 +56,8 @@ export const useRosterStore = defineStore('roster', {
       state.assignments.filter((a) => a.teacherId === teacherId),
     enrollmentsByStudent: (state) => (studentId: number) =>
       state.enrollments.filter((e) => e.studentId === studentId),
+    /** Student-initiated requests awaiting an admin decision. */
+    pendingEnrollments: (state) => state.enrollments.filter((e) => e.status === 'pending'),
     /** Student ids already on a given teacher's roster — drives the "already added" state in the picker. */
     assignedStudentIds: (state) => (teacherId: number) =>
       new Set(state.assignments.filter((a) => a.teacherId === teacherId).map((a) => a.studentId)),
@@ -160,6 +163,31 @@ export const useRosterStore = defineStore('roster', {
       if (patch.isActive !== undefined) body.is_active = patch.isActive
 
       const { data } = await axios.put(`${API_URL}/enrollments/${id}`, body, { headers: authHeaders() })
+      const updated = mapEnrollment(data)
+      const index = this.enrollments.findIndex((e) => e.id === id)
+      if (index !== -1) this.enrollments[index] = updated
+      return updated
+    },
+
+    /** Approve a student's request and grant the hours they paid for. */
+    async approveEnrollment(id: number, sessionsPurchased: number) {
+      const { data } = await axios.post(
+        `${API_URL}/enrollments/${id}/approve`,
+        { sessions_purchased: sessionsPurchased },
+        { headers: authHeaders() },
+      )
+      const updated = mapEnrollment(data)
+      const index = this.enrollments.findIndex((e) => e.id === id)
+      if (index !== -1) this.enrollments[index] = updated
+      return updated
+    },
+
+    async rejectEnrollment(id: number) {
+      const { data } = await axios.post(
+        `${API_URL}/enrollments/${id}/reject`,
+        {},
+        { headers: authHeaders() },
+      )
       const updated = mapEnrollment(data)
       const index = this.enrollments.findIndex((e) => e.id === id)
       if (index !== -1) this.enrollments[index] = updated

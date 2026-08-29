@@ -42,11 +42,29 @@ onMounted(async () => {
       scheduleStore.fetchUserSessions(authStore.currentUser.id),
       usersStore.fetchUsersByRole('teacher'),
       interactionsStore.fetchStudentEnrollments(authStore.currentUser.id),
+      interactionsStore.fetchMyTeachers(),
     ])
   }
 })
 
 const myId = computed(() => authStore.currentUser?.id ?? 0)
+
+const enrollRequestTeacherId = ref<number | null>(null)
+
+const teacherName = (teacherId: number) =>
+  usersStore.getUsersByRole('teacher').find((t: any) => t.id === teacherId)?.name
+    ?? interactionsStore.myTeachers.find(t => t.id === teacherId)?.name
+    ?? `Teacher #${teacherId}`
+
+const submitEnrollmentRequest = async function() {
+  if (!enrollRequestTeacherId.value) return
+  try {
+    await interactionsStore.requestEnrollment(enrollRequestTeacherId.value)
+    enrollRequestTeacherId.value = null
+  } catch {
+    // requestEnrollment already surfaced the reason.
+  }
+}
 
 const mySessions = computed(() =>
   scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
@@ -86,7 +104,17 @@ const sessionProgress = computed(() => {
   return Math.min((used / totalSessions) * 100, 100)
 })
 
-const allTeachers = computed(() => usersStore.getUsersByRole('teacher'))
+// Only teachers this student has an approved enrollment with. The full
+// teacher list would offer people the booking guard rejects with a 403.
+const myTeachers = computed(() => interactionsStore.myTeachers)
+
+/** Teachers with no enrollment yet — the ones a student can request. */
+const requestableTeachers = computed(() => {
+  const linked = new Set(interactionsStore.enrollments
+    .filter(e => e.status === 'active' || e.status === 'pending')
+    .map(e => e.teacherId))
+  return usersStore.getUsersByRole('teacher').filter((t: any) => !linked.has(t.id))
+})
 
 const formatTime = (dt: string | undefined) => {
   if (!dt) return '—'
@@ -622,6 +650,56 @@ const stopCountering = () => {
           ></div>
         </section>
 
+        <!-- My Teachers: per-teacher credit balances and enrollment requests.
+             Credits are held per enrollment, so a single total would hide that
+             hours with one teacher cannot be spent with another. -->
+        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+          <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-6">My Teachers</h3>
+
+          <div v-if="interactionsStore.activeEnrollments.length" class="space-y-2 mb-4">
+            <div
+              v-for="e in interactionsStore.activeEnrollments"
+              :key="e.id"
+              class="flex items-center justify-between rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 p-3"
+            >
+              <span class="text-sm font-semibold text-on-surface">{{ teacherName(e.teacherId) }}</span>
+              <span class="text-xs font-bold" :class="e.sessionsLeft > 0 ? 'text-primary' : 'text-error'">
+                {{ e.sessionsLeft }} {{ e.sessionsLeft === 1 ? 'hour' : 'hours' }} left
+              </span>
+            </div>
+          </div>
+          <p v-else class="mb-4 text-sm text-on-surface-variant">
+            No approved enrollments yet.
+          </p>
+
+          <div v-if="interactionsStore.pendingRequests.length" class="mb-4 space-y-2">
+            <div
+              v-for="e in interactionsStore.pendingRequests"
+              :key="e.id"
+              class="flex items-center justify-between rounded-2xl bg-warning-container p-3 text-on-warning-container"
+            >
+              <span class="text-sm font-semibold">{{ teacherName(e.teacherId) }}</span>
+              <span class="text-xs font-bold uppercase">Awaiting approval</span>
+            </div>
+          </div>
+
+          <div v-if="requestableTeachers.length" class="space-y-2">
+            <BaseDropdown
+              v-model="enrollRequestTeacherId"
+              label="Request a teacher"
+              placeholder="Select a teacher..."
+              :options="requestableTeachers.map(t => ({ value: t.id, label: t.name }))"
+            />
+            <button
+              class="btn-primary w-full"
+              :disabled="!enrollRequestTeacherId || interactionsStore.isLoading"
+              @click="submitEnrollmentRequest"
+            >
+              Request enrollment
+            </button>
+          </div>
+        </section>
+
         <!-- Notice Board -->
         <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
           <div class="flex items-center justify-between mb-8">
@@ -1045,7 +1123,13 @@ const stopCountering = () => {
                 for="req-teacher"
                 >Preferred Teacher</label
               >
-              <BaseDropdown v-model="requestForm.teacherId" :options="[{ value: null, label: 'Select a teacher...' }, ...allTeachers.map(t => ({ value: t.id, label: t.name }))]" />
+              <BaseDropdown
+                v-model="requestForm.teacherId"
+                :options="[{ value: null, label: 'Select a teacher...' }, ...myTeachers.map(t => ({ value: t.id, label: t.name }))]"
+              />
+              <p v-if="!myTeachers.length" class="mt-2 text-xs text-on-surface-variant">
+                You are not enrolled with any teacher yet. Request enrollment below to start booking.
+              </p>
             </div>
             <div>
               <label

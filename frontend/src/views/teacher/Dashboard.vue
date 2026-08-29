@@ -25,6 +25,7 @@ const stagedProofFile = ref<File | null>(null)
 const stagedProofUrl = ref<string | null>(null)
 
 onMounted(async () => {
+  usersStore.fetchMyStudents()
   if (authStore.currentUser?.id) {
     await Promise.all([
       scheduleStore.fetchUserSessions(authStore.currentUser.id),
@@ -218,7 +219,9 @@ const pendingProposals = computed(
   () => mySessions.value.filter((s: any) => s.status === 'pending_teacher').length
 )
 
-const students = computed(() => usersStore.getUsersByRole('student'))
+// Only students enrolled with this teacher. The role-wide list shows the whole
+// school, and proposing for a student with no enrollment is rejected server-side.
+const students = computed(() => usersStore.myStudents)
 
 const openProposeForDate = function(date: Date) {
   proposeForDate.value = date

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useUsersStore } from '@stores/users';
+import { useRosterStore } from '@stores/roster';
 import BaseCard from '@components/BaseCard.vue';
 import BaseButton from '@components/BaseButton.vue';
 import BaseInput from '@components/BaseInput.vue';
+import BaseDropdown from '@components/BaseDropdown.vue';
 import type { User, Role, InstrumentRecord } from '@types';
 
 const props = defineProps<{
@@ -17,6 +19,7 @@ const emit = defineEmits<{
 }>();
 
 const usersStore = useUsersStore();
+const rosterStore = useRosterStore();
 
 const step = ref<1 | 2>(1);
 const selectedRole = ref<Role>('student');
@@ -42,6 +45,14 @@ const showPassword = ref(false);
 const enrollmentCustom = ref(false);
 
 const sessionOptions = [4, 8, 12, 16];
+
+// A student's hours live on an enrollment with a specific teacher, so creating
+// the user alone leaves them unable to book anything. Picking a teacher here
+// creates that enrollment in the same step.
+const enrollTeacherId = ref<number | null>(null);
+const teacherOptions = computed(() =>
+  usersStore.getUsersByRole('teacher').map((t) => ({ value: t.id, label: t.name })),
+);
 
 onMounted(async () => {
   if (usersStore.instruments.length === 0) {
@@ -123,6 +134,15 @@ const handleSubmit = async () => {
   try {
     const pwd = selectedRole.value === 'student' && !password.value ? generatedPassword.value : password.value;
     const created = await usersStore.createUser(formData.value, pwd);
+
+    if (selectedRole.value === 'student' && enrollTeacherId.value && created?.id) {
+      await rosterStore.createEnrollment({
+        studentId: created.id,
+        teacherId: enrollTeacherId.value,
+        sessionsPurchased: Number(formData.value.sessionsEnrolled) || 0,
+      });
+    }
+
     emit('created', created);
     emit('close');
   } catch (err) {
@@ -282,7 +302,20 @@ const handleBackOrClose = () => {
             </h3>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-on-surface/70 mb-2">Sessions Enrolled</label>
+                <BaseDropdown
+                  v-model="enrollTeacherId"
+                  label="Assign to teacher"
+                  placeholder="Select a teacher..."
+                  :options="teacherOptions"
+                />
+                <p class="mt-1 text-xs text-on-surface-variant">
+                  Creates the enrollment that lets this student book. Leave empty to add the
+                  student without one.
+                </p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-on-surface/70 mb-2">Lessons (hours)</label>
                 <div class="flex flex-wrap gap-2">
                   <button v-for="opt in sessionOptions" :key="opt" type="button"
                     @click="setSessionOption(opt)"
