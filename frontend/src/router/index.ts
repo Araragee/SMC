@@ -22,6 +22,8 @@ const AdminStudentRecords = () => import('@views/admin/StudentRecords.vue')
 const AdminStudents = () => import('@views/admin/Students.vue')
 const AdminRoster = () => import('@views/admin/Roster.vue')
 const AdminTeachers = () => import('@views/admin/Teachers.vue')
+import { SHOP_ENABLED } from '@typescript/constants'
+
 const AdminInstruments = () => import('@views/admin/Instruments.vue')
 const AdminPayments = () => import('@views/admin/Payments.vue')
 const AdminActivityLog = () => import('@views/admin/ActivityLog.vue')
@@ -104,7 +106,12 @@ const router = createRouter({
         { path: 'students', name: 'admin-students', component: AdminStudents },
         { path: 'roster', name: 'admin-roster', component: AdminRoster },
         { path: 'teachers', name: 'admin-teachers', component: AdminTeachers },
-        { path: 'instruments', name: 'admin-instruments', component: AdminInstruments },
+        {
+          path: 'instruments',
+          name: 'admin-instruments',
+          component: AdminInstruments,
+          meta: { shop: true },
+        },
         { path: 'payments', name: 'admin-payments', component: AdminPayments },
         { path: 'activity-log', name: 'admin-activity-log', component: AdminActivityLog },
         {
@@ -126,7 +133,7 @@ const router = createRouter({
         { path: 'students', name: 'teacher-students', component: TeacherStudents },
         { path: 'instruments', name: 'teacher-instruments', component: TeacherInstruments },
         { path: 'payments', name: 'teacher-payments', component: TeacherPayments },
-        { path: 'shop', name: 'teacher-shop', component: TeacherShop },
+        { path: 'shop', name: 'teacher-shop', component: TeacherShop, meta: { shop: true } },
         { path: ':module', component: NotFoundView },
       ],
     },
@@ -140,7 +147,7 @@ const router = createRouter({
         { path: 'schedule', name: 'student-schedule', component: StudentSchedule },
         { path: 'homework', name: 'student-homework', component: StudentHomework },
         { path: 'payments', name: 'student-payments', component: StudentPayments },
-        { path: 'shop', name: 'student-shop', component: StudentShop },
+        { path: 'shop', name: 'student-shop', component: StudentShop, meta: { shop: true } },
         { path: ':module', component: NotFoundView },
       ],
     },
@@ -176,6 +183,12 @@ router.beforeEach(async (to, _from, next) => {
     to.path !== '/reset-password'
   ) {
     return next('/change-password')
+  }
+
+  // The store is closed (SHOP_ENABLED). Hiding the nav entry does not stop
+  // anyone typing the URL, so turn the routes away too.
+  if (!SHOP_ENABLED && to.meta.shop) {
+    return next(auth.userRole ? `/${auth.userRole}` : '/login')
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {

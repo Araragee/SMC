@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@stores/auth'
+import { SHOP_ENABLED } from '@typescript/constants'
 import { useNotificationStore } from '@stores/notification'
 import { useMessagingStore } from '@stores/messaging'
 import { useModalStore } from '@stores/modal'
@@ -52,7 +53,7 @@ const navItems = computed(() => {
       { label: 'Roster', icon: 'checklist', path: '/admin/roster' },
       { label: 'Teachers', icon: 'person', path: '/admin/teachers' },
       { label: 'Ledger', icon: 'payments', path: '/admin/payments' },
-      { label: 'Shop', icon: 'storefront', path: '/admin/instruments' },
+      ...(SHOP_ENABLED ? [{ label: 'Shop', icon: 'storefront', path: '/admin/instruments' }] : []),
       { label: 'Activity', icon: 'history', path: '/admin/activity-log' }
     )
   } else if (role === 'teacher') {
@@ -60,13 +61,13 @@ const navItems = computed(() => {
       { label: 'Students', icon: 'group', path: '/teacher/students' },
       { label: 'Instruments', icon: 'piano', path: '/teacher/instruments' },
       { label: 'Payments', icon: 'payments', path: '/teacher/payments' },
-      { label: 'Shop', icon: 'storefront', path: '/teacher/shop' }
+      ...(SHOP_ENABLED ? [{ label: 'Shop', icon: 'storefront', path: '/teacher/shop' }] : [])
     )
   } else if (role === 'student') {
     items.push(
       { label: 'Homework', icon: 'menu_book', path: '/student/homework' },
       { label: 'Payments', icon: 'payments', path: '/student/payments' },
-      { label: 'Shop', icon: 'storefront', path: '/student/shop' }
+      ...(SHOP_ENABLED ? [{ label: 'Shop', icon: 'storefront', path: '/student/shop' }] : [])
     )
   }
 

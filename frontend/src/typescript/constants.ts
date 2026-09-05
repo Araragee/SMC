@@ -12,3 +12,8 @@ export const API_URL =
   (import.meta.env.DEV ? 'http://localhost:8000' : window.location.origin)
 export const NUDGE_COOLDOWN_MS = 60 * 60 * 1000 // 1 hour
 export const PAGE_SIZE = 5
+
+// The instrument store is built but not open for business yet. Flipping this
+// to true restores the Shop nav entries, the shop routes and the teacher's
+// order history — nothing was deleted.
+export const SHOP_ENABLED = false

@@ -5,7 +5,7 @@ import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
 import { useShopStore } from '@stores/shop'
 import OrderStatusBadge from '@components/shop/OrderStatusBadge.vue'
-import { API_URL } from '@typescript/constants'
+import { API_URL, SHOP_ENABLED } from '@typescript/constants'
 import type { InstrumentRecord } from '@types'
 
 const usersStore = useUsersStore()
@@ -20,7 +20,7 @@ const activeTab = ref<'my-instruments' | 'order-history'>('my-instruments')
 onMounted(async () => {
   await Promise.all([
     usersStore.fetchInstruments(),
-    shopStore.fetchMyOrders(),
+    SHOP_ENABLED ? shopStore.fetchMyOrders() : Promise.resolve(),
     // Refresh current user to get latest instruments
     authStore.currentUser?.id ? usersStore.fetchUsersByRole('teacher') : Promise.resolve(),
   ])
@@ -120,7 +120,10 @@ async function removeInstrument(instrumentId: string | number) {
     </header>
 
     <!-- Tabs -->
-    <div class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-on-surface/5 pb-4">
+    <div
+      v-if="SHOP_ENABLED"
+      class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-on-surface/5 pb-4"
+    >
       <button
         @click="activeTab = 'my-instruments'"
         class="px-6 py-2 rounded-xl text-sm font-semibold uppercase transition-all"
@@ -133,6 +136,7 @@ async function removeInstrument(instrumentId: string | number) {
         My Certified Instruments
       </button>
       <button
+        v-if="SHOP_ENABLED"
         @click="activeTab = 'order-history'"
         class="px-6 py-2 rounded-xl text-sm font-semibold uppercase transition-all"
         :class="
