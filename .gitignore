@@ -22,3 +22,6 @@ TEST_USERS.md
 # source: the app creates these directories on boot and production keeps them
 # in a mounted volume.
 uploads/
+
+# Production account credentials — never commit
+PROD_ACCOUNTS.md
