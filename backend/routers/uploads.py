@@ -128,14 +128,20 @@ def _serve(subdir: str, filename: str):
     if not _SAFE_FILENAME.match(filename):
         raise HTTPException(status_code=400, detail="Invalid filename")
 
+    # An upload never changes under its own filename, and the signed URL that
+    # reaches it expires in an hour anyway — so let the browser hold it for
+    # exactly that long, privately. Without this every render of a proof or
+    # homework thumbnail is a fresh round trip.
+    cache = {"Cache-Control": "private, max-age=3600"}
+
     if not storage.is_remote():
-        return FileResponse(_safe_path(subdir, filename))
+        return FileResponse(_safe_path(subdir, filename), headers=cache)
 
     found = storage.get(subdir, filename)
     if found is None:
         raise HTTPException(status_code=404, detail="File not found")
     data, content_type = found
-    return Response(content=data, media_type=content_type)
+    return Response(content=data, media_type=content_type, headers=cache)
 
 
 @router.get("/proofs/{filename}")

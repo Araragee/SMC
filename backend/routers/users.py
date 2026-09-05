@@ -14,9 +14,13 @@ from ..dependencies import (
     get_current_active_user,
     is_admin,
     pwd_context,
+    related_user_ids,
     require_admin,
+    require_can_view_user,
     require_self_or_admin,
 )
+from ..utils.passwords import enforce_password_strength
+from .auth import revoke_all_user_refresh_tokens
 from ..services.notifier import safe_notify
 from .activity import log_activity
 
@@ -41,6 +45,33 @@ if settings.DEBUG:
     ):
         users = db.query(models.User).all()
         return [{"email": u.email, "role": u.role.name if u.role else None} for u in users]
+
+# Fields that identify or locate a person. Readable by an admin, by the user
+# themselves, and by a teacher/student who actually share an enrollment or a
+# session — everyone else gets them nulled. Without this, any authenticated
+# account could walk /users/{id} and collect every family's contact details.
+CONTACT_FIELDS = (
+    "email",
+    "contact_number",
+    "home_address",
+    "birthday",
+    "age",
+    "school",
+    "parent_name",
+    "parent_contact",
+    "sessions_enrolled",
+    "sessions_left",
+)
+
+
+def _serialize_user(user: models.User, visible_ids: set[int] | None) -> dict:
+    """``visible_ids`` of None means the caller may see everything (admin)."""
+    data = schemas.User.model_validate(user).model_dump()
+    if visible_ids is not None and user.id not in visible_ids:
+        for field in CONTACT_FIELDS:
+            data[field] = None
+    return data
+
 
 @router.post("/login")
 @limiter.limit("10/minute")
@@ -195,9 +226,24 @@ def update_user(request: Request, user_id: int, user: schemas.UserUpdate, db: Se
 
     if "password" in update_data:
         pwd = update_data.pop("password")
+        # A password set through here proves nothing about who is holding the
+        # access token: /auth/change-password exists precisely because it
+        # re-checks the current password and revokes every refresh token.
+        # Allowing it here let a 15-minute stolen token become permanent
+        # account takeover, silently, with the victim still signed in.
+        if not is_admin(current_user):
+            raise HTTPException(
+                status_code=400,
+                detail="Use /auth/change-password to change your own password",
+            )
         if len(pwd.encode()) > 72:
             raise HTTPException(status_code=400, detail="Password too long (max 72 bytes)")
+        enforce_password_strength(pwd)
         update_data["hashed_password"] = pwd_context.hash(pwd[:72])
+        # An admin reset is a credential handover: force a rotation on first
+        # use and sign the account out everywhere it is currently active.
+        update_data["must_change_password"] = True
+        revoke_all_user_refresh_tokens(db, user_id)
 
     instrument_ids = update_data.pop("instrument_ids", None)
 
@@ -275,7 +321,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: model
                  target_type="user", target_id=user_id)
     return {"message": "User deleted successfully"}
 
-@router.get("/users/role/{role_name}", response_model=list[schemas.User])
+@router.get("/users/role/{role_name}")
 def read_users_by_role(
     role_name: str,
     skip: int = Query(default=0, ge=0),
@@ -284,13 +330,18 @@ def read_users_by_role(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user),
 ):
+    """Directory listing. Everyone may see who exists — names drive the teacher
+    and student pickers — but contact details are redacted for anyone the
+    caller has no relationship with (see ``_serialize_user``)."""
     role = db.query(models.Role).filter(models.Role.name == role_name).first()
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     q = db.query(models.User).filter(models.User.role_id == role.id)
     if not include_inactive:
         q = q.filter(models.User.is_active.is_(True))
-    return q.offset(skip).limit(limit).all()
+    users = q.offset(skip).limit(limit).all()
+    visible = None if is_admin(current_user) else related_user_ids(db, current_user)
+    return [_serialize_user(u, visible) for u in users]
 
 @router.get("/users/", response_model=list[schemas.User])
 def read_users(
@@ -305,12 +356,13 @@ def read_users(
         q = q.filter(models.User.is_active.is_(True))
     return q.offset(skip).limit(limit).all()
 
-@router.get("/users/{user_id}", response_model=schemas.User)
+@router.get("/users/{user_id}")
 def read_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    require_can_view_user(db, current_user, user_id)
+    return _serialize_user(db_user, None if is_admin(current_user) else {current_user.id, user_id})
 
 @router.get("/instruments/", response_model=list[schemas.Instrument])
 def get_instruments(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):

@@ -115,3 +115,32 @@ def require_can_view_user(db: Session, current_user: models.User, user_id: int) 
 
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
+
+
+def related_user_ids(db: Session, current_user: models.User) -> set[int]:
+    """Every user id ``current_user`` has a real relationship with.
+
+    Same rule as ``require_can_view_user`` — enrollment or a shared session —
+    but resolved in two queries instead of two per row, so a list endpoint can
+    redact hundreds of records without an N+1.
+    """
+    ids: set[int] = {current_user.id}
+
+    for teacher_id, student_id in db.query(
+        models.Enrollment.teacher_id, models.Enrollment.student_id
+    ).filter(
+        (models.Enrollment.teacher_id == current_user.id)
+        | (models.Enrollment.student_id == current_user.id)
+    ):
+        ids.update((teacher_id, student_id))
+
+    for teacher_id, student_id in db.query(
+        models.Session.teacher_id, models.Session.student_id
+    ).filter(
+        (models.Session.teacher_id == current_user.id)
+        | (models.Session.student_id == current_user.id)
+    ):
+        ids.update((teacher_id, student_id))
+
+    ids.discard(None)
+    return ids
