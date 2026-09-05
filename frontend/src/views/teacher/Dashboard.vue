@@ -64,34 +64,35 @@ const nextSession = computed(() => {
   return (
     mySessions.value
       .filter((s: any) => s.status === 'scheduled' && s.startTime && new Date(s.startTime) > now)
-      .sort((a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
-    null
+      .sort(
+        (a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime()
+      )[0] ?? null
   )
 })
 
-const getStudentName = function(studentId: number) {
+const getStudentName = function (studentId: number) {
   return usersStore.users.find((u: any) => u.id === studentId)?.name || `Student #${studentId}`
 }
 
-const openSessionModal = function(session: Session) {
+const openSessionModal = function (session: Session) {
   expandedSession.value = session
   practiceGoalsText.value = session.notes || ''
   stagedProofFile.value = null
   stagedProofUrl.value = null
 }
 
-const closeSessionModal = function() {
+const closeSessionModal = function () {
   expandedSession.value = null
 }
 
-const handleStagedProofUpload = function(event: Event) {
+const handleStagedProofUpload = function (event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   stagedProofFile.value = input.files[0]
   stagedProofUrl.value = window.URL.createObjectURL(stagedProofFile.value)
 }
 
-const saveSessionChanges = async function() {
+const saveSessionChanges = async function () {
   if (!expandedSession.value) return
 
   try {
@@ -101,21 +102,21 @@ const saveSessionChanges = async function() {
 
     // Call editSession to persist notes (practice goals) to the backend
     await scheduleStore.editSession(expandedSession.value.id, {
-      notes: practiceGoalsText.value
+      notes: practiceGoalsText.value,
     })
 
     toast.success('Session updated', 'Changes have been saved successfully.')
     closeSessionModal()
     // Refresh sessions to reflect changes
     if (authStore.currentUser?.id) {
-       await scheduleStore.fetchUserSessions(authStore.currentUser.id)
+      await scheduleStore.fetchUserSessions(authStore.currentUser.id)
     }
   } catch (err: any) {
     toast.error('Update Failed', err.message || 'Could not save changes.')
   }
 }
 
-const handleApprove = async function(sessionId: number) {
+const handleApprove = async function (sessionId: number) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Approved!', 'The session is now awaiting admin confirmation.')
@@ -126,7 +127,7 @@ const handleApprove = async function(sessionId: number) {
   }
 }
 
-const handleReject = async function(sessionId: number, notes?: string) {
+const handleReject = async function (sessionId: number, notes?: string) {
   try {
     await scheduleStore.rejectAsTeacher(sessionId, notes)
     toast.success('Declined', 'The student has been notified.')
@@ -140,28 +141,28 @@ const handleReject = async function(sessionId: number, notes?: string) {
 const showCounterModal = ref(false)
 const counterForm = ref({ startTime: '', endTime: '', notes: '' })
 
-const openCounter = function() {
+const openCounter = function () {
   if (!expandedSession.value) return
   counterForm.value = {
     startTime: expandedSession.value.startTime.slice(0, 16),
     endTime: expandedSession.value.endTime?.slice(0, 16) || '',
-    notes: 'Suggesting a different time.'
+    notes: 'Suggesting a different time.',
   }
   showCounterModal.value = true
 }
 
-const submitCounter = async function() {
+const submitCounter = async function () {
   if (!expandedSession.value) return
   try {
     const start = new Date(counterForm.value.startTime).toISOString()
-    const end = counterForm.value.endTime 
-        ? new Date(counterForm.value.endTime).toISOString()
-        : new Date(new Date(start).getTime() + 60*60*1000).toISOString()
-        
+    const end = counterForm.value.endTime
+      ? new Date(counterForm.value.endTime).toISOString()
+      : new Date(new Date(start).getTime() + 60 * 60 * 1000).toISOString()
+
     await scheduleStore.counterAsTeacher(expandedSession.value.id, {
       startTime: start,
       endTime: end,
-      notes: counterForm.value.notes
+      notes: counterForm.value.notes,
     })
     toast.success('Counter sent!', 'Awaiting student review.')
     showCounterModal.value = false
@@ -223,12 +224,12 @@ const pendingProposals = computed(
 // school, and proposing for a student with no enrollment is rejected server-side.
 const students = computed(() => usersStore.myStudents)
 
-const openProposeForDate = function(date: Date) {
+const openProposeForDate = function (date: Date) {
   proposeForDate.value = date
   showProposeModal.value = true
 }
 
-const openRosterSession = function(studentId: number) {
+const openRosterSession = function (studentId: number) {
   const sessions = mySessions.value.filter((s: any) => s.studentId === studentId)
   if (sessions.length === 0) return
   const now = new Date()
@@ -237,11 +238,13 @@ const openRosterSession = function(studentId: number) {
     .sort((a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())
   const target =
     upcoming[0] ??
-    [...sessions].sort((a: any, b: any) => new Date(b.startTime!).getTime() - new Date(a.startTime!).getTime())[0]
+    [...sessions].sort(
+      (a: any, b: any) => new Date(b.startTime!).getTime() - new Date(a.startTime!).getTime()
+    )[0]
   openSessionModal(target)
 }
 
-const onTeacherProposeSubmit = async function(session: Session) {
+const onTeacherProposeSubmit = async function (session: Session) {
   try {
     await scheduleStore.proposeSessionAsTeacher({
       teacherId: session.teacherId,
@@ -274,14 +277,14 @@ const formatTime = (dt: string | undefined) => {
   <div class="w-full mx-auto pb-10">
     <!-- Hero Header -->
     <section class="mb-8">
-      <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-3">
+      <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-3">
         Welcome back, <span class="text-primary">Maestro.</span>
       </h1>
-      <p class="text-on-surface-variant dark:text-on-surface-variant text-lg font-medium mb-6">
+      <p class="text-on-surface-variant text-lg font-medium mb-6">
         You have
-        <span class="text-on-surface dark:text-on-surface font-bold">{{ todaySessions.length || 0 }} sessions</span>
+        <span class="text-on-surface font-bold">{{ todaySessions.length || 0 }} sessions</span>
         today. Performance index is at
-        <span class="text-emerald-400 font-bold">98%</span>.
+        <span class="text-success font-bold">98%</span>.
       </p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -296,18 +299,16 @@ const formatTime = (dt: string | undefined) => {
           <div class="absolute right-3 top-3 size-3 rounded-full bg-primary animate-ping"></div>
           <div class="absolute right-3 top-3 size-3 rounded-full bg-primary"></div>
           <div class="p-4 flex-1 flex flex-col justify-center">
-            <p
-              class="text-xs font-semibold text-primary uppercase mb-1 flex items-center gap-2"
-            >
+            <p class="text-xs font-semibold text-primary uppercase mb-1 flex items-center gap-2">
               LIVE NOW
             </p>
-            <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-1 truncate">
+            <h3 class="text-xl font-semibold text-on-surface mb-1 truncate">
               Session #{{ currentSession.id }}
             </h3>
-            <p class="text-sm text-on-surface-variant dark:text-on-surface-variant truncate">
+            <p class="text-sm text-on-surface-variant truncate">
               {{ getStudentName(currentSession.studentId) }}
             </p>
-            <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-2">
+            <p class="text-xs text-on-surface-variant mt-2">
               {{ formatTime(currentSession.startTime) }} - {{ formatTime(currentSession.endTime) }}
             </p>
           </div>
@@ -316,8 +317,10 @@ const formatTime = (dt: string | undefined) => {
           v-else
           class="liquid-glass border border-on-surface/[0.04] dark:border-on-surface/5 rounded-3xl p-4 flex flex-col justify-center items-center text-center opacity-70"
         >
-          <span class="material-symbols-outlined text-3xl text-on-surface-variant dark:text-on-surface-variant mb-2">hotel_class</span>
-          <p class="text-sm font-bold text-on-surface-variant dark:text-on-surface-variant uppercase">No Active Session</p>
+          <span class="material-symbols-outlined text-3xl text-on-surface-variant mb-2"
+            >hotel_class</span
+          >
+          <p class="text-sm font-bold text-on-surface-variant uppercase">No Active Session</p>
         </div>
 
         <!-- Next Up Session Card -->
@@ -327,12 +330,16 @@ const formatTime = (dt: string | undefined) => {
           @click="openSessionModal(nextSession)"
         >
           <p
-            class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1 group-hover:text-on-surface-variant transition-colors"
+            class="text-xs font-semibold text-on-surface-variant uppercase mb-1 group-hover:text-on-surface-variant transition-colors"
           >
             Next Up
           </p>
-          <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-1 truncate">Session #{{ nextSession.id }}</h3>
-          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant truncate">{{ getStudentName(nextSession.studentId) }}</p>
+          <h3 class="text-xl font-semibold text-on-surface mb-1 truncate">
+            Session #{{ nextSession.id }}
+          </h3>
+          <p class="text-sm text-on-surface-variant truncate">
+            {{ getStudentName(nextSession.studentId) }}
+          </p>
           <p class="text-xs text-primary mt-2 font-bold">
             {{ formatTime(nextSession.startTime) }}
           </p>
@@ -341,8 +348,10 @@ const formatTime = (dt: string | undefined) => {
           v-else
           class="liquid-glass border border-on-surface/[0.04] dark:border-on-surface/5 border-l-[6px] border-l-outline-variant dark:border-l-on-surface/10 rounded-3xl p-4 flex flex-col justify-center items-center text-center opacity-70"
         >
-          <span class="material-symbols-outlined text-3xl text-on-surface-variant dark:text-on-surface-variant mb-2">event_available</span>
-          <p class="text-sm font-bold text-on-surface-variant dark:text-on-surface-variant uppercase">Schedule Clear</p>
+          <span class="material-symbols-outlined text-3xl text-on-surface-variant mb-2"
+            >event_available</span
+          >
+          <p class="text-sm font-bold text-on-surface-variant uppercase">Schedule Clear</p>
         </div>
       </div>
     </section>
@@ -352,9 +361,11 @@ const formatTime = (dt: string | undefined) => {
       <!-- Full Column -->
       <div class="col-span-full space-y-4">
         <!-- Student Roster -->
-        <div class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3">
+        <div
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3"
+        >
           <div class="flex justify-between items-center">
-            <h3 class="text-2xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3">
+            <h3 class="text-2xl font-semibold text-on-surface flex items-center gap-3">
               <span
                 class="material-symbols-outlined text-primary text-3xl"
                 style="font-variation-settings: 'FILL' 1"
@@ -372,7 +383,11 @@ const formatTime = (dt: string | undefined) => {
 
           <!-- Loading -->
           <div v-if="usersStore.isLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div v-for="i in 2" :key="i" class="h-28 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse" />
+            <div
+              v-for="i in 2"
+              :key="i"
+              class="h-28 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse"
+            />
           </div>
 
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -386,13 +401,15 @@ const formatTime = (dt: string | undefined) => {
               <div
                 class="size-16 rounded-2xl overflow-hidden shadow-2xl border border-on-surface/[0.08] dark:border-on-surface/10 group-hover:scale-105 transition-transform bg-surface-container-highest flex items-center justify-center shrink-0"
               >
-                <span class="text-2xl font-semibold text-on-surface dark:text-on-surface">{{
+                <span class="text-2xl font-semibold text-on-surface">{{
                   entry.name.charAt(0).toUpperCase()
                 }}</span>
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-on-surface dark:text-on-surface text-lg truncate">{{ entry.name }}</h4>
-                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant font-medium mb-2 uppercase tracking-tighter">
+                <h4 class="font-bold text-on-surface text-lg truncate">{{ entry.name }}</h4>
+                <p
+                  class="text-xs text-on-surface-variant font-medium mb-2 uppercase tracking-tighter"
+                >
                   {{ formatTime(entry.startTime) }}
                 </p>
                 <div class="flex gap-2 flex-wrap">
@@ -403,7 +420,7 @@ const formatTime = (dt: string | undefined) => {
                 </div>
               </div>
               <span
-                class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary transition-colors"
+                class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors"
                 >chevron_right</span
               >
             </div>
@@ -414,91 +431,128 @@ const formatTime = (dt: string | undefined) => {
             >
               <div class="text-center">
                 <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary text-3xl mb-1 block"
+                  class="material-symbols-outlined text-on-surface-variant group-hover:text-primary text-3xl mb-1 block"
                   >person_add</span
                 >
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase">
-                  Enroll New
-                </p>
+                <p class="text-xs font-semibold text-on-surface-variant uppercase">Enroll New</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Weekly Schedule -->
-        <div class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3">
+        <div
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3"
+        >
           <div class="flex justify-between items-center">
             <div>
-              <h3 class="text-2xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3">
-                <span class="material-symbols-outlined text-primary text-3xl"
+              <h3
+                class="text-xl sm:text-2xl font-semibold text-on-surface flex items-center gap-2 sm:gap-3"
+              >
+                <span class="material-symbols-outlined text-primary text-2xl sm:text-3xl"
                   >calendar_month</span
                 >
                 Weekly Schedule
               </h3>
-              <p v-if="pendingProposals > 0" class="text-amber-400 text-sm font-bold mt-1">
-                {{ pendingProposals }} student proposal{{ pendingProposals !== 1 ? 's' : '' }} await
-                your review
-                <RouterLink to="/teacher/schedule" class="underline ml-1">Review →</RouterLink>
+              <!-- The link used to sit inline and wrapped onto its own orphan
+  line mid-sentence on a phone; give it a line of its own. -->
+              <p v-if="pendingProposals > 0" class="text-warning text-sm font-bold mt-1">
+                {{ pendingProposals }} student proposal{{ pendingProposals !== 1 ? 's' : '' }}
+                {{ pendingProposals === 1 ? 'awaits' : 'await' }} your review
               </p>
+              <RouterLink
+                v-if="pendingProposals > 0"
+                to="/teacher/schedule"
+                class="inline-block mt-1 text-sm font-bold text-warning underline"
+                >Review →</RouterLink
+              >
             </div>
           </div>
 
-          <div class="grid grid-cols-7 gap-3">
-            <div v-for="day in weekDays" :key="day.label" class="space-y-3">
-              <div class="text-center">
-                <p
-                  class="text-xs font-semibold uppercase"
-                  :class="day.isToday ? 'text-primary' : day.isWeekend ? 'text-on-surface-variant' : 'text-on-surface-variant'"
-                >
-                  {{ day.label }}
-                </p>
-                <div
-                  class="size-8 rounded-full flex items-center justify-center text-sm font-semibold mx-auto mt-1"
-                  :class="day.isToday ? 'bg-primary text-on-primary' : 'text-on-surface-variant'"
-                >
-                  {{ day.dateNum }}
+          <div class="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-x-visible sm:px-0">
+            <div class="grid grid-cols-7 gap-2 sm:gap-3 min-w-[34rem] sm:min-w-0">
+              <div v-for="day in weekDays" :key="day.label" class="space-y-2 sm:space-y-3">
+                <div class="text-center">
+                  <p
+                    class="text-xs font-semibold uppercase"
+                    :class="
+                      day.isToday
+                        ? 'text-primary'
+                        : day.isWeekend
+                          ? 'text-on-surface-variant'
+                          : 'text-on-surface-variant'
+                    "
+                  >
+                    {{ day.label }}
+                  </p>
+                  <div
+                    class="size-8 rounded-full flex items-center justify-center text-sm font-semibold mx-auto mt-1"
+                    :class="day.isToday ? 'bg-primary text-on-primary' : 'text-on-surface-variant'"
+                  >
+                    {{ day.dateNum }}
+                  </div>
                 </div>
-              </div>
-              <!-- Has session -->
-              <div
-                v-if="day.session"
-                class="rounded-2xl p-4 border min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
-                :class="day.session.status === 'scheduled' ? 'bg-primary/10 border-primary' : day.session.status === 'pending_admin' ? 'bg-blue-500/10 border-blue-500' : day.session.status === 'pending_teacher' ? 'bg-amber-500/10 border-amber-500' : 'bg-on-surface/5 dark:bg-on-surface/5 border-on-surface/10 dark:border-on-surface/20'"
-                @click="day.session && openSessionModal(day.session)"
-              >
-                <p class="text-xs font-semibold text-primary mb-1">
-                  {{ formatTime(day.session.startTime) }}
-                </p>
-                <p class="text-xs font-bold text-on-surface dark:text-on-surface truncate">
-                  S#{{ day.session.studentId }}
-                </p>
-                <p
-                  class="text-xs font-bold mt-0.5"
-                  :class="day.session.status === 'pending_admin' ? 'text-blue-400' : day.session.status === 'pending_teacher' ? 'text-amber-400' : 'text-on-surface-variant'"
+                <!-- Has session -->
+                <div
+                  v-if="day.session"
+                  class="rounded-2xl p-2 sm:p-4 border min-h-[7rem] sm:min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
+                  :class="
+                    day.session.status === 'scheduled'
+                      ? 'bg-primary/10 border-primary'
+                      : day.session.status === 'pending_admin'
+                        ? 'bg-tertiary/10 border-tertiary'
+                        : day.session.status === 'pending_teacher'
+                          ? 'bg-warning/10 border-warning'
+                          : 'bg-on-surface/5 border-on-surface/10 dark:border-on-surface/20'
+                  "
+                  @click="day.session && openSessionModal(day.session)"
                 >
-                  {{
-                    day.session.status === 'pending_admin'
-                      ? 'Pending Admin'
-                      : day.session.status === 'pending_teacher'
-                        ? 'Pending Review'
-                        : 'Confirmed'
-                  }}
-                </p>
-              </div>
-              <!-- Empty slot -->
-              <div
-                v-else
-                class="h-32 border border-dashed rounded-2xl flex items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                :class="day.isWeekend ? 'border-on-surface/[0.04] dark:border-on-surface/[0.03] bg-on-surface/[0.02] dark:bg-on-surface/[0.01]' : 'border-on-surface/[0.06] dark:border-on-surface/5 bg-on-surface/[0.03] dark:bg-on-surface/20'"
-                @click="openProposeForDate(day.date)"
-              >
-                <span class="material-symbols-outlined text-on-surface-variant text-base">add</span>
+                  <p class="text-xs font-semibold text-primary mb-1">
+                    {{ formatTime(day.session.startTime) }}
+                  </p>
+                  <p class="text-xs font-bold text-on-surface truncate">
+                    S#{{ day.session.studentId }}
+                  </p>
+                  <p
+                    class="text-xs font-bold mt-0.5"
+                    :class="
+                      day.session.status === 'pending_admin'
+                        ? 'text-tertiary'
+                        : day.session.status === 'pending_teacher'
+                          ? 'text-warning'
+                          : 'text-on-surface-variant'
+                    "
+                  >
+                    {{
+                      day.session.status === 'pending_admin'
+                        ? 'Pending Admin'
+                        : day.session.status === 'pending_teacher'
+                          ? 'Pending Review'
+                          : 'Confirmed'
+                    }}
+                  </p>
+                </div>
+                <!-- Empty slot -->
+                <div
+                  v-else
+                  class="h-28 sm:h-32 border border-dashed rounded-2xl flex items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                  :class="
+                    day.isWeekend
+                      ? 'border-on-surface/[0.04] dark:border-on-surface/[0.03] bg-on-surface/[0.02] dark:bg-on-surface/[0.01]'
+                      : 'border-on-surface/[0.06] dark:border-on-surface/5 bg-on-surface/[0.03] dark:bg-on-surface/20'
+                  "
+                  @click="openProposeForDate(day.date)"
+                >
+                  <span class="material-symbols-outlined text-on-surface-variant text-base"
+                    >add</span
+                  >
+                </div>
               </div>
             </div>
           </div>
           <RouterLink
             to="/teacher/schedule"
-            class="block text-center text-xs text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors font-bold"
+            class="block text-center text-xs text-on-surface-variant hover:text-primary transition-colors font-bold"
           >
             View Full Schedule →
           </RouterLink>
@@ -512,13 +566,13 @@ const formatTime = (dt: string | undefined) => {
         class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
       >
         <div
-          class="size-20 rounded-3xl bg-primary text-on-surface flex items-center justify-center text-4xl font-semibold shadow-2xl group-hover:scale-110 transition-transform"
+          class="size-20 rounded-3xl bg-primary text-on-primary flex items-center justify-center text-4xl font-semibold shadow-2xl group-hover:scale-110 transition-transform"
         >
           {{ mySessions.length }}
         </div>
         <div>
-          <h4 class="font-semibold text-xl text-on-surface dark:text-on-surface">Active Roster</h4>
-          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">Enrolled for Summer Term</p>
+          <h4 class="font-semibold text-xl text-on-surface">Active Roster</h4>
+          <p class="text-sm text-on-surface-variant">Enrolled for Summer Term</p>
         </div>
       </div>
       <div
@@ -532,23 +586,23 @@ const formatTime = (dt: string | undefined) => {
           >
         </div>
         <div>
-          <h4 class="font-semibold text-xl text-on-surface dark:text-on-surface">Rating: 4.98</h4>
-          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">Based on 142 reviews</p>
+          <h4 class="font-semibold text-xl text-on-surface">Rating: 4.98</h4>
+          <p class="text-sm text-on-surface-variant">Based on 142 reviews</p>
         </div>
       </div>
       <div
         class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
       >
         <div
-          class="size-20 rounded-3xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
+          class="size-20 rounded-3xl bg-success/20 text-success flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
         >
           <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1"
             >analytics</span
           >
         </div>
         <div>
-          <h4 class="font-semibold text-xl text-on-surface dark:text-on-surface">Growth Hub</h4>
-          <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">+15% Month-over-Month</p>
+          <h4 class="font-semibold text-xl text-on-surface">Growth Hub</h4>
+          <p class="text-sm text-on-surface-variant">+15% Month-over-Month</p>
         </div>
       </div>
     </section>
@@ -587,27 +641,27 @@ const formatTime = (dt: string | undefined) => {
       >
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
         <div
-          class="relative w-full max-w-lg bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
+          class="relative w-full max-w-lg bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
         >
           <!-- Header -->
           <div class="flex items-start justify-between">
             <div>
               <h3
                 id="teacher-session-modal-title"
-                class="text-2xl font-semibold text-on-surface dark:text-on-surface leading-tight"
+                class="text-2xl font-semibold text-on-surface leading-tight"
               >
                 Session #{{ expandedSession.id }}
               </h3>
-              <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-1">
+              <p class="text-on-surface-variant text-sm mt-1">
                 {{ formatTime(expandedSession.startTime) }} -
                 {{ formatTime(expandedSession.endTime) }}
               </p>
-              <p class="text-on-surface dark:text-on-surface font-bold mt-1">
+              <p class="text-on-surface font-bold mt-1">
                 Student: {{ getStudentName(expandedSession.studentId) }}
               </p>
             </div>
             <button
-              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
+              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
               aria-label="Close modal"
               @click="closeSessionModal"
             >
@@ -618,37 +672,63 @@ const formatTime = (dt: string | undefined) => {
           <!-- Proof Section -->
           <div class="space-y-3">
             <div class="flex items-center justify-between mb-2">
-              <label class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase">Visual Evidence</label>
+              <label class="text-xs font-semibold text-on-surface-variant uppercase"
+                >Visual Evidence</label
+              >
             </div>
-            
-            <div class="space-y-2 mb-4 bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-xl border border-on-surface/[0.04] dark:border-on-surface/5">
+
+            <div
+              class="space-y-2 mb-4 bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-xl border border-on-surface/[0.04] dark:border-on-surface/5"
+            >
               <div class="flex items-center justify-between text-sm">
                 <span class="text-on-surface-variant">Your Proof</span>
-                <span class="font-bold" :class="expandedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
-                  {{ expandedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : 'Pending' }}
+                <span
+                  class="font-bold"
+                  :class="
+                    expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                      ? 'text-success'
+                      : 'text-warning'
+                  "
+                >
+                  {{
+                    expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                      ? 'Uploaded ✓'
+                      : 'Pending'
+                  }}
                 </span>
               </div>
               <div class="flex items-center justify-between text-sm">
                 <span class="text-on-surface-variant">Student's Proof</span>
-                <span class="font-bold" :class="expandedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
-                  {{ expandedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : 'Pending' }}
+                <span
+                  class="font-bold"
+                  :class="
+                    expandedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                      ? 'text-success'
+                      : 'text-warning'
+                  "
+                >
+                  {{
+                    expandedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                      ? 'Uploaded ✓'
+                      : 'Pending'
+                  }}
                 </span>
               </div>
             </div>
 
             <div
-              v-if="expandedSession.proofs?.some(p => p.uploaderRole === 'teacher')"
+              v-if="expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')"
               class="relative group rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10"
             >
               <img
-                :src="expandedSession.proofs.find(p => p.uploaderRole === 'teacher')?.imageUrl"
+                :src="expandedSession.proofs.find((p) => p.uploaderRole === 'teacher')?.imageUrl"
                 class="w-full h-auto object-cover max-h-48"
               />
               <div
                 class="absolute inset-0 bg-black/40 dark:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
                 <label
-                  class="px-4 py-2 bg-on-surface/20 hover:bg-on-surface/10 dark:hover:bg-on-surface/30 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors"
+                  class="px-4 py-2 bg-on-surface/20 hover:bg-on-surface/10 dark:hover:bg-on-surface/30 text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors"
                 >
                   Replace Image
                   <input
@@ -667,7 +747,7 @@ const formatTime = (dt: string | undefined) => {
               <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
               <div class="absolute top-2 right-2 flex gap-2">
                 <label
-                  class="px-3 py-1.5 bg-on-surface/30 dark:bg-on-surface/60 hover:bg-on-surface/80 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors border border-on-surface/20"
+                  class="px-3 py-1.5 bg-on-surface/30 dark:bg-on-surface/60 hover:bg-on-surface/80 text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors border border-on-surface/20"
                 >
                   Change
                   <input
@@ -707,40 +787,42 @@ const formatTime = (dt: string | undefined) => {
             </label>
           </div>
 
-
           <!-- Negotiation Buttons -->
-          <div v-if="expandedSession.status === 'pending_teacher'" class="p-4 bg-primary/5 border border-primary/20 rounded-3xl space-y-3">
-             <div class="flex items-center gap-2 mb-2">
-                <span class="material-symbols-outlined text-primary text-sm">schedule_send</span>
-                <span class="text-xs font-bold text-primary uppercase">Student Proposal</span>
-             </div>
-             <div class="flex gap-3">
-                <button 
-                  class="flex-1 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
-                  @click="handleApprove(expandedSession.id)"
-                >
-                  <span class="material-symbols-outlined text-sm">check_circle</span>
-                  Approve Time
-                </button>
-                <button 
-                  class="flex-1 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
-                  @click="openCounter"
-                >
-                  <span class="material-symbols-outlined text-sm">edit_calendar</span>
-                  Suggest Other
-                </button>
-             </div>
-             <button 
-                class="w-full py-2 text-red-500/60 hover:text-red-500 text-xs font-bold uppercase transition-colors"
-                @click="handleReject(expandedSession.id, 'Time does not work for me.')"
-             >
-                Decline Request
-             </button>
+          <div
+            v-if="expandedSession.status === 'pending_teacher'"
+            class="p-4 bg-primary/5 border border-primary/20 rounded-3xl space-y-3"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <span class="material-symbols-outlined text-primary text-sm">schedule_send</span>
+              <span class="text-xs font-bold text-primary uppercase">Student Proposal</span>
+            </div>
+            <div class="flex gap-3">
+              <button
+                class="flex-1 py-3 bg-success/20 hover:bg-success/30 border border-success/30 text-success font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+                @click="handleApprove(expandedSession.id)"
+              >
+                <span class="material-symbols-outlined text-sm">check_circle</span>
+                Approve Time
+              </button>
+              <button
+                class="flex-1 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+                @click="openCounter"
+              >
+                <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                Suggest Other
+              </button>
+            </div>
+            <button
+              class="w-full py-2 text-error/60 hover:text-error text-xs font-bold uppercase transition-colors"
+              @click="handleReject(expandedSession.id, 'Time does not work for me.')"
+            >
+              Decline Request
+            </button>
           </div>
 
           <!-- Practice Goals -->
           <div class="space-y-3">
-            <label class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
+            <label class="text-xs font-semibold text-on-surface-variant uppercase"
               >Practice Goals / Notes</label
             >
             <textarea
@@ -753,7 +835,7 @@ const formatTime = (dt: string | undefined) => {
           <!-- Action Buttons -->
           <div class="flex gap-3 pt-2">
             <button
-              class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10"
+              class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10"
               @click="closeSessionModal"
             >
               Cancel
@@ -785,21 +867,48 @@ const formatTime = (dt: string | undefined) => {
         class="fixed inset-0 z-[250] flex items-center justify-center p-4"
         @click.self="showCounterModal = false"
       >
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="showCounterModal = false" />
-        <div class="relative w-full max-w-sm liquid-glass border border-on-surface/10 rounded-3xl p-6 space-y-4 shadow-2xl">
-          <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Suggest New Time</h3>
+        <div
+          class="absolute inset-0 bg-black/40 dark:bg-black/70"
+          @click="showCounterModal = false"
+        />
+        <div
+          class="relative w-full max-w-sm liquid-glass border border-on-surface/10 rounded-3xl p-6 space-y-4 shadow-2xl"
+        >
+          <h3 class="text-lg font-semibold text-on-surface">Suggest New Time</h3>
           <div class="space-y-4">
             <div>
-              <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1">Start Time</label>
-              <input v-model="counterForm.startTime" type="datetime-local" class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]" />
+              <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1"
+                >Start Time</label
+              >
+              <input
+                v-model="counterForm.startTime"
+                type="datetime-local"
+                class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]"
+              />
             </div>
             <div>
-              <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1">Notes</label>
-              <textarea v-model="counterForm.notes" rows="2" class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm resize-none"></textarea>
+              <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1"
+                >Notes</label
+              >
+              <textarea
+                v-model="counterForm.notes"
+                rows="2"
+                class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm resize-none"
+              ></textarea>
             </div>
             <div class="flex gap-3">
-               <button class="flex-1 py-3 bg-primary text-on-surface font-bold rounded-2xl text-sm" @click="submitCounter">Send Proposal</button>
-               <button class="px-4 py-3 bg-on-surface/5 text-on-surface-variant font-bold rounded-2xl text-sm" @click="showCounterModal = false">Cancel</button>
+              <button
+                class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl text-sm"
+                @click="submitCounter"
+              >
+                Send Proposal
+              </button>
+              <button
+                class="px-4 py-3 bg-on-surface/5 text-on-surface-variant font-bold rounded-2xl text-sm"
+                @click="showCounterModal = false"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useToastStore } from '@stores/toast'
 import { API_URL } from '@typescript/constants'
+import PasswordInput from '@components/PasswordInput.vue'
 
 // The reset link is /reset-password?token=<one-time-token>. The token is
 // hashed server-side and consumed on use; this view just collects the
@@ -69,12 +70,15 @@ const submit = async () => {
   <main class="relative z-10 w-full max-w-md px-6 py-12">
     <div class="relative glass-heavy rounded-3xl p-8 md:p-10 space-y-6">
       <div class="space-y-2 text-center">
-        <h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Choose a new password</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-on-surface">
+          Choose a new password
+        </h1>
         <p v-if="!token" class="text-error text-sm">
           This link is missing or malformed. Please request a new reset email.
         </p>
         <p v-else class="text-on-surface-variant text-sm">
-          Pick something memorable but hard to guess. At least 8 characters with a letter and a digit.
+          Pick something memorable but hard to guess. At least 8 characters with a letter and a
+          digit.
         </p>
       </div>
 
@@ -83,30 +87,26 @@ const submit = async () => {
           <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             New password
           </label>
-          <input
+          <PasswordInput
             v-model="newPassword"
-            type="password"
             required
             autocomplete="new-password"
             placeholder="••••••••"
-            class="input"
           />
         </div>
         <div class="space-y-2">
           <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             Confirm new password
           </label>
-          <input
+          <PasswordInput
             v-model="confirmPassword"
-            type="password"
             required
             autocomplete="new-password"
             placeholder="••••••••"
-            class="input"
           />
         </div>
 
-        <p v-if="passwordIssue" class="text-amber-500 text-sm">{{ passwordIssue }}</p>
+        <p v-if="passwordIssue" class="text-warning text-sm">{{ passwordIssue }}</p>
 
         <button
           :disabled="!canSubmit"
@@ -118,8 +118,8 @@ const submit = async () => {
       </form>
 
       <div v-else-if="successful" class="space-y-3 text-center">
-        <div class="size-12 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center">
-          <span class="material-symbols-outlined text-emerald-500">verified</span>
+        <div class="size-12 mx-auto rounded-full bg-success/15 flex items-center justify-center">
+          <span class="material-symbols-outlined text-success">verified</span>
         </div>
         <p class="text-on-surface font-semibold">Password updated</p>
         <p class="text-on-surface-variant text-sm">Redirecting to sign-in…</p>

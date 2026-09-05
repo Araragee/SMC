@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseDropdown from '@/components/BaseDropdown.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue'
 import { PAGE_SIZE } from '@typescript/constants'
 import { onMounted, computed, ref } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
@@ -43,7 +43,7 @@ const unassignedStudents = computed(() => {
   const enrolled = new Set(
     rosterStore.enrollments
       .filter((e) => (e.status ?? 'active') === 'active' && e.isActive !== false)
-      .map((e) => e.studentId),
+      .map((e) => e.studentId)
   )
   return students.value.filter((s) => !enrolled.has(s.id))
 })
@@ -91,15 +91,17 @@ const canGoNext = computed(
 )
 
 const stats = computed(() => {
-  return scheduleStore.stats || {
-    totalSessions: 0,
-    scheduledSessions: 0,
-    completedSessions: 0,
-    completionRate: 0,
-    overdueSessions: 0,
-    pendingSessions: 0,
-    awaitingAdmin: 0,
-  }
+  return (
+    scheduleStore.stats || {
+      totalSessions: 0,
+      scheduledSessions: 0,
+      completedSessions: 0,
+      completionRate: 0,
+      overdueSessions: 0,
+      pendingSessions: 0,
+      awaitingAdmin: 0,
+    }
+  )
 })
 
 const thisMonthRevenue = computed(() => {
@@ -117,7 +119,11 @@ const thisMonthRevenue = computed(() => {
 })
 
 const formatRevenue = (cents: number) =>
-  new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 }).format(cents / 100)
+  new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    maximumFractionDigits: 0,
+  }).format(cents / 100)
 
 const topInstruments = computed(() => {
   const counts: Record<string, number> = {}
@@ -185,30 +191,30 @@ const formatAmPm = (dt: string | undefined) => {
 }
 
 const statusClass = (status: string) => ({
-  'bg-emerald-500/20 text-emerald-400': status === 'completed',
-  'bg-blue-500/20 text-blue-400': status === 'scheduled',
-  'bg-amber-500/20 text-amber-400': status === 'pending_teacher' || status === 'ongoing',
+  'bg-success/20 text-success': status === 'completed',
+  'bg-tertiary/20 text-tertiary': status === 'scheduled',
+  'bg-warning/20 text-warning': status === 'pending_teacher' || status === 'ongoing',
   'bg-primary/20 text-primary': status === 'pending_student',
-  'bg-blue-600/20 text-blue-300': status === 'pending_admin',
-  'bg-red-500/20 text-red-400': status === 'rejected' || status === 'cancelled',
+  'bg-info/20 text-info': status === 'pending_admin',
+  'bg-error/20 text-error': status === 'rejected' || status === 'cancelled',
 })
 
 const borderColor = (status: string) => ({
-  'border-emerald-500 dark:border-emerald-400/20': status === 'completed',
+  'border-success dark:border-success/20': status === 'completed',
   'border-primary dark:border-primary/20': status === 'scheduled' || status === 'pending_student',
-  'border-amber-500 dark:border-amber-400/20': status === 'pending_teacher' || status === 'ongoing',
-  'border-blue-500 dark:border-blue-400/20': status === 'pending_admin',
-  'border-red-500 dark:border-red-400/20': status === 'rejected' || status === 'cancelled',
+  'border-warning dark:border-warning/20': status === 'pending_teacher' || status === 'ongoing',
+  'border-info dark:border-info/20': status === 'pending_admin',
+  'border-error dark:border-error/20': status === 'rejected' || status === 'cancelled',
 })
 
 const iconClass = (status: string) => ({
-  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': status === 'completed',
+  'bg-success/10 text-success border-success/20': status === 'completed',
   'bg-primary/10 text-primary border-primary/20':
     status === 'scheduled' || status === 'pending_student',
-  'bg-amber-500/10 text-amber-400 border-amber-500/20':
+  'bg-warning/10 text-warning border-warning/20':
     status === 'pending_teacher' || status === 'ongoing',
-  'bg-blue-500/10 text-blue-400 border-blue-500/20': status === 'pending_admin',
-  'bg-red-500/10 text-red-400 border-red-500/20': status === 'rejected' || status === 'cancelled',
+  'bg-tertiary/10 text-tertiary border-tertiary/20': status === 'pending_admin',
+  'bg-error/10 text-error border-error/20': status === 'rejected' || status === 'cancelled',
 })
 
 const onProposeSubmit = async function (session: Session) {
@@ -286,7 +292,7 @@ const handleCompleteAdmin = async function (sessionId: number) {
 const handleRejectProofAdmin = async function (sessionId: number) {
   const reason = await dialog.prompt('Enter a reason for rejecting this proof:', {
     title: 'Reject Proof',
-    placeholder: 'e.g. Image is unclear or incorrect session'
+    placeholder: 'e.g. Image is unclear or incorrect session',
   })
   if (!reason) return
   try {
@@ -324,10 +330,13 @@ const confirmQuickAssign = async function () {
 }
 
 const handleDeleteTeacher = async function (teacher: any) {
-  const ok = await dialog.confirm(`Deactivate ${teacher.name}? They will lose access immediately.`, {
-    title: 'Deactivate Teacher',
-    destructive: true
-  })
+  const ok = await dialog.confirm(
+    `Deactivate ${teacher.name}? They will lose access immediately.`,
+    {
+      title: 'Deactivate Teacher',
+      destructive: true,
+    }
+  )
   if (!ok) return
   try {
     await usersStore.deleteUser(teacher.id)
@@ -358,12 +367,8 @@ const openLiveAnalytics = function () {
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">
-          Admin Dashboard
-        </h1>
-        <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
-          Sernan's Music Clinic — Overview
-        </p>
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">Admin Dashboard</h1>
+        <p class="text-on-surface-variant font-medium">Sernan's Music Clinic — Overview</p>
       </div>
     </div>
 
@@ -376,22 +381,19 @@ const openLiveAnalytics = function () {
       >
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-xs font-semibold text-primary uppercase"
-              >Live Analytics</span
-            >
+            <span class="text-xs font-semibold text-primary uppercase">Live Analytics</span>
             <div
               v-if="scheduleStore.isLoading"
               class="h-10 w-48 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
             />
-            <h2
-              v-else
-              class="text-3xl font-semibold mt-2 tracking-tight text-on-surface dark:text-on-surface"
-            >
+            <h2 v-else class="text-3xl font-semibold mt-2 tracking-tight text-on-surface">
               {{ stats.scheduledSessions }} Active Today
             </h2>
-            <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-1">
+            <p class="text-on-surface-variant text-sm mt-1">
               Real-time occupancy ·
-              <span v-if="stats.awaitingAdmin > 0" class="text-amber-400 font-bold">{{ stats.awaitingAdmin }} awaiting admin</span>
+              <span v-if="stats.awaitingAdmin > 0" class="text-warning font-bold"
+                >{{ stats.awaitingAdmin }} awaiting admin</span
+              >
               <span v-else class="opacity-60">all clear</span>
             </p>
           </div>
@@ -424,9 +426,7 @@ const openLiveAnalytics = function () {
               <span
                 class="size-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"
               ></span>
-              <span class="text-xs font-semibold text-on-surface uppercase">{{
-                inst.name
-              }}</span>
+              <span class="text-xs font-semibold text-on-surface uppercase">{{ inst.name }}</span>
               <span class="text-xs font-bold text-primary opacity-60">{{ inst.count }}</span>
             </div>
             <div
@@ -447,9 +447,7 @@ const openLiveAnalytics = function () {
           <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
         </div>
         <div class="relative z-10">
-          <span class="text-xs font-semibold text-on-surface/70 uppercase"
-            >Retention Rate</span
-          >
+          <span class="text-xs font-semibold text-on-surface/70 uppercase">Retention Rate</span>
           <div
             v-if="scheduleStore.isLoading"
             class="h-14 w-20 rounded bg-on-surface/20 animate-pulse mt-2"
@@ -468,18 +466,14 @@ const openLiveAnalytics = function () {
         class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col justify-between"
       >
         <div>
-          <span
-            class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
+          <span class="text-xs font-semibold text-on-surface-variant uppercase"
             >New Registrations</span
           >
           <div
             v-if="usersStore.isLoading"
             class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
-          <h2
-            v-else
-            class="text-5xl font-semibold mt-2 tracking-tighter text-on-surface dark:text-on-surface"
-          >
+          <h2 v-else class="text-5xl font-semibold mt-2 tracking-tighter text-on-surface">
             {{ students.length }}
           </h2>
         </div>
@@ -487,7 +481,7 @@ const openLiveAnalytics = function () {
           <div
             v-for="(s, i) in students.slice(0, 3)"
             :key="s.id"
-            class="size-10 rounded-full border-2 border-surface-container-highest bg-surface-container-highest flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-xs"
+            class="size-10 rounded-full border-2 border-surface-container-highest bg-surface-container-highest flex items-center justify-center text-on-surface font-semibold text-xs"
             :style="{ zIndex: 3 - i }"
           >
             {{ s.name.charAt(0) }}
@@ -504,12 +498,10 @@ const openLiveAnalytics = function () {
       <!-- Pending Approvals -->
       <RouterLink
         to="/admin/schedule"
-        class="liquid-glass p-4 rounded-3xl border border-amber-500/20 flex flex-col justify-between hover:bg-amber-500/5 transition-all group"
+        class="liquid-glass p-4 rounded-3xl border border-warning/20 flex flex-col justify-between hover:bg-warning/5 transition-all group"
       >
         <div>
-          <span class="text-xs font-semibold text-amber-500 uppercase"
-            >Pending Approvals</span
-          >
+          <span class="text-xs font-semibold text-warning uppercase">Pending Approvals</span>
           <div
             v-if="scheduleStore.isLoading"
             class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
@@ -517,13 +509,13 @@ const openLiveAnalytics = function () {
           <h2
             v-else
             class="text-5xl font-semibold mt-2 tracking-tighter"
-            :class="scheduleStore.pendingSessions.length > 0 ? 'text-amber-400' : 'text-on-surface dark:text-on-surface'"
+            :class="scheduleStore.pendingSessions.length > 0 ? 'text-warning' : 'text-on-surface'"
           >
             {{ scheduleStore.pendingSessions.length }}
           </h2>
         </div>
         <p
-          class="text-on-surface-variant dark:text-on-surface-variant text-xs font-bold group-hover:text-amber-500 transition-colors mt-6"
+          class="text-on-surface-variant text-xs font-bold group-hover:text-warning transition-colors mt-6"
         >
           Review →
         </p>
@@ -532,25 +524,20 @@ const openLiveAnalytics = function () {
       <!-- Monthly Revenue -->
       <RouterLink
         to="/admin/payments"
-        class="liquid-glass p-4 rounded-3xl border border-emerald-500/20 flex flex-col justify-between hover:bg-emerald-500/5 transition-all group"
+        class="liquid-glass p-4 rounded-3xl border border-success/20 flex flex-col justify-between hover:bg-success/5 transition-all group"
       >
         <div>
-          <span class="text-xs font-semibold text-emerald-500 uppercase"
-            >Monthly Revenue</span
-          >
+          <span class="text-xs font-semibold text-success uppercase">Monthly Revenue</span>
           <div
             v-if="paymentsStore.isLoading"
             class="h-14 w-24 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
-          <h2
-            v-else
-            class="text-3xl font-semibold mt-2 tracking-tighter text-emerald-400 leading-none"
-          >
+          <h2 v-else class="text-3xl font-semibold mt-2 tracking-tighter text-success leading-none">
             {{ formatRevenue(thisMonthRevenue) }}
           </h2>
         </div>
         <p
-          class="text-on-surface-variant dark:text-on-surface-variant text-xs font-bold group-hover:text-emerald-500 transition-colors mt-6"
+          class="text-on-surface-variant text-xs font-bold group-hover:text-success transition-colors mt-6"
         >
           View Ledger →
         </p>
@@ -559,12 +546,10 @@ const openLiveAnalytics = function () {
       <!-- Overdue Sessions -->
       <RouterLink
         to="/admin/schedule"
-        class="liquid-glass p-4 rounded-3xl border border-rose-500/20 flex flex-col justify-between hover:bg-rose-500/5 transition-all group"
+        class="liquid-glass p-4 rounded-3xl border border-error/20 flex flex-col justify-between hover:bg-error/5 transition-all group"
       >
         <div>
-          <span class="text-xs font-semibold text-rose-500 uppercase"
-            >Overdue</span
-          >
+          <span class="text-xs font-semibold text-error uppercase">Overdue</span>
           <div
             v-if="scheduleStore.isLoading"
             class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
@@ -572,13 +557,13 @@ const openLiveAnalytics = function () {
           <h2
             v-else
             class="text-5xl font-semibold mt-2 tracking-tighter"
-            :class="stats.overdueSessions > 0 ? 'text-rose-400' : 'text-on-surface dark:text-on-surface'"
+            :class="stats.overdueSessions > 0 ? 'text-error' : 'text-on-surface'"
           >
             {{ stats.overdueSessions }}
           </h2>
         </div>
         <p
-          class="text-on-surface-variant dark:text-on-surface-variant text-xs font-bold group-hover:text-rose-500 transition-colors mt-6"
+          class="text-on-surface-variant text-xs font-bold group-hover:text-error transition-colors mt-6"
         >
           Action Required →
         </p>
@@ -595,28 +580,32 @@ const openLiveAnalytics = function () {
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h3 class="text-2xl font-semibold tracking-tight text-on-surface dark:text-on-surface">
-                Music Schedule
-              </h3>
-              <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
+              <h3 class="text-2xl font-semibold tracking-tight text-on-surface">Music Schedule</h3>
+              <p class="text-on-surface-variant text-sm">
                 {{ viewMode === 'daily' ? 'Managing for today' : 'Upcoming week overview' }}
               </p>
             </div>
             <div class="flex items-center gap-2">
               <!-- View Mode Toggle -->
-              <div
-                class="flex bg-on-surface/5 dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/5 dark:border-on-surface/5 mr-2"
-              >
+              <div class="flex bg-on-surface/5 p-1 rounded-2xl border border-on-surface/5 mr-2">
                 <button
                   class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
-                  :class="viewMode === 'daily' ? 'bg-primary text-on-primary shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                  :class="
+                    viewMode === 'daily'
+                      ? 'bg-primary text-on-primary shadow-md'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  "
                   @click="viewMode = 'daily'"
                 >
                   Today
                 </button>
                 <button
                   class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
-                  :class="viewMode === 'weekly' ? 'bg-primary text-on-primary shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                  :class="
+                    viewMode === 'weekly'
+                      ? 'bg-primary text-on-primary shadow-md'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  "
                   @click="viewMode = 'weekly'"
                 >
                   Weekly
@@ -648,14 +637,10 @@ const openLiveAnalytics = function () {
             <div
               class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5 mb-4 px-2"
             >
-              <div
-                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase col-span-1"
-              >
+              <div class="text-xs font-semibold text-on-surface-variant uppercase col-span-1">
                 Time
               </div>
-              <div
-                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase col-span-5"
-              >
+              <div class="text-xs font-semibold text-on-surface-variant uppercase col-span-5">
                 Sessions &amp; Instructors
               </div>
             </div>
@@ -678,10 +663,8 @@ const openLiveAnalytics = function () {
                 class="material-symbols-outlined text-4xl text-on-surface-variant/50 dark:text-on-surface-variant/40 mb-3"
                 >event_busy</span
               >
-              <p class="font-bold text-on-surface dark:text-on-surface text-sm mb-1">
-                No sessions scheduled
-              </p>
-              <p class="text-xs text-on-surface-variant dark:text-on-surface-variant">
+              <p class="font-bold text-on-surface text-sm mb-1">No sessions scheduled</p>
+              <p class="text-xs text-on-surface-variant">
                 Use "Assign New" to create your first session.
               </p>
             </div>
@@ -695,10 +678,9 @@ const openLiveAnalytics = function () {
               >
                 <div class="col-span-1 flex flex-col justify-center">
                   <span class="text-sm font-semibold">{{ formatTime(session.startTime) }}</span>
-                  <span
-                    class="text-xs text-on-surface-variant dark:text-on-surface-variant uppercase font-bold"
-                    >{{ formatAmPm(session.startTime) }}</span
-                  >
+                  <span class="text-xs text-on-surface-variant uppercase font-bold">{{
+                    formatAmPm(session.startTime)
+                  }}</span>
                 </div>
                 <div
                   class="col-span-5 bg-on-surface/[0.04] dark:bg-on-surface/5 border-y p-3 rounded-3xl flex items-center justify-between cursor-pointer hover:bg-on-surface/[0.08] dark:hover:bg-on-surface/10 transition-colors"
@@ -713,10 +695,8 @@ const openLiveAnalytics = function () {
                       <span class="material-symbols-outlined">music_note</span>
                     </div>
                     <div>
-                      <h4 class="text-sm font-bold text-on-surface dark:text-on-surface">
-                        Session #{{ session.id }}
-                      </h4>
-                      <p class="text-xs text-on-surface-variant dark:text-on-surface-variant">
+                      <h4 class="text-sm font-bold text-on-surface">Session #{{ session.id }}</h4>
+                      <p class="text-xs text-on-surface-variant">
                         T:{{ session.teacherId }} • S:{{ session.studentId }}
                       </p>
                     </div>
@@ -728,7 +708,7 @@ const openLiveAnalytics = function () {
                       >{{ session.status }}</span
                     >
                     <button
-                      class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
+                      class="p-2 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
                     >
                       <span class="material-symbols-outlined">more_vert</span>
                     </button>
@@ -759,7 +739,10 @@ const openLiveAnalytics = function () {
                       v-for="session in day.sessions"
                       :key="session.id"
                       class="bg-surface-container-lowest dark:bg-on-surface/5 p-3 rounded-2xl border-l-[3px] border shadow-sm hover:scale-[1.02] transition-all cursor-pointer"
-                      :class="[borderColor(session.status), 'border-on-surface/5 dark:border-on-surface/10']"
+                      :class="[
+                        borderColor(session.status),
+                        'border-on-surface/5 dark:border-on-surface/10',
+                      ]"
                       @click="openSessionDetail(session)"
                     >
                       <p class="text-[8px] font-bold text-on-surface-variant uppercase mb-1">
@@ -772,7 +755,7 @@ const openLiveAnalytics = function () {
 
                     <div
                       v-if="day.sessions.length === 0"
-                      class="h-20 border border-dashed border-on-surface/10 dark:border-on-surface/10 rounded-2xl flex items-center justify-center opacity-30"
+                      class="h-20 border border-dashed border-on-surface/10 rounded-2xl flex items-center justify-center opacity-30"
                     >
                       <span class="material-symbols-outlined text-sm">event_busy</span>
                     </div>
@@ -788,7 +771,7 @@ const openLiveAnalytics = function () {
           >
             <div class="col-span-1"></div>
             <button
-              class="col-span-5 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-on-surface-variant dark:text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all cursor-pointer bg-on-surface/[0.02] dark:bg-on-surface/[0.02] uppercase text-sm font-bold"
+              class="col-span-5 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl p-4 flex items-center justify-center gap-2 text-on-surface-variant hover:border-primary/50 hover:text-primary transition-all cursor-pointer bg-on-surface/[0.02] dark:bg-on-surface/[0.02] uppercase text-sm font-bold"
               @click="showAddSessionModal = true"
             >
               <span class="material-symbols-outlined">add_circle</span>
@@ -802,7 +785,7 @@ const openLiveAnalytics = function () {
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 overflow-hidden"
         >
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-            <h3 class="text-2xl font-semibold tracking-tight text-on-surface dark:text-on-surface">
+            <h3 class="text-2xl font-semibold tracking-tight text-on-surface">
               Faculty &amp; Staff
             </h3>
             <div class="flex items-center gap-3">
@@ -821,7 +804,7 @@ const openLiveAnalytics = function () {
               </div>
               <button
                 :class="{ 'text-primary bg-primary/5': showTeacherSearch }"
-                class="px-4 py-2 bg-on-surface/[0.04] dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant text-xs font-semibold uppercase border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-colors flex items-center gap-2"
+                class="px-4 py-2 bg-on-surface/[0.04] dark:bg-on-surface/5 text-on-surface-variant text-xs font-semibold uppercase border border-on-surface/[0.08] dark:border-on-surface/10 rounded-2xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-colors flex items-center gap-2"
                 @click="showTeacherSearch = !showTeacherSearch"
               >
                 <span class="material-symbols-outlined text-sm">filter_list</span>
@@ -850,17 +833,13 @@ const openLiveAnalytics = function () {
               class="material-symbols-outlined text-4xl text-on-surface-variant/50 dark:text-on-surface-variant/40 mb-2 block"
               >group_off</span
             >
-            <p class="text-sm font-bold text-on-surface dark:text-on-surface mb-1">
-              No faculty members yet
-            </p>
+            <p class="text-sm font-bold text-on-surface mb-1">No faculty members yet</p>
           </div>
 
           <div v-else class="md:overflow-x-auto">
             <table class="data-table stacked">
               <thead>
-                <tr
-                  class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
-                >
+                <tr class="text-xs font-semibold text-on-surface-variant uppercase">
                   <th class="pb-6">Member</th>
                   <th class="pb-6">Department</th>
                   <th class="pb-6">Status</th>
@@ -877,15 +856,15 @@ const openLiveAnalytics = function () {
                   <td data-label="">
                     <div class="flex items-center gap-4">
                       <div
-                        class="size-12 rounded-[18px] bg-surface-container-highest border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-lg"
+                        class="size-12 rounded-[18px] bg-surface-container-highest border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center justify-center text-on-surface font-semibold text-lg"
                       >
                         {{ teacher.name.charAt(0) }}
                       </div>
                       <div>
-                        <p class="text-sm font-semibold text-on-surface dark:text-on-surface">
+                        <p class="text-sm font-semibold text-on-surface">
                           {{ teacher.name }}
                         </p>
-                        <p class="text-xs text-on-surface-variant dark:text-on-surface-variant">
+                        <p class="text-xs text-on-surface-variant">
                           {{ teacher.email }}
                         </p>
                       </div>
@@ -896,16 +875,16 @@ const openLiveAnalytics = function () {
                   </td>
                   <td data-label="Status">
                     <span
-                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase bg-success/10 text-success border border-success/20"
                     >
                       <span
-                        class="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.5)]"
+                        class="size-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(52,211,153,0.5)]"
                       ></span>
                       Available
                     </span>
                   </td>
                   <td data-label="Sessions">
-                    <span class="text-sm font-semibold text-on-surface dark:text-on-surface">
+                    <span class="text-sm font-semibold text-on-surface">
                       {{
                         scheduleStore.allSessions.filter((s: any) => s.teacherId === teacher.id)
                           .length
@@ -916,12 +895,12 @@ const openLiveAnalytics = function () {
                     <div class="flex w-full items-center justify-end gap-1">
                       <RouterLink
                         :to="`/admin/users?edit=${teacher.id}`"
-                        class="p-2 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
+                        class="p-2 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
                       >
                         <span class="material-symbols-outlined text-lg">edit</span>
                       </RouterLink>
                       <button
-                        class="p-2 text-on-surface-variant dark:text-on-surface-variant hover:text-red-400 transition-colors"
+                        class="p-2 text-on-surface-variant hover:text-error transition-colors"
                         title="Deactivate Member"
                         @click="handleDeleteTeacher(teacher)"
                       >
@@ -943,7 +922,7 @@ const openLiveAnalytics = function () {
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-lg font-semibold tracking-tight text-on-surface dark:text-on-surface">
+            <h3 class="text-lg font-semibold tracking-tight text-on-surface">
               Alerts &amp; Updates
             </h3>
             <div class="flex items-center gap-2">
@@ -972,11 +951,7 @@ const openLiveAnalytics = function () {
               <div class="flex gap-4">
                 <span class="material-symbols-outlined text-primary text-xl">warning</span>
                 <div>
-                  <h4
-                    class="text-xs font-semibold uppercase mb-1 text-primary"
-                  >
-                    Schedule Alert
-                  </h4>
+                  <h4 class="text-xs font-semibold uppercase mb-1 text-primary">Schedule Alert</h4>
                   <p class="text-xs text-on-surface-variant leading-relaxed">
                     {{ stats.scheduledSessions }} sessions running today
                   </p>
@@ -997,28 +972,28 @@ const openLiveAnalytics = function () {
               v-for="notif in notifStore.notifications"
               :key="notif.id"
               class="bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-3xl border-y transition-all hover:bg-on-surface/5 dark:hover:bg-on-surface/10 relative group"
-              :class="[ notif.isRead ? 'border-zinc-500 opacity-60' : 'border-primary/30 ring-1 ring-primary/10 shadow-lg shadow-primary/5', ]"
+              :class="[
+                notif.isRead
+                  ? 'border-outline-variant opacity-60'
+                  : 'border-primary/30 ring-1 ring-primary/10 shadow-lg shadow-primary/5',
+              ]"
             >
               <div class="flex gap-4">
-                <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant text-xl"
-                >
+                <span class="material-symbols-outlined text-on-surface-variant text-xl">
                   {{ notif.type === 'warning' ? 'warning' : 'info' }}
                 </span>
                 <div class="flex-1">
                   <h4
                     class="text-xs font-semibold uppercase mb-1"
-                    :class="[notif.isRead ? 'text-zinc-500' : 'text-primary']"
+                    :class="[notif.isRead ? 'text-on-surface-variant' : 'text-primary']"
                   >
                     {{ notif.title || 'Notification' }}
                   </h4>
-                  <p class="text-xs text-on-surface dark:text-on-surface leading-relaxed">
+                  <p class="text-xs text-on-surface leading-relaxed">
                     {{ notif.message }}
                   </p>
                   <div class="flex items-center justify-between mt-3">
-                    <p
-                      class="text-xs text-on-surface-variant dark:text-on-surface-variant font-bold uppercase"
-                    >
+                    <p class="text-xs text-on-surface-variant font-bold uppercase">
                       {{
                         new Date(notif.createdAt).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -1045,7 +1020,7 @@ const openLiveAnalytics = function () {
           </div>
           <RouterLink
             to="/admin/activity-log"
-            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase"
+            class="flex items-center justify-center gap-2 w-full mt-8 py-4 text-xs font-semibold text-on-surface-variant bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 hover:text-on-surface dark:hover:text-on-surface transition-all uppercase"
           >
             <span class="material-symbols-outlined text-base">history</span>
             View All Activity
@@ -1064,7 +1039,9 @@ const openLiveAnalytics = function () {
 
           <dl class="grid grid-cols-3 gap-4">
             <div class="space-y-1">
-              <dd class="num text-2xl font-semibold text-on-surface">{{ rosterStore.enrollments.length }}</dd>
+              <dd class="num text-2xl font-semibold text-on-surface">
+                {{ rosterStore.enrollments.length }}
+              </dd>
               <dt class="text-xs text-on-surface-variant">Enrollments</dt>
             </div>
             <div class="space-y-1">
@@ -1072,7 +1049,9 @@ const openLiveAnalytics = function () {
               <dt class="text-xs text-on-surface-variant">Active enrollments</dt>
             </div>
             <div class="space-y-1">
-              <dd class="num text-2xl font-semibold text-on-surface">{{ unassignedStudents.length }}</dd>
+              <dd class="num text-2xl font-semibold text-on-surface">
+                {{ unassignedStudents.length }}
+              </dd>
               <dt class="text-xs text-on-surface-variant">Not enrolled</dt>
             </div>
           </dl>
@@ -1086,10 +1065,14 @@ const openLiveAnalytics = function () {
                 class="flex items-center justify-between gap-3 rounded-xl border border-outline-variant/20 px-4 py-3"
               >
                 <span class="truncate text-sm text-on-surface">{{ student.name }}</span>
-                <span class="num shrink-0 text-xs text-on-surface-variant">{{ student.sessionsLeft ?? 0 }} credits</span>
+                <span class="num shrink-0 text-xs text-on-surface-variant"
+                  >{{ student.sessionsLeft ?? 0 }} credits</span
+                >
               </li>
             </ul>
-            <RouterLink to="/admin/roster" class="btn-primary btn-sm w-full">Add students to a roster</RouterLink>
+            <RouterLink to="/admin/roster" class="btn-primary btn-sm w-full"
+              >Add students to a roster</RouterLink
+            >
           </div>
           <p v-else class="section-caption">Every student is on a roster.</p>
         </section>
@@ -1105,42 +1088,42 @@ const openLiveAnalytics = function () {
             <h3 class="text-xl font-semibold mb-6 tracking-tight">Quick Assign</h3>
             <div class="space-y-4">
               <div>
-                <label
-                  class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
+                <label class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Teacher</label
                 >
-                <BaseDropdown v-model="quickTeacherId" :options="[{ value: '', label: 'Select Faculty' }, ...teachers.map(t => ({ value: t.id, label: t.name }))]" />
+                <BaseDropdown
+                  v-model="quickTeacherId"
+                  :options="[
+                    { value: '', label: 'Select Faculty' },
+                    ...teachers.map((t) => ({ value: t.id, label: t.name })),
+                  ]"
+                />
               </div>
               <div>
-                <label
-                  class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
+                <label class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                   >Student</label
                 >
-                <BaseDropdown v-model="quickStudentId" :options="[{ value: '', label: 'Select Student' }, ...students.map(s => ({ value: s.id, label: s.name }))]" />
+                <BaseDropdown
+                  v-model="quickStudentId"
+                  :options="[
+                    { value: '', label: 'Select Student' },
+                    ...students.map((s) => ({ value: s.id, label: s.name })),
+                  ]"
+                />
               </div>
 
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label
-                    class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
+                  <label class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                     >Date</label
                   >
-                  <input
-                    v-model="quickDate"
-                    type="date"
-                    class="input [color-scheme:dark]"
-                  />
+                  <input v-model="quickDate" type="date" class="input [color-scheme:dark]" />
                 </div>
                 <div>
-                  <label
-                    class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
+                  <label class="text-xs font-semibold uppercase text-on-surface/60 block mb-2"
                     >Time</label
                   >
-                  <input
-                    v-model="quickTime"
-                    type="time"
-                    class="input [color-scheme:dark]"
-                  />
+                  <input v-model="quickTime" type="time" class="input [color-scheme:dark]" />
                 </div>
               </div>
               <button
@@ -1164,18 +1147,8 @@ const openLiveAnalytics = function () {
     :current-user-id="authStore.currentUser?.id ?? 0"
     :users="allUsers"
     @close="selectedSession = null"
-    @approve-admin="
-      (id: number) => {
-        handleApproveAdmin(id)
-        selectedSession = null
-      }
-    "
-    @reject-admin="
-      (id: number) => {
-        handleRejectAdmin(id)
-        selectedSession = null
-      }
-    "
+    @approve-admin="(id: number) => { handleApproveAdmin(id); selectedSession = null }"
+    @reject-admin="(id: number) => { handleRejectAdmin(id); selectedSession = null }"
     @complete-admin="
       (id: number) => {
         handleCompleteAdmin(id)
@@ -1188,42 +1161,17 @@ const openLiveAnalytics = function () {
         selectedSession = null
       }
     "
-    @approve-teacher="
-      (id: number) => {
-        handleApproveAdmin(id)
-        selectedSession = null
-      }
-    "
-    @reject-teacher="
-      (id: number) => {
-        handleRejectAdmin(id)
-        selectedSession = null
-      }
-    "
-    @counter-teacher="
-      (s: any) => {
-        handleApproveAdmin(s.id)
-        selectedSession = null
-      }
-    "
-    @approve-student="
-      (id: number) => {
-        handleApproveAdmin(id)
-        selectedSession = null
-      }
-    "
+    @approve-teacher="(id: number) => { handleApproveAdmin(id); selectedSession = null }"
+    @reject-teacher="(id: number) => { handleRejectAdmin(id); selectedSession = null }"
+    @counter-teacher="(s: any) => { handleApproveAdmin(s.id); selectedSession = null }"
+    @approve-student="(id: number) => { handleApproveAdmin(id); selectedSession = null }"
     @reject-student="
       async (id: number) => {
         try { await scheduleStore.rejectAsStudent(id); await scheduleStore.fetchAllSessions() } catch { toast.error('Action failed') }
         selectedSession = null
       }
     "
-    @counter-student="
-      (s: any) => {
-        handleApproveAdmin(s.id)
-        selectedSession = null
-      }
-    "
+    @counter-student="(s: any) => { handleApproveAdmin(s.id); selectedSession = null }"
     @edit-admin="
       () => {
         selectedSession = null

@@ -52,7 +52,12 @@ const baseDate = computed(() => {
 const displayMonthYear = computed(() => {
   const d = baseDate.value
   if (activeView.value === 'day') {
-    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    return d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
   } else {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   }
@@ -74,7 +79,9 @@ const calendarDays = computed<DayData[]>(() => {
       .filter((s: any) => new Date(s.startTime).toDateString() === iso)
       .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
 
-    return [{ label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions }]
+    return [
+      { label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions },
+    ]
   }
 
   if (activeView.value === 'week') {
@@ -96,7 +103,15 @@ const calendarDays = computed<DayData[]>(() => {
         .filter((s: any) => new Date(s.startTime).toDateString() === iso)
         .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
 
-      return { label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions }
+      return {
+        label,
+        dateNum: date.getDate(),
+        iso,
+        date,
+        isToday,
+        isWeekend,
+        sessions: daySessions,
+      }
     })
   }
 
@@ -104,23 +119,23 @@ const calendarDays = computed<DayData[]>(() => {
   const d = baseDate.value
   const year = d.getFullYear()
   const month = d.getMonth()
-  
+
   const firstDay = new Date(year, month, 1)
   const startDayOfWeek = firstDay.getDay() || 7
-  
+
   const gridStart = new Date(firstDay)
   gridStart.setDate(firstDay.getDate() - startDayOfWeek + 1)
-  
+
   const lastDay = new Date(year, month + 1, 0)
   const endDayOfWeek = lastDay.getDay() || 7
-  
+
   const gridEnd = new Date(lastDay)
   gridEnd.setDate(lastDay.getDate() + (7 - endDayOfWeek))
-  
+
   const days: DayData[] = []
   const current = new Date(gridStart)
   const dayLabels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
-  
+
   while (current <= gridEnd) {
     const date = new Date(current)
     const iso = date.toDateString()
@@ -128,18 +143,26 @@ const calendarDays = computed<DayData[]>(() => {
     const dow = date.getDay()
     const isWeekend = dow === 0 || dow === 6
     const label = dayLabels[(dow || 7) - 1]
-    
+
     const daySessions = props.sessions
       .filter((s: any) => new Date(s.startTime).toDateString() === iso)
       .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-      
-    days.push({ label, dateNum: date.getDate(), iso, date, isToday, isWeekend, sessions: daySessions })
+
+    days.push({
+      label,
+      dateNum: date.getDate(),
+      iso,
+      date,
+      isToday,
+      isWeekend,
+      sessions: daySessions,
+    })
     current.setDate(current.getDate() + 1)
   }
   return days
 })
 
-const formatTime = function(iso: string) {
+const formatTime = function (iso: string) {
   const d = new Date(iso)
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
@@ -147,67 +170,71 @@ const formatTime = function(iso: string) {
 const themeStatusStyles = (status: string) => {
   const map: Record<string, string> = {
     scheduled:
-      'bg-teal-100/60 border-teal-300 text-teal-800 dark:bg-teal-500/10 dark:border-teal-500/30 dark:text-teal-300',
+      'bg-success-container/60 border-success text-on-success-container dark:bg-success/10 dark:border-success/30 dark:text-success',
     completed:
-      'bg-emerald-100/60 border-emerald-300 text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300',
+      'bg-success-container/60 border-success text-on-success-container dark:bg-success/10 dark:border-success/30 dark:text-success',
     pending_teacher:
-      'bg-amber-100/60 border-amber-300 text-amber-800 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-300',
+      'bg-warning-container/60 border-warning text-on-warning-container dark:bg-warning/10 dark:border-warning/30 dark:text-warning',
     pending_student:
-      'bg-primary-container/60 border-primary text-primary dark:bg-primary/10 dark:border-primary/30 dark:text-primary',
+      'bg-primary-container/60 border-primary text-primary dark:bg-primary/10 dark:border-primary/30',
     pending_admin:
-      'bg-blue-100/60 border-blue-300 text-blue-800 dark:bg-blue-500/10 dark:border-blue-500/30 dark:text-blue-300',
+      'bg-tertiary-container/60 border-tertiary text-on-tertiary-container dark:bg-tertiary/10 dark:border-tertiary/30 dark:text-tertiary',
     pending_verification:
-      'bg-violet-100/60 border-violet-300 text-violet-800 dark:bg-violet-500/10 dark:border-violet-500/30 dark:text-violet-300',
+      'bg-tertiary-container/60 border-tertiary text-on-tertiary-container dark:bg-tertiary/10 dark:border-tertiary/30 dark:text-tertiary',
     overdue:
-      'bg-rose-100/60 border-rose-300 text-rose-800 dark:bg-rose-500/15 dark:border-rose-500/40 dark:text-rose-300',
+      'bg-error-container/60 border-error text-on-error-container dark:bg-error/15 dark:border-error/40 dark:text-error',
     overdue_rejected:
-      'bg-red-100/60 border-red-400 text-red-800 dark:bg-red-500/15 dark:border-red-500/40 dark:text-red-300',
+      'bg-error-container/60 border-error text-on-error-container dark:bg-error/15 dark:border-error/40 dark:text-error',
     rejected:
-      'bg-red-100/50 border-red-300 text-red-800 dark:bg-red-500/10 dark:border-red-500/25 dark:text-red-400',
+      'bg-error-container/50 border-error text-on-error-container dark:bg-error/10 dark:border-error/25 dark:text-error',
     cancelled:
-      'bg-zinc-100/50 border-zinc-300 text-zinc-600 dark:bg-zinc-500/10 dark:border-zinc-500/20 dark:text-zinc-400',
+      'bg-surface-container/50 border-outline-variant text-on-surface-variant dark:bg-surface-container-high/10 dark:border-outline-variant/20',
   }
-  return (
-    map[status] ??
-    'bg-surface-container-low border-outline-variant text-on-surface-variant dark:bg-surface-container-low dark:border-outline-variant dark:text-on-surface-variant'
-  )
+  return map[status] ?? 'bg-surface-container-low border-outline-variant text-on-surface-variant'
 }
 
-const statusLabel = function(status: string): string  {
+const statusLabel = function (status: string): string {
   const map: Record<string, string> = {
-    scheduled:            'Confirmed',
-    completed:            'Done',
-    pending_teacher:      'Aw. Teacher',
-    pending_student:      'Countered',
-    pending_admin:        'Aw. Admin',
+    scheduled: 'Confirmed',
+    completed: 'Done',
+    pending_teacher: 'Aw. Teacher',
+    pending_student: 'Countered',
+    pending_admin: 'Aw. Admin',
     pending_verification: 'In Review',
-    overdue:              'Overdue',
-    overdue_rejected:     'Proof Rej.',
-    rejected:             'Declined',
-    cancelled:            'Cancelled',
+    overdue: 'Overdue',
+    overdue_rejected: 'Proof Rej.',
+    rejected: 'Declined',
+    cancelled: 'Cancelled',
   }
   return map[status] ?? status
 }
 
-const statusDotColor = function(status: string): string  {
+const statusDotColor = function (status: string): string {
   const map: Record<string, string> = {
-    scheduled:            'bg-teal-400',
-    completed:            'bg-emerald-400',
-    pending_teacher:      'bg-amber-400',
-    pending_student:      'bg-primary',
-    pending_admin:        'bg-blue-400',
-    pending_verification: 'bg-violet-400',
-    overdue:              'bg-rose-400',
-    overdue_rejected:     'bg-red-500',
-    rejected:             'bg-red-400',
-    cancelled:            'bg-zinc-400',
+    scheduled: 'bg-success',
+    completed: 'bg-success',
+    pending_teacher: 'bg-warning',
+    pending_student: 'bg-primary',
+    pending_admin: 'bg-tertiary',
+    pending_verification: 'bg-tertiary',
+    overdue: 'bg-error',
+    overdue_rejected: 'bg-error',
+    rejected: 'bg-error',
+    cancelled: 'bg-surface-container-high',
   }
-  return map[status] ?? 'bg-zinc-400'
+  return map[status] ?? 'bg-surface-container-high'
 }
 
-const previous = function() { offset.value-- }
-const next = function() { offset.value++ }
-const resetToToday = function() { currentDate.value = new Date(); offset.value = 0 }
+const previous = function () {
+  offset.value--
+}
+const next = function () {
+  offset.value++
+}
+const resetToToday = function () {
+  currentDate.value = new Date()
+  offset.value = 0
+}
 
 // Drag & Drop
 const onDragStart = (event: DragEvent, session: Session) => {
@@ -221,16 +248,16 @@ const onDrop = (event: DragEvent, targetDate: Date) => {
   const rawData = event.dataTransfer?.getData('application/json')
   if (!rawData) return
   const session = JSON.parse(rawData) as Session
-  
+
   const oldStart = new Date(session.startTime)
   const oldEnd = new Date(session.endTime)
   const durationMs = oldEnd.getTime() - oldStart.getTime()
-  
+
   const newStart = new Date(targetDate)
   newStart.setHours(oldStart.getHours(), oldStart.getMinutes(), 0, 0)
-  
+
   const newEnd = new Date(newStart.getTime() + durationMs)
-  
+
   emit('reschedule', { session, newStart, newEnd })
 }
 
@@ -256,14 +283,14 @@ const limitForView = computed(() => {
 // eight entries wrapped to three lines and pushed the grid off screen.
 const legendOpen = ref(false)
 const legendItems = [
-  { dot: 'bg-teal-400',    text: 'text-teal-600 dark:text-teal-400',       label: 'Confirmed' },
-  { dot: 'bg-emerald-400', text: 'text-emerald-600 dark:text-emerald-400', label: 'Done' },
-  { dot: 'bg-amber-400',   text: 'text-amber-600 dark:text-amber-400',     label: 'Aw. Teacher' },
-  { dot: 'bg-primary',     text: 'text-primary',                           label: 'Countered' },
-  { dot: 'bg-blue-400',    text: 'text-blue-600 dark:text-blue-400',       label: 'Aw. Admin' },
-  { dot: 'bg-violet-400',  text: 'text-violet-600 dark:text-violet-400',   label: 'In Review' },
-  { dot: 'bg-rose-400',    text: 'text-rose-600 dark:text-rose-400',       label: 'Overdue' },
-  { dot: 'bg-red-500',     text: 'text-red-600 dark:text-red-400',         label: 'Proof Rej.' },
+  { dot: 'bg-success', text: 'text-success', label: 'Confirmed' },
+  { dot: 'bg-success', text: 'text-success', label: 'Done' },
+  { dot: 'bg-warning', text: 'text-warning', label: 'Aw. Teacher' },
+  { dot: 'bg-primary', text: 'text-primary', label: 'Countered' },
+  { dot: 'bg-tertiary', text: 'text-tertiary', label: 'Aw. Admin' },
+  { dot: 'bg-tertiary', text: 'text-tertiary', label: 'In Review' },
+  { dot: 'bg-error', text: 'text-error', label: 'Overdue' },
+  { dot: 'bg-error', text: 'text-error', label: 'Proof Rej.' },
 ]
 
 const viewOptions = [
@@ -275,17 +302,17 @@ const viewOptions = [
 
 <template>
   <div
-    class="bg-surface-container-lowest dark:bg-surface-container-lowest liquid-glass rounded-3xl p-4 sm:p-6 border border-outline-variant dark:border-outline-variant shadow-xl transition-colors duration-300 flex flex-col h-full space-y-4 sm:space-y-6"
+    class="bg-surface-container-lowest liquid-glass rounded-3xl p-4 sm:p-6 border border-outline-variant shadow-xl transition-colors duration-300 flex flex-col h-full space-y-4 sm:space-y-6"
   >
     <!-- Calendar Controls -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-3">
-        <h3 class="text-lg sm:text-2xl font-semibold text-on-surface dark:text-on-surface tracking-tight">
+        <h3 class="text-lg sm:text-2xl font-semibold text-on-surface tracking-tight">
           {{ displayMonthYear }}
         </h3>
         <button
           v-if="offset !== 0"
-          class="px-3 py-1.5 rounded-full bg-primary-container dark:bg-primary/10 text-primary dark:text-primary text-xs font-semibold uppercase hover:bg-primary-container dark:hover:bg-primary/20 transition-colors"
+          class="px-3 py-1.5 rounded-full bg-primary-container dark:bg-primary/10 text-primary text-xs font-semibold uppercase hover:bg-primary-container dark:hover:bg-primary/20 transition-colors"
           @click="resetToToday"
         >
           Today
@@ -296,22 +323,24 @@ const viewOptions = [
       <div class="flex items-center gap-2 sm:gap-3">
         <!-- Phone: the three views collapse into the shared dropdown. -->
         <div class="sm:hidden flex-1">
-          <BaseDropdown
-            v-model="activeView"
-            size="sm"
-            :options="viewOptions"
-          />
+          <BaseDropdown v-model="activeView" size="sm" :options="viewOptions" />
         </div>
 
         <!-- Tablet and up: segmented control. rounded-full on the track so it
              matches the pill it contains — a rounded-2xl track left visible
              corner gaps around the selected pill. -->
-        <div class="hidden sm:flex bg-surface-container-high dark:bg-surface-container-high p-1 rounded-full border border-outline-variant dark:border-outline-variant">
+        <div
+          class="hidden sm:flex bg-surface-container-high p-1 rounded-full border border-outline-variant"
+        >
           <button
-            v-for="view in (['day', 'week', 'month'] as const)"
+            v-for="view in ['day', 'week', 'month'] as const"
             :key="view"
             class="px-4 py-1.5 rounded-full text-xs font-semibold uppercase transition-all"
-            :class="activeView === view ? 'bg-primary text-on-primary shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+            :class="
+              activeView === view
+                ? 'bg-primary text-on-primary shadow-md'
+                : 'text-on-surface-variant hover:text-on-surface'
+            "
             @click="activeView = view"
           >
             {{ view }}
@@ -340,9 +369,14 @@ const viewOptions = [
             v-if="legendOpen"
             class="absolute right-0 top-full z-30 mt-2 w-52 rounded-2xl border border-outline-variant bg-surface-container p-3 shadow-2xl"
           >
-            <div class="mb-2 flex items-center justify-between border-b border-outline-variant pb-1.5">
+            <div
+              class="mb-2 flex items-center justify-between border-b border-outline-variant pb-1.5"
+            >
               <span class="text-xs font-semibold uppercase text-on-surface">Legend</span>
-              <button class="text-on-surface-variant hover:text-on-surface" @click="legendOpen = false">
+              <button
+                class="text-on-surface-variant hover:text-on-surface"
+                @click="legendOpen = false"
+              >
                 <span class="material-symbols-outlined text-sm">close</span>
               </button>
             </div>
@@ -364,31 +398,40 @@ const viewOptions = [
     <!-- Calendar Grid -->
     <div
       class="grid flex-1 gap-2 sm:gap-3"
-      :class="{ 'grid-cols-1': activeView === 'day', 'grid-cols-1 sm:grid-cols-7': activeView === 'week' || activeView === 'month' }"
+      :class="{
+        'grid-cols-1': activeView === 'day',
+        'grid-cols-1 sm:grid-cols-7': activeView === 'week' || activeView === 'month',
+      }"
     >
       <div
         v-for="day in calendarDays"
         :key="day.iso"
-        class="flex h-full flex-row sm:flex-col bg-surface-container dark:bg-surface-container border border-outline-variant dark:border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors group relative"
-        :class="{ 'ring-2 ring-teal-400 border-transparent': day.isToday }"
+        class="flex h-full flex-row sm:flex-col bg-surface-container border border-outline-variant rounded-2xl overflow-hidden hover:border-outline dark:hover:border-outline transition-colors group relative"
+        :class="{ 'ring-2 ring-success border-transparent': day.isToday }"
         @dragover.prevent
         @drop="onDrop($event, day.date)"
         @click="emit('dayClick', { date: day.date, sessions: day.sessions })"
       >
         <!-- Day Header -->
         <div
-          class="flex w-16 shrink-0 flex-col items-center justify-center border-r p-2 text-center border-outline-variant dark:border-outline-variant sm:w-auto sm:border-b sm:border-r-0"
-          :class="day.isToday ? 'bg-teal-500/10 dark:bg-teal-500/10' : 'bg-surface-container-high dark:bg-surface-container-high'"
+          class="flex w-16 shrink-0 flex-col items-center justify-center border-r p-2 text-center border-outline-variant sm:w-auto sm:border-b sm:border-r-0"
+          :class="day.isToday ? 'bg-success/10' : 'bg-surface-container-high'"
         >
           <p
             class="text-xs font-semibold uppercase mb-1"
-            :class="day.isToday ? 'text-teal-600 dark:text-teal-400' : day.isWeekend ? 'text-on-surface-variant/50 dark:text-on-surface-variant/40' : 'text-on-surface-variant dark:text-on-surface-variant'"
+            :class="
+              day.isToday
+                ? 'text-success'
+                : day.isWeekend
+                  ? 'text-on-surface-variant/50 dark:text-on-surface-variant/40'
+                  : 'text-on-surface-variant'
+            "
           >
             {{ day.label }}
           </p>
           <div
             class="size-8 rounded-full flex items-center justify-center mx-auto text-sm font-semibold transition-all"
-            :class="day.isToday ? 'bg-primary text-on-primary shadow-e1' : 'text-on-surface dark:text-on-surface'"
+            :class="day.isToday ? 'bg-primary text-on-primary shadow-e1' : 'text-on-surface'"
           >
             {{ day.dateNum }}
           </div>
@@ -409,8 +452,13 @@ const viewOptions = [
             @click.stop="emit('sessionClick', session)"
           >
             <div class="flex items-center gap-1 mb-0.5">
-              <span class="size-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
-              <span class="font-semibold text-xs truncate">{{ formatTime(session.startTime) }}</span>
+              <span
+                class="size-1.5 rounded-full shrink-0"
+                :class="statusDotColor(session.status)"
+              ></span>
+              <span class="font-semibold text-xs truncate">{{
+                formatTime(session.startTime)
+              }}</span>
             </div>
             <p class="text-xs font-bold uppercase opacity-75 truncate">
               {{ statusLabel(session.status) }}
@@ -418,12 +466,9 @@ const viewOptions = [
           </div>
 
           <!-- Session Overflow Chip -->
-          <div 
-            v-if="day.sessions.length > limitForView" 
-            class="mt-1"
-          >
+          <div v-if="day.sessions.length > limitForView" class="mt-1">
             <button
-              class="w-full text-center py-1 text-xs font-semibold uppercase text-primary dark:text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+              class="w-full text-center py-1 text-xs font-semibold uppercase text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
               @click.stop="toggleOverflow(day.iso, day.sessions)"
             >
               +{{ day.sessions.length - limitForView }} more
@@ -436,7 +481,7 @@ const viewOptions = [
             class="absolute inset-x-0 bottom-2 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <span
-              class="size-7 rounded-full bg-surface-container-high dark:bg-surface-container-high shadow flex items-center justify-center text-on-surface-variant dark:text-on-surface-variant"
+              class="size-7 rounded-full bg-surface-container-high shadow flex items-center justify-center text-on-surface-variant"
             >
               <span class="material-symbols-outlined text-sm">add</span>
             </span>
@@ -446,12 +491,15 @@ const viewOptions = [
         <!-- Overflow Popover -->
         <div
           v-if="overflowOpenDay === day.iso"
-          class="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-surface-container-lowest dark:bg-surface-container-lowest border border-outline-variant dark:border-outline-variant rounded-2xl p-3 shadow-2xl space-y-2 max-h-60 overflow-y-auto"
+          class="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-surface-container-lowest border border-outline-variant rounded-2xl p-3 shadow-2xl space-y-2 max-h-60 overflow-y-auto"
           @click.stop
         >
           <div class="flex items-center justify-between border-b border-outline-variant pb-1.5">
             <span class="text-xs font-semibold uppercase text-on-surface">All Sessions</span>
-            <button class="text-on-surface-variant hover:text-on-surface" @click="overflowOpenDay = null">
+            <button
+              class="text-on-surface-variant hover:text-on-surface"
+              @click="overflowOpenDay = null"
+            >
               <span class="material-symbols-outlined text-sm">close</span>
             </button>
           </div>
@@ -463,7 +511,10 @@ const viewOptions = [
             @click.stop="emit('sessionClick', session); overflowOpenDay = null"
           >
             <div class="flex items-center gap-1 mb-0.5">
-              <span class="size-1.5 rounded-full shrink-0" :class="statusDotColor(session.status)"></span>
+              <span
+                class="size-1.5 rounded-full shrink-0"
+                :class="statusDotColor(session.status)"
+              ></span>
               <span class="font-semibold text-xs">{{ formatTime(session.startTime) }}</span>
             </div>
             <p class="text-xs font-bold uppercase opacity-75">
@@ -473,6 +524,5 @@ const viewOptions = [
         </div>
       </div>
     </div>
-
   </div>
 </template>

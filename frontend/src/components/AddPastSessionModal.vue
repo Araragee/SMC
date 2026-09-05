@@ -1,27 +1,27 @@
 <script setup lang="ts">
 import { API_URL } from '@typescript/constants'
-import { ref, computed, watch } from 'vue';
-import { useUsersStore } from '@stores/users';
-import BaseCard from '@components/BaseCard.vue';
-import BaseDropdown from '@/components/BaseDropdown.vue';
-import BaseButton from '@components/BaseButton.vue';
-import BaseInput from '@components/BaseInput.vue';
-import type { User } from '@types';
-import axios from 'axios';
+import { ref, computed, watch } from 'vue'
+import { useUsersStore } from '@stores/users'
+import BaseCard from '@components/BaseCard.vue'
+import BaseDropdown from '@/components/BaseDropdown.vue'
+import BaseButton from '@components/BaseButton.vue'
+import BaseInput from '@components/BaseInput.vue'
+import type { User } from '@types'
+import axios from 'axios'
 
 const props = defineProps<{
-  isOpen: boolean;
-  student: User;
-}>();
+  isOpen: boolean
+  student: User
+}>()
 
 const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'created'): void;
-}>();
+  (e: 'close'): void
+  (e: 'created'): void
+}>()
 
-const usersStore = useUsersStore();
+const usersStore = useUsersStore()
 
-const isSubmitting = ref(false);
+const isSubmitting = ref(false)
 
 const formData = ref({
   teacherId: '',
@@ -30,33 +30,40 @@ const formData = ref({
   startTime: '10:00',
   endTime: '11:00',
   sessionNumber: undefined as number | undefined,
-  notes: ''
-});
+  notes: '',
+})
 
-watch(() => props.isOpen, (newVal) => {
-  if (newVal) {
-    formData.value = {
-      teacherId: '',
-      instrumentId: '',
-      date: new Date().toISOString().split('T')[0],
-      startTime: '10:00',
-      endTime: '11:00',
-      sessionNumber: undefined,
-      notes: ''
-    };
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    if (newVal) {
+      formData.value = {
+        teacherId: '',
+        instrumentId: '',
+        date: new Date().toISOString().split('T')[0],
+        startTime: '10:00',
+        endTime: '11:00',
+        sessionNumber: undefined,
+        notes: '',
+      }
+    }
   }
-});
+)
 
-const teachers = computed(() => usersStore.users.filter(u => u.role === 'teacher'));
-const studentInstruments = computed(() => props.student.instruments || []);
+const teachers = computed(() => usersStore.users.filter((u) => u.role === 'teacher'))
+const studentInstruments = computed(() => props.student.instruments || [])
 
 const handleSubmit = async () => {
-  if (!formData.value.teacherId || !formData.value.date) return;
+  if (!formData.value.teacherId || !formData.value.date) return
 
-  isSubmitting.value = true;
+  isSubmitting.value = true
   try {
-    const startDateTime = new Date(`${formData.value.date}T${formData.value.startTime}:00`).toISOString();
-    const endDateTime = new Date(`${formData.value.date}T${formData.value.endTime}:00`).toISOString();
+    const startDateTime = new Date(
+      `${formData.value.date}T${formData.value.startTime}:00`
+    ).toISOString()
+    const endDateTime = new Date(
+      `${formData.value.date}T${formData.value.endTime}:00`
+    ).toISOString()
 
     const payload = {
       teacher_id: Number(formData.value.teacherId),
@@ -65,60 +72,89 @@ const handleSubmit = async () => {
       end_time: endDateTime,
       instrument_id: formData.value.instrumentId ? Number(formData.value.instrumentId) : undefined,
       session_number: formData.value.sessionNumber,
-      notes: formData.value.notes
-    };
+      notes: formData.value.notes,
+    }
 
-    await axios.post(`${API_URL}/sessions/record`, payload);
-    emit('created');
-    emit('close');
+    await axios.post(`${API_URL}/sessions/record`, payload)
+    emit('created')
+    emit('close')
   } catch (err) {
-    console.error("Failed to add past session", err);
+    console.error('Failed to add past session', err)
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
-};
+}
 </script>
 
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70">
-    <BaseCard class="modal-shell w-full max-w-md liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
-      <button @click="$emit('close')" class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined">close</button>
+  <div
+    v-if="isOpen"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70"
+  >
+    <BaseCard
+      class="modal-shell w-full max-w-md liquid-glass border border-on-surface/10 p-6 flex flex-col relative"
+    >
+      <button
+        @click="$emit('close')"
+        class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined"
+      >
+        close
+      </button>
 
       <h2 class="text-xl font-bold text-on-surface mb-2">Add Past Session</h2>
-      <p class="text-sm text-on-surface/50 mb-6">Create a manual record of a completed session for {{ student.name }}.</p>
+      <p class="text-sm text-on-surface/50 mb-6">
+        Create a manual record of a completed session for {{ student.name }}.
+      </p>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
-
         <div>
           <label class="block text-sm font-medium text-on-surface/70 mb-1">Teacher</label>
-          <BaseDropdown v-model="formData.teacherId" placeholder="Select a teacher" :options="[...teachers.map(t => ({ value: t.id, label: t.name }))]" />
+          <BaseDropdown
+            v-model="formData.teacherId"
+            placeholder="Select a teacher"
+            :options="[...teachers.map((t) => ({ value: t.id, label: t.name }))]"
+          />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-on-surface/70 mb-1">Instrument</label>
-          <BaseDropdown v-model="formData.instrumentId" placeholder="No instruments enrolled" :options="[{ value: '', label: 'Select an instrument (Optional)' }, ...studentInstruments.map(inst => ({ value: inst.id, label: inst.name }))]" />
+          <BaseDropdown
+            v-model="formData.instrumentId"
+            placeholder="No instruments enrolled"
+            :options="[
+              { value: '', label: 'Select an instrument (Optional)' },
+              ...studentInstruments.map((inst) => ({ value: inst.id, label: inst.name })),
+            ]"
+          />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-           <div class="col-span-2">
-             <BaseInput v-model="formData.date" type="date" label="Date" required />
-           </div>
-           <BaseInput v-model="formData.startTime" type="time" label="Start Time" required />
-           <BaseInput v-model="formData.endTime" type="time" label="End Time" required />
+          <div class="col-span-2">
+            <BaseInput v-model="formData.date" type="date" label="Date" required />
+          </div>
+          <BaseInput v-model="formData.startTime" type="time" label="Start Time" required />
+          <BaseInput v-model="formData.endTime" type="time" label="End Time" required />
         </div>
 
-        <BaseInput v-model.number="formData.sessionNumber" type="number" label="Session Number (Optional)" placeholder="e.g., 5" />
+        <BaseInput
+          v-model.number="formData.sessionNumber"
+          type="number"
+          label="Session Number (Optional)"
+          placeholder="e.g., 5"
+        />
 
         <div>
-           <label class="block text-sm font-medium text-on-surface/70 mb-1">Notes</label>
-           <textarea v-model="formData.notes" rows="3" class="input resize-none"></textarea>
+          <label class="block text-sm font-medium text-on-surface/70 mb-1">Notes</label>
+          <textarea v-model="formData.notes" rows="3" class="input resize-none"></textarea>
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-on-surface/5 mt-6">
           <BaseButton type="button" variant="secondary" @click="$emit('close')">Cancel</BaseButton>
           <BaseButton type="submit" :disabled="isSubmitting">
-             <span v-if="isSubmitting" class="material-symbols-outlined animate-spin text-sm mr-2">autorenew</span>
-             Save Record
+            <span v-if="isSubmitting" class="material-symbols-outlined animate-spin text-sm mr-2"
+              >autorenew</span
+            >
+            Save Record
           </BaseButton>
         </div>
       </form>

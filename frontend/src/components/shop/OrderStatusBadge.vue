@@ -7,12 +7,18 @@ defineProps<{
 
 const getStatusColor = (status: OrderStatus) => {
   switch (status) {
-    case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-    case 'approved': return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-    case 'fulfilled': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-    case 'rejected': return 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-    case 'cancelled': return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
-    default: return 'bg-on-surface/5 dark:bg-on-surface/5 text-on-surface-variant dark:text-on-surface-variant border-outline-variant/20 dark:border-on-surface/10'
+    case 'pending':
+      return 'bg-warning/10 text-warning border-warning/20'
+    case 'approved':
+      return 'bg-tertiary/10 text-tertiary border-tertiary/20'
+    case 'fulfilled':
+      return 'bg-success/10 text-success border-success/20'
+    case 'rejected':
+      return 'bg-error/10 text-error border-error/20'
+    case 'cancelled':
+      return 'bg-surface-container-high/10 text-on-surface-variant border-outline-variant/20'
+    default:
+      return 'bg-on-surface/5 text-on-surface-variant border-outline-variant/20 dark:border-on-surface/10'
   }
 }
 </script>

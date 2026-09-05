@@ -100,7 +100,9 @@
   --primary: #f0a68e;
   --on-primary: #4a1b0f;
   --primary-container: #7a3524;
+  --primary-container-rgb: 122 53 36;
   --on-primary-container: #fbe0d6;
+  --on-primary-container-rgb: 251 224 214;
   --primary-container-border: #934834;
   --primary-dim: #e0937a;
   --primary-fixed: #fbe0d6;
@@ -116,7 +118,9 @@
   --secondary: #b3c9ba;
   --on-secondary: #1d3327;
   --secondary-container: #33473c;
+  --secondary-container-rgb: 51 71 60;
   --on-secondary-container: #ddebe1;
+  --on-secondary-container-rgb: 221 235 225;
   --secondary-dim: #9fb8a7;
   --secondary-fixed: #ddebe1;
   --secondary-fixed-dim: #b3c9ba;
@@ -127,7 +131,9 @@
   --tertiary: #bfb5e0;
   --on-tertiary: #2b2148;
   --tertiary-container: #3f3560;
+  --tertiary-container-rgb: 63 53 96;
   --on-tertiary-container: #e6e1f5;
+  --on-tertiary-container-rgb: 230 225 245;
   --tertiary-dim: #aa9fd1;
   --tertiary-fixed: #e6e1f5;
   --tertiary-fixed-dim: #bfb5e0;
@@ -136,21 +142,40 @@
 
   /* Error — desaturated so it reads as serious, not alarming */
   --error: #f2a9a2;
+  --error-rgb: 242 169 162;
   --on-error: #4d100c;
   --error-container: #7d2b25;
+  --error-container-rgb: 125 43 37;
   --on-error-container: #fbdeda;
+  --on-error-container-rgb: 251 222 218;
   --error-dim: #dd9089;
 
   /* Success / warning — used by status chips */
   --success: #9ed3ae;
+  --success-rgb: 158 211 174;
   --on-success: #10321d;
   --success-container: #2c4a37;
+  --success-container-rgb: 44 74 55;
   --on-success-container: #d8efe0;
+  --on-success-container-rgb: 216 239 224;
   --warning: #e8c88a;
+  --warning-rgb: 232 200 138;
   --on-warning: #3d2c08;
   --warning-container: #5c4519;
+  --warning-container-rgb: 92 69 25;
   --on-warning-container: #f7e7c8;
 
+  --on-warning-container-rgb: 247 231 200;
+
+  /* Info — powder blue, the fourth accent. Distinct from tertiary so states
+     like "scheduled" and "awaiting admin" don't collapse into one colour. */
+  --info: #a8c8e8;
+  --info-rgb: 168 200 232;
+  --on-info: #10263d;
+  --info-container: #274157;
+  --info-container-rgb: 39 65 87;
+  --on-info-container: #d6e6f5;
+  --on-info-container-rgb: 214 230 245;
   /* Surfaces — warm neutral ramp, each step ~4% lighter */
   --surface: #1a1717;
   --on-surface: #f4efec;
@@ -158,10 +183,13 @@
   --surface-dim: #141212;
   --surface-bright: #302b2b;
   --surface-container-lowest: #201c1c;
+  --surface-container-lowest-rgb: 32 28 28;
   --surface-container-low: #221e1e;
   --surface-container-low-rgb: 34 30 30;
   --surface-container: #241f1f;
+  --surface-container-rgb: 36 31 31;
   --surface-container-high: #2b2626;
+  --surface-container-high-rgb: 43 38 38;
   --surface-container-highest: #322c2c;
   --surface-container-highest-rgb: 50 44 44;
   --surface-variant: #2b2626;
@@ -193,7 +221,9 @@
   --primary: #a9503a;
   --on-primary: #ffffff;
   --primary-container: #fbe0d6;
+  --primary-container-rgb: 251 224 214;
   --on-primary-container: #4a1b0f;
+  --on-primary-container-rgb: 74 27 15;
   --primary-container-border: #f0c9ba;
   --primary-dim: #934834;
   --primary-fixed: #fbe0d6;
@@ -209,7 +239,9 @@
   --secondary: #4a6353;
   --on-secondary: #ffffff;
   --secondary-container: #ddebe1;
+  --secondary-container-rgb: 221 235 225;
   --on-secondary-container: #26382f;
+  --on-secondary-container-rgb: 38 56 47;
   --secondary-dim: #3d5344;
   --secondary-fixed: #ddebe1;
   --secondary-fixed-dim: #c6ddce;
@@ -220,7 +252,9 @@
   --tertiary: #5b4f80;
   --on-tertiary: #ffffff;
   --tertiary-container: #e6e1f5;
+  --tertiary-container-rgb: 230 225 245;
   --on-tertiary-container: #33294d;
+  --on-tertiary-container-rgb: 51 41 77;
   --tertiary-dim: #4d436d;
   --tertiary-fixed: #e6e1f5;
   --tertiary-fixed-dim: #d2cbec;
@@ -228,20 +262,40 @@
   --on-tertiary-fixed-variant: #3f3560;
 
   --error: #a33028;
+
+  --error-rgb: 163 48 40;
   --on-error: #ffffff;
   --error-container: #fbdeda;
+  --error-container-rgb: 251 222 218;
   --on-error-container: #5b1512;
+  --on-error-container-rgb: 91 21 18;
   --error-dim: #8c2820;
 
   --success: #2f6b45;
+
+  --success-rgb: 47 107 69;
   --on-success: #ffffff;
   --success-container: #d8efe0;
+  --success-container-rgb: 216 239 224;
   --on-success-container: #10321d;
+  --on-success-container-rgb: 16 50 29;
   --warning: #7a5a14;
+  --warning-rgb: 122 90 20;
   --on-warning: #ffffff;
   --warning-container: #f7e7c8;
+  --warning-container-rgb: 247 231 200;
   --on-warning-container: #3d2c08;
 
+  --on-warning-container-rgb: 61 44 8;
+
+  /* Info — powder blue, the fourth accent. */
+  --info: #2f5f8a;
+  --info-rgb: 47 95 138;
+  --on-info: #ffffff;
+  --info-container: #d9e9f7;
+  --info-container-rgb: 217 233 247;
+  --on-info-container: #13324c;
+  --on-info-container-rgb: 19 50 76;
   /* Surfaces — warm cream ramp */
   --surface: #fbf8f5;
   --on-surface: #2b2523;
@@ -249,10 +303,13 @@
   --surface-dim: #ede4de;
   --surface-bright: #ffffff;
   --surface-container-lowest: #ffffff;
+  --surface-container-lowest-rgb: 255 255 255;
   --surface-container-low: #f7f2ee;
   --surface-container-low-rgb: 247 242 238;
   --surface-container: #f3ece7;
+  --surface-container-rgb: 243 236 231;
   --surface-container-high: #ede4de;
+  --surface-container-high-rgb: 237 228 222;
   --surface-container-highest: #e7dcd5;
   --surface-container-highest-rgb: 231 220 213;
   --surface-variant: #f3ece7;
@@ -386,19 +443,19 @@ p {
    ============================================================ */
 
 /* Text */
-.text-on-surface            { color: var(--on-surface); }
-.text-on-surface-variant    { color: var(--on-surface-variant); }
-.text-on-background         { color: var(--on-background); }
-.text-on-primary            { color: var(--on-primary); }
+.text-on-surface  { color: var(--on-surface); }
+.text-on-surface-variant  { color: var(--on-surface-variant); }
+.text-on-background  { color: var(--on-background); }
+.text-on-primary  { color: var(--on-primary); }
 .text-on-primary-container  { color: var(--on-primary-container); }
-.text-on-secondary          { color: var(--on-secondary); }
+.text-on-secondary  { color: var(--on-secondary); }
 .text-on-secondary-container{ color: var(--on-secondary-container); }
-.text-on-tertiary           { color: var(--on-tertiary); }
-.text-surface               { color: var(--surface); }
-.text-primary               { color: var(--primary); }
-.text-outline               { color: var(--outline); }
-.text-outline-variant       { color: var(--outline-variant); }
-.text-secondary             { color: var(--secondary); }
+.text-on-tertiary  { color: var(--on-tertiary); }
+.text-surface  { color: var(--surface); }
+.text-primary  { color: var(--primary); }
+.text-outline  { color: var(--outline); }
+.text-outline-variant  { color: var(--outline-variant); }
+.text-secondary  { color: var(--secondary); }
 
 /* Opacity variants of on-surface-variant */
 .text-on-surface-variant\/40 { color: rgb(var(--on-surface-variant-rgb) / 0.4); }
@@ -406,31 +463,31 @@ p {
 .text-on-surface-variant\/60 { color: rgb(var(--on-surface-variant-rgb) / 0.6); }
 
 /* Hover text */
-.hover\:text-on-surface:hover         { color: var(--on-surface); }
+.hover\:text-on-surface:hover  { color: var(--on-surface); }
 .hover\:text-on-surface-variant:hover { color: var(--on-surface-variant); }
-.group:hover .group-hover\:text-on-surface        { color: var(--on-surface); }
+.group:hover .group-hover\:text-on-surface  { color: var(--on-surface); }
 .group:hover .group-hover\:text-on-surface-variant{ color: var(--on-surface-variant); }
 
 /* Backgrounds */
-.bg-surface                    { background-color: var(--surface); }
-.bg-surface-dim                { background-color: var(--surface-dim); }
-.bg-surface-bright             { background-color: var(--surface-bright); }
-.bg-surface-variant            { background-color: var(--surface-variant); }
-.bg-surface-container          { background-color: var(--surface-container); }
-.bg-surface-container-low      { background-color: var(--surface-container-low); }
-.bg-surface-container-high     { background-color: var(--surface-container-high); }
+.bg-surface  { background-color: var(--surface); }
+.bg-surface-dim  { background-color: var(--surface-dim); }
+.bg-surface-bright  { background-color: var(--surface-bright); }
+.bg-surface-variant  { background-color: var(--surface-variant); }
+.bg-surface-container  { background-color: var(--surface-container); }
+.bg-surface-container-low  { background-color: var(--surface-container-low); }
+.bg-surface-container-high  { background-color: var(--surface-container-high); }
 .bg-surface-container-highest  { background-color: var(--surface-container-highest); }
-.bg-surface-container-lowest   { background-color: var(--surface-container-lowest); }
-.bg-outline-variant            { background-color: var(--outline-variant); }
-.bg-secondary-container        { background-color: var(--secondary-container); }
+.bg-surface-container-lowest  { background-color: var(--surface-container-lowest); }
+.bg-outline-variant  { background-color: var(--outline-variant); }
+.bg-secondary-container  { background-color: var(--secondary-container); }
 
 /* Opacity bg variants */
-.bg-surface-container-low\/40     { background-color: rgb(var(--surface-container-low-rgb) / 0.4); }
-.bg-surface-container-low\/80     { background-color: rgb(var(--surface-container-low-rgb) / 0.8); }
+.bg-surface-container-low\/40  { background-color: rgb(var(--surface-container-low-rgb) / 0.4); }
+.bg-surface-container-low\/80  { background-color: rgb(var(--surface-container-low-rgb) / 0.8); }
 .bg-surface-container-highest\/30 { background-color: rgb(var(--surface-container-highest-rgb) / 0.3); }
 .bg-surface-container-highest\/50 { background-color: rgb(var(--surface-container-highest-rgb) / 0.5); }
 .bg-surface-container-highest\/80 { background-color: rgb(var(--surface-container-highest-rgb) / 0.8); }
-.bg-outline-variant\/20           { background-color: rgb(var(--outline-variant-rgb) / 0.2); }
+.bg-outline-variant\/20  { background-color: rgb(var(--outline-variant-rgb) / 0.2); }
 
 /* Primary opacity bg */
 .bg-primary\/10  { background-color: rgb(var(--primary-rgb) / 0.1); }
@@ -438,44 +495,44 @@ p {
 .bg-primary\/30  { background-color: rgb(var(--primary-rgb) / 0.3); }
 
 /* Borders */
-.border-outline-variant   { border-color: var(--outline-variant); }
-.border-outline           { border-color: var(--outline); }
+.border-outline-variant  { border-color: var(--outline-variant); }
+.border-outline  { border-color: var(--outline); }
 .border-surface-container-highest { border-color: var(--surface-container-highest); }
-.border-primary           { border-color: var(--primary); }
+.border-primary  { border-color: var(--primary); }
 
 /* Border opacity variants */
 .border-outline-variant\/20 { border-color: rgb(var(--outline-variant-rgb) / 0.2); }
 .border-outline-variant\/30 { border-color: rgb(var(--outline-variant-rgb) / 0.3); }
 .border-outline-variant\/40 { border-color: rgb(var(--outline-variant-rgb) / 0.4); }
-.border-primary\/30         { border-color: rgb(var(--primary-rgb) / 0.3); }
-.border-primary\/50         { border-color: rgb(var(--primary-rgb) / 0.5); }
+.border-primary\/30  { border-color: rgb(var(--primary-rgb) / 0.3); }
+.border-primary\/50  { border-color: rgb(var(--primary-rgb) / 0.5); }
 
 /* Ring */
 .ring-on-surface\/20 { --tw-ring-color: rgb(var(--on-surface-rgb) / 0.2); }
-.ring-primary\/40    { --tw-ring-color: rgb(var(--primary-rgb) / 0.4); }
-.ring-primary\/50    { --tw-ring-color: rgb(var(--primary-rgb) / 0.5); }
+.ring-primary\/40  { --tw-ring-color: rgb(var(--primary-rgb) / 0.4); }
+.ring-primary\/50  { --tw-ring-color: rgb(var(--primary-rgb) / 0.5); }
 
 /* Selection */
 .selection\:bg-primary\/30 *::selection { background-color: rgb(var(--primary-rgb) / 0.3); }
 
 /* Status + accent tokens added with the pastel palette. */
-.bg-primary-container         { background-color: var(--primary-container); }
-.bg-secondary-container       { background-color: var(--secondary-container); }
-.bg-tertiary-container        { background-color: var(--tertiary-container); }
-.bg-error-container           { background-color: var(--error-container); }
-.bg-success-container         { background-color: var(--success-container); }
-.bg-warning-container         { background-color: var(--warning-container); }
-.bg-primary                   { background-color: var(--primary); }
-.bg-error                     { background-color: var(--error); }
+.bg-primary-container  { background-color: var(--primary-container); }
+.bg-secondary-container  { background-color: var(--secondary-container); }
+.bg-tertiary-container  { background-color: var(--tertiary-container); }
+.bg-error-container  { background-color: var(--error-container); }
+.bg-success-container  { background-color: var(--success-container); }
+.bg-warning-container  { background-color: var(--warning-container); }
+.bg-primary  { background-color: var(--primary); }
+.bg-error  { background-color: var(--error); }
 
-.text-on-tertiary-container   { color: var(--on-tertiary-container); }
-.text-on-error-container      { color: var(--on-error-container); }
-.text-on-success-container    { color: var(--on-success-container); }
-.text-on-warning-container    { color: var(--on-warning-container); }
-.text-error                   { color: var(--error); }
-.text-success                 { color: var(--success); }
-.text-warning                 { color: var(--warning); }
-.text-tertiary                { color: var(--tertiary); }
+.text-on-tertiary-container  { color: var(--on-tertiary-container); }
+.text-on-error-container  { color: var(--on-error-container); }
+.text-on-success-container  { color: var(--on-success-container); }
+.text-on-warning-container  { color: var(--on-warning-container); }
+.text-error  { color: var(--error); }
+.text-success  { color: var(--success); }
+.text-warning  { color: var(--warning); }
+.text-tertiary  { color: var(--tertiary); }
 
 /* ============================================
    Mobile & PWA Safeties
@@ -509,13 +566,15 @@ p {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Improve touch targets for buttons globally */
-  button, a {
-    min-width: 44px;
+  /* Touch targets.
+  This used to also set min-width:44px and display:inline-flex on every
+  button and anchor. Both did damage: a short pill like "ALL" or "AUTH" was
+  forced to 44x44 and, with rounded-full, rendered as a circle with its
+  label crushed inside; and inline-flex pulled text links out of the line
+  box they belong to. Height is the dimension that matters for a thumb and
+  is inert on inline elements, so constrain only that. */
+  button {
     min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 }
 
@@ -530,24 +589,24 @@ p {
 @layer components {
 
   /* — Page shell ————————————————————————— */
-  .page            { @apply mx-auto w-full max-w-[1600px] space-y-8 px-0 pb-28 sm:px-6; }
-  .page-header     { @apply flex flex-col gap-4 md:flex-row md:items-end md:justify-between; }
-  .page-eyebrow    { @apply text-xs font-semibold uppercase text-primary; }
-  .page-title      { @apply text-balance text-3xl font-bold text-on-surface; }
-  .page-subtitle   { @apply max-w-prose text-pretty text-sm text-on-surface-variant; }
-  .section-title   { @apply text-balance text-lg font-semibold text-on-surface; }
+  .page  { @apply mx-auto w-full max-w-[1600px] space-y-8 px-0 pb-28 sm:px-6; }
+  .page-header  { @apply flex flex-col gap-4 md:flex-row md:items-end md:justify-between; }
+  .page-eyebrow  { @apply text-xs font-semibold uppercase text-primary; }
+  .page-title  { @apply text-balance text-3xl font-bold text-on-surface; }
+  .page-subtitle  { @apply max-w-prose text-pretty text-sm text-on-surface-variant; }
+  .section-title  { @apply text-balance text-lg font-semibold text-on-surface; }
   .section-caption { @apply text-pretty text-sm text-on-surface-variant; }
 
   /* — Surfaces ——————————————————————————— */
-  .card        { @apply rounded-3xl border border-outline-variant/30 bg-surface-container; }
-  .card-pad    { @apply p-6; }
+  .card  { @apply rounded-3xl border border-outline-variant/30 bg-surface-container; }
+  .card-pad  { @apply p-6; }
   .card-header { @apply flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant/20 px-6 py-5; }
 
   /* — Forms ——————————————————————————————— */
-  .field       { @apply space-y-2; }
+  .field  { @apply space-y-2; }
   .field-label { @apply block text-sm font-medium text-on-surface-variant; }
   .field-hint  { @apply text-xs text-on-surface-variant; }
-  .field-error { @apply text-xs font-medium text-red-500; }
+  .field-error { @apply text-xs font-medium text-error; }
   .input {
     @apply w-full rounded-xl border border-outline-variant/40 bg-surface-container-highest/20 px-4 py-3
            text-base sm:text-sm text-on-surface transition-colors placeholder:text-on-surface-variant/60
@@ -563,21 +622,21 @@ p {
   }
   .btn-primary { @apply btn bg-primary text-white shadow-sm hover:bg-primary/90; }
   .btn-subtle  { @apply btn border border-outline-variant/40 bg-surface-container-highest/20 text-on-surface hover:bg-surface-container-highest/40; }
-  .btn-ghost   { @apply btn text-on-surface-variant hover:bg-on-surface/5 hover:text-on-surface; }
-  .btn-danger  { @apply btn bg-red-500 text-white hover:bg-red-600; }
-  .btn-sm      { @apply px-3.5 py-2 text-xs; }
+  .btn-ghost  { @apply btn text-on-surface-variant hover:bg-on-surface/5 hover:text-on-surface; }
+  .btn-danger  { @apply btn bg-error text-white hover:bg-error; }
+  .btn-sm  { @apply px-3.5 py-2 text-xs; }
   .icon-btn {
     @apply inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-transparent
            text-on-surface-variant transition-colors hover:bg-on-surface/5 hover:text-on-surface
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40;
   }
-  .icon-btn-danger { @apply icon-btn hover:bg-red-500/10 hover:text-red-500; }
+  .icon-btn-danger { @apply icon-btn hover:bg-error/10 hover:text-error; }
 
   /* — Tables ——————————————————————————————— */
-  .data-table       { @apply w-full border-collapse text-left; }
+  .data-table  { @apply w-full border-collapse text-left; }
   .data-table thead { @apply bg-surface-container-highest/20; }
-  .data-table th    { @apply px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold uppercase text-on-surface-variant; }
-  .data-table td    { @apply px-4 py-3 sm:px-6 sm:py-4 align-middle text-sm text-on-surface; }
+  .data-table th  { @apply px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold uppercase text-on-surface-variant; }
+  .data-table td  { @apply px-4 py-3 sm:px-6 sm:py-4 align-middle text-sm text-on-surface; }
   .data-table tbody tr { @apply border-t border-outline-variant/15; }
   /* Below md a wide table cannot be read by scrolling sideways through three
      screenfuls, so `.stacked` re-flows each row into a label/value card. The
@@ -602,15 +661,15 @@ p {
   }
 
   .cell-strong  { @apply font-semibold text-on-surface; }
-  .cell-muted   { @apply text-sm text-on-surface-variant; }
-  .num          { @apply tabular-nums; }
+  .cell-muted  { @apply text-sm text-on-surface-variant; }
+  .num  { @apply tabular-nums; }
 
   /* — Overlays ————————————————————————————— */
   .modal-shell { @apply max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain; }
 
   /* — Alerts —————————————————————————————
      Status banners use the pastel container tokens rather than a translucent
-     slice of a raw palette colour. The old bg-red-500/10 pattern let whatever
+  slice of a raw palette colour. The old bg-error/10 pattern let whatever
      sat behind the banner bleed through and decide its final contrast; the
      container/on-container pairs are verified at WCAG AA in both themes.
 
@@ -620,15 +679,15 @@ p {
   .alert {
     @apply flex items-start gap-3 rounded-2xl p-4;
   }
-  .alert-error   { @apply alert bg-error-container   text-on-error-container; }
+  .alert-error  { @apply alert bg-error-container  text-on-error-container; }
   .alert-warning { @apply alert bg-warning-container text-on-warning-container; }
   .alert-success { @apply alert bg-success-container text-on-success-container; }
-  .alert-info    { @apply alert bg-primary-container text-on-primary-container; }
-  .alert-title   { @apply font-bold; }
-  .alert-body    { @apply text-sm opacity-90; }
+  .alert-info  { @apply alert bg-primary-container text-on-primary-container; }
+  .alert-title  { @apply font-bold; }
+  .alert-body  { @apply text-sm opacity-90; }
 
   /* — Bits ————————————————————————————————— */
-  .badge     { @apply inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium; }
+  .badge  { @apply inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium; }
   .empty-state { @apply flex flex-col items-center gap-3 px-6 py-16 text-center; }
   .skeleton-row { @apply h-16 animate-pulse rounded-xl bg-surface-container-highest/20; }
 }

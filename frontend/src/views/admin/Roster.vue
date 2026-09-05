@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseDropdown from '@/components/BaseDropdown.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useRosterStore, type BulkResult } from '@stores/roster'
@@ -24,11 +24,14 @@ const isSubmitting = ref(false)
 const approvingId = ref<number | null>(null)
 const approveHours = ref<number>(8)
 
-const approveRequest = async function(enrollment: Enrollment) {
+const approveRequest = async function (enrollment: Enrollment) {
   isSubmitting.value = true
   try {
     await rosterStore.approveEnrollment(enrollment.id, approveHours.value)
-    toast.success('Enrollment approved', `${userName(enrollment.studentId)} now has ${approveHours.value} hours.`)
+    toast.success(
+      'Enrollment approved',
+      `${userName(enrollment.studentId)} now has ${approveHours.value} hours.`
+    )
     approvingId.value = null
   } catch (err: any) {
     toast.error('Approve failed', err?.response?.data?.detail ?? err?.message)
@@ -37,9 +40,9 @@ const approveRequest = async function(enrollment: Enrollment) {
   }
 }
 
-const rejectRequest = async function(enrollment: Enrollment) {
+const rejectRequest = async function (enrollment: Enrollment) {
   const ok = await dialog.confirm(
-    `Reject ${userName(enrollment.studentId)}'s request to enrol with ${userName(enrollment.teacherId)}?`,
+    `Reject ${userName(enrollment.studentId)}'s request to enrol with ${userName(enrollment.teacherId)}?`
   )
   if (!ok) return
   try {
@@ -58,14 +61,13 @@ const students = computed(() => usersStore.getUsersByRole('student'))
 
 const userName = (id: number) => usersStore.users.find((u) => u.id === id)?.name ?? `#${id}`
 
-
 const enrollmentRows = computed(() => {
   const term = search.value.trim().toLowerCase()
   return rosterStore.enrollments.filter(
     (e) =>
       !term ||
       userName(e.studentId).toLowerCase().includes(term) ||
-      userName(e.teacherId).toLowerCase().includes(term),
+      userName(e.teacherId).toLowerCase().includes(term)
   )
 })
 
@@ -104,7 +106,6 @@ const handlePicked = async (studentIds: number[], sessions: number) => {
   }
 }
 
-
 const openEdit = (enrollment: Enrollment) => {
   editing.value = enrollment
   editForm.teacherId = enrollment.teacherId
@@ -128,9 +129,12 @@ const saveEdit = async () => {
 
 const handleDeleteEnrollment = async (enrollment: Enrollment) => {
   const label = `${userName(enrollment.studentId)} · ${userName(enrollment.teacherId)}`
-  const ok = await dialog.confirm(`Delete the enrollment for ${label}? Unused credits are rolled back.`, {
-    title: 'Delete enrollment',
-  })
+  const ok = await dialog.confirm(
+    `Delete the enrollment for ${label}? Unused credits are rolled back.`,
+    {
+      title: 'Delete enrollment',
+    }
+  )
   if (!ok) return
   try {
     await rosterStore.deleteEnrollment(enrollment.id)
@@ -140,7 +144,7 @@ const handleDeleteEnrollment = async (enrollment: Enrollment) => {
     if (err?.response?.status === 409) {
       const force = await dialog.confirm(
         'This enrollment already has completed sessions. Archive it instead? History is kept.',
-        { title: 'Archive enrollment' },
+        { title: 'Archive enrollment' }
       )
       if (!force) return
       await rosterStore.deleteEnrollment(enrollment.id, true)
@@ -189,35 +193,51 @@ onMounted(async () => {
         <div class="field">
           <label for="roster-teacher" class="field-label">Teacher</label>
           <div class="relative">
-            <BaseDropdown :options="[...teachers.map(teacher => ({ value: teacher.id, label: teacher.name }))]" />
+            <BaseDropdown
+              :options="[
+                ...teachers.map((teacher) => ({ value: teacher.id, label: teacher.name })),
+              ]"
+            />
             <span
               class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-lg text-on-surface-variant"
               aria-hidden="true"
-            >expand_more</span>
+              >expand_more</span
+            >
           </div>
           <p class="field-hint">Adds and bulk enrollments apply to this teacher.</p>
         </div>
         <div class="field">
           <label for="roster-search" class="field-label">Search</label>
-          <input id="roster-search" v-model="search" type="search" class="input" placeholder="Filter by name" />
+          <input
+            id="roster-search"
+            v-model="search"
+            type="search"
+            class="input"
+            placeholder="Filter by name"
+          />
         </div>
       </div>
 
       <div class="flex gap-2 border-b border-outline-variant/20" role="tablist">
         <button
-          v-for="tab in (['enrollments', 'requests'] as Tab[])"
+          v-for="tab in ['enrollments', 'requests'] as Tab[]"
           :key="tab"
           role="tab"
           :aria-selected="activeTab === tab"
           class="-mb-px border-b-2 px-4 py-3 text-sm font-semibold capitalize transition-colors"
-          :class="activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'"
+          :class="
+            activeTab === tab
+              ? 'border-primary text-primary'
+              : 'border-transparent text-on-surface-variant hover:text-on-surface'
+          "
           @click="activeTab = tab"
         >
           {{ tab === 'enrollments' ? 'Enrollments' : 'Requests' }}
           <span
             v-if="tab === 'requests' && rosterStore.pendingEnrollments.length"
             class="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-xs text-on-primary"
-          >{{ rosterStore.pendingEnrollments.length }}</span>
+            >{{ rosterStore.pendingEnrollments.length }}</span
+          >
         </button>
       </div>
 
@@ -225,7 +245,11 @@ onMounted(async () => {
       <!-- Pending student requests -->
       <div v-if="activeTab === 'requests'">
         <div v-if="!rosterStore.pendingEnrollments.length" class="empty-state">
-          <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">inbox</span>
+          <span
+            class="material-symbols-outlined text-4xl text-on-surface-variant"
+            aria-hidden="true"
+            >inbox</span
+          >
           <p class="section-title">No pending requests</p>
           <p class="section-caption">Student enrollment requests will appear here for approval.</p>
         </div>
@@ -243,11 +267,16 @@ onMounted(async () => {
               <tr v-for="req in rosterStore.pendingEnrollments" :key="req.id">
                 <td data-label="Student" class="cell-strong">{{ userName(req.studentId) }}</td>
                 <td data-label="Teacher">{{ userName(req.teacherId) }}</td>
-                <td data-label="Requested" class="cell-muted">{{ new Date(req.createdAt).toLocaleDateString() }}</td>
+                <td data-label="Requested" class="cell-muted">
+                  {{ new Date(req.createdAt).toLocaleDateString() }}
+                </td>
                 <td data-label="" class="text-right">
                   <!-- Hours are set at approval because they follow payment;
                        the request itself carries none. -->
-                  <div v-if="approvingId === req.id" class="flex w-full items-center justify-end gap-2">
+                  <div
+                    v-if="approvingId === req.id"
+                    class="flex w-full items-center justify-end gap-2"
+                  >
                     <input
                       v-model.number="approveHours"
                       type="number"
@@ -255,13 +284,22 @@ onMounted(async () => {
                       class="input w-24 py-1.5 text-sm"
                       aria-label="Hours to grant"
                     />
-                    <button class="btn-primary btn-sm" :disabled="isSubmitting || approveHours < 1" @click="approveRequest(req)">
+                    <button
+                      class="btn-primary btn-sm"
+                      :disabled="isSubmitting || approveHours < 1"
+                      @click="approveRequest(req)"
+                    >
                       Grant
                     </button>
                     <button class="btn-ghost btn-sm" @click="approvingId = null">Cancel</button>
                   </div>
                   <div v-else class="flex w-full items-center justify-end gap-2">
-                    <button class="btn-primary btn-sm" @click="approvingId = req.id; approveHours = 8">Approve</button>
+                    <button
+                      class="btn-primary btn-sm"
+                      @click="approvingId = req.id; approveHours = 8"
+                    >
+                      Approve
+                    </button>
                     <button class="btn-subtle btn-sm" @click="rejectRequest(req)">Reject</button>
                   </div>
                 </td>
@@ -276,7 +314,11 @@ onMounted(async () => {
           <div v-for="i in 4" :key="i" class="skeleton-row" />
         </div>
         <div v-else-if="!enrollmentRows.length" class="empty-state">
-          <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">receipt_long</span>
+          <span
+            class="material-symbols-outlined text-4xl text-on-surface-variant"
+            aria-hidden="true"
+            >receipt_long</span
+          >
           <p class="section-title">No enrollments yet</p>
           <p class="section-caption">Enroll students in bulk to grant session credits.</p>
           <button class="btn-primary btn-sm" @click="openPicker()">Bulk enroll</button>
@@ -296,15 +338,23 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr v-for="enrollment in enrollmentRows" :key="enrollment.id">
-                <td data-label="Student" class="cell-strong">{{ userName(enrollment.studentId) }}</td>
-                <td data-label="Teacher" class="cell-muted">{{ userName(enrollment.teacherId) }}</td>
+                <td data-label="Student" class="cell-strong">
+                  {{ userName(enrollment.studentId) }}
+                </td>
+                <td data-label="Teacher" class="cell-muted">
+                  {{ userName(enrollment.teacherId) }}
+                </td>
                 <td data-label="Purchased" class="num">{{ enrollment.sessionsPurchased }}</td>
                 <td data-label="Used" class="num">{{ enrollment.sessionsUsed }}</td>
                 <td data-label="Left" class="num cell-strong">{{ enrollment.sessionsLeft }}</td>
                 <td data-label="Status">
                   <span
                     class="badge"
-                    :class="enrollment.isActive === false ? 'border-outline-variant/40 text-on-surface-variant' : 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400'"
+                    :class="
+                      enrollment.isActive === false
+                        ? 'border-outline-variant/40 text-on-surface-variant'
+                        : 'border-success/30 text-success'
+                    "
                   >
                     {{ enrollment.isActive === false ? 'Archived' : 'Active' }}
                   </span>
@@ -323,7 +373,9 @@ onMounted(async () => {
                       :aria-label="`Delete enrollment for ${userName(enrollment.studentId)}`"
                       @click="handleDeleteEnrollment(enrollment)"
                     >
-                      <span class="material-symbols-outlined text-lg" aria-hidden="true">delete</span>
+                      <span class="material-symbols-outlined text-lg" aria-hidden="true"
+                        >delete</span
+                      >
                     </button>
                   </div>
                 </td>
@@ -367,7 +419,11 @@ onMounted(async () => {
           <form class="space-y-4" @submit.prevent="saveEdit">
             <div class="field">
               <label for="edit-teacher" class="field-label">Teacher</label>
-              <BaseDropdown :options="[...teachers.map(teacher => ({ value: teacher.id, label: teacher.name }))]" />
+              <BaseDropdown
+                :options="[
+                  ...teachers.map((teacher) => ({ value: teacher.id, label: teacher.name })),
+                ]"
+              />
             </div>
             <div class="field">
               <label for="edit-purchased" class="field-label">Sessions purchased</label>

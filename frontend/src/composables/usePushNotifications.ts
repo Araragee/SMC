@@ -34,9 +34,7 @@ function pkToPayload(sub: PushSubscription): PushSubscriptionPayload {
 
 export function usePushNotifications() {
   const isSupported = 'serviceWorker' in navigator && 'PushManager' in window
-  const permission = ref<NotificationPermission>(
-    isSupported ? Notification.permission : 'denied'
-  )
+  const permission = ref<NotificationPermission>(isSupported ? Notification.permission : 'denied')
   const subscribed = ref(false)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -102,9 +100,11 @@ export function usePushNotifications() {
       const sub = await reg?.pushManager.getSubscription()
       if (sub) {
         const auth = useAuthStore()
-        await axios.post(`${API_URL}/push/unsubscribe`, pkToPayload(sub), {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }).catch(() => {})
+        await axios
+          .post(`${API_URL}/push/unsubscribe`, pkToPayload(sub), {
+            headers: { Authorization: `Bearer ${auth.token}` },
+          })
+          .catch(() => {})
         await sub.unsubscribe()
       }
       subscribed.value = false
@@ -114,5 +114,14 @@ export function usePushNotifications() {
     }
   }
 
-  return { isSupported, permission, subscribed, loading, error, subscribe, unsubscribe, checkSubscribed }
+  return {
+    isSupported,
+    permission,
+    subscribed,
+    loading,
+    error,
+    subscribe,
+    unsubscribe,
+    checkSubscribed,
+  }
 }

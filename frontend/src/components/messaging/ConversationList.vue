@@ -8,25 +8,24 @@ import NewConversationModal from './NewConversationModal.vue'
 const emit = defineEmits<{ select: [id: number] }>()
 
 const store = useMessagingStore()
-const auth  = useAuthStore()
+const auth = useAuthStore()
 const showNew = ref(false)
 
-const getDisplayName = function(conv: Conversation): string  {
+const getDisplayName = function (conv: Conversation): string {
   if (conv.type === 'session_thread') return conv.name ?? 'Session Thread'
   if (conv.type === 'group') return conv.name ?? 'Group Chat'
   // DM: show the other participant's name
-  const other = conv.participants.find(p => p.userId !== auth.currentUser?.id)
+  const other = conv.participants.find((p) => p.userId !== auth.currentUser?.id)
   return other?.name ?? 'Direct Message'
 }
 
-const getIcon = function(conv: Conversation): string  {
+const getIcon = function (conv: Conversation): string {
   if (conv.type === 'session_thread') return 'event_note'
   if (conv.type === 'group') return 'group'
   return 'chat_bubble'
 }
 
-
-const formatTime = function(iso: string | null | undefined): string  {
+const formatTime = function (iso: string | null | undefined): string {
   if (!iso) return ''
   const d = new Date(iso)
   const now = new Date()
@@ -36,7 +35,7 @@ const formatTime = function(iso: string | null | undefined): string  {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-const onCreated = function(id: number) {
+const onCreated = function (id: number) {
   showNew.value = false
   emit('select', id)
 }
@@ -76,16 +75,28 @@ const onCreated = function(id: number) {
         <!-- Avatar -->
         <div
           class="size-10 rounded-2xl flex items-center justify-center shrink-0 text-sm font-semibold"
-          :class="conv.type === 'session_thread' ? 'bg-blue-500/10 text-blue-400' : conv.type === 'group' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-primary/10 text-primary'"
+          :class="
+            conv.type === 'session_thread'
+              ? 'bg-tertiary/10 text-tertiary'
+              : conv.type === 'group'
+                ? 'bg-success/10 text-success'
+                : 'bg-primary/10 text-primary'
+          "
         >
-          <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1">{{ getIcon(conv) }}</span>
+          <span
+            class="material-symbols-outlined text-lg"
+            style="font-variation-settings: 'FILL' 1"
+            >{{ getIcon(conv) }}</span
+          >
         </div>
 
         <!-- Content -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2">
             <p class="text-sm font-bold text-on-surface truncate">{{ getDisplayName(conv) }}</p>
-            <span class="text-xs text-on-surface-variant shrink-0">{{ formatTime(conv.lastMessage?.createdAt) }}</span>
+            <span class="text-xs text-on-surface-variant shrink-0">{{
+              formatTime(conv.lastMessage?.createdAt)
+            }}</span>
           </div>
           <p class="text-xs text-on-surface-variant truncate mt-0.5">
             {{ conv.lastMessage?.body ?? 'No messages yet' }}
@@ -95,9 +106,13 @@ const onCreated = function(id: number) {
         <!-- Unread badge -->
         <span
           v-if="(store.unreadCounts[conv.id] ?? conv.unreadCount) > 0"
-          class="min-w-[18px] h-[18px] bg-primary rounded-full text-xs font-semibold text-on-surface flex items-center justify-center px-1 shrink-0"
+          class="min-w-[18px] h-[18px] bg-primary rounded-full text-xs font-semibold text-on-primary flex items-center justify-center px-1 shrink-0"
         >
-          {{ (store.unreadCounts[conv.id] ?? conv.unreadCount) > 99 ? '99+' : (store.unreadCounts[conv.id] ?? conv.unreadCount) }}
+          {{
+            (store.unreadCounts[conv.id] ?? conv.unreadCount) > 99
+              ? '99+'
+              : (store.unreadCounts[conv.id] ?? conv.unreadCount)
+          }}
         </span>
       </button>
     </div>

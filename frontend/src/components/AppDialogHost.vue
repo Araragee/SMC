@@ -36,7 +36,9 @@ function handleKeydown(e: KeyboardEvent) {
       >
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="handleCancel" />
 
-        <div class="modal-shell relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl">
+        <div
+          class="modal-shell relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl"
+        >
           <!-- Accent glow -->
           <div
             class="absolute top-0 right-0 size-28 blur-[64px] rounded-full -z-10 pointer-events-none"
@@ -49,13 +51,21 @@ function handleKeydown(e: KeyboardEvent) {
               class="material-symbols-outlined text-2xl"
               :class="dialogState.destructive ? 'text-error' : 'text-primary'"
             >
-              {{ dialogState.type === 'prompt' ? 'edit_note' : (dialogState.destructive ? 'warning' : 'help') }}
+              {{
+                dialogState.type === 'prompt'
+                  ? 'edit_note'
+                  : dialogState.destructive
+                    ? 'warning'
+                    : 'help'
+              }}
             </span>
             <h3 class="text-lg font-semibold text-on-surface">{{ dialogState.title }}</h3>
           </div>
 
           <!-- Message -->
-          <p class="text-sm text-on-surface-variant mb-4 leading-relaxed">{{ dialogState.message }}</p>
+          <p class="text-sm text-on-surface-variant mb-4 leading-relaxed">
+            {{ dialogState.message }}
+          </p>
 
           <!-- Input for prompt mode -->
           <div v-if="dialogState.type === 'prompt'" class="mb-4">
@@ -78,7 +88,11 @@ function handleKeydown(e: KeyboardEvent) {
             </button>
             <button
               class="px-4 py-2 rounded-2xl text-sm font-bold transition-all"
-              :class="dialogState.destructive ? 'bg-error/90 hover:bg-error text-on-error shadow-[0_0_20px_-4px_rgba(186,26,26,0.4)]' : 'bg-primary/90 hover:bg-primary text-on-primary shadow-[0_0_20px_-4px_rgba(255,144,109,0.3)]'"
+              :class="
+                dialogState.destructive
+                  ? 'bg-error/90 hover:bg-error text-on-error shadow-[0_0_20px_-4px_rgba(186,26,26,0.4)]'
+                  : 'bg-primary/90 hover:bg-primary text-on-primary shadow-[0_0_20px_-4px_rgba(255,144,109,0.3)]'
+              "
               @click="handleConfirm"
             >
               {{ dialogState.type === 'prompt' ? 'Submit' : 'Confirm' }}

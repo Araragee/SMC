@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseDropdown from '@/components/BaseDropdown.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
@@ -19,8 +19,7 @@ interface ActivityEntry {
 const PAGE_SIZE = 25
 
 const authStore = useAuthStore()
-const authHeaders = () =>
-  authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {}
+const authHeaders = () => (authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {})
 
 const entries = ref<ActivityEntry[]>([])
 const totalCount = ref(0)
@@ -110,12 +109,24 @@ const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_
 
 // Known action types for the filter dropdown
 const ACTION_TYPES = [
-  'session_proposed', 'session_approved', 'session_completed', 'session_rejected',
-  'session_cancelled', 'session_overdue', 'session_force_completed',
-  'payment_recorded', 'payment_updated',
-  'user_created', 'user_updated', 'user_deleted',
-  'enrollment_created', 'enrollment_deleted',
-  'order_approved', 'order_fulfilled', 'order_cancelled', 'order_rejected',
+  'session_proposed',
+  'session_approved',
+  'session_completed',
+  'session_rejected',
+  'session_cancelled',
+  'session_overdue',
+  'session_force_completed',
+  'payment_recorded',
+  'payment_updated',
+  'user_created',
+  'user_updated',
+  'user_deleted',
+  'enrollment_created',
+  'enrollment_deleted',
+  'order_approved',
+  'order_fulfilled',
+  'order_cancelled',
+  'order_rejected',
   'low_stock_alert',
 ]
 
@@ -125,13 +136,13 @@ function actionLabel(type: string) {
 }
 
 function actionColor(type: string): string {
-  if (type.includes('complete')) return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+  if (type.includes('complete')) return 'bg-success/10 text-success border-success/20'
   if (type.includes('scheduled') || type.includes('created'))
-    return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+    return 'bg-tertiary/10 text-tertiary border-tertiary/20'
   if (type.includes('reject') || type.includes('fail'))
-    return 'bg-red-500/10 text-red-500 border-red-500/20'
-  if (type.includes('payment')) return 'bg-teal-500/10 text-teal-500 border-teal-500/20'
-  if (type.includes('force')) return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+    return 'bg-error/10 text-error border-error/20'
+  if (type.includes('payment')) return 'bg-success/10 text-success border-success/20'
+  if (type.includes('force')) return 'bg-warning/10 text-warning border-warning/20'
   return 'bg-surface-container text-on-surface-variant border-outline-variant/30'
 }
 
@@ -174,13 +185,11 @@ function timeAgo(dateStr: string) {
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div
-          class="size-10 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center"
+          class="size-10 rounded-2xl bg-tertiary/10 border border-tertiary/20 flex items-center justify-center"
         >
-          <span class="material-symbols-outlined text-violet-500 text-2xl">history</span>
+          <span class="material-symbols-outlined text-tertiary text-2xl">history</span>
         </div>
-        <p class="text-xs font-semibold text-violet-500 uppercase">
-          Audit Trail
-        </p>
+        <p class="text-xs font-semibold text-tertiary uppercase">Audit Trail</p>
       </div>
       <div class="flex items-end justify-between gap-4 flex-wrap">
         <div>
@@ -198,7 +207,8 @@ function timeAgo(dateStr: string) {
             <span
               class="material-symbols-outlined text-lg"
               :class="isExporting ? 'animate-spin' : ''"
-            >{{ isExporting ? 'progress_activity' : 'download' }}</span>
+              >{{ isExporting ? 'progress_activity' : 'download' }}</span
+            >
             {{ isExporting ? 'Exporting…' : 'Export CSV' }}
           </button>
           <button
@@ -216,33 +226,25 @@ function timeAgo(dateStr: string) {
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="glass-heavy rounded-3xl p-4 border border-outline-variant/30 text-center">
         <p class="text-2xl font-semibold text-on-surface">{{ totalCount }}</p>
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">
-          Total Events
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">Total Events</p>
       </div>
       <div class="glass-heavy rounded-3xl p-4 border border-outline-variant/30 text-center">
-        <p class="text-2xl font-semibold text-emerald-500">
+        <p class="text-2xl font-semibold text-success">
           {{ entries.filter((e) => e.action_type.includes('complete')).length }}
         </p>
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">
-          Completions
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">Completions</p>
       </div>
       <div class="glass-heavy rounded-3xl p-4 border border-outline-variant/30 text-center">
-        <p class="text-2xl font-semibold text-blue-500">
+        <p class="text-2xl font-semibold text-tertiary">
           {{ entries.filter((e) => e.action_type.includes('scheduled')).length }}
         </p>
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">
-          Scheduled
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">Scheduled</p>
       </div>
       <div class="glass-heavy rounded-3xl p-4 border border-outline-variant/30 text-center">
-        <p class="text-2xl font-semibold text-teal-500">
+        <p class="text-2xl font-semibold text-success">
           {{ entries.filter((e) => e.action_type.includes('payment')).length }}
         </p>
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">
-          Payments
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">Payments</p>
       </div>
     </div>
 
@@ -259,7 +261,14 @@ function timeAgo(dateStr: string) {
           class="bg-transparent text-base sm:text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
         />
       </div>
-      <BaseDropdown v-model="actionFilter" @change="resetPage" :options="[{ value: 'all', label: 'All Actions' }, ...ACTION_TYPES.map(a => ({ value: a, label: actionLabel(a) }))]" />
+      <BaseDropdown
+        v-model="actionFilter"
+        @change="resetPage"
+        :options="[
+          { value: 'all', label: 'All Actions' },
+          ...ACTION_TYPES.map((a) => ({ value: a, label: actionLabel(a) })),
+        ]"
+      />
     </div>
 
     <!-- Log Feed -->
@@ -279,9 +288,9 @@ function timeAgo(dateStr: string) {
       <!-- Error -->
       <div
         v-else-if="error"
-        class="glass-medium rounded-3xl p-12 text-center border border-red-500/20"
+        class="glass-medium rounded-3xl p-12 text-center border border-error/20"
       >
-        <span class="material-symbols-outlined text-4xl text-red-500/60 mb-3 block">error</span>
+        <span class="material-symbols-outlined text-4xl text-error/60 mb-3 block">error</span>
         <p class="text-sm font-bold text-on-surface-variant">{{ error }}</p>
       </div>
 
@@ -310,15 +319,17 @@ function timeAgo(dateStr: string) {
           <div
             v-for="entry in entries"
             :key="entry.id"
-            class="glass-heavy rounded-3xl px-4 py-4 border border-outline-variant/30 flex gap-3 items-start hover:border-violet-500/20 transition-all sm:ml-12"
+            class="glass-heavy rounded-3xl px-4 py-4 border border-outline-variant/30 flex gap-3 items-start hover:border-tertiary/20 transition-all sm:ml-12"
           >
             <div
               class="hidden sm:flex size-8 rounded-full border-2 border-surface-container-low items-center justify-center shrink-0"
               :class="actionColor(entry.action_type)"
             >
-              <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1">{{
-                actionIcon(entry.action_type)
-              }}</span>
+              <span
+                class="material-symbols-outlined text-lg"
+                style="font-variation-settings: 'FILL' 1"
+                >{{ actionIcon(entry.action_type) }}</span
+              >
             </div>
 
             <!-- Mobile icon (inline) -->
@@ -326,9 +337,11 @@ function timeAgo(dateStr: string) {
               class="sm:hidden size-9 rounded-2xl flex items-center justify-center shrink-0 border"
               :class="actionColor(entry.action_type)"
             >
-              <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1">{{
-                actionIcon(entry.action_type)
-              }}</span>
+              <span
+                class="material-symbols-outlined text-base"
+                style="font-variation-settings: 'FILL' 1"
+                >{{ actionIcon(entry.action_type) }}</span
+              >
             </div>
 
             <!-- Content -->
@@ -371,9 +384,13 @@ function timeAgo(dateStr: string) {
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalCount > PAGE_SIZE" class="flex items-center justify-between mt-6 gap-3 flex-wrap">
+      <div
+        v-if="totalCount > PAGE_SIZE"
+        class="flex items-center justify-between mt-6 gap-3 flex-wrap"
+      >
         <p class="text-xs font-bold text-on-surface-variant/60 uppercase">
-          {{ totalCount }} event{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} of {{ totalPages }}
+          {{ totalCount }} event{{ totalCount !== 1 ? 's' : '' }} · page {{ currentPage }} of
+          {{ totalPages }}
         </p>
         <div class="flex items-center gap-2">
           <button
@@ -388,12 +405,19 @@ function timeAgo(dateStr: string) {
               v-if="p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1"
               @click="currentPage = p"
               class="size-9 rounded-2xl text-xs font-semibold transition-all border"
-              :class="p === currentPage ? 'bg-violet-500 text-on-surface border-violet-500 shadow-lg shadow-violet-500/20' : 'glass-medium border-outline-variant/30 text-on-surface-variant hover:bg-on-surface/5 dark:hover:bg-on-surface/5'"
-            >{{ p }}</button>
+              :class="
+                p === currentPage
+                  ? 'bg-tertiary text-on-tertiary border-tertiary shadow-lg shadow-tertiary/20'
+                  : 'glass-medium border-outline-variant/30 text-on-surface-variant hover:bg-on-surface/5 dark:hover:bg-on-surface/5'
+              "
+            >
+              {{ p }}
+            </button>
             <span
               v-else-if="p === currentPage - 2 || p === currentPage + 2"
               class="text-on-surface-variant/40 text-xs px-1"
-            >…</span>
+              >…</span
+            >
           </template>
           <button
             :disabled="currentPage === totalPages"
@@ -416,7 +440,7 @@ function timeAgo(dateStr: string) {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-lg;
+  @apply bg-on-surface/80 dark:bg-surface-container-lowest/80 shadow-lg;
 }
 .glass-medium {
   @apply bg-on-surface/40 dark:bg-on-surface/5;

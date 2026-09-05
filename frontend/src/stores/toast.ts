@@ -26,7 +26,7 @@ export const useToastStore = defineStore('toast', {
       setTimeout(() => this.remove(id), duration)
     },
     remove(id: string) {
-      const idx = this.toasts.findIndex(t => t.id === id)
+      const idx = this.toasts.findIndex((t) => t.id === id)
       if (idx !== -1) this.toasts.splice(idx, 1)
     },
     success(title: string, message?: string) {

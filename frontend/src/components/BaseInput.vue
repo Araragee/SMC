@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue';
+import { computed, ref, useId } from 'vue'
 
 interface Props {
-  modelValue?: string | number;
-  label?: string;
-  type?: string;
-  placeholder?: string;
-  iconLeft?: string;
-  error?: string;
-  required?: boolean;
-  disabled?: boolean;
+  modelValue?: string | number
+  label?: string
+  type?: string
+  placeholder?: string
+  iconLeft?: string
+  error?: string
+  required?: boolean
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,49 +17,50 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'text',
   placeholder: '',
   required: false,
-  disabled: false
-});
+  disabled: false,
+})
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-  (e: 'blur', event: FocusEvent): void;
-  (e: 'focus', event: FocusEvent): void;
-}>();
+  (e: 'update:modelValue', value: string): void
+  (e: 'blur', event: FocusEvent): void
+  (e: 'focus', event: FocusEvent): void
+}>()
 
-const id = useId();
-const showPassword = ref(false);
+const id = useId()
+const showPassword = ref(false)
 
 const inputType = computed(() => {
   if (props.type === 'password') {
-    return showPassword.value ? 'text' : 'password';
+    return showPassword.value ? 'text' : 'password'
   }
-  return props.type;
-});
+  return props.type
+})
 
 const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
+  showPassword.value = !showPassword.value
+}
 
 const updateValue = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  emit('update:modelValue', target.value);
-};
+  const target = event.target as HTMLInputElement
+  emit('update:modelValue', target.value)
+}
 
 const computedClasses = computed(() => {
-  const baseClasses = 'w-full min-h-[4rem] border-none rounded-[24px] pr-6 text-on-surface placeholder:text-on-surface-variant transition-all duration-300 focus:ring-1 focus:ring-primary/50 focus:bg-surface-container-high py-[1.4rem]';
+  const baseClasses =
+    'w-full min-h-[4rem] border-none rounded-[24px] pr-6 text-on-surface placeholder:text-on-surface-variant transition-all duration-300 focus:ring-1 focus:ring-primary/50 focus:bg-surface-container-high py-[1.4rem]'
 
   // Padding left adjustments based on left icon
-  const paddingClasses = props.iconLeft ? 'pl-14' : 'pl-6';
+  const paddingClasses = props.iconLeft ? 'pl-14' : 'pl-6'
 
   // Error state
   const stateClasses = props.error
     ? 'bg-error/10 text-error-dim focus:ring-error-dim border border-error/30'
-    : 'bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10';
+    : 'bg-on-surface/5 dark:bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10'
 
-  const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : '';
+  const disabledClasses = props.disabled ? 'opacity-50 cursor-not-allowed' : ''
 
-  return [baseClasses, paddingClasses, stateClasses, disabledClasses].join(' ');
-});
+  return [baseClasses, paddingClasses, stateClasses, disabledClasses].join(' ')
+})
 </script>
 
 <template>
@@ -93,12 +94,14 @@ const computedClasses = computed(() => {
       <!-- Right slot for things like password visibility toggle -->
       <slot name="icon-right">
         <button
-            v-if="type === 'password'"
-            type="button"
-            class="absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer hover:text-on-surface dark:hover:text-on-surface transition-colors"
-            @click="togglePasswordVisibility"
+          v-if="type === 'password'"
+          type="button"
+          class="absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant cursor-pointer hover:text-on-surface dark:hover:text-on-surface transition-colors"
+          @click="togglePasswordVisibility"
         >
-            <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          <span class="material-symbols-outlined">{{
+            showPassword ? 'visibility_off' : 'visibility'
+          }}</span>
         </button>
       </slot>
 
@@ -110,4 +113,3 @@ const computedClasses = computed(() => {
     <p v-if="error" class="text-error-dim text-xs mt-1 ml-1">{{ error }}</p>
   </div>
 </template>
-

@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions
-} from '@headlessui/vue';
-import { computed } from 'vue';
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/vue'
+import { computed } from 'vue'
 
 export interface DropdownOption {
-  value: string | number | null;
-  label: string;
-  disabled?: boolean;
+  value: string | number | null
+  label: string
+  disabled?: boolean
 }
 
 interface Props {
-  modelValue?: string | number | null;
-  options?: DropdownOption[];
-  label?: string;
-  placeholder?: string;
-  iconLeft?: string;
-  error?: string;
-  disabled?: boolean;
-  size?: 'sm' | 'md';
+  modelValue?: string | number | null
+  options?: DropdownOption[]
+  label?: string
+  placeholder?: string
+  iconLeft?: string
+  error?: string
+  disabled?: boolean
+  size?: 'sm' | 'md'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,51 +27,57 @@ const props = withDefaults(defineProps<Props>(), {
   iconLeft: '',
   error: '',
   disabled: false,
-  size: 'md'
-});
+  size: 'md',
+})
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | number | null): void;
-  (e: 'change', value: string | number | null): void;
-}>();
+  (e: 'update:modelValue', value: string | number | null): void
+  (e: 'change', value: string | number | null): void
+}>()
 
 const selected = computed({
   get: () => props.modelValue,
   set: (value: string | number | null) => {
-    emit('update:modelValue', value);
-    emit('change', value);
-  }
-});
+    emit('update:modelValue', value)
+    emit('change', value)
+  },
+})
 
 const selectedLabel = computed(
-  () => props.options.find(o => o.value === props.modelValue)?.label ?? ''
-);
+  () => props.options.find((o) => o.value === props.modelValue)?.label ?? ''
+)
 
-const sizeClasses = computed(() => ({
-  sm: 'py-2 text-xs',
-  md: 'py-3 text-sm'
-}[props.size]));
+const sizeClasses = computed(
+  () =>
+    ({
+      sm: 'py-2 text-xs',
+      md: 'py-3 text-sm',
+    })[props.size]
+)
 
 const stateClasses = computed(() =>
   props.error
     ? 'bg-error-container text-on-error-container border-error'
     : 'bg-surface-container-highest/20 text-on-surface border-outline-variant/40'
-);
+)
 
-const buttonClasses = computed(() => [
-  'relative w-full cursor-pointer rounded-xl border pr-10 text-left transition-colors',
-  'focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/30',
-  'disabled:cursor-not-allowed disabled:opacity-50',
-  props.iconLeft ? 'pl-11' : 'pl-4',
-  sizeClasses.value,
-  stateClasses.value
-].join(' '));
+const buttonClasses = computed(() =>
+  [
+    'relative w-full cursor-pointer rounded-xl border pr-10 text-left transition-colors',
+    'focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/30',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    props.iconLeft ? 'pl-11' : 'pl-4',
+    sizeClasses.value,
+    stateClasses.value,
+  ].join(' ')
+)
 
-const optionClasses = (active: boolean, isSelected: boolean) => [
-  'relative cursor-pointer select-none rounded-lg px-3 py-2 text-sm transition-colors',
-  active ? 'bg-primary-container text-on-primary-container' : 'text-on-surface',
-  isSelected ? 'font-semibold' : ''
-].join(' ');
+const optionClasses = (active: boolean, isSelected: boolean) =>
+  [
+    'relative cursor-pointer select-none rounded-lg px-3 py-2 text-sm transition-colors',
+    active ? 'bg-primary-container text-on-primary-container' : 'text-on-surface',
+    isSelected ? 'font-semibold' : '',
+  ].join(' ')
 </script>
 
 <template>

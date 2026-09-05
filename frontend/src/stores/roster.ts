@@ -9,7 +9,6 @@ const authHeaders = function () {
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 }
 
-
 const mapEnrollment = (e: any): Enrollment => ({
   id: Number(e.id),
   studentId: Number(e.student_id),
@@ -44,7 +43,6 @@ export const useRosterStore = defineStore('roster', {
     error: null,
   }),
   getters: {
-
     enrollmentsByStudent: (state) => (studentId: number) =>
       state.enrollments.filter((e) => e.studentId === studentId),
     /** Student-initiated requests awaiting an admin decision. */
@@ -69,9 +67,11 @@ export const useRosterStore = defineStore('roster', {
       }
     },
 
-
-
-    async createEnrollment(payload: { studentId: number; teacherId: number; sessionsPurchased: number }) {
+    async createEnrollment(payload: {
+      studentId: number
+      teacherId: number
+      sessionsPurchased: number
+    }) {
       const { data } = await axios.post(
         `${API_URL}/enrollments/`,
         {
@@ -80,7 +80,7 @@ export const useRosterStore = defineStore('roster', {
           sessions_purchased: payload.sessionsPurchased,
           sessions_used: 0,
         },
-        { headers: authHeaders() },
+        { headers: authHeaders() }
       )
       const enrollment = mapEnrollment(data)
       this.enrollments.unshift(enrollment)
@@ -90,17 +90,17 @@ export const useRosterStore = defineStore('roster', {
     async bulkEnroll(
       teacherId: number,
       studentIds: number[],
-      sessionsPurchased: number,
+      sessionsPurchased: number
     ): Promise<BulkResult> {
       this.isLoading = true
       try {
         const results = await Promise.allSettled(
           studentIds.map((studentId) =>
-            this.createEnrollment({ studentId, teacherId, sessionsPurchased }),
-          ),
+            this.createEnrollment({ studentId, teacherId, sessionsPurchased })
+          )
         )
         const failed = results.flatMap((r, i) =>
-          r.status === 'rejected' ? [{ studentId: studentIds[i], reason: reasonOf(r.reason) }] : [],
+          r.status === 'rejected' ? [{ studentId: studentIds[i], reason: reasonOf(r.reason) }] : []
         )
         return { ok: results.length - failed.length, failed }
       } finally {
@@ -110,14 +110,16 @@ export const useRosterStore = defineStore('roster', {
 
     async updateEnrollment(
       id: number,
-      patch: { teacherId?: number; sessionsPurchased?: number; isActive?: boolean },
+      patch: { teacherId?: number; sessionsPurchased?: number; isActive?: boolean }
     ) {
       const body: Record<string, unknown> = {}
       if (patch.teacherId !== undefined) body.teacher_id = patch.teacherId
       if (patch.sessionsPurchased !== undefined) body.sessions_purchased = patch.sessionsPurchased
       if (patch.isActive !== undefined) body.is_active = patch.isActive
 
-      const { data } = await axios.put(`${API_URL}/enrollments/${id}`, body, { headers: authHeaders() })
+      const { data } = await axios.put(`${API_URL}/enrollments/${id}`, body, {
+        headers: authHeaders(),
+      })
       const updated = mapEnrollment(data)
       const index = this.enrollments.findIndex((e) => e.id === id)
       if (index !== -1) this.enrollments[index] = updated
@@ -129,7 +131,7 @@ export const useRosterStore = defineStore('roster', {
       const { data } = await axios.post(
         `${API_URL}/enrollments/${id}/approve`,
         { sessions_purchased: sessionsPurchased },
-        { headers: authHeaders() },
+        { headers: authHeaders() }
       )
       const updated = mapEnrollment(data)
       const index = this.enrollments.findIndex((e) => e.id === id)
@@ -141,7 +143,7 @@ export const useRosterStore = defineStore('roster', {
       const { data } = await axios.post(
         `${API_URL}/enrollments/${id}/reject`,
         {},
-        { headers: authHeaders() },
+        { headers: authHeaders() }
       )
       const updated = mapEnrollment(data)
       const index = this.enrollments.findIndex((e) => e.id === id)

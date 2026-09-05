@@ -33,10 +33,14 @@ const mySessions = computed(() =>
   scheduleStore.allSessions.filter((s: any) => s.studentId === myId.value)
 )
 
-const confirmedSessions = computed(() => mySessions.value.filter((s: any) => s.status === 'scheduled'))
+const confirmedSessions = computed(() =>
+  mySessions.value.filter((s: any) => s.status === 'scheduled')
+)
 
 const pendingSessions = computed(() =>
-  mySessions.value.filter((s: any) => s.status === 'pending_teacher' || s.status === 'pending_admin')
+  mySessions.value.filter(
+    (s: any) => s.status === 'pending_teacher' || s.status === 'pending_admin'
+  )
 )
 
 const pendingCount = computed(() => pendingSessions.value.length)
@@ -72,8 +76,6 @@ watch(myId, (newId) => {
   }
 })
 
-
-
 const getTeacherName = function (id: number): string {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Teacher #${id}`
 }
@@ -103,7 +105,6 @@ const onProposeSubmit = async function (session: Session) {
     // Error is toasted with detailed server message by scheduleStore
   }
 }
-
 
 const formatDateTime = function (iso: string): string {
   return new Date(iso).toLocaleString('en-US', {
@@ -140,22 +141,18 @@ const formatDay = function (iso: string): string {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">
-          My Schedule
-        </h1>
-        <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
-          <span class="text-on-surface dark:text-on-surface font-bold">{{
-            confirmedSessions.length
-          }}</span>
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">My Schedule</h1>
+        <p class="text-on-surface-variant font-medium">
+          <span class="text-on-surface font-bold">{{ confirmedSessions.length }}</span>
           confirmed sessions this month.
           <template v-if="pendingCount > 0">
-            <span class="text-amber-400 font-bold">{{ pendingCount }}</span> pending approval.
+            <span class="text-warning font-bold">{{ pendingCount }}</span> pending approval.
           </template>
         </p>
       </div>
       <div class="shrink-0 flex items-start gap-4">
         <button
-          class="px-6 py-3 bg-primary text-on-surface dark:text-on-surface font-bold rounded-3xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+          class="px-6 py-3 bg-primary text-on-primary font-bold rounded-3xl shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
           @click="showProposeModal = true"
         >
           <span class="material-symbols-outlined text-lg">add_circle</span>
@@ -167,16 +164,16 @@ const formatDay = function (iso: string): string {
     <!-- Pending Sessions Notice -->
     <section
       v-if="pendingSessions.length > 0"
-      class="liquid-glass rounded-3xl p-4 border border-amber-500/20"
+      class="liquid-glass rounded-3xl p-4 border border-warning/20"
     >
       <div class="flex items-start gap-3">
         <span
-          class="material-symbols-outlined text-amber-400 text-xl mt-0.5"
+          class="material-symbols-outlined text-warning text-xl mt-0.5"
           style="font-variation-settings: 'FILL' 1"
           >pending_actions</span
         >
         <div class="flex-1">
-          <p class="text-on-surface dark:text-on-surface font-bold text-sm mb-3">
+          <p class="text-on-surface font-bold text-sm mb-3">
             {{ pendingSessions.length }} session{{ pendingSessions.length !== 1 ? 's' : '' }} in
             progress
           </p>
@@ -185,19 +182,27 @@ const formatDay = function (iso: string): string {
               v-for="session in pendingSessions"
               :key="session.id"
               class="flex items-center justify-between p-3 rounded-2xl border"
-              :class="session.status === 'pending_admin' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'"
+              :class="
+                session.status === 'pending_admin'
+                  ? 'bg-tertiary/5 border-tertiary/20'
+                  : 'bg-warning/5 border-warning/20'
+              "
             >
               <div>
-                <p class="text-on-surface dark:text-on-surface text-sm font-bold">
+                <p class="text-on-surface text-sm font-bold">
                   {{ formatDateTime(session.startTime) }}
                 </p>
-                <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">
+                <p class="text-on-surface-variant text-xs">
                   with {{ getTeacherName(session.teacherId) }}
                 </p>
               </div>
               <span
                 class="px-2 py-1 rounded-full text-xs font-semibold uppercase border"
-                :class="session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : 'bg-amber-500/20 border-amber-500/30 text-amber-400'"
+                :class="
+                  session.status === 'pending_admin'
+                    ? 'bg-tertiary/20 border-tertiary/30 text-tertiary'
+                    : 'bg-warning/20 border-warning/30 text-warning'
+                "
               >
                 {{ session.status === 'pending_admin' ? 'Awaiting Admin' : 'Awaiting Teacher' }}
               </span>
@@ -208,12 +213,12 @@ const formatDay = function (iso: string): string {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
-      <h3
-        class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6"
-      >
+    <section
+      class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+    >
+      <h3 class="text-xl font-semibold text-on-surface flex items-center gap-3 mb-6">
         <span
-          class="size-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500"
+          class="size-10 rounded-2xl bg-success/10 flex items-center justify-center text-success"
         >
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
             >calendar_month</span
@@ -229,10 +234,10 @@ const formatDay = function (iso: string): string {
     </section>
 
     <!-- Upcoming Sessions -->
-    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
-      <h3
-        class="text-xl font-semibold text-on-surface dark:text-on-surface mb-6 flex items-center gap-3"
-      >
+    <section
+      class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+    >
+      <h3 class="text-xl font-semibold text-on-surface mb-6 flex items-center gap-3">
         <span class="size-10 rounded-2xl bg-primary/10 flex items-center justify-center">
           <span
             class="material-symbols-outlined text-primary"
@@ -256,21 +261,18 @@ const formatDay = function (iso: string): string {
             <p class="text-xs font-semibold text-primary uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-xl font-semibold text-on-surface dark:text-on-surface leading-none">
+            <p class="text-xl font-semibold text-on-surface leading-none">
               {{ formatDay(session.startTime) }}
             </p>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-on-surface dark:text-on-surface font-bold">
+            <p class="text-on-surface font-bold">
               {{ getTeacherName(session.teacherId) }}
             </p>
-            <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
+            <p class="text-on-surface-variant text-sm">
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
-            <p
-              v-if="session.notes"
-              class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-1 italic"
-            >
+            <p v-if="session.notes" class="text-on-surface-variant text-xs mt-1 italic">
               {{ session.notes }}
             </p>
           </div>
@@ -280,7 +282,7 @@ const formatDay = function (iso: string): string {
           >
         </div>
       </div>
-      <div v-else class="text-center py-8 text-on-surface-variant dark:text-on-surface-variant">
+      <div v-else class="text-center py-8 text-on-surface-variant">
         <span class="material-symbols-outlined text-4xl mb-3 block">calendar_today</span>
         No upcoming sessions. Request one!
       </div>

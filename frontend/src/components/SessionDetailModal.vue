@@ -54,7 +54,7 @@ const fetchHistory = async () => {
   isLoadingHistory.value = true
   try {
     const res = await axios.get(`${API_URL}/activity-log/session/${props.session.id}`, {
-      headers: authHeaders()
+      headers: authHeaders(),
     })
     historyLogs.value = res.data
   } catch (err: any) {
@@ -70,32 +70,38 @@ watch(activeTab, (tab) => {
   }
 })
 
-watch(() => props.session?.id, () => {
-  activeTab.value = 'overview'
-  historyLogs.value = null
-})
+watch(
+  () => props.session?.id,
+  () => {
+    activeTab.value = 'overview'
+    historyLogs.value = null
+  }
+)
 
 // Proof Lightbox navigation
 const proofUrls = computed(() => {
   if (!props.session?.proofs) return []
-  return props.session.proofs.map((p: any) => p.imageUrl?.startsWith('http') ? p.imageUrl : `${API_URL}${p.imageUrl}`)
+  return props.session.proofs.map((p: any) =>
+    p.imageUrl?.startsWith('http') ? p.imageUrl : `${API_URL}${p.imageUrl}`
+  )
 })
 
 const currentProofIndex = ref<number>(-1)
 const showProofViewer = computed({
-  get: () => currentProofIndex.value >= 0 ? proofUrls.value[currentProofIndex.value] : null,
+  get: () => (currentProofIndex.value >= 0 ? proofUrls.value[currentProofIndex.value] : null),
   set: (val: string | null) => {
     if (val === null) {
       currentProofIndex.value = -1
     } else {
       currentProofIndex.value = proofUrls.value.indexOf(val)
     }
-  }
+  },
 })
 
 const prevProof = () => {
   if (proofUrls.value.length === 0) return
-  currentProofIndex.value = (currentProofIndex.value - 1 + proofUrls.value.length) % proofUrls.value.length
+  currentProofIndex.value =
+    (currentProofIndex.value - 1 + proofUrls.value.length) % proofUrls.value.length
 }
 const nextProof = () => {
   if (proofUrls.value.length === 0) return
@@ -123,7 +129,12 @@ onUnmounted(() => {
 // Copy session link
 const copySessionLink = () => {
   if (!props.session) return
-  const rolePath = props.userRole === 'admin' ? '/admin/schedule' : props.userRole === 'teacher' ? '/teacher/schedule' : '/student/schedule'
+  const rolePath =
+    props.userRole === 'admin'
+      ? '/admin/schedule'
+      : props.userRole === 'teacher'
+        ? '/teacher/schedule'
+        : '/student/schedule'
   const link = `${window.location.origin}${rolePath}?session_id=${props.session.id}`
   navigator.clipboard.writeText(link)
   toast.success('Session link copied to clipboard!')
@@ -136,7 +147,7 @@ let countdownInterval: any = null
 const updateCountdown = () => {
   if (!props.session) return
   const end = new Date(props.session.endTime).getTime()
-  const target = end + (24 * 60 * 60 * 1000)
+  const target = end + 24 * 60 * 60 * 1000
   const now = new Date().getTime()
   const diff = target - now
   if (diff <= 0) {
@@ -149,11 +160,15 @@ const updateCountdown = () => {
   }
 }
 
-watch(() => props.session, () => {
-  if (countdownInterval) clearInterval(countdownInterval)
-  updateCountdown()
-  countdownInterval = setInterval(updateCountdown, 1000)
-}, { immediate: true })
+watch(
+  () => props.session,
+  () => {
+    if (countdownInterval) clearInterval(countdownInterval)
+    updateCountdown()
+    countdownInterval = setInterval(updateCountdown, 1000)
+  },
+  { immediate: true }
+)
 
 onUnmounted(() => {
   if (countdownInterval) clearInterval(countdownInterval)
@@ -164,7 +179,7 @@ const isWithinCutoff = computed(() => {
   if (!props.session) return false
   const start = new Date(props.session.startTime).getTime()
   const now = new Date().getTime()
-  return (start - now) < (CANCEL_CUTOFF_HOURS * 60 * 60 * 1000)
+  return start - now < CANCEL_CUTOFF_HOURS * 60 * 60 * 1000
 })
 
 const canCancel = computed(() => {
@@ -176,10 +191,19 @@ const canCancel = computed(() => {
 
 const showCancelButton = computed(() => {
   if (!props.session) return false
-  const allowedStatuses = ['scheduled', 'pending_teacher', 'pending_student', 'pending_admin', 'overdue', 'overdue_rejected']
+  const allowedStatuses = [
+    'scheduled',
+    'pending_teacher',
+    'pending_student',
+    'pending_admin',
+    'overdue',
+    'overdue_rejected',
+  ]
   if (!allowedStatuses.includes(props.session.status)) return false
   const is_admin = props.userRole === 'admin'
-  const is_party = props.currentUserId === props.session.teacherId || props.currentUserId === props.session.studentId
+  const is_party =
+    props.currentUserId === props.session.teacherId ||
+    props.currentUserId === props.session.studentId
   return is_admin || is_party
 })
 
@@ -187,10 +211,12 @@ const showUploadProofButton = computed(() => {
   if (!props.session) return false
   const allowedStatuses = ['scheduled', 'overdue', 'overdue_rejected', 'pending_verification']
   if (!allowedStatuses.includes(props.session.status)) return false
-  const is_party = props.currentUserId === props.session.teacherId || props.currentUserId === props.session.studentId
+  const is_party =
+    props.currentUserId === props.session.teacherId ||
+    props.currentUserId === props.session.studentId
   if (!is_party) return false
   const role = props.userRole
-  const hasUploaded = props.session.proofs?.some(p => p.uploaderRole === role)
+  const hasUploaded = props.session.proofs?.some((p) => p.uploaderRole === role)
   return !hasUploaded
 })
 
@@ -198,7 +224,7 @@ async function clickCancel() {
   if (!props.session) return
   const reason = await dialog.prompt('Enter cancellation reason (optional):', {
     title: 'Cancel Session',
-    placeholder: 'Why are you cancelling?'
+    placeholder: 'Why are you cancelling?',
   })
   if (reason !== null) {
     try {
@@ -256,95 +282,240 @@ async function sendNudge(sessionId: number) {
   try {
     await scheduleStore.nudgeSession(sessionId)
     localStorage.setItem(getNudgeKey(sessionId), String(Date.now()))
-    toast.info('Nudge sent!', 'The other participant has been notified. You can nudge again in 1 hour.')
+    toast.info(
+      'Nudge sent!',
+      'The other participant has been notified. You can nudge again in 1 hour.'
+    )
     emit('close')
   } catch {
     toast.error('Nudge failed', 'Could not send the nudge. Please try again.')
   }
 }
 
-const getUser = function(id: number): string  {
+const getUser = function (id: number): string {
   return props.users.find((u: any) => u.id === id)?.name ?? `User #${id}`
 }
 
-const formatTime = function(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+const formatTime = function (iso: string) {
+  return new Date(iso).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
 }
 
-const formatDateLong = function(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+const formatDateLong = function (iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 const statusConfig = computed(() => {
   const s = props.session?.status ?? ''
-  const map: Record<string, { label: string; icon: string; badge: string; dot: string; cardBg: string; headerBg: string }> = {
-    scheduled:           { label: 'Confirmed',           icon: 'check_circle',    badge: 'bg-teal-500/20 border-teal-500/40 text-teal-400',   dot: 'bg-teal-400',   cardBg: 'bg-teal-500/5 border-teal-500/20',       headerBg: 'bg-teal-500/10' },
-    completed:           { label: 'Completed',           icon: 'verified',        badge: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400', dot: 'bg-emerald-400', cardBg: 'bg-emerald-500/5 border-emerald-500/20', headerBg: 'bg-emerald-500/10' },
-    pending_teacher:     { label: 'Awaiting Teacher',    icon: 'pending',         badge: 'bg-amber-500/20 border-amber-500/40 text-amber-400',  dot: 'bg-amber-400',  cardBg: 'bg-amber-500/5 border-amber-500/20',     headerBg: 'bg-amber-500/10' },
-    pending_student:     { label: 'Awaiting Student',    icon: 'swap_horiz',      badge: 'bg-primary/20 border-primary/40 text-primary', dot: 'bg-primary', cardBg: 'bg-primary/5 border-primary/20', headerBg: '' },
-    pending_admin:       { label: 'Awaiting Admin',      icon: 'admin_panel_settings', badge: 'bg-blue-500/20 border-blue-500/40 text-blue-400', dot: 'bg-blue-400', cardBg: 'bg-blue-500/5 border-blue-500/20',       headerBg: 'bg-blue-500/10' },
-    pending_verification:{ label: 'Proof Under Review',  icon: 'fact_check',      badge: 'bg-violet-500/20 border-violet-500/40 text-violet-400', dot: 'bg-violet-400', cardBg: 'bg-violet-500/5 border-violet-500/20', headerBg: 'bg-violet-500/10' },
-    overdue:             { label: 'Overdue',             icon: 'schedule_send',   badge: 'bg-rose-500/20 border-rose-500/40 text-rose-400',     dot: 'bg-rose-400',   cardBg: 'bg-rose-500/5 border-rose-500/30',       headerBg: 'bg-rose-500/10' },
-    overdue_rejected:    { label: 'Proof Rejected',      icon: 'cancel',          badge: 'bg-red-500/20 border-red-500/40 text-red-400',        dot: 'bg-red-500',    cardBg: 'bg-red-500/5 border-red-500/30',         headerBg: 'bg-red-500/10' },
-    rejected:            { label: 'Declined',            icon: 'block',           badge: 'bg-red-500/20 border-red-500/30 text-red-400',        dot: 'bg-red-400',    cardBg: 'bg-red-500/5 border-red-500/20',         headerBg: 'bg-red-500/10' },
-    cancelled:           { label: 'Cancelled',           icon: 'do_not_disturb',  badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400',     dot: 'bg-zinc-400',   cardBg: 'bg-zinc-500/5 border-zinc-500/20',       headerBg: 'bg-zinc-500/10' },
+  const map: Record<
+    string,
+    { label: string; icon: string; badge: string; dot: string; cardBg: string; headerBg: string }
+  > = {
+    scheduled: {
+      label: 'Confirmed',
+      icon: 'check_circle',
+      badge: 'bg-success/20 border-success/40 text-success',
+      dot: 'bg-success',
+      cardBg: 'bg-success/5 border-success/20',
+      headerBg: 'bg-success/10',
+    },
+    completed: {
+      label: 'Completed',
+      icon: 'verified',
+      badge: 'bg-success/20 border-success/40 text-success',
+      dot: 'bg-success',
+      cardBg: 'bg-success/5 border-success/20',
+      headerBg: 'bg-success/10',
+    },
+    pending_teacher: {
+      label: 'Awaiting Teacher',
+      icon: 'pending',
+      badge: 'bg-warning/20 border-warning/40 text-warning',
+      dot: 'bg-warning',
+      cardBg: 'bg-warning/5 border-warning/20',
+      headerBg: 'bg-warning/10',
+    },
+    pending_student: {
+      label: 'Awaiting Student',
+      icon: 'swap_horiz',
+      badge: 'bg-primary/20 border-primary/40 text-primary',
+      dot: 'bg-primary',
+      cardBg: 'bg-primary/5 border-primary/20',
+      headerBg: '',
+    },
+    pending_admin: {
+      label: 'Awaiting Admin',
+      icon: 'admin_panel_settings',
+      badge: 'bg-tertiary/20 border-tertiary/40 text-tertiary',
+      dot: 'bg-tertiary',
+      cardBg: 'bg-tertiary/5 border-tertiary/20',
+      headerBg: 'bg-tertiary/10',
+    },
+    pending_verification: {
+      label: 'Proof Under Review',
+      icon: 'fact_check',
+      badge: 'bg-tertiary/20 border-tertiary/40 text-tertiary',
+      dot: 'bg-tertiary',
+      cardBg: 'bg-tertiary/5 border-tertiary/20',
+      headerBg: 'bg-tertiary/10',
+    },
+    overdue: {
+      label: 'Overdue',
+      icon: 'schedule_send',
+      badge: 'bg-error/20 border-error/40 text-error',
+      dot: 'bg-error',
+      cardBg: 'bg-error/5 border-error/30',
+      headerBg: 'bg-error/10',
+    },
+    overdue_rejected: {
+      label: 'Proof Rejected',
+      icon: 'cancel',
+      badge: 'bg-error/20 border-error/40 text-error',
+      dot: 'bg-error',
+      cardBg: 'bg-error/5 border-error/30',
+      headerBg: 'bg-error/10',
+    },
+    rejected: {
+      label: 'Declined',
+      icon: 'block',
+      badge: 'bg-error/20 border-error/30 text-error',
+      dot: 'bg-error',
+      cardBg: 'bg-error/5 border-error/20',
+      headerBg: 'bg-error/10',
+    },
+    cancelled: {
+      label: 'Cancelled',
+      icon: 'do_not_disturb',
+      badge: 'bg-surface-container-high/20 border-outline-variant/40 text-on-surface-variant',
+      dot: 'bg-surface-container-high',
+      cardBg: 'bg-surface-container-high/5 border-outline-variant/20',
+      headerBg: 'bg-surface-container-high/10',
+    },
   }
-  return map[s] ?? { label: s, icon: 'info', badge: 'bg-zinc-500/20 border-zinc-500/40 text-zinc-400', dot: 'bg-zinc-400', cardBg: 'bg-on-surface/5', headerBg: 'bg-zinc-500/10' }
+  return (
+    map[s] ?? {
+      label: s,
+      icon: 'info',
+      badge: 'bg-surface-container-high/20 border-outline-variant/40 text-on-surface-variant',
+      dot: 'bg-surface-container-high',
+      cardBg: 'bg-on-surface/5',
+      headerBg: 'bg-surface-container-high/10',
+    }
+  )
 })
 
-const canForceComplete = function(session: Session) {
+const canForceComplete = function (session: Session) {
   return new Date().getTime() >= new Date(session.endTime).getTime() + 24 * 60 * 60 * 1000
 }
 
 // Contextual "what is happening" message per status + role
 const statusContext = computed(() => {
   if (!props.session) return null
-  const { status }  = props.session
+  const { status } = props.session
   const role = props.userRole
   if (props.session.conflictSessionId) {
     return {
       icon: 'warning',
-      color: 'text-red-500 font-bold',
-      text: `⚠️ Overlap conflict! This session overlaps with scheduled Session #${props.session.conflictSessionId}.`
+      color: 'text-error font-bold',
+      text: `⚠️ Overlap conflict! This session overlaps with scheduled Session #${props.session.conflictSessionId}.`,
     }
   }
   if (status === 'scheduled') {
-    return { icon: 'event_available', color: 'text-teal-400', text: 'This session is confirmed and scheduled.' }
+    return {
+      icon: 'event_available',
+      color: 'text-success',
+      text: 'This session is confirmed and scheduled.',
+    }
   }
   if (status === 'completed') {
-    return { icon: 'verified', color: 'text-emerald-400', text: 'This session has been completed and finalized.' }
+    return {
+      icon: 'verified',
+      color: 'text-success',
+      text: 'This session has been completed and finalized.',
+    }
   }
   if (status === 'pending_teacher') {
     return role === 'teacher'
-      ? { icon: 'pending_actions', color: 'text-amber-400', text: 'A student is requesting this session. Review and approve, counter, or decline.' }
-      : { icon: 'hourglass_top', color: 'text-amber-400', text: 'Waiting for the teacher to review this request.' }
+      ? {
+          icon: 'pending_actions',
+          color: 'text-warning',
+          text: 'A student is requesting this session. Review and approve, counter, or decline.',
+        }
+      : {
+          icon: 'hourglass_top',
+          color: 'text-warning',
+          text: 'Waiting for the teacher to review this request.',
+        }
   }
   if (status === 'pending_student') {
     return role === 'student'
-      ? { icon: 'swap_horiz', color: 'text-primary', text: 'Your teacher has proposed a different time. Accept or suggest another.' }
-      : { icon: 'hourglass_top', color: 'text-primary', text: 'Waiting for the student to respond to the counter-proposal.' }
+      ? {
+          icon: 'swap_horiz',
+          color: 'text-primary',
+          text: 'Your teacher has proposed a different time. Accept or suggest another.',
+        }
+      : {
+          icon: 'hourglass_top',
+          color: 'text-primary',
+          text: 'Waiting for the student to respond to the counter-proposal.',
+        }
   }
   if (status === 'pending_admin') {
     return role === 'admin'
-      ? { icon: 'admin_panel_settings', color: 'text-blue-400', text: 'This session is awaiting your final approval.' }
-      : { icon: 'hourglass_top', color: 'text-blue-400', text: 'Waiting for admin to give final approval.' }
+      ? {
+          icon: 'admin_panel_settings',
+          color: 'text-tertiary',
+          text: 'This session is awaiting your final approval.',
+        }
+      : {
+          icon: 'hourglass_top',
+          color: 'text-tertiary',
+          text: 'Waiting for admin to give final approval.',
+        }
   }
   if (status === 'pending_verification') {
     return role === 'admin'
-      ? { icon: 'fact_check', color: 'text-violet-400', text: 'Student submitted a proof. Review and approve or reject it.' }
-      : { icon: 'hourglass_top', color: 'text-violet-400', text: 'Your proof is under review by the admin.' }
+      ? {
+          icon: 'fact_check',
+          color: 'text-tertiary',
+          text: 'Student submitted a proof. Review and approve or reject it.',
+        }
+      : {
+          icon: 'hourglass_top',
+          color: 'text-tertiary',
+          text: 'Your proof is under review by the admin.',
+        }
   }
   if (status === 'overdue') {
-    return { icon: 'assignment_late', color: 'text-rose-400', text: 'This session is overdue. Upload proof to request completion.' }
+    return {
+      icon: 'assignment_late',
+      color: 'text-error',
+      text: 'This session is overdue. Upload proof to request completion.',
+    }
   }
   if (status === 'overdue_rejected') {
-    return { icon: 'cancel', color: 'text-red-400', text: 'Your proof was rejected. Please re-upload with a valid image and justification.' }
+    return {
+      icon: 'cancel',
+      color: 'text-error',
+      text: 'Your proof was rejected. Please re-upload with a valid image and justification.',
+    }
   }
   if (status === 'rejected') {
-    return { icon: 'block', color: 'text-red-400', text: 'This request was declined.' }
+    return { icon: 'block', color: 'text-error', text: 'This request was declined.' }
   }
   if (status === 'cancelled') {
-    return { icon: 'do_not_disturb', color: 'text-zinc-400', text: 'This session was cancelled.' }
+    return {
+      icon: 'do_not_disturb',
+      color: 'text-on-surface-variant',
+      text: 'This session was cancelled.',
+    }
   }
   return null
 })
@@ -366,15 +537,16 @@ const statusContext = computed(() => {
         @click.self="$emit('close')"
       >
         <!-- Backdrop -->
-        <div
-          class="absolute inset-0 bg-black/40 dark:bg-black/70"
-          @click="$emit('close')"
-        />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <!-- Modal -->
-        <div class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div
+          class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        >
           <!-- Coloured header stripe -->
-          <div :class="`${statusConfig.headerBg} p-4 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`">
+          <div
+            :class="`${statusConfig.headerBg} p-4 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`"
+          >
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <span
@@ -384,31 +556,31 @@ const statusContext = computed(() => {
                   <span class="size-1.5 rounded-full" :class="statusConfig.dot"></span>
                   {{ statusConfig.label }}
                 </span>
-                <p class="text-on-surface dark:text-on-surface font-semibold text-lg leading-tight">
+                <p class="text-on-surface font-semibold text-lg leading-tight">
                   {{ formatDateLong(session.startTime) }}
                 </p>
-                <p class="text-on-surface-variant dark:text-on-surface-variant text-sm mt-0.5 font-medium">
+                <p class="text-on-surface-variant text-sm mt-0.5 font-medium">
                   {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
                 </p>
               </div>
               <!-- Status icon + copy + close -->
               <div class="flex items-center gap-2 shrink-0">
-                <div class="size-10 rounded-2xl flex items-center justify-center" :class="statusConfig.badge">
-                  <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1">{{ statusConfig.icon }}</span>
+                <div
+                  class="size-10 rounded-2xl flex items-center justify-center"
+                  :class="statusConfig.badge"
+                >
+                  <span
+                    class="material-symbols-outlined text-lg"
+                    style="font-variation-settings: 'FILL' 1"
+                    >{{ statusConfig.icon }}</span
+                  >
                 </div>
                 <!-- Copy link button -->
-                <button
-                  class="icon-btn"
-                  title="Copy session link"
-                  @click="copySessionLink"
-                >
+                <button class="icon-btn" title="Copy session link" @click="copySessionLink">
                   <span class="material-symbols-outlined text-lg">link</span>
                 </button>
                 <!-- Universal close button -->
-                <button
-                  class="icon-btn"
-                  @click="emit('close')"
-                >
+                <button class="icon-btn" @click="emit('close')">
                   <span class="material-symbols-outlined text-lg">close</span>
                 </button>
               </div>
@@ -417,19 +589,28 @@ const statusContext = computed(() => {
 
           <!-- Scrollable body -->
           <div class="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar">
-
             <!-- Tabs -->
-            <div class="flex bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/[0.06] dark:border-on-surface/10">
+            <div
+              class="flex bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/[0.06] dark:border-on-surface/10"
+            >
               <button
                 class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
-                :class="activeTab === 'overview' ? 'bg-primary text-on-surface shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                :class="
+                  activeTab === 'overview'
+                    ? 'bg-primary text-on-primary shadow-md'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                "
                 @click="activeTab = 'overview'"
               >
                 Overview
               </button>
               <button
                 class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
-                :class="activeTab === 'history' ? 'bg-primary text-on-surface shadow-md' : 'text-on-surface-variant hover:text-on-surface'"
+                :class="
+                  activeTab === 'history'
+                    ? 'bg-primary text-on-primary shadow-md'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                "
                 @click="activeTab = 'history'"
               >
                 History
@@ -442,24 +623,39 @@ const statusContext = computed(() => {
                 v-if="statusContext"
                 class="flex items-start gap-2 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.04] border border-on-surface/[0.04] dark:border-on-surface/5"
               >
-                <span class="material-symbols-outlined text-lg mt-0.5 shrink-0" :class="statusContext.color">{{ statusContext.icon }}</span>
-                <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">{{ statusContext.text }}</p>
+                <span
+                  class="material-symbols-outlined text-lg mt-0.5 shrink-0"
+                  :class="statusContext.color"
+                  >{{ statusContext.icon }}</span
+                >
+                <p class="text-sm text-on-surface-variant">{{ statusContext.text }}</p>
               </div>
 
               <!-- Participants -->
               <div class="grid grid-cols-2 gap-2">
                 <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
-                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Teacher</p>
-                  <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.teacherId) }}</p>
+                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">
+                    Teacher
+                  </p>
+                  <p class="text-on-surface text-sm font-bold truncate">
+                    {{ getUser(session.teacherId) }}
+                  </p>
                 </div>
                 <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
-                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Student</p>
-                  <p class="text-on-surface dark:text-on-surface text-sm font-bold truncate">{{ getUser(session.studentId) }}</p>
+                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">
+                    Student
+                  </p>
+                  <p class="text-on-surface text-sm font-bold truncate">
+                    {{ getUser(session.studentId) }}
+                  </p>
                 </div>
               </div>
 
               <!-- Notes -->
-              <div v-if="session.notes" class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
+              <div
+                v-if="session.notes"
+                class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3"
+              >
                 <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Notes</p>
                 <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
               </div>
@@ -470,7 +666,9 @@ const statusContext = computed(() => {
 
               <!-- COMPLETED: proof thumbnails -->
               <div v-if="session.status === 'completed'" class="space-y-3">
-                <p class="text-xs text-on-surface-variant uppercase font-semibold">Session Proofs</p>
+                <p class="text-xs text-on-surface-variant uppercase font-semibold">
+                  Session Proofs
+                </p>
                 <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-3">
                   <button
                     v-for="proof in session.proofs"
@@ -478,8 +676,17 @@ const statusContext = computed(() => {
                     class="size-16 rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10 hover:brightness-110 transition-all relative shrink-0"
                     @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
                   >
-                    <img :src="proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`" class="w-full h-full object-cover" />
-                    <div class="absolute bottom-0 inset-x-0 bg-on-surface/50 text-[8px] text-on-surface font-bold text-center py-0.5">
+                    <img
+                      :src="
+                        proof.imageUrl?.startsWith('http')
+                          ? proof.imageUrl
+                          : `${API_URL}${proof.imageUrl}`
+                      "
+                      class="w-full h-full object-cover"
+                    />
+                    <div
+                      class="absolute bottom-0 inset-x-0 bg-on-surface/50 text-[8px] text-on-surface font-bold text-center py-0.5"
+                    >
                       {{ proof.uploaderRole === 'teacher' ? 'Teacher' : 'Student' }}
                     </div>
                   </button>
@@ -488,43 +695,102 @@ const statusContext = computed(() => {
               </div>
 
               <!-- OVERDUE / OVERDUE_REJECTED / PENDING_VERIFICATION: proof status -->
-              <div v-if="['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)" class="space-y-4">
+              <div
+                v-if="
+                  ['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)
+                "
+                class="space-y-4"
+              >
                 <!-- Proof status table -->
                 <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-4 space-y-3">
-                  <p class="text-xs text-on-surface-variant uppercase font-semibold">Proof Status</p>
+                  <p class="text-xs text-on-surface-variant uppercase font-semibold">
+                    Proof Status
+                  </p>
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-on-surface-variant">Teacher</span>
                     <div class="flex items-center gap-2">
-                      <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
-                        {{ session.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
+                      <span
+                        class="font-bold"
+                        :class="
+                          session.proofs?.some((p) => p.uploaderRole === 'teacher')
+                            ? 'text-success'
+                            : 'text-warning'
+                        "
+                      >
+                        {{
+                          session.proofs?.some((p) => p.uploaderRole === 'teacher')
+                            ? 'Uploaded ✓'
+                            : session.isForceCompleted
+                              ? 'Force completed'
+                              : 'Pending'
+                        }}
                       </span>
                       <button
-                        v-if="!session.proofs?.some(p => p.uploaderRole === 'teacher') && !session.isForceCompleted"
-                        v-tooltip="isNudgeOnCooldown(session.id) ? `Cooldown: ${nudgeCooldownLabel(session.id)}` : 'Nudge Teacher to upload proof'"
+                        v-if="
+                          !session.proofs?.some((p) => p.uploaderRole === 'teacher') &&
+                          !session.isForceCompleted
+                        "
+                        v-tooltip="
+                          isNudgeOnCooldown(session.id)
+                            ? `Cooldown: ${nudgeCooldownLabel(session.id)}`
+                            : 'Nudge Teacher to upload proof'
+                        "
                         class="p-1 rounded-lg transition-colors"
-                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-amber-400'"
+                        :class="
+                          isNudgeOnCooldown(session.id)
+                            ? 'text-on-surface-variant cursor-not-allowed'
+                            : 'text-warning hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-warning'
+                        "
                         :disabled="isNudgeOnCooldown(session.id)"
                         @click="sendNudge(session.id)"
                       >
-                        <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                        <span class="material-symbols-outlined text-[16px]"
+                          >notifications_active</span
+                        >
                       </button>
                     </div>
                   </div>
                   <div class="flex items-center justify-between text-sm">
                     <span class="text-on-surface-variant">Student</span>
                     <div class="flex items-center gap-2">
-                      <span class="font-bold" :class="session.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
-                        {{ session.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : (session.isForceCompleted ? 'Force completed' : 'Pending') }}
+                      <span
+                        class="font-bold"
+                        :class="
+                          session.proofs?.some((p) => p.uploaderRole === 'student')
+                            ? 'text-success'
+                            : 'text-warning'
+                        "
+                      >
+                        {{
+                          session.proofs?.some((p) => p.uploaderRole === 'student')
+                            ? 'Uploaded ✓'
+                            : session.isForceCompleted
+                              ? 'Force completed'
+                              : 'Pending'
+                        }}
                       </span>
                       <button
-                        v-if="!session.proofs?.some(p => p.uploaderRole === 'student') && !session.isForceCompleted"
-                        v-tooltip="isNudgeOnCooldown(session.id) ? `Cooldown: ${nudgeCooldownLabel(session.id)}` : 'Nudge Student to upload proof'"
+                        v-if="
+                          !session.proofs?.some((p) => p.uploaderRole === 'student') &&
+                          !session.isForceCompleted
+                        "
+                        v-tooltip="
+                          isNudgeOnCooldown(session.id)
+                            ? `Cooldown: ${nudgeCooldownLabel(session.id)}`
+                            : 'Nudge Student to upload proof'
+                        "
                         class="p-1 rounded-lg transition-colors"
-                        :class="isNudgeOnCooldown(session.id) ? 'text-zinc-400 cursor-not-allowed' : 'text-amber-500 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-amber-400'"
+                        :class="
+                          isNudgeOnCooldown(session.id)
+                            ? 'text-on-surface-variant cursor-not-allowed'
+                            : 'text-warning hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-warning'
+                        "
                         :disabled="isNudgeOnCooldown(session.id)"
                         @click="sendNudge(session.id)"
                       >
-                        <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                        <span class="material-symbols-outlined text-[16px]"
+                          >notifications_active</span
+                        >
                       </button>
                     </div>
                   </div>
@@ -533,21 +799,28 @@ const statusContext = computed(() => {
 
               <!-- Verif status pill -->
               <div v-if="session.status === 'pending_verification'" class="alert-info">
-                <span class="material-symbols-outlined text-violet-400 text-lg">hourglass_top</span>
+                <span class="material-symbols-outlined text-tertiary text-lg">hourglass_top</span>
                 <div>
-                  <p class="text-xs font-bold text-violet-400">Awaiting Admin Review</p>
-                  <p class="text-xs text-violet-300/70">Your proof has been submitted successfully.</p>
+                  <p class="text-xs font-bold text-tertiary">Awaiting Admin Review</p>
+                  <p class="text-xs text-tertiary/70">
+                    Your proof has been submitted successfully.
+                  </p>
                 </div>
               </div>
             </div>
 
             <!-- History Tab -->
             <div v-else class="space-y-3">
-              <p class="text-xs text-on-surface-variant uppercase font-semibold">Activity History</p>
+              <p class="text-xs text-on-surface-variant uppercase font-semibold">
+                Activity History
+              </p>
               <div v-if="isLoadingHistory" class="text-center py-4 text-xs text-on-surface-variant">
                 Loading history...
               </div>
-              <div v-else-if="!historyLogs || historyLogs.length === 0" class="text-center py-4 text-xs text-on-surface-variant">
+              <div
+                v-else-if="!historyLogs || historyLogs.length === 0"
+                class="text-center py-4 text-xs text-on-surface-variant"
+              >
                 No activity logged yet.
               </div>
               <div v-else class="space-y-2">
@@ -556,7 +829,9 @@ const statusContext = computed(() => {
                   :key="log.id"
                   class="bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.04] dark:border-on-surface/5 rounded-2xl p-3 flex flex-col space-y-1"
                 >
-                  <div class="flex items-center justify-between text-xs text-on-surface-variant font-bold">
+                  <div
+                    class="flex items-center justify-between text-xs text-on-surface-variant font-bold"
+                  >
                     <span>{{ log.actorName || 'System' }}</span>
                     <span>{{ formatDateLong(log.createdAt) }}</span>
                   </div>
@@ -569,18 +844,22 @@ const statusContext = computed(() => {
                  ACTION BUTTONS
                  ──────────────────────────────────────────────── -->
             <div class="flex flex-col gap-2 pt-1">
-
               <!-- Conflict resolution for teacher or admin -->
               <template
                 v-if="
                   session.conflictSessionId &&
                   session.status === 'scheduled' &&
-                  ((userRole === 'teacher' && session.teacherId === currentUserId) || userRole === 'admin')
+                  ((userRole === 'teacher' && session.teacherId === currentUserId) ||
+                    userRole === 'admin')
                 "
               >
                 <div class="flex gap-2 mb-2">
-                  <button class="flex-1 py-2 rounded-2xl bg-primary hover:bg-primary-dim text-on-surface text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse" @click="$emit('counter-teacher', session)">
-                    <span class="material-symbols-outlined text-base">build</span> Propose New Time (Fix Conflict)
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-primary hover:bg-primary-dim text-on-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse"
+                    @click="$emit('counter-teacher', session)"
+                  >
+                    <span class="material-symbols-outlined text-base">build</span> Propose New Time
+                    (Fix Conflict)
                   </button>
                 </div>
               </template>
@@ -588,18 +867,29 @@ const statusContext = computed(() => {
               <!-- Teacher: approve / counter / decline student proposal -->
               <template
                 v-if="
-                  (userRole === 'teacher' && session.status === 'pending_teacher' && session.teacherId === currentUserId) ||
+                  (userRole === 'teacher' &&
+                    session.status === 'pending_teacher' &&
+                    session.teacherId === currentUserId) ||
                   (userRole === 'admin' && session.status === 'pending_teacher')
                 "
               >
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-teacher', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('approve-teacher', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">check_circle</span> Approve
                   </button>
-                  <button class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-teacher', session)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('counter-teacher', session)"
+                  >
                     <span class="material-symbols-outlined text-base">swap_horiz</span> Counter
                   </button>
-                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-teacher', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('reject-teacher', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">cancel</span> Decline
                   </button>
                 </div>
@@ -608,18 +898,31 @@ const statusContext = computed(() => {
               <!-- Student: approve time / suggest other / decline -->
               <template
                 v-if="
-                  (userRole === 'student' && session.status === 'pending_student' && session.studentId === currentUserId) ||
+                  (userRole === 'student' &&
+                    session.status === 'pending_student' &&
+                    session.studentId === currentUserId) ||
                   (userRole === 'admin' && session.status === 'pending_student')
                 "
               >
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-student', session.id)">
-                    <span class="material-symbols-outlined text-base">check_circle</span> Accept Time
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('approve-student', session.id)"
+                  >
+                    <span class="material-symbols-outlined text-base">check_circle</span> Accept
+                    Time
                   </button>
-                  <button class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('counter-student', session)">
-                    <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest Other
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('counter-student', session)"
+                  >
+                    <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest
+                    Other
                   </button>
-                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-student', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('reject-student', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">cancel</span> Decline
                   </button>
                 </div>
@@ -628,10 +931,16 @@ const statusContext = computed(() => {
               <!-- Admin: approve / reject pending_admin -->
               <template v-if="userRole === 'admin' && session.status === 'pending_admin'">
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('approve-admin', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('approve-admin', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">check_circle</span> Approve
                   </button>
-                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-admin', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('reject-admin', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">cancel</span> Reject
                   </button>
                 </div>
@@ -640,31 +949,53 @@ const statusContext = computed(() => {
               <!-- Admin: approve proof / reject proof for pending_verification -->
               <template v-if="userRole === 'admin' && session.status === 'pending_verification'">
                 <div class="flex gap-2">
-                  <button class="flex-1 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('complete-admin', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('complete-admin', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">verified</span> Approve Proof
                   </button>
-                  <button class="flex-1 py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5" @click="$emit('reject-proof-admin', session.id)">
+                  <button
+                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                    @click="$emit('reject-proof-admin', session.id)"
+                  >
                     <span class="material-symbols-outlined text-base">cancel</span> Reject Proof
                   </button>
                 </div>
               </template>
 
               <!-- Admin: force complete (overdue/overdue_rejected/scheduled) -->
-              <template v-if="userRole === 'admin' && ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)">
+              <template
+                v-if="
+                  userRole === 'admin' &&
+                  ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)
+                "
+              >
                 <button
                   class="w-full py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                  :title="canForceComplete(session) ? 'Overrides proof requirements and finalizes session' : 'Only available 24h after session end time'"
+                  :title="
+                    canForceComplete(session)
+                      ? 'Overrides proof requirements and finalizes session'
+                      : 'Only available 24h after session end time'
+                  "
                   :disabled="!canForceComplete(session)"
                   @click="$emit('complete-admin', session.id)"
                 >
                   <span class="material-symbols-outlined text-base">workspace_premium</span>
-                  {{ canForceComplete(session) ? 'Force Complete' : 'Force Complete (' + (forceCompleteCountdown || 'available in 24h') + ')' }}
+                  {{
+                    canForceComplete(session)
+                      ? 'Force Complete'
+                      : 'Force Complete (' + (forceCompleteCountdown || 'available in 24h') + ')'
+                  }}
                 </button>
               </template>
 
               <!-- Admin edit button (always visible for admin) -->
               <button
-                v-if="userRole === 'admin' && !['completed', 'cancelled', 'rejected'].includes(session.status)"
+                v-if="
+                  userRole === 'admin' &&
+                  !['completed', 'cancelled', 'rejected'].includes(session.status)
+                "
                 class="w-full py-2 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 border border-on-surface/[0.06] dark:border-on-surface/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
                 @click="$emit('edit-admin', session)"
               >
@@ -674,7 +1005,7 @@ const statusContext = computed(() => {
               <!-- Upload Proof Button (visible to participant who hasn't uploaded) -->
               <button
                 v-if="showUploadProofButton"
-                class="w-full py-2 rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                class="w-full py-2 rounded-2xl bg-tertiary/20 hover:bg-tertiary/30 border border-tertiary/30 text-tertiary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
                 @click="triggerUpload"
               >
                 <span class="material-symbols-outlined text-base">upload</span> Upload My Proof
@@ -690,15 +1021,22 @@ const statusContext = computed(() => {
               <!-- Cancel Session Button (visible to admin or participant) -->
               <button
                 v-if="showCancelButton"
-                class="w-full py-2 rounded-2xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                class="w-full py-2 rounded-2xl bg-error/10 hover:bg-error/20 border border-error/20 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 :disabled="!canCancel"
-                :title="!canCancel ? 'Non-admins cannot cancel sessions starting in less than 24 hours.' : 'Cancel this session'"
+                :title="
+                  !canCancel
+                    ? 'Non-admins cannot cancel sessions starting in less than 24 hours.'
+                    : 'Cancel this session'
+                "
                 @click="clickCancel"
               >
                 <span class="material-symbols-outlined text-base">cancel</span> Cancel Session
               </button>
 
-              <div v-if="session.counterCount && session.counterCount > 0" class="text-xs text-on-surface-variant text-center my-1">
+              <div
+                v-if="session.counterCount && session.counterCount > 0"
+                class="text-xs text-on-surface-variant text-center my-1"
+              >
                 Counter proposals used: {{ session.counterCount }} / 3
               </div>
             </div>
@@ -721,10 +1059,7 @@ const statusContext = computed(() => {
         class="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 dark:bg-black/70 p-4"
         @click="showProofViewer = null"
       >
-        <button
-          class="icon-btn absolute top-5 right-5"
-          @click="showProofViewer = null"
-        >
+        <button class="icon-btn absolute top-5 right-5" @click="showProofViewer = null">
           <span class="material-symbols-outlined">close</span>
         </button>
 

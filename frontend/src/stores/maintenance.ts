@@ -15,6 +15,6 @@ export const useMaintenanceStore = defineStore('maintenance', {
     clearMaintenance() {
       this.isMaintenance = false
       window.location.reload()
-    }
-  }
+    },
+  },
 })
