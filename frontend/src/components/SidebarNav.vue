@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@stores/auth'
 import { useNotificationStore } from '@stores/notification'
@@ -12,10 +12,14 @@ import UserSettingsModal from '@components/UserSettingsModal.vue'
 // ── click-outside directive ───────────────────────────────────────────────────
 const vClickOutside = {
   mounted(el: any, binding: any) {
-    el._co = (e: Event) => { if (!el.contains(e.target)) binding.value(e) }
+    el._co = (e: Event) => {
+      if (!el.contains(e.target)) binding.value(e)
+    }
     document.addEventListener('click', el._co)
   },
-  unmounted(el: any) { document.removeEventListener('click', el._co) },
+  unmounted(el: any) {
+    document.removeEventListener('click', el._co)
+  },
 }
 
 const router = useRouter()
@@ -79,6 +83,18 @@ const closeSidebar = () => {
   isSidebarOpen.value = false
 }
 
+// Below 640px style.css pins the body and scrolls #app, so the usual
+// body-overflow lock does nothing; lock whichever element actually scrolls.
+watch(isSidebarOpen, (open) => {
+  const app = document.getElementById('app')
+  if (app) app.style.overflow = open ? 'hidden' : ''
+  document.body.style.overflow = open ? 'hidden' : ''
+})
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') closeSidebar()
+}
+
 const toggleUserDropdown = () => {
   isUserDropdownOpen.value = !isUserDropdownOpen.value
 }
@@ -115,7 +131,15 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeydown)
+  const app = document.getElementById('app')
+  if (app) app.style.overflow = ''
+  document.body.style.overflow = ''
+})
+
 onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
   if (authStore.currentUser?.id) {
     notifStore.fetchNotifications(authStore.currentUser.id)
   }
@@ -126,19 +150,39 @@ onMounted(() => {
 <template>
   <button
     class="fixed top-4 left-4 z-[105] lg:hidden size-12 bg-surface-container-low/80 rounded-full border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center justify-center shadow-lg"
+    :aria-expanded="isSidebarOpen"
+    aria-controls="app-sidebar"
+    :aria-label="isSidebarOpen ? 'Close menu' : 'Open menu'"
     @click="toggleSidebar"
   >
-    <span class="material-symbols-outlined text-on-surface dark:text-on-surface">menu</span>
+    <span class="material-symbols-outlined text-on-surface">
+      {{ isSidebarOpen ? 'close' : 'menu' }}
+    </span>
+    <!-- The dock used to surface these counts on every screen; behind a drawer
+  they are invisible, so the trigger carries a dot when either is unread. -->
+    <span
+      v-if="!isSidebarOpen && (unreadCount > 0 || messagingStore.totalUnread > 0)"
+      class="absolute top-1 right-1 size-3 rounded-full bg-primary border-2 border-surface-container-low"
+      aria-hidden="true"
+    ></span>
   </button>
 
-  <div
-    v-if="isSidebarOpen"
-    class="fixed inset-0 bg-black/40 dark:bg-black/70 z-[90] lg:hidden"
-    @click="closeSidebar"
-  ></div>
+  <Transition
+    enter-active-class="transition-opacity duration-300"
+    enter-from-class="opacity-0"
+    leave-active-class="transition-opacity duration-300"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="isSidebarOpen"
+      class="fixed inset-0 bg-black/40 dark:bg-black/70 z-[90] lg:hidden"
+      @click="closeSidebar"
+    ></div>
+  </Transition>
 
   <aside
-    class="fixed top-0 left-0 h-screen w-full glass-thin border-r border-on-surface/5 dark:border-on-surface/5 p-4 flex flex-col z-[100] lg:w-full lg:sticky lg:top-6 lg:h-auto lg:rounded-3xl lg:shadow-2xl lg:translate-x-0"
+    id="app-sidebar"
+    class="fixed top-0 left-0 h-screen w-[280px] max-w-[85vw] glass-thin border-r border-on-surface/5 p-4 flex flex-col z-[100] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:w-full lg:max-w-none lg:sticky lg:top-6 lg:h-auto lg:rounded-3xl lg:border-r-0 lg:shadow-2xl lg:translate-x-0 lg:transition-none"
     :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
   >
     <!-- Logo Section -->
@@ -149,9 +193,7 @@ onMounted(() => {
         <img src="/logo.png" alt="Logo" class="w-full h-full object-cover" />
       </div>
       <div class="text-center leading-none">
-        <h2 class="text-on-surface dark:text-on-surface font-semibold tracking-tight text-lg">
-          Sernan's
-        </h2>
+        <h2 class="text-on-surface font-semibold tracking-tight text-lg">Sernan's</h2>
         <p class="text-primary text-xs font-bold uppercase">Music Clinic</p>
       </div>
     </div>
@@ -167,46 +209,56 @@ onMounted(() => {
         :key="item.path"
         :to="item.path"
         class="flex items-center gap-3 px-4 py-3 border rounded-2xl text-sm font-bold border-opacity-20 py-1.5"
-        :class="isActive(item.path) ? 'bg-primary/10 text-primary border-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 border-transparent'"
+        :class="
+          isActive(item.path)
+            ? 'bg-primary/10 text-primary border-primary shadow-sm'
+            : 'text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 border-transparent'
+        "
         @click="closeSidebar"
       >
         <span
           class="material-symbols-outlined text-xl"
           :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
-          >{{ item.icon }}</span>
+          >{{ item.icon }}</span
+        >
         <span>{{ item.label }}</span>
       </router-link>
     </nav>
 
     <!-- Bottom Section -->
-    <div class="py-3 border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col gap-3 relative">
+    <div
+      class="py-3 border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col gap-3 relative"
+    >
       <div class="flex flex-col items-center gap-2 w-full">
         <!-- Notifications -->
         <button
-          class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface group border border-on-surface/[0.04] dark:border-on-surface/5"
+          class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-2xl text-on-surface-variant hover:text-on-surface group border border-on-surface/[0.04] dark:border-on-surface/5"
           @click="openNotifications"
         >
           <span class="material-symbols-outlined text-xl group-hover:scale-110">notifications</span>
           <span class="text-xs font-bold uppercase">Notifs</span>
           <span
             v-if="unreadCount > 0"
-            class="absolute top-1.5 right-2 size-4 bg-primary rounded-full text-xs font-semibold text-on-surface flex items-center justify-center"
-            >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+            class="absolute top-1.5 right-2 size-4 bg-primary rounded-full text-xs font-semibold text-on-primary flex items-center justify-center"
+            >{{ unreadCount > 9 ? '9+' : unreadCount }}</span
+          >
         </button>
         <!-- Messages -->
         <button
-          class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-2xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface group border border-on-surface/[0.04] dark:border-on-surface/5"
+          class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-2xl text-on-surface-variant hover:text-on-surface group border border-on-surface/[0.04] dark:border-on-surface/5"
           @click="openMessaging"
         >
           <span
             class="material-symbols-outlined text-xl group-hover:scale-110"
             style="font-variation-settings: 'FILL' 1"
-            >chat</span>
+            >chat</span
+          >
           <span class="text-xs font-bold uppercase">Chat</span>
           <span
             v-if="messagingStore.totalUnread > 0"
-            class="absolute top-1.5 right-2 min-w-[16px] h-4 bg-primary rounded-full text-xs font-semibold text-on-surface flex items-center justify-center px-0.5"
-            >{{ messagingStore.totalUnread > 99 ? '99+' : messagingStore.totalUnread }}</span>
+            class="absolute top-1.5 right-2 min-w-[16px] h-4 bg-primary rounded-full text-xs font-semibold text-on-primary flex items-center justify-center px-0.5"
+            >{{ messagingStore.totalUnread > 99 ? '99+' : messagingStore.totalUnread }}</span
+          >
         </button>
       </div>
 
@@ -214,7 +266,10 @@ onMounted(() => {
       <div class="relative w-full">
         <button
           class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 group border border-transparent"
-          :class="{ 'bg-on-surface/10 border-on-surface/[0.08] dark:border-on-surface/10 shadow-lg': isUserDropdownOpen, }"
+          :class="{
+            'bg-on-surface/10 border-on-surface/[0.08] dark:border-on-surface/10 shadow-lg':
+              isUserDropdownOpen,
+          }"
           @click.stop="toggleUserDropdown"
         >
           <div
@@ -228,21 +283,18 @@ onMounted(() => {
             <span v-else>{{ authStore.currentUser?.name?.charAt(0)?.toUpperCase() || '?' }}</span>
           </div>
           <div class="flex-1 text-left min-w-0">
-            <p
-              class="text-sm font-bold text-on-surface dark:text-on-surface leading-tight truncate"
-            >
+            <p class="text-sm font-bold text-on-surface leading-tight truncate">
               {{ authStore.currentUser?.name || 'User' }}
             </p>
-            <p
-              class="text-xs text-on-surface-variant dark:text-on-surface-variant font-bold uppercase truncate"
-            >
+            <p class="text-xs text-on-surface-variant font-bold uppercase truncate">
               {{ roleLabel }}
             </p>
           </div>
           <span
-            class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant text-xl"
-            :class="{ 'rotate-180 text-on-surface dark:text-on-surface': isUserDropdownOpen }"
-            >expand_less</span>
+            class="material-symbols-outlined text-on-surface-variant text-xl"
+            :class="{ 'rotate-180 text-on-surface': isUserDropdownOpen }"
+            >expand_less</span
+          >
         </button>
 
         <!-- Dropdown Content -->
@@ -254,26 +306,22 @@ onMounted(() => {
           <div
             class="p-4 border-b border-on-surface/[0.04] dark:border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02]"
           >
-            <p
-              class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1"
-            >
-              Signed in as
-            </p>
-            <p class="text-sm font-bold text-on-surface dark:text-on-surface truncate">
+            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Signed in as</p>
+            <p class="text-sm font-bold text-on-surface truncate">
               {{ authStore.currentUser?.email }}
             </p>
           </div>
 
           <div class="p-2">
             <button
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-xs font-bold"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-xs font-bold"
               @click="openSettings"
             >
               <span class="material-symbols-outlined text-lg">person_edit</span>
               Profile Settings
             </button>
             <button
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-xs font-bold"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-xs font-bold"
               @click="openSettings"
             >
               <span class="material-symbols-outlined text-lg">settings</span>
@@ -281,7 +329,7 @@ onMounted(() => {
             </button>
             <div class="h-px bg-on-surface/[0.04] dark:bg-on-surface/5 my-1 mx-2"></div>
             <button
-              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant dark:text-on-surface-variant hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 text-xs font-semibold"
+              class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-error dark:hover:text-error hover:bg-error/10 text-xs font-semibold"
               @click="logout"
             >
               <span class="material-symbols-outlined text-lg">logout</span>

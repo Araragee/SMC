@@ -188,6 +188,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "no-referrer")
+        # Every API response is either a token, someone's personal data, or a
+        # schedule that changes under you. None of it may sit in a browser or
+        # intermediary cache. Static uploads set their own policy and are left
+        # alone so images stay cacheable.
+        if not request.url.path.startswith("/uploads"):
+            response.headers.setdefault("Cache-Control", "no-store")
         if request.url.scheme == "https":
             response.headers.setdefault(
                 "Strict-Transport-Security",

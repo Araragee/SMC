@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'teacher' | 'student';
+export type Role = 'admin' | 'teacher' | 'student'
 
 export type SessionStatus =
   | 'scheduled'
@@ -10,149 +10,147 @@ export type SessionStatus =
   | 'rejected'
   | 'overdue'
   | 'pending_verification'
-  | 'overdue_rejected';
+  | 'overdue_rejected'
 
 export interface InstrumentRecord {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
 export interface UserInstrument {
-  userId: number;
-  instrumentId: number;
+  userId: number
+  instrumentId: number
 }
 
-
 export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: Role;
-  avatarUrl?: string;
-  username?: string;
-  contactNumber?: string;
-  homeAddress?: string;
-  instruments?: InstrumentRecord[];
-  totpEnabled?: boolean;
+  id: number
+  name: string
+  email: string
+  role: Role
+  avatarUrl?: string
+  username?: string
+  contactNumber?: string
+  homeAddress?: string
+  instruments?: InstrumentRecord[]
+  totpEnabled?: boolean
   /** Phase 2: when true, router gate forces the user to /change-password
    *  before they can navigate to any role dashboard. */
-  mustChangePassword?: boolean;
+  mustChangePassword?: boolean
 
   // Specific to students
-  sessionsLeft?: number;
-  birthday?: string;
-  age?: number;
-  school?: string;
-  parentName?: string;
-  parentContact?: string;
-  sessionsEnrolled?: number;
+  sessionsLeft?: number
+  birthday?: string
+  age?: number
+  school?: string
+  parentName?: string
+  parentContact?: string
+  sessionsEnrolled?: number
 }
 
 export interface SessionProof {
-  id: number;
-  sessionId: number;
-  imageUrl: string;
-  uploadedAt: string;
-  uploaderId?: number;
-  uploaderRole?: string;
+  id: number
+  sessionId: number
+  imageUrl: string
+  uploadedAt: string
+  uploaderId?: number
+  uploaderRole?: string
 }
 
 export interface Homework {
-  id: number;
-  sessionId: number;
-  description: string;
-  isCompleted: boolean;
-  fileUrl?: string;
-  createdAt: string;
+  id: number
+  sessionId: number
+  description: string
+  isCompleted: boolean
+  fileUrl?: string
+  createdAt: string
 }
 
 export interface Session {
-  id: number;
-  studentId: number;
-  teacherId: number;
-  startTime: string; // ISO 8601 format
-  endTime: string; // ISO 8601 format
-  status: SessionStatus;
-  proposedBy?: number;
-  notes?: string;
-  imageProofUrl?: string; // Legacy/convenience
-  proofs?: SessionProof[];
-  homeworkAssigned?: string;
-  homeworkCompleted?: boolean;
-  instrumentId?: number;
-  isManualEntry?: boolean;
-  sessionNumber?: number;
-  instrument?: InstrumentRecord;
-  proofJustification?: string;
-  rejectionReason?: string;
-  isForceCompleted?: boolean;
-  counterCount?: number;
-  conflictSessionId?: number;
+  id: number
+  studentId: number
+  teacherId: number
+  startTime: string // ISO 8601 format
+  endTime: string // ISO 8601 format
+  status: SessionStatus
+  proposedBy?: number
+  notes?: string
+  imageProofUrl?: string // Legacy/convenience
+  proofs?: SessionProof[]
+  homeworkAssigned?: string
+  homeworkCompleted?: boolean
+  instrumentId?: number
+  isManualEntry?: boolean
+  sessionNumber?: number
+  instrument?: InstrumentRecord
+  proofJustification?: string
+  rejectionReason?: string
+  isForceCompleted?: boolean
+  counterCount?: number
+  conflictSessionId?: number
   /** Optimistic-lock counter — pass back to write endpoints so the server can
    *  detect concurrent modifications and respond with HTTP 409. */
-  version?: number;
+  version?: number
 }
 
 export interface Schedule {
-  id: number;
-  userId: number;
-  sessions: Session[];
+  id: number
+  userId: number
+  sessions: Session[]
 }
 
 export interface Notification {
-  id: number;
-  userId: number | null; // Or null for global notifications
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  isRead: boolean;
-  link?: string;
-  createdAt: string; // ISO 8601 format
+  id: number
+  userId: number | null // Or null for global notifications
+  title: string
+  message: string
+  type: 'info' | 'warning' | 'success' | 'error'
+  isRead: boolean
+  link?: string
+  createdAt: string // ISO 8601 format
 }
 
 export interface Enrollment {
-  id: number;
-  studentId: number;
-  teacherId: number;
-  sessionsPurchased: number;
-  sessionsUsed: number;
-  sessionsLeft: number;
+  id: number
+  studentId: number
+  teacherId: number
+  sessionsPurchased: number
+  sessionsUsed: number
+  sessionsLeft: number
   /** pending → awaiting admin decision; active → bookable; rejected → declined. */
-  status?: 'pending' | 'active' | 'rejected';
-  isActive?: boolean;
-  createdAt: string;
+  status?: 'pending' | 'active' | 'rejected'
+  isActive?: boolean
+  createdAt: string
 }
-
 
 // ── Messaging ─────────────────────────────────────────────────────────────────
 
 export type ConversationType = 'dm' | 'group' | 'session_thread'
 
 export interface ConversationParticipantInfo {
-  userId:     number
-  joinedAt:   string
+  userId: number
+  joinedAt: string
   lastReadAt: string | null
-  name:       string | null
+  name: string | null
 }
 
 export interface ChatMessage {
-  id:             number
+  id: number
   conversationId: number
-  senderId:       number
-  senderName:     string | null
-  body:           string
-  createdAt:      string
-  isDeleted:      boolean
+  senderId: number
+  senderName: string | null
+  body: string
+  createdAt: string
+  isDeleted: boolean
 }
 
 export interface Conversation {
-  id:           number
-  type:         ConversationType
-  name:         string | null
-  createdAt:    string
+  id: number
+  type: ConversationType
+  name: string | null
+  createdAt: string
   participants: ConversationParticipantInfo[]
-  lastMessage:  ChatMessage | null
-  unreadCount:  number
+  lastMessage: ChatMessage | null
+  unreadCount: number
 }
 
 // ── Shop ──────────────────────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ onMounted(async () => {
   isLoading.value = true
   try {
     const res = await axios.get(`${API_URL}/homework/user/${authStore.currentUser?.id}`, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
+      headers: { Authorization: `Bearer ${authStore.token}` },
     })
     homeworks.value = res.data.map((hw: any) => ({
       id: hw.id,
@@ -25,7 +25,7 @@ onMounted(async () => {
       description: hw.description,
       isCompleted: hw.is_completed,
       fileUrl: hw.file_url,
-      createdAt: hw.created_at
+      createdAt: hw.created_at,
     }))
   } catch (err) {
     toast.error('Failed to load homework')
@@ -34,26 +34,26 @@ onMounted(async () => {
   }
 })
 
-const pendingHomework = computed(() => homeworks.value.filter(h => !h.isCompleted))
-const completedHomework = computed(() => homeworks.value.filter(h => h.isCompleted))
+const pendingHomework = computed(() => homeworks.value.filter((h) => !h.isCompleted))
+const completedHomework = computed(() => homeworks.value.filter((h) => h.isCompleted))
 
 async function handleFileUpload(event: Event, homeworkId: number) {
   const target = event.target as HTMLInputElement
   if (!target.files?.length) return
-  
+
   const file = target.files[0]
   const formData = new FormData()
   formData.append('file', file)
-  
+
   isUploading.value = homeworkId
   try {
     const res = await axios.post(`${API_URL}/homework/${homeworkId}/upload`, formData, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${authStore.token}`,
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     })
-    const index = homeworks.value.findIndex(h => h.id === homeworkId)
+    const index = homeworks.value.findIndex((h) => h.id === homeworkId)
     if (index !== -1) {
       homeworks.value[index].isCompleted = true
       homeworks.value[index].fileUrl = res.data.file_url
@@ -72,13 +72,19 @@ async function handleFileUpload(event: Event, homeworkId: number) {
     <!-- Header -->
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
-        <div class="size-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-          <span class="material-symbols-outlined text-indigo-500 text-2xl">menu_book</span>
+        <div
+          class="size-10 rounded-2xl bg-tertiary/10 border border-tertiary/20 flex items-center justify-center"
+        >
+          <span class="material-symbols-outlined text-tertiary text-2xl">menu_book</span>
         </div>
-        <p class="text-xs font-semibold text-indigo-500 uppercase">Self Study</p>
+        <p class="text-xs font-semibold text-tertiary uppercase">Self Study</p>
       </div>
-      <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">Homework & Assignments</h1>
-      <p class="text-on-surface-variant font-medium text-lg">Review your practice goals and upload completion proofs.</p>
+      <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">
+        Homework & Assignments
+      </h1>
+      <p class="text-on-surface-variant font-medium text-lg">
+        Review your practice goals and upload completion proofs.
+      </p>
     </header>
 
     <div class="space-y-12">
@@ -87,46 +93,61 @@ async function handleFileUpload(event: Event, homeworkId: number) {
         <div class="flex items-center gap-4">
           <h2 class="text-xl font-semibold text-on-surface uppercase">Active Tasks</h2>
           <div class="h-px flex-1 bg-outline-variant/20"></div>
-          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+          <span
+            class="text-xs font-semibold px-3 py-1 rounded-full bg-warning/10 text-warning border border-warning/20"
+          >
             {{ pendingHomework.length }} Pending
           </span>
         </div>
 
-        <div v-if="pendingHomework.length === 0" class="glass-medium rounded-[3rem] p-16 text-center border-dashed border-2 border-outline-variant/30">
+        <div
+          v-if="pendingHomework.length === 0"
+          class="glass-medium rounded-[3rem] p-16 text-center border-dashed border-2 border-outline-variant/30"
+        >
           <p class="text-on-surface-variant font-bold">All caught up! No pending assignments.</p>
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div 
-            v-for="hw in pendingHomework" 
+          <div
+            v-for="hw in pendingHomework"
             :key="hw.id"
-            class="glass-heavy rounded-3xl p-8 border border-outline-variant/30 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all group overflow-hidden relative"
+            class="glass-heavy rounded-3xl p-8 border border-outline-variant/30 hover:shadow-2xl hover:shadow-tertiary/10 transition-all group overflow-hidden relative"
           >
-            <div class="absolute -right-8 -top-8 size-32 bg-indigo-500/5 blur-3xl rounded-full" />
-            
+            <div class="absolute -right-8 -top-8 size-32 bg-tertiary/5 blur-3xl rounded-full" />
+
             <div class="relative z-10 flex flex-col h-full">
               <div class="flex justify-between items-start mb-4">
-                <span class="text-xs font-semibold text-indigo-500 uppercase">Session #{{ hw.sessionId }}</span>
-                <span class="text-xs font-bold text-on-surface-variant">{{ new Date(hw.createdAt).toLocaleDateString() }}</span>
+                <span class="text-xs font-semibold text-tertiary uppercase"
+                  >Session #{{ hw.sessionId }}</span
+                >
+                <span class="text-xs font-bold text-on-surface-variant">{{
+                  new Date(hw.createdAt).toLocaleDateString()
+                }}</span>
               </div>
-              
-              <h3 class="text-xl font-semibold text-on-surface mb-4 leading-tight group-hover:text-indigo-500 transition-colors">
+
+              <h3
+                class="text-xl font-semibold text-on-surface mb-4 leading-tight group-hover:text-tertiary transition-colors"
+              >
                 {{ hw.description }}
               </h3>
-              
+
               <div class="mt-auto pt-6 flex items-center gap-4">
-                <label 
+                <label
                   class="flex-1 cursor-pointer"
                   :class="isUploading === hw.id ? 'pointer-events-none opacity-50' : ''"
                 >
-                  <input 
-                    type="file" 
-                    class="hidden" 
+                  <input
+                    type="file"
+                    class="hidden"
                     @change="(e) => handleFileUpload(e, hw.id)"
                     accept="image/*,.pdf,.doc,.docx"
                   />
-                  <div class="w-full py-4 bg-indigo-500 text-on-surface rounded-2xl text-xs font-semibold uppercase flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all">
-                    <span class="material-symbols-outlined text-sm">{{ isUploading === hw.id ? 'progress_activity' : 'cloud_upload' }}</span>
+                  <div
+                    class="w-full py-4 bg-tertiary text-on-tertiary rounded-2xl text-xs font-semibold uppercase flex items-center justify-center gap-2 shadow-lg shadow-tertiary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    <span class="material-symbols-outlined text-sm">{{
+                      isUploading === hw.id ? 'progress_activity' : 'cloud_upload'
+                    }}</span>
                     {{ isUploading === hw.id ? 'Uploading...' : 'Submit Proof' }}
                   </div>
                 </label>
@@ -139,27 +160,29 @@ async function handleFileUpload(event: Event, homeworkId: number) {
       <!-- Completed Section -->
       <section class="space-y-6">
         <div class="flex items-center gap-4">
-          <h2 class="text-xl font-semibold text-on-surface uppercase text-on-surface-variant">Archive</h2>
+          <h2 class="text-xl font-semibold text-on-surface uppercase text-on-surface-variant">
+            Archive
+          </h2>
           <div class="h-px flex-1 bg-outline-variant/10"></div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div 
-            v-for="hw in completedHomework" 
+          <div
+            v-for="hw in completedHomework"
             :key="hw.id"
             class="glass-medium rounded-3xl p-6 border border-outline-variant/20 flex items-center justify-between group"
           >
             <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-emerald-500 uppercase mb-1 flex items-center gap-1">
+              <p class="text-xs font-semibold text-success uppercase mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined text-xs">check_circle</span>
                 Completed
               </p>
               <h4 class="font-bold text-on-surface truncate text-sm">{{ hw.description }}</h4>
             </div>
-            
-            <a 
-              v-if="hw.fileUrl" 
-              :href="hw.fileUrl" 
+
+            <a
+              v-if="hw.fileUrl"
+              :href="hw.fileUrl"
               target="_blank"
               class="ml-4 size-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
             >
@@ -174,7 +197,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-xl;
+  @apply bg-on-surface/80 dark:bg-surface-container-lowest/80 shadow-xl;
 }
 .glass-medium {
   @apply bg-on-surface/40 dark:bg-on-surface/5;

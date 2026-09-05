@@ -5,12 +5,13 @@ import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
 import { API_URL } from '@typescript/constants'
+import PasswordInput from '@components/PasswordInput.vue'
 
 // Used in two cases:
-//   1) ``must_change_password`` is set on the user (default admin seed,
-//      admin-initiated reset). The router gate redirects them here until
-//      this form is completed.
-//   2) Voluntary password change from the user-settings modal.
+//  1) ``must_change_password`` is set on the user (default admin seed,
+//  admin-initiated reset). The router gate redirects them here until
+//  this form is completed.
+//  2) Voluntary password change from the user-settings modal.
 //
 // In both cases the backend revokes every refresh token for the user,
 // which kicks them back to the login page after a successful save.
@@ -31,7 +32,8 @@ const passwordIssue = computed<string | null>(() => {
   if (newPassword.value.length < 8) return 'At least 8 characters'
   if (!/[A-Za-z]/.test(newPassword.value)) return 'Must include a letter'
   if (!/\d/.test(newPassword.value)) return 'Must include a digit'
-  if (newPassword.value === currentPassword.value) return 'New password must differ from the current one'
+  if (newPassword.value === currentPassword.value)
+    return 'New password must differ from the current one'
   if (confirmPassword.value && newPassword.value !== confirmPassword.value) {
     return 'Passwords do not match'
   }
@@ -76,7 +78,7 @@ const submit = async () => {
         <h1 class="text-3xl font-extrabold tracking-tight text-on-surface">
           {{ forced ? 'Set a new password' : 'Change password' }}
         </h1>
-        <p v-if="forced" class="text-amber-500 text-sm font-semibold">
+        <p v-if="forced" class="text-warning text-sm font-semibold">
           Your account is using a temporary password — please choose a new one before continuing.
         </p>
         <p v-else class="text-on-surface-variant text-sm">
@@ -89,40 +91,22 @@ const submit = async () => {
           <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             Current password
           </label>
-          <input
-            v-model="currentPassword"
-            type="password"
-            required
-            autocomplete="current-password"
-            class="input"
-          />
+          <PasswordInput v-model="currentPassword" required autocomplete="current-password" />
         </div>
         <div class="space-y-2">
           <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             New password
           </label>
-          <input
-            v-model="newPassword"
-            type="password"
-            required
-            autocomplete="new-password"
-            class="input"
-          />
+          <PasswordInput v-model="newPassword" required autocomplete="new-password" />
         </div>
         <div class="space-y-2">
           <label class="block text-xs uppercase text-on-surface-variant font-bold px-1">
             Confirm new password
           </label>
-          <input
-            v-model="confirmPassword"
-            type="password"
-            required
-            autocomplete="new-password"
-            class="input"
-          />
+          <PasswordInput v-model="confirmPassword" required autocomplete="new-password" />
         </div>
 
-        <p v-if="passwordIssue" class="text-amber-500 text-sm">{{ passwordIssue }}</p>
+        <p v-if="passwordIssue" class="text-warning text-sm">{{ passwordIssue }}</p>
 
         <button
           :disabled="!canSubmit"

@@ -10,76 +10,75 @@ import { API_URL } from '@typescript/constants'
 // http -> ws, https -> wss. Override with VITE_WS_BASE_URL if WS lives elsewhere.
 const WS_URL = import.meta.env.VITE_WS_BASE_URL || API_URL.replace(/^http/, 'ws')
 
-const authHeaders = function() {
+const authHeaders = function () {
   const auth = useAuthStore()
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 }
 
-const mapMessage = function(raw: any): ChatMessage  {
+const mapMessage = function (raw: any): ChatMessage {
   return {
-    id:             Number(raw.id),
+    id: Number(raw.id),
     conversationId: Number(raw.conversation_id),
-    senderId:       Number(raw.sender_id),
-    senderName:     raw.sender_name ?? null,
-    body:           raw.body,
-    createdAt:      raw.created_at,
-    isDeleted:      raw.is_deleted ?? false,
+    senderId: Number(raw.sender_id),
+    senderName: raw.sender_name ?? null,
+    body: raw.body,
+    createdAt: raw.created_at,
+    isDeleted: raw.is_deleted ?? false,
   }
 }
 
-const mapParticipant = function(raw: any) {
+const mapParticipant = function (raw: any) {
   return {
-    userId:     Number(raw.user_id),
-    joinedAt:   raw.joined_at,
+    userId: Number(raw.user_id),
+    joinedAt: raw.joined_at,
     lastReadAt: raw.last_read_at ?? null,
-    name:       raw.name ?? null,
+    name: raw.name ?? null,
   }
 }
 
-const mapConversation = function(raw: any): Conversation  {
+const mapConversation = function (raw: any): Conversation {
   return {
-    id:           Number(raw.id),
-    type:         raw.type,
-    name:         raw.name ?? null,
-    createdAt:    raw.created_at,
+    id: Number(raw.id),
+    type: raw.type,
+    name: raw.name ?? null,
+    createdAt: raw.created_at,
     participants: (raw.participants ?? []).map(mapParticipant),
-    lastMessage:  raw.last_message ? mapMessage(raw.last_message) : null,
-    unreadCount:  raw.unread_count ?? 0,
+    lastMessage: raw.last_message ? mapMessage(raw.last_message) : null,
+    unreadCount: raw.unread_count ?? 0,
   }
 }
 
 interface MessagingState {
-  conversations:        Conversation[]
+  conversations: Conversation[]
   activeConversationId: number | null
-  isOpen:               boolean
-  messages:             Record<number, ChatMessage[]>
-  unreadCounts:         Record<number, number>
-  typingUsers:          Record<number, number[]>
-  wsStatus:             'connecting' | 'connected' | 'disconnected'
-  _ws:                  WebSocket | null
-  _typingTimers:        Record<string, ReturnType<typeof setTimeout>>
-  _reconnectTimer:      ReturnType<typeof setTimeout> | null
-  _reconnectAttempts:   number
+  isOpen: boolean
+  messages: Record<number, ChatMessage[]>
+  unreadCounts: Record<number, number>
+  typingUsers: Record<number, number[]>
+  wsStatus: 'connecting' | 'connected' | 'disconnected'
+  _ws: WebSocket | null
+  _typingTimers: Record<string, ReturnType<typeof setTimeout>>
+  _reconnectTimer: ReturnType<typeof setTimeout> | null
+  _reconnectAttempts: number
 }
 
 export const useMessagingStore = defineStore('messaging', {
   state: (): MessagingState => ({
-    conversations:        [],
+    conversations: [],
     activeConversationId: null,
-    isOpen:               false,
-    messages:             {},
-    unreadCounts:         {},
-    typingUsers:          {},
-    wsStatus:             'disconnected',
-    _ws:                  null,
-    _typingTimers:        {},
-    _reconnectTimer:      null,
-    _reconnectAttempts:   0,
+    isOpen: false,
+    messages: {},
+    unreadCounts: {},
+    typingUsers: {},
+    wsStatus: 'disconnected',
+    _ws: null,
+    _typingTimers: {},
+    _reconnectTimer: null,
+    _reconnectAttempts: 0,
   }),
 
   getters: {
-    totalUnread: (state): number =>
-      Object.values(state.unreadCounts).reduce((s, n) => s + n, 0),
+    totalUnread: (state): number => Object.values(state.unreadCounts).reduce((s, n) => s + n, 0),
 
     sortedConversations: (state): Conversation[] =>
       [...state.conversations].sort((a: any, b: any) => {
@@ -89,7 +88,7 @@ export const useMessagingStore = defineStore('messaging', {
       }),
 
     activeConversation(state): Conversation | null {
-      return state.conversations.find(c => c.id === state.activeConversationId) ?? null
+      return state.conversations.find((c) => c.id === state.activeConversationId) ?? null
     },
   },
 
@@ -121,11 +120,11 @@ export const useMessagingStore = defineStore('messaging', {
         this.wsStatus = 'disconnected'
         this._ws = null
         if (this._reconnectTimer) clearTimeout(this._reconnectTimer)
-        
+
         // Exponential backoff: 1s, 2s, 4s, 8s, 16s, max 30s
         const delay = Math.min(1000 * Math.pow(2, this._reconnectAttempts), 30000)
         this._reconnectAttempts++
-        
+
         this._reconnectTimer = setTimeout(() => this.connectWS(), delay)
       }
 
@@ -147,24 +146,26 @@ export const useMessagingStore = defineStore('messaging', {
 
     _handleIncoming(event: MessageEvent) {
       let data: { type?: string; message?: unknown; [k: string]: unknown }
-      try { data = JSON.parse(event.data) } catch { return }
+      try {
+        data = JSON.parse(event.data)
+      } catch {
+        return
+      }
 
       if (data.type === 'new_message') {
         const msg = mapMessage(data.message)
         const cid = msg.conversationId
         if (!this.messages[cid]) this.messages[cid] = []
-        if (!this.messages[cid].find(m => m.id === msg.id)) {
+        if (!this.messages[cid].find((m) => m.id === msg.id)) {
           this.messages[cid].push(msg)
         }
-        const conv = this.conversations.find(c => c.id === cid)
+        const conv = this.conversations.find((c) => c.id === cid)
         if (conv) conv.lastMessage = msg
-
       } else if (data.type === 'unread_update') {
         const cid = Number(data.conversation_id)
         this.unreadCounts[cid] = Number(data.count)
-        const conv = this.conversations.find(c => c.id === cid)
+        const conv = this.conversations.find((c) => c.id === cid)
         if (conv) conv.unreadCount = Number(data.count)
-
       } else if (data.type === 'typing') {
         const cid = Number(data.conversation_id)
         const uid = Number(data.user_id)
@@ -196,7 +197,8 @@ export const useMessagingStore = defineStore('messaging', {
       const params: any = { limit: 50 }
       if (cursor) params.cursor = cursor
       const res = await axios.get(`${API_URL}/conversations/${conversationId}/messages`, {
-        headers: authHeaders(), params,
+        headers: authHeaders(),
+        params,
       })
       const msgs: ChatMessage[] = res.data.messages.map(mapMessage)
       if (!this.messages[conversationId]) {
@@ -214,51 +216,60 @@ export const useMessagingStore = defineStore('messaging', {
       const trimmed = body.trim()
       if (!trimmed) return
       if (this._ws?.readyState === WebSocket.OPEN) {
-        this._ws.send(JSON.stringify({
-          type: 'send_message',
-          conversation_id: conversationId,
-          body: trimmed,
-        }))
+        this._ws.send(
+          JSON.stringify({
+            type: 'send_message',
+            conversation_id: conversationId,
+            body: trimmed,
+          })
+        )
       } else {
         // REST fallback (no WebSocket)
-        axios.post(
-          `${API_URL}/conversations/${conversationId}/messages`,
-          { body: trimmed },
-          { headers: authHeaders() }
-        ).then(r => {
-          const msg = mapMessage(r.data)
-          if (!this.messages[conversationId]) this.messages[conversationId] = []
-          this.messages[conversationId].push(msg)
-          const conv = this.conversations.find(c => c.id === conversationId)
-          if (conv) conv.lastMessage = msg
-        }).catch(() => {})
+        axios
+          .post(
+            `${API_URL}/conversations/${conversationId}/messages`,
+            { body: trimmed },
+            { headers: authHeaders() }
+          )
+          .then((r) => {
+            const msg = mapMessage(r.data)
+            if (!this.messages[conversationId]) this.messages[conversationId] = []
+            this.messages[conversationId].push(msg)
+            const conv = this.conversations.find((c) => c.id === conversationId)
+            if (conv) conv.lastMessage = msg
+          })
+          .catch(() => {})
       }
     },
 
     markRead(conversationId: number) {
       if (this._ws?.readyState === WebSocket.OPEN) {
-        this._ws.send(JSON.stringify({
-          type: 'mark_read',
-          conversation_id: conversationId,
-        }))
+        this._ws.send(
+          JSON.stringify({
+            type: 'mark_read',
+            conversation_id: conversationId,
+          })
+        )
       } else {
-        axios.patch(
-          `${API_URL}/conversations/${conversationId}/read`,
-          {}, { headers: authHeaders() }
-        ).then(() => {
-          this.unreadCounts[conversationId] = 0
-          const conv = this.conversations.find(c => c.id === conversationId)
-          if (conv) conv.unreadCount = 0
-        }).catch(() => {})
+        axios
+          .patch(`${API_URL}/conversations/${conversationId}/read`, {}, { headers: authHeaders() })
+          .then(() => {
+            this.unreadCounts[conversationId] = 0
+            const conv = this.conversations.find((c) => c.id === conversationId)
+            if (conv) conv.unreadCount = 0
+          })
+          .catch(() => {})
       }
     },
 
     sendTyping(conversationId: number) {
       if (this._ws?.readyState === WebSocket.OPEN) {
-        this._ws.send(JSON.stringify({
-          type: 'typing',
-          conversation_id: conversationId,
-        }))
+        this._ws.send(
+          JSON.stringify({
+            type: 'typing',
+            conversation_id: conversationId,
+          })
+        )
       }
     },
 
@@ -271,7 +282,7 @@ export const useMessagingStore = defineStore('messaging', {
         { headers: authHeaders() }
       )
       const conv = mapConversation(res.data)
-      const existing = this.conversations.findIndex(c => c.id === conv.id)
+      const existing = this.conversations.findIndex((c) => c.id === conv.id)
       if (existing >= 0) this.conversations[existing] = conv
       else this.conversations.unshift(conv)
       this.unreadCounts[conv.id] = conv.unreadCount
@@ -291,12 +302,11 @@ export const useMessagingStore = defineStore('messaging', {
     },
 
     async getOrCreateSessionThread(sessionId: number): Promise<number> {
-      const res = await axios.get(
-        `${API_URL}/sessions/${sessionId}/thread`,
-        { headers: authHeaders() }
-      )
+      const res = await axios.get(`${API_URL}/sessions/${sessionId}/thread`, {
+        headers: authHeaders(),
+      })
       const conv = mapConversation(res.data)
-      const existing = this.conversations.findIndex(c => c.id === conv.id)
+      const existing = this.conversations.findIndex((c) => c.id === conv.id)
       if (existing >= 0) this.conversations[existing] = conv
       else this.conversations.unshift(conv)
       this.unreadCounts[conv.id] = conv.unreadCount

@@ -13,7 +13,7 @@ const props = withDefaults(
   {
     teacherName: '',
     isSubmitting: false,
-  },
+  }
 )
 
 const emit = defineEmits<{
@@ -29,12 +29,12 @@ const filtered = computed(() => {
   const term = search.value.trim().toLowerCase()
   if (!term) return props.students
   return props.students.filter(
-    (s) => s.name.toLowerCase().includes(term) || (s.email ?? '').toLowerCase().includes(term),
+    (s) => s.name.toLowerCase().includes(term) || (s.email ?? '').toLowerCase().includes(term)
   )
 })
 
 const allFilteredSelected = computed(
-  () => filtered.value.length > 0 && filtered.value.every((s) => selected.value.includes(s.id)),
+  () => filtered.value.length > 0 && filtered.value.every((s) => selected.value.includes(s.id))
 )
 
 const toggle = (id: number) => {
@@ -63,7 +63,7 @@ watch(
       search.value = ''
       selected.value = []
     }
-  },
+  }
 )
 </script>
 
@@ -78,12 +78,12 @@ watch(
     >
       <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="emit('close')" />
 
-      <div class="card modal-shell relative flex w-full max-w-lg flex-col bg-surface-container shadow-xl">
+      <div
+        class="card modal-shell relative flex w-full max-w-lg flex-col bg-surface-container shadow-xl"
+      >
         <header class="card-header">
           <div class="space-y-1">
-            <h2 id="student-picker-title" class="section-title">
-              Bulk enroll students
-            </h2>
+            <h2 id="student-picker-title" class="section-title">Bulk enroll students</h2>
             <p class="section-caption">
               {{ teacherName ? `Teacher: ${teacherName}` : 'Select existing student accounts.' }}
             </p>
@@ -130,9 +130,7 @@ watch(
         </div>
 
         <div class="min-h-0 flex-1 overflow-y-auto border-t border-outline-variant/20">
-          <p v-if="!filtered.length" class="empty-state section-caption">
-            No matching students.
-          </p>
+          <p v-if="!filtered.length" class="empty-state section-caption">No matching students.</p>
           <ul v-else class="divide-y divide-outline-variant/15">
             <li v-for="student in filtered" :key="student.id">
               <label
@@ -145,8 +143,12 @@ watch(
                   @change="toggle(student.id)"
                 />
                 <span class="min-w-0 flex-1">
-                  <span class="block truncate text-sm font-medium text-on-surface">{{ student.name }}</span>
-                  <span class="block truncate text-xs text-on-surface-variant">{{ student.email }}</span>
+                  <span class="block truncate text-sm font-medium text-on-surface">{{
+                    student.name
+                  }}</span>
+                  <span class="block truncate text-xs text-on-surface-variant">{{
+                    student.email
+                  }}</span>
                 </span>
                 <span class="num shrink-0 text-xs text-on-surface-variant">
                   {{ student.sessionsLeft ?? 0 }} credits

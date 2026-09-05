@@ -11,15 +11,13 @@ defineEmits<{
 
 const typeClasses = function (type: string) {
   const map: Record<string, string> = {
-    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
-    error: 'bg-red-500/10 border-red-500/20 text-red-400',
+    info: 'bg-tertiary/10 border-tertiary/20 text-tertiary',
+    success: 'bg-success/10 border-success/20 text-success',
+    warning: 'bg-warning/10 border-warning/20 text-warning',
+    error: 'bg-error/10 border-error/20 text-error',
   }
   return map[type] || map.info
 }
-
-
 
 const typeIcon = function (type: string) {
   const map: Record<string, string> = {
@@ -74,10 +72,7 @@ const formatTime = function (iso: string) {
         @click.self="$emit('close')"
       >
         <!-- Backdrop (slightly darker to focus on the detail) -->
-        <div
-          class="absolute inset-0 bg-black/40 dark:bg-black/70"
-          @click="$emit('close')"
-        />
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <!-- Modal -->
         <div
@@ -96,28 +91,21 @@ const formatTime = function (iso: string) {
                   }}</span>
                 </div>
                 <div>
-                  <span
-                    class="text-xs font-semibold uppercase text-on-surface-variant dark:text-on-surface-variant mb-1 block"
-                  >
+                  <span class="text-xs font-semibold uppercase text-on-surface-variant mb-1 block">
                     {{ typeLabel(notification.type) }}
                   </span>
                   <div class="flex items-center gap-2">
-                    <span
-                      class="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant"
-                      >{{ formatFullDate(notification.createdAt) }}</span
-                    >
+                    <span class="text-xs font-medium text-on-surface-variant">{{
+                      formatFullDate(notification.createdAt)
+                    }}</span>
                     <span class="size-1 rounded-full bg-outline-variant"></span>
-                    <span
-                      class="text-xs font-medium text-on-surface-variant dark:text-on-surface-variant"
-                      >{{ formatTime(notification.createdAt) }}</span
-                    >
+                    <span class="text-xs font-medium text-on-surface-variant">{{
+                      formatTime(notification.createdAt)
+                    }}</span>
                   </div>
                 </div>
               </div>
-              <button
-                class="icon-btn"
-                @click="$emit('close')"
-              >
+              <button class="icon-btn" @click="$emit('close')">
                 <span
                   class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform duration-300"
                   >close</span
@@ -125,30 +113,24 @@ const formatTime = function (iso: string) {
               </button>
             </div>
 
-            <h2
-              class="text-2xl font-semibold text-on-surface dark:text-on-surface leading-tight tracking-tight"
-            >
+            <h2 class="text-2xl font-semibold text-on-surface leading-tight tracking-tight">
               {{ notification.title || 'Notification Update' }}
             </h2>
           </div>
 
           <!-- Content Section -->
           <div class="px-8 py-6">
-            <div
-              class="h-px bg-outline-variant mb-8"
-            ></div>
+            <div class="h-px bg-outline-variant mb-8"></div>
 
             <div class="prose max-w-none">
               <p
-                class="text-lg text-on-surface-variant dark:text-on-surface-variant leading-[1.8] font-medium selection:bg-primary/30"
+                class="text-lg text-on-surface-variant leading-[1.8] font-medium selection:bg-primary/30"
               >
                 {{ notification.message }}
               </p>
             </div>
 
-            <div
-              class="h-px bg-outline-variant mt-8"
-            ></div>
+            <div class="h-px bg-outline-variant mt-8"></div>
           </div>
 
           <!-- Footer/Actions -->
@@ -159,22 +141,16 @@ const formatTime = function (iso: string) {
                 class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 w-max"
               >
                 <span class="size-1.5 rounded-full bg-primary animate-pulse"></span>
-                <span class="text-xs font-semibold text-primary uppercase"
-                  >New</span
-                >
+                <span class="text-xs font-semibold text-primary uppercase">New</span>
               </div>
               <div
                 v-else
                 class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-outline-variant/20 border border-outline-variant/40 w-max"
               >
-                <span
-                  class="material-symbols-outlined text-[12px] text-on-surface-variant dark:text-on-surface-variant"
+                <span class="material-symbols-outlined text-[12px] text-on-surface-variant"
                   >done_all</span
                 >
-                <span
-                  class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
-                  >Read</span
-                >
+                <span class="text-xs font-semibold text-on-surface-variant uppercase">Read</span>
               </div>
             </div>
 
@@ -189,7 +165,7 @@ const formatTime = function (iso: string) {
                 View Details
               </router-link>
               <button
-                class="px-6 py-3 bg-on-surface/5 dark:bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 text-on-surface dark:text-on-surface font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
+                class="px-6 py-3 bg-on-surface/5 hover:bg-on-surface/10 dark:hover:bg-on-surface/10 border border-on-surface/8 dark:border-on-surface/10 text-on-surface font-bold rounded-2xl transition-all hover:scale-[1.02] active:scale-95 text-sm"
                 @click="$emit('close')"
               >
                 Dismiss

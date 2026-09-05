@@ -16,8 +16,11 @@ export const useShopStore = defineStore('shop', {
     products: [] as InstrumentProduct[],
     orders: [] as Order[],
     myOrders: [] as Order[],
-    cart: JSON.parse(localStorage.getItem('smc_cart') || '[]') as { productId: number; quantity: number }[],
-    isLoading: false
+    cart: JSON.parse(localStorage.getItem('smc_cart') || '[]') as {
+      productId: number
+      quantity: number
+    }[],
+    isLoading: false,
   }),
 
   getters: {
@@ -30,9 +33,9 @@ export const useShopStore = defineStore('shop', {
     },
     getCartProduct: (state) => (productId: number) => {
       const product = state.products.find((p: InstrumentProduct) => p.id === productId)
-      const cartItem = state.cart.find(item => item.productId === productId)
+      const cartItem = state.cart.find((item) => item.productId === productId)
       return product ? { ...product, cartQuantity: cartItem?.quantity || 0 } : null
-    }
+    },
   },
 
   actions: {
@@ -52,7 +55,9 @@ export const useShopStore = defineStore('shop', {
 
     async fetchProduct(id: number) {
       try {
-        const response = await axios.get(`${API_URL}/shop/products/${id}`, { headers: authHeaders() })
+        const response = await axios.get(`${API_URL}/shop/products/${id}`, {
+          headers: authHeaders(),
+        })
         const product = mapProduct(response.data)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index] = product
@@ -66,7 +71,9 @@ export const useShopStore = defineStore('shop', {
     async createProduct(data: Partial<InstrumentProduct>) {
       const toast = useToastStore()
       try {
-        const response = await axios.post(`${API_URL}/shop/products`, data, { headers: authHeaders() })
+        const response = await axios.post(`${API_URL}/shop/products`, data, {
+          headers: authHeaders(),
+        })
         const product = mapProduct(response.data)
         this.products.unshift(product)
         toast.success('Product created', 'Product created successfully')
@@ -80,7 +87,9 @@ export const useShopStore = defineStore('shop', {
     async updateProduct(id: number, data: Partial<InstrumentProduct>) {
       const toast = useToastStore()
       try {
-        const response = await axios.put(`${API_URL}/shop/products/${id}`, data, { headers: authHeaders() })
+        const response = await axios.put(`${API_URL}/shop/products/${id}`, data, {
+          headers: authHeaders(),
+        })
         const product = mapProduct(response.data)
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index] = product
@@ -109,7 +118,9 @@ export const useShopStore = defineStore('shop', {
       const formData = new FormData()
       formData.append('file', file)
       try {
-        const response = await axios.post(`${API_URL}/shop/products/${id}/image`, formData, { headers: authHeaders() })
+        const response = await axios.post(`${API_URL}/shop/products/${id}/image`, formData, {
+          headers: authHeaders(),
+        })
         const index = this.products.findIndex((p: InstrumentProduct) => p.id === id)
         if (index !== -1) this.products[index].imageUrl = response.data.url
         return response.data.url
@@ -121,7 +132,7 @@ export const useShopStore = defineStore('shop', {
 
     // Cart Actions
     addToCart(productId: number, quantity = 1) {
-      const existing = this.cart.find(item => item.productId === productId)
+      const existing = this.cart.find((item) => item.productId === productId)
       if (existing) {
         existing.quantity += quantity
       } else {
@@ -131,7 +142,7 @@ export const useShopStore = defineStore('shop', {
     },
 
     updateCartItem(productId: number, quantity: number) {
-      const item = this.cart.find(item => item.productId === productId)
+      const item = this.cart.find((item) => item.productId === productId)
       if (item) {
         if (quantity <= 0) {
           this.removeFromCart(productId)
@@ -143,7 +154,7 @@ export const useShopStore = defineStore('shop', {
     },
 
     removeFromCart(productId: number) {
-      this.cart = this.cart.filter(item => item.productId !== productId)
+      this.cart = this.cart.filter((item) => item.productId !== productId)
       this.saveCart()
     },
 
@@ -162,20 +173,26 @@ export const useShopStore = defineStore('shop', {
       if (this.cart.length === 0) return
 
       try {
-        const response = await axios.post(`${API_URL}/shop/orders`, {
-          notes,
-          items: this.cart.map(item => ({
-            product_id: item.productId,
-            quantity: item.quantity
-          }))
-        }, { headers: authHeaders() })
+        const response = await axios.post(
+          `${API_URL}/shop/orders`,
+          {
+            notes,
+            items: this.cart.map((item) => ({
+              product_id: item.productId,
+              quantity: item.quantity,
+            })),
+          },
+          { headers: authHeaders() }
+        )
         const order = mapOrder(response.data)
         this.myOrders.unshift(order)
         this.clearCart()
         toast.success('Order placed', 'Order placed successfully!')
         return order
       } catch (error: unknown) {
-        const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to place order'
+        const msg =
+          (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          'Failed to place order'
         toast.error('Error', msg)
         throw error
       }
@@ -195,7 +212,10 @@ export const useShopStore = defineStore('shop', {
     async fetchAllOrders(status?: string) {
       const toast = useToastStore()
       try {
-        const response = await axios.get(`${API_URL}/shop/orders`, { params: { status }, headers: authHeaders() })
+        const response = await axios.get(`${API_URL}/shop/orders`, {
+          params: { status },
+          headers: authHeaders(),
+        })
         this.orders = response.data.map(mapOrder)
       } catch (error) {
         console.error('Error fetching all orders:', error)
@@ -206,10 +226,14 @@ export const useShopStore = defineStore('shop', {
     async updateOrderStatus(id: number, status: OrderStatus, rejectionReason?: string) {
       const toast = useToastStore()
       try {
-        const response = await axios.patch(`${API_URL}/shop/orders/${id}/status`, {
-          status,
-          rejection_reason: rejectionReason
-        }, { headers: authHeaders() })
+        const response = await axios.patch(
+          `${API_URL}/shop/orders/${id}/status`,
+          {
+            status,
+            rejection_reason: rejectionReason,
+          },
+          { headers: authHeaders() }
+        )
         const updated = mapOrder(response.data)
 
         // Update in both lists if present
@@ -228,7 +252,9 @@ export const useShopStore = defineStore('shop', {
 
         return updated
       } catch (error: unknown) {
-        const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to update order'
+        const msg =
+          (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          'Failed to update order'
         toast.error('Error', msg)
         throw error
       }
@@ -238,7 +264,11 @@ export const useShopStore = defineStore('shop', {
       const toast = useToastStore()
       try {
         // Uses the user-facing cancel endpoint (not the admin-only /status endpoint)
-        const response = await axios.patch(`${API_URL}/shop/orders/${id}/cancel`, {}, { headers: authHeaders() })
+        const response = await axios.patch(
+          `${API_URL}/shop/orders/${id}/cancel`,
+          {},
+          { headers: authHeaders() }
+        )
         const updated = mapOrder(response.data)
         const index = this.myOrders.findIndex((o: Order) => o.id === id)
         if (index !== -1) this.myOrders[index] = updated
@@ -246,11 +276,13 @@ export const useShopStore = defineStore('shop', {
         // Stock is restored on cancel — refresh product list to reflect new counts
         await this.fetchProducts()
       } catch (error: unknown) {
-        const msg = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Failed to cancel order'
+        const msg =
+          (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          'Failed to cancel order'
         toast.error('Error', msg)
       }
-    }
-  }
+    },
+  },
 })
 
 // Mappers
@@ -265,7 +297,7 @@ const mapProduct = (p: any): InstrumentProduct => ({
   category: p.category ?? null,
   isActive: p.is_active,
   createdAt: p.created_at,
-  updatedAt: p.updated_at
+  updatedAt: p.updated_at,
 })
 
 const mapOrder = (o: any): Order => ({
@@ -280,11 +312,11 @@ const mapOrder = (o: any): Order => ({
     productId: item.product_id,
     quantity: item.quantity,
     priceCentsAtPurchase: item.price_cents_at_purchase,
-    product: item.product ? mapProduct(item.product) : undefined
+    product: item.product ? mapProduct(item.product) : undefined,
   })),
   approvedBy: o.approved_by,
   approvedAt: o.approved_at,
   rejectionReason: o.rejection_reason,
   createdAt: o.created_at,
-  updatedAt: o.updated_at
+  updatedAt: o.updated_at,
 })

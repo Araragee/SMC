@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseDropdown from '@/components/BaseDropdown.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue'
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { usePaymentsStore } from '@stores/payments'
@@ -104,7 +104,7 @@ const filteredPayments = computed(() => {
       (p) =>
         (p.student_name || '').toLowerCase().includes(q) ||
         p.method.toLowerCase().includes(q) ||
-        (p.notes || '').toLowerCase().includes(q),
+        (p.notes || '').toLowerCase().includes(q)
     )
   }
   if (statusFilter.value !== 'all') {
@@ -132,14 +132,10 @@ const filteredPayments = computed(() => {
 })
 
 const totalRevenue = computed(() =>
-  paymentsStore.payments
-    .filter((p) => p.status === 'completed')
-    .reduce((s, p) => s + p.amount, 0),
+  paymentsStore.payments.filter((p) => p.status === 'completed').reduce((s, p) => s + p.amount, 0)
 )
 const pendingTotal = computed(() =>
-  paymentsStore.payments
-    .filter((p) => p.status === 'pending')
-    .reduce((s, p) => s + p.amount, 0),
+  paymentsStore.payments.filter((p) => p.status === 'pending').reduce((s, p) => s + p.amount, 0)
 )
 const thisMonthRevenue = computed(() => {
   const now = new Date()
@@ -170,11 +166,11 @@ function formatDate(dateStr: string) {
 function statusColor(status: string) {
   switch (status) {
     case 'completed':
-      return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+      return 'bg-success/10 text-success border-success/20'
     case 'pending':
-      return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+      return 'bg-warning/10 text-warning border-warning/20'
     case 'failed':
-      return 'bg-red-500/10 text-red-500 border-red-500/20'
+      return 'bg-error/10 text-error border-error/20'
     default:
       return 'bg-surface-container text-on-surface-variant border-outline-variant/30'
   }
@@ -213,7 +209,13 @@ async function submitPayment() {
     })
     toast.success('Payment recorded', 'The payment has been added to the ledger.')
     showAddModal.value = false
-    newPayment.value = { student_id: null, amount: '', method: 'cash', status: 'completed', notes: '' }
+    newPayment.value = {
+      student_id: null,
+      amount: '',
+      method: 'cash',
+      status: 'completed',
+      notes: '',
+    }
   } catch (err: any) {
     toast.error('Failed to save', err?.response?.data?.detail || err.message)
   } finally {
@@ -228,13 +230,11 @@ async function submitPayment() {
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div
-          class="size-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center"
+          class="size-10 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center"
         >
-          <span class="material-symbols-outlined text-emerald-500 text-2xl">payments</span>
+          <span class="material-symbols-outlined text-success text-2xl">payments</span>
         </div>
-        <p class="text-xs font-semibold text-emerald-500 uppercase">
-          Finance & Records
-        </p>
+        <p class="text-xs font-semibold text-success uppercase">Finance & Records</p>
       </div>
       <div class="flex items-end justify-between gap-4 flex-wrap">
         <div>
@@ -244,7 +244,7 @@ async function submitPayment() {
           </p>
         </div>
         <button
-          class="flex items-center gap-2 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-on-surface rounded-2xl font-semibold text-sm transition-all shadow-lg shadow-emerald-900/30 hover:scale-[1.02]"
+          class="flex items-center gap-2 px-4 py-3 bg-success hover:bg-success text-on-success rounded-2xl font-semibold text-sm transition-all shadow-lg shadow-success-container/30 hover:scale-[1.02]"
           @click="showAddModal = true"
         >
           <span class="material-symbols-outlined text-lg">add</span>
@@ -256,27 +256,21 @@ async function submitPayment() {
     <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">
-          Total Revenue
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">Total Revenue</p>
         <p class="text-3xl font-semibold text-on-surface">{{ formatCurrency(totalRevenue) }}</p>
-        <p class="text-xs text-emerald-500 font-bold mt-1">
+        <p class="text-xs text-success font-bold mt-1">
           {{ paymentsStore.completedCount }} completed payments
         </p>
       </div>
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">
-          This Month
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">This Month</p>
         <p class="text-3xl font-semibold text-on-surface">{{ formatCurrency(thisMonthRevenue) }}</p>
         <p class="text-xs text-on-surface-variant font-bold mt-1">Collected in current month</p>
       </div>
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
-        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">
-          Pending
-        </p>
+        <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">Pending</p>
         <p class="text-3xl font-semibold text-on-surface">{{ formatCurrency(pendingTotal) }}</p>
-        <p class="text-xs text-amber-500 font-bold mt-1">
+        <p class="text-xs text-warning font-bold mt-1">
           {{ paymentsStore.pendingCount }} payments awaiting
         </p>
       </div>
@@ -295,11 +289,37 @@ async function submitPayment() {
         />
       </div>
 
-      <BaseDropdown v-model="statusFilter" :options="[{ value: 'all', label: 'All Statuses' }, { value: 'completed', label: 'Completed' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }]" />
+      <BaseDropdown
+        v-model="statusFilter"
+        :options="[
+          { value: 'all', label: 'All Statuses' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'pending', label: 'Pending' },
+          { value: 'failed', label: 'Failed' },
+        ]"
+      />
 
-      <BaseDropdown v-model="methodFilter" :options="[{ value: 'all', label: 'All Methods' }, { value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank Transfer' }, { value: 'card', label: 'Card' }, { value: 'gcash', label: 'GCash' }, { value: 'maya', label: 'Maya' }]" />
+      <BaseDropdown
+        v-model="methodFilter"
+        :options="[
+          { value: 'all', label: 'All Methods' },
+          { value: 'cash', label: 'Cash' },
+          { value: 'bank_transfer', label: 'Bank Transfer' },
+          { value: 'card', label: 'Card' },
+          { value: 'gcash', label: 'GCash' },
+          { value: 'maya', label: 'Maya' },
+        ]"
+      />
 
-      <BaseDropdown v-model="sortBy" :options="[{ value: 'date-desc', label: 'Newest First' }, { value: 'date-asc', label: 'Oldest First' }, { value: 'amount-desc', label: 'Highest Amount' }, { value: 'amount-asc', label: 'Lowest Amount' }]" />
+      <BaseDropdown
+        v-model="sortBy"
+        :options="[
+          { value: 'date-desc', label: 'Newest First' },
+          { value: 'date-asc', label: 'Oldest First' },
+          { value: 'amount-desc', label: 'Highest Amount' },
+          { value: 'amount-asc', label: 'Lowest Amount' },
+        ]"
+      />
     </div>
 
     <!-- Table / List -->
@@ -347,14 +367,14 @@ async function submitPayment() {
         <div
           v-for="pay in filteredPayments"
           :key="pay.id"
-          class="glass-heavy rounded-3xl px-6 py-4 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-3 sm:gap-4 items-center hover:border-emerald-500/20 transition-all"
+          class="glass-heavy rounded-3xl px-6 py-4 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-3 sm:gap-4 items-center hover:border-success/20 transition-all"
         >
           <!-- Student -->
           <div class="flex items-center gap-3">
             <div
-              class="size-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0"
+              class="size-10 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center shrink-0"
             >
-              <span class="material-symbols-outlined text-emerald-500 text-lg">{{
+              <span class="material-symbols-outlined text-success text-lg">{{
                 methodIcon(pay.method)
               }}</span>
             </div>
@@ -404,7 +424,7 @@ async function submitPayment() {
               <span class="material-symbols-outlined text-xl">edit_note</span>
             </button>
             <button
-              class="p-2 rounded-xl hover:bg-rose-500/10 text-on-surface-variant hover:text-rose-500 transition-colors"
+              class="p-2 rounded-xl hover:bg-error/10 text-on-surface-variant hover:text-error transition-colors"
               title="Delete payment"
               @click="async () => { if (await dialog.confirm(`Delete payment of ${formatCurrency(pay.amount)} for ${pay.student_name || 'student'}? This cannot be undone.`, { title: 'Delete Payment', destructive: true })) { try { await paymentsStore.deletePayment(pay.id); toast.success('Deleted', 'Payment record removed.') } catch (e: any) { toast.error('Failed', (e as any)?.response?.data?.detail || (e as any).message) } } }"
             >
@@ -424,7 +444,7 @@ async function submitPayment() {
         >
         <span class="font-semibold text-on-surface">
           Filtered total:
-          <span class="text-emerald-500">{{
+          <span class="text-success">{{
             formatCurrency(filteredPayments.reduce((s, p) => s + p.amount, 0))
           }}</span>
         </span>
@@ -455,17 +475,19 @@ async function submitPayment() {
         <div class="space-y-4">
           <!-- Student -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Student *</label
             >
-            <BaseDropdown v-model="newPayment.student_id" placeholder="Select a student…" :options="[...students.map(s => ({ value: s.id, label: s.name }))]" />
+            <BaseDropdown
+              v-model="newPayment.student_id"
+              placeholder="Select a student…"
+              :options="[...students.map((s) => ({ value: s.id, label: s.name }))]"
+            />
           </div>
 
           <!-- Amount -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Amount (PHP) *</label
             >
             <input
@@ -480,26 +502,39 @@ async function submitPayment() {
 
           <!-- Method -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
             >
-            <BaseDropdown v-model="newPayment.method" :options="[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank Transfer' }, { value: 'card', label: 'Card' }, { value: 'gcash', label: 'GCash' }, { value: 'maya', label: 'Maya' }]" />
+            <BaseDropdown
+              v-model="newPayment.method"
+              :options="[
+                { value: 'cash', label: 'Cash' },
+                { value: 'bank_transfer', label: 'Bank Transfer' },
+                { value: 'card', label: 'Card' },
+                { value: 'gcash', label: 'GCash' },
+                { value: 'maya', label: 'Maya' },
+              ]"
+            />
           </div>
 
           <!-- Status -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
             >
-            <BaseDropdown v-model="newPayment.status" :options="[{ value: 'completed', label: 'Completed' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }]" />
+            <BaseDropdown
+              v-model="newPayment.status"
+              :options="[
+                { value: 'completed', label: 'Completed' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'failed', label: 'Failed' },
+              ]"
+            />
           </div>
 
           <!-- Notes -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Notes (optional)</label
             >
             <input
@@ -513,7 +548,7 @@ async function submitPayment() {
 
         <button
           :disabled="isSaving"
-          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-on-surface rounded-2xl font-semibold text-sm transition-all"
+          class="w-full py-4 bg-success hover:bg-success disabled:opacity-50 text-on-success rounded-2xl font-semibold text-sm transition-all"
           @click="submitPayment"
         >
           <span v-if="isSaving">Saving…</span>
@@ -546,19 +581,21 @@ async function submitPayment() {
         <div v-if="editingPayment" class="space-y-4">
           <!-- Student (Read-only in edit) -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Student</label
             >
-            <div class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-on-surface/5">
-              {{ students.find(s => s.id === editingPayment.student_id)?.name || 'Unknown Student' }}
+            <div
+              class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-on-surface/5"
+            >
+              {{
+                students.find((s) => s.id === editingPayment.student_id)?.name || 'Unknown Student'
+              }}
             </div>
           </div>
 
           <!-- Amount -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Amount (PHP) *</label
             >
             <input
@@ -573,26 +610,39 @@ async function submitPayment() {
 
           <!-- Method -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
             >
-            <BaseDropdown v-model="editingPayment.method" :options="[{ value: 'cash', label: 'Cash' }, { value: 'bank_transfer', label: 'Bank Transfer' }, { value: 'card', label: 'Card' }, { value: 'gcash', label: 'GCash' }, { value: 'maya', label: 'Maya' }]" />
+            <BaseDropdown
+              v-model="editingPayment.method"
+              :options="[
+                { value: 'cash', label: 'Cash' },
+                { value: 'bank_transfer', label: 'Bank Transfer' },
+                { value: 'card', label: 'Card' },
+                { value: 'gcash', label: 'GCash' },
+                { value: 'maya', label: 'Maya' },
+              ]"
+            />
           </div>
 
           <!-- Status -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
             >
-            <BaseDropdown v-model="editingPayment.status" :options="[{ value: 'completed', label: 'Completed' }, { value: 'pending', label: 'Pending' }, { value: 'failed', label: 'Failed' }]" />
+            <BaseDropdown
+              v-model="editingPayment.status"
+              :options="[
+                { value: 'completed', label: 'Completed' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'failed', label: 'Failed' },
+              ]"
+            />
           </div>
 
           <!-- Notes -->
           <div>
-            <label
-              class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Notes (optional)</label
             >
             <input
@@ -606,7 +656,7 @@ async function submitPayment() {
 
         <button
           :disabled="isUpdating"
-          class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-on-surface rounded-2xl font-semibold text-sm transition-all"
+          class="w-full py-4 bg-success hover:bg-success disabled:opacity-50 text-on-success rounded-2xl font-semibold text-sm transition-all"
           @click="submitUpdate"
         >
           <span v-if="isUpdating">Updating…</span>
@@ -619,7 +669,7 @@ async function submitPayment() {
 
 <style scoped>
 .glass-heavy {
-  @apply bg-on-surface/80 dark:bg-zinc-900/80 shadow-lg;
+  @apply bg-on-surface/80 dark:bg-surface-container-lowest/80 shadow-lg;
 }
 .glass-medium {
   @apply bg-on-surface/40 dark:bg-on-surface/5;

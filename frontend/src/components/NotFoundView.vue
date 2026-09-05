@@ -16,8 +16,14 @@ function goHome() {
 <template>
   <div class="flex h-screen items-center justify-center text-center p-8">
     <div class="max-w-md w-full">
-      <div class="size-16 rounded-full bg-surface-container-low border border-on-surface/[0.04] dark:border-on-surface/5 flex items-center justify-center mx-auto mb-4">
-        <span class="material-symbols-outlined text-rose-500 text-3xl" style="font-variation-settings:'FILL' 1">search_off</span>
+      <div
+        class="size-16 rounded-full bg-surface-container-low border border-on-surface/[0.04] dark:border-on-surface/5 flex items-center justify-center mx-auto mb-4"
+      >
+        <span
+          class="material-symbols-outlined text-error text-3xl"
+          style="font-variation-settings: 'FILL' 1"
+          >search_off</span
+        >
       </div>
       <h1 class="text-2xl font-bold text-on-surface mb-2">Page Not Found</h1>
       <p class="text-sm text-on-surface-variant mb-6">

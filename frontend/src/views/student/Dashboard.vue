@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseDropdown from '@/components/BaseDropdown.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue'
 import HomeworkModal from '@/components/HomeworkModal.vue'
 import { useRouter } from 'vue-router'
 import { onMounted, computed, ref, reactive } from 'vue'
@@ -52,11 +52,11 @@ const myId = computed(() => authStore.currentUser?.id ?? 0)
 const enrollRequestTeacherId = ref<number | null>(null)
 
 const teacherName = (teacherId: number) =>
-  usersStore.getUsersByRole('teacher').find((t: any) => t.id === teacherId)?.name
-    ?? interactionsStore.myTeachers.find(t => t.id === teacherId)?.name
-    ?? `Teacher #${teacherId}`
+  usersStore.getUsersByRole('teacher').find((t: any) => t.id === teacherId)?.name ??
+  interactionsStore.myTeachers.find((t) => t.id === teacherId)?.name ??
+  `Teacher #${teacherId}`
 
-const submitEnrollmentRequest = async function() {
+const submitEnrollmentRequest = async function () {
   if (!enrollRequestTeacherId.value) return
   try {
     await interactionsStore.requestEnrollment(enrollRequestTeacherId.value)
@@ -74,8 +74,9 @@ const nextSession = computed(
   () =>
     mySessions.value
       .filter((s: any) => s.status === 'scheduled' && s.startTime)
-      .sort((a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime())[0] ??
-    null
+      .sort(
+        (a: any, b: any) => new Date(a.startTime!).getTime() - new Date(b.startTime!).getTime()
+      )[0] ?? null
 )
 
 const nextSessionCountdown = computed(() => {
@@ -97,7 +98,8 @@ const pendingHomework = computed(
 
 const sessionProgress = computed(() => {
   const totalSessions = interactionsStore.enrollments.reduce(
-    (sum, e) => sum + (e.sessionsPurchased || 0), 0
+    (sum, e) => sum + (e.sessionsPurchased || 0),
+    0
   )
   if (!totalSessions) return 0
   const used = mySessions.value.filter((s: any) => s.status === 'completed').length
@@ -110,9 +112,11 @@ const myTeachers = computed(() => interactionsStore.myTeachers)
 
 /** Teachers with no enrollment yet — the ones a student can request. */
 const requestableTeachers = computed(() => {
-  const linked = new Set(interactionsStore.enrollments
-    .filter(e => e.status === 'active' || e.status === 'pending')
-    .map(e => e.teacherId))
+  const linked = new Set(
+    interactionsStore.enrollments
+      .filter((e) => e.status === 'active' || e.status === 'pending')
+      .map((e) => e.teacherId)
+  )
   return usersStore.getUsersByRole('teacher').filter((t: any) => !linked.has(t.id))
 })
 
@@ -133,7 +137,7 @@ const formatMonth = (dt: string | undefined) => {
   return new Date(dt).toLocaleString('en-US', { month: 'short' }).toUpperCase()
 }
 
-const submitRequest = async function() {
+const submitRequest = async function () {
   if (!requestForm.teacherId || !requestForm.startTime) return
   try {
     const start = new Date(requestForm.startTime)
@@ -159,19 +163,19 @@ const submitRequest = async function() {
 
 const isHomeworkModalOpen = ref(false)
 
-const openHomeworkModal = function() {
+const openHomeworkModal = function () {
   if (!pendingHomework.value) return
   isHomeworkModalOpen.value = true
 }
 
-const handleStagedProofUpload = function(event: Event) {
+const handleStagedProofUpload = function (event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   stagedProofFile.value = input.files[0]
   stagedProofUrl.value = window.URL.createObjectURL(stagedProofFile.value)
 }
 
-const saveStagedProof = async function() {
+const saveStagedProof = async function () {
   if (!selectedSession.value || !stagedProofFile.value) return
   try {
     await interactionsStore.uploadImageProof(selectedSession.value.id, stagedProofFile.value)
@@ -185,7 +189,7 @@ const saveStagedProof = async function() {
   }
 }
 
-const closeSessionModal = function() {
+const closeSessionModal = function () {
   selectedSessionId.value = null
   stagedProofFile.value = null
   stagedProofUrl.value = null
@@ -195,7 +199,7 @@ const closeSessionModal = function() {
 
 const approvalJustification = ref('')
 
-const submitApprovalRequest = async function(sessionId: number) {
+const submitApprovalRequest = async function (sessionId: number) {
   try {
     await scheduleStore.requestApproval(sessionId, approvalJustification.value)
     toast.success('Approval Requested', 'Your proof has been submitted for review.')
@@ -208,14 +212,14 @@ const submitApprovalRequest = async function(sessionId: number) {
   }
 }
 
-const handleGenericProofSelection = function(event: Event) {
+const handleGenericProofSelection = function (event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files?.[0]) return
   proofPreviewFile.value = input.files[0]
   proofPreviewUrl.value = window.URL.createObjectURL(proofPreviewFile.value)
 }
 
-const handleGenericProofUpload = async function() {
+const handleGenericProofUpload = async function () {
   const firstScheduled = mySessions.value.find((s: any) => s.status === 'scheduled')
   if (!firstScheduled) {
     toast.warning('No session to attach to', 'You need an active scheduled session.')
@@ -233,46 +237,46 @@ const handleGenericProofUpload = async function() {
 const isCountering = ref(false)
 const counterForm = reactive({ startTime: '', endTime: '', notes: '' })
 
-const startCountering = function(session: Session) {
+const startCountering = function (session: Session) {
   isCountering.value = true
   counterForm.startTime = session.startTime.slice(0, 16)
   counterForm.endTime = session.endTime?.slice(0, 16) || ''
   counterForm.notes = 'Refining my schedule'
 }
 
-const submitStudentCounter = async function() {
+const submitStudentCounter = async function () {
   if (!selectedSession.value) return
   try {
-    const startTime = new Date(counterForm.startTime).toISOString();
-    let endTime = '';
+    const startTime = new Date(counterForm.startTime).toISOString()
+    let endTime = ''
     if (counterForm.endTime) {
-        endTime = new Date(counterForm.endTime).toISOString();
+      endTime = new Date(counterForm.endTime).toISOString()
     } else {
-        endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString();
+      endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString()
     }
 
     await scheduleStore.counterAsStudent(selectedSession.value.id, {
       startTime,
       endTime,
-      notes: counterForm.notes
+      notes: counterForm.notes,
     })
     toast.success('Counter proposal sent!', 'Wait for teacher review.')
     isCountering.value = false
     // Don't close: let the computed session update to show new status (pending_teacher)
     // Re-fetch to get any extra server-side updates
-    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? 0);
+    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? 0)
   } catch {
     toast.error('Failed to send counter')
   }
 }
 
-const approveCounter = async function() {
+const approveCounter = async function () {
   if (!selectedSession.value) return
   try {
     await scheduleStore.approveAsStudent(selectedSession.value.id)
     toast.success('Proposal accepted!', 'Forwarded to admin for final confirmation.')
     // Don't close immediately: let selectedSession computed reactively show new status (pending_admin)
-    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? 0);
+    await scheduleStore.fetchUserSessions(authStore.currentUser?.id ?? 0)
   } catch {
     toast.error('Failed to accept proposal')
   }
@@ -306,10 +310,10 @@ const stopCountering = () => {
     <!-- Hero Welcome -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>
-        <h2 class="text-5xl font-semibold tracking-tighter text-on-surface dark:text-on-surface mb-3">
+        <h2 class="text-5xl font-semibold tracking-tighter text-on-surface mb-3">
           Morning, {{ authStore.currentUser?.name?.split(' ')[0] || 'Student' }}.
         </h2>
-        <p class="text-on-surface-variant dark:text-on-surface-variant font-medium mb-6">
+        <p class="text-on-surface-variant font-medium mb-6">
           Your next recital rehearsal is in
           <span class="text-primary font-bold">{{ nextSessionCountdown }}</span
           >.
@@ -317,7 +321,7 @@ const stopCountering = () => {
         <div class="flex gap-4">
           <RouterLink
             to="/student/schedule"
-            class="px-6 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 active:scale-95 transition-all flex items-center gap-2"
+            class="px-6 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 text-on-surface font-bold rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 active:scale-95 transition-all flex items-center gap-2"
           >
             <span class="material-symbols-outlined text-lg">calendar_today</span>
             Schedule
@@ -335,11 +339,20 @@ const stopCountering = () => {
 
     <!-- Overdue Warning -->
     <div v-if="overdueSessions.length > 0" class="alert-error mb-6">
-      <span class="material-symbols-outlined shrink-0 text-error" style="font-variation-settings: 'FILL' 1">warning</span>
+      <span
+        class="material-symbols-outlined shrink-0 text-error"
+        style="font-variation-settings: 'FILL' 1"
+        >warning</span
+      >
       <div>
         <h4 class="alert-title mb-1">Action Required: Overdue Sessions</h4>
-        <p class="alert-body">You have {{ overdueSessions.length }} session(s) that are past their scheduled time. Please upload your session proofs so they can be marked complete.</p>
-        <button class="mt-2 text-sm font-semibold underline" @click="resolveOverdue">Resolve Now</button>
+        <p class="alert-body">
+          You have {{ overdueSessions.length }} session(s) that are past their scheduled time.
+          Please upload your session proofs so they can be marked complete.
+        </p>
+        <button class="mt-2 text-sm font-semibold underline" @click="resolveOverdue">
+          Resolve Now
+        </button>
       </div>
     </div>
 
@@ -348,9 +361,11 @@ const stopCountering = () => {
       <!-- Left Column -->
       <div class="col-span-1 md:col-span-8 space-y-4">
         <!-- My Sessions -->
-        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+        <section
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+        >
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3">
+            <h3 class="text-xl font-bold text-on-surface flex items-center gap-3">
               <span
                 class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
               >
@@ -376,7 +391,11 @@ const stopCountering = () => {
 
           <!-- Loading -->
           <div v-if="scheduleStore.isLoading" class="space-y-4">
-            <div v-for="i in 3" :key="i" class="h-24 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse" />
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="h-24 rounded-3xl bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse"
+            />
           </div>
 
           <!-- Empty -->
@@ -389,8 +408,8 @@ const stopCountering = () => {
               style="font-variation-settings: 'FILL' 1"
               >music_off</span
             >
-            <p class="font-semibold text-on-surface-variant dark:text-on-surface-variant">No sessions yet</p>
-            <p class="text-sm text-on-surface-variant dark:text-on-surface-variant mt-1">
+            <p class="font-semibold text-on-surface-variant">No sessions yet</p>
+            <p class="text-sm text-on-surface-variant mt-1">
               Request a session with your teacher to get started!
             </p>
             <button
@@ -411,8 +430,20 @@ const stopCountering = () => {
             >
               <!-- Date badge -->
               <div
-                class="flex flex-col items-center justify-center size-16 rounded-3xl shadow-lg shrink-0"
-                :class="session.status === 'completed' ? 'bg-surface-container-high text-on-surface-variant' : session.status === 'pending_teacher' ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' : session.status === 'pending_student' ? 'bg-primary/20 border border-primary/40 text-primary' : session.status === 'pending_admin' ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' : session.status === 'rejected' ? 'bg-red-900 text-red-300' : 'bg-primary text-on-surface'"
+                class="flex flex-col items-center justify-center size-16 rounded-xl shadow-lg shrink-0"
+                :class="
+                  session.status === 'completed'
+                    ? 'bg-surface-container-high text-on-surface-variant'
+                    : session.status === 'pending_teacher'
+                      ? 'bg-warning/10 border border-warning/20 text-warning'
+                      : session.status === 'pending_student'
+                        ? 'bg-primary/20 border border-primary/40 text-primary'
+                        : session.status === 'pending_admin'
+                          ? 'bg-tertiary/20 border border-tertiary/40 text-tertiary'
+                          : session.status === 'rejected'
+                            ? 'bg-error-container text-error'
+                            : 'bg-primary text-on-primary'
+                "
               >
                 <span class="text-xs uppercase font-semibold">{{
                   formatMonth(session.startTime)
@@ -425,27 +456,39 @@ const stopCountering = () => {
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span
                     class="px-2 py-0.5 text-xs font-bold rounded-full uppercase border"
-                    :class="session.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : session.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : session.status === 'rejected' ? 'bg-red-500/20 border-red-500/30 text-red-400' : session.status === 'completed' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-primary/20 border-primary/30 text-primary'"
+                    :class="
+                      session.status === 'pending_teacher'
+                        ? 'bg-warning/20 border-warning/30 text-warning'
+                        : session.status === 'pending_admin'
+                          ? 'bg-tertiary/20 border-tertiary/30 text-tertiary'
+                          : session.status === 'rejected'
+                            ? 'bg-error/20 border-error/30 text-error'
+                            : session.status === 'completed'
+                              ? 'bg-success/20 border-success/30 text-success'
+                              : 'bg-primary/20 border-primary/30 text-primary'
+                    "
                   >
                     {{
                       session.status === 'pending_teacher'
                         ? 'Awaiting Teacher'
                         : session.status === 'pending_student'
                           ? 'Countered by Teacher'
-                        : session.status === 'pending_admin'
-                          ? 'Awaiting Admin'
-                          : session.status === 'rejected'
-                            ? 'Declined'
-                            : session.status === 'completed'
-                              ? 'Completed'
-                              : 'Confirmed'
+                          : session.status === 'pending_admin'
+                            ? 'Awaiting Admin'
+                            : session.status === 'rejected'
+                              ? 'Declined'
+                              : session.status === 'completed'
+                                ? 'Completed'
+                                : 'Confirmed'
                     }}
                   </span>
-                  <span class="text-on-surface-variant dark:text-on-surface-variant text-xs">{{ formatTime(session.startTime) }}</span>
+                  <span class="text-on-surface-variant text-xs">{{
+                    formatTime(session.startTime)
+                  }}</span>
                 </div>
-                <h4 class="font-bold text-lg text-on-surface dark:text-on-surface">Session #{{ session.id }}</h4>
-                <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">Teacher #{{ session.teacherId }}</p>
-                <p v-if="session.notes" class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-0.5 italic">
+                <h4 class="font-bold text-lg text-on-surface">Session #{{ session.id }}</h4>
+                <p class="text-on-surface-variant text-sm">Teacher #{{ session.teacherId }}</p>
+                <p v-if="session.notes" class="text-on-surface-variant text-xs mt-0.5 italic">
                   {{ session.notes }}
                 </p>
               </div>
@@ -454,16 +497,16 @@ const stopCountering = () => {
               <div class="flex items-center gap-3 shrink-0">
                 <span
                   v-if="session.homeworkAssigned && !session.homeworkCompleted"
-                  class="text-xs px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 font-semibold"
+                  class="text-xs px-2 py-1 rounded-full bg-warning/20 text-warning font-semibold"
                   >HW Pending</span
                 >
                 <span
                   v-else-if="session.homeworkCompleted"
-                  class="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold"
+                  class="text-xs px-2 py-1 rounded-full bg-success/20 text-success font-semibold"
                   >HW Done ✓</span
                 >
                 <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary transition-colors"
+                  class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors"
                   >arrow_forward</span
                 >
               </div>
@@ -472,8 +515,10 @@ const stopCountering = () => {
         </section>
 
         <!-- Session Proofs & Homework -->
-        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
-          <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3 mb-8">
+        <section
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+        >
+          <h3 class="text-xl font-bold text-on-surface flex items-center gap-3 mb-8">
             <span
               class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
             >
@@ -490,7 +535,11 @@ const stopCountering = () => {
             <label
               v-if="pendingHomework"
               class="relative overflow-hidden border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] rounded-3xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer group min-h-[160px]"
-              :class="proofPreviewUrl ? 'border-primary/50' : 'hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50'"
+              :class="
+                proofPreviewUrl
+                  ? 'border-primary/50'
+                  : 'hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50'
+              "
             >
               <template v-if="!proofPreviewUrl">
                 <div
@@ -502,8 +551,10 @@ const stopCountering = () => {
                     >add_a_photo</span
                   >
                 </div>
-                <p class="font-bold text-on-surface dark:text-on-surface">Select Session Photo...</p>
-                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-2">Verification for completed credits</p>
+                <p class="font-bold text-on-surface">Select Session Photo...</p>
+                <p class="text-xs text-on-surface-variant mt-2">
+                  Verification for completed credits
+                </p>
               </template>
 
               <template v-else>
@@ -513,7 +564,7 @@ const stopCountering = () => {
                   class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
                 />
                 <div
-                  class="relative z-10 size-12 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center mb-3"
+                  class="relative z-10 size-12 rounded-full bg-success/20 text-success flex items-center justify-center mb-3"
                 >
                   <span
                     class="material-symbols-outlined absolute"
@@ -522,7 +573,7 @@ const stopCountering = () => {
                   >
                 </div>
                 <p
-                  class="relative z-10 font-semibold text-on-surface dark:text-on-surface text-sm bg-on-surface/40 px-3 py-1 rounded-full"
+                  class="relative z-10 font-semibold text-on-surface text-sm bg-on-surface/40 px-3 py-1 rounded-full"
                 >
                   Image Selected
                 </p>
@@ -536,7 +587,10 @@ const stopCountering = () => {
                 @change="handleGenericProofSelection"
               />
             </label>
-            <div v-if="pendingHomework && proofPreviewUrl" class="col-span-1 sm:col-span-2 flex justify-end -mt-2">
+            <div
+              v-if="pendingHomework && proofPreviewUrl"
+              class="col-span-1 sm:col-span-2 flex justify-end -mt-2"
+            >
               <button
                 class="px-6 py-2 bg-primary text-on-primary text-sm font-semibold rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
                 @click="handleGenericProofUpload"
@@ -551,15 +605,17 @@ const stopCountering = () => {
               class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all"
             >
               <div
-                class="size-12 bg-surface-container-high text-on-surface-variant dark:text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
+                class="size-12 bg-surface-container-high text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
               >
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
                   >description</span
                 >
               </div>
               <div>
-                <p class="font-bold text-sm text-on-surface dark:text-on-surface">{{ pendingHomework.homeworkAssigned }}</p>
-                <p class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-0.5">Due for next session</p>
+                <p class="font-bold text-sm text-on-surface">
+                  {{ pendingHomework.homeworkAssigned }}
+                </p>
+                <p class="text-xs text-on-surface-variant mt-0.5">Due for next session</p>
                 <button
                   class="mt-2 text-primary font-bold text-xs flex items-center gap-1 hover:brightness-125 transition-all focus:outline-none"
                   @click="openHomeworkModal"
@@ -573,7 +629,7 @@ const stopCountering = () => {
               v-else
               class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-3xl p-6 flex items-center justify-center"
             >
-              <p class="text-sm text-on-surface-variant dark:text-on-surface-variant">No homework pending ✓</p>
+              <p class="text-sm text-on-surface-variant">No homework pending ✓</p>
             </div>
           </div>
         </section>
@@ -586,7 +642,7 @@ const stopCountering = () => {
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 relative overflow-hidden group"
         >
           <div class="relative z-10">
-            <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-8">Enrollment Status</h3>
+            <h3 class="text-xl font-bold text-on-surface mb-8">Enrollment Status</h3>
             <div class="flex items-center justify-center mb-10 relative">
               <svg
                 class="size-48 -rotate-90 drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]"
@@ -615,11 +671,11 @@ const stopCountering = () => {
                 />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-4xl font-semibold text-on-surface dark:text-on-surface">
+                <span class="text-4xl font-semibold text-on-surface">
                   {{ mySessions.filter((s: any) => s.status === 'completed').length }} /
                   {{ authStore.currentUser?.sessionsLeft ?? 0 }}
                 </span>
-                <span class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mt-1"
+                <span class="text-xs font-semibold text-on-surface-variant uppercase mt-1"
                   >Sessions Used</span
                 >
               </div>
@@ -628,18 +684,18 @@ const stopCountering = () => {
               <div
                 class="flex justify-between items-center p-3 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
               >
-                <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Package</span>
-                <span class="text-xs font-bold text-on-surface dark:text-on-surface">Term B - Intensive</span>
+                <span class="text-xs text-on-surface-variant">Package</span>
+                <span class="text-xs font-bold text-on-surface">Term B - Intensive</span>
               </div>
               <div
                 class="flex justify-between items-center p-3 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
               >
-                <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Valid Until</span>
-                <span class="text-xs font-bold text-on-surface dark:text-on-surface">Dec 15, 2026</span>
+                <span class="text-xs text-on-surface-variant">Valid Until</span>
+                <span class="text-xs font-bold text-on-surface">Dec 15, 2026</span>
               </div>
             </div>
             <button
-              class="w-full py-3 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface dark:text-on-surface font-bold rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 transition-all active:scale-95"
+              class="w-full py-3 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface font-bold rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 transition-all active:scale-95"
               @click="router.push('/student/payments')"
             >
               Manage Subscription
@@ -653,8 +709,10 @@ const stopCountering = () => {
         <!-- My Teachers: per-teacher credit balances and enrollment requests.
              Credits are held per enrollment, so a single total would hide that
              hours with one teacher cannot be spent with another. -->
-        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
-          <h3 class="text-xl font-bold text-on-surface dark:text-on-surface mb-6">My Teachers</h3>
+        <section
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+        >
+          <h3 class="text-xl font-bold text-on-surface mb-6">My Teachers</h3>
 
           <div v-if="interactionsStore.activeEnrollments.length" class="space-y-2 mb-4">
             <div
@@ -662,15 +720,18 @@ const stopCountering = () => {
               :key="e.id"
               class="flex items-center justify-between rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 p-3"
             >
-              <span class="text-sm font-semibold text-on-surface">{{ teacherName(e.teacherId) }}</span>
-              <span class="text-xs font-bold" :class="e.sessionsLeft > 0 ? 'text-primary' : 'text-error'">
+              <span class="text-sm font-semibold text-on-surface">{{
+                teacherName(e.teacherId)
+              }}</span>
+              <span
+                class="text-xs font-bold"
+                :class="e.sessionsLeft > 0 ? 'text-primary' : 'text-error'"
+              >
                 {{ e.sessionsLeft }} {{ e.sessionsLeft === 1 ? 'hour' : 'hours' }} left
               </span>
             </div>
           </div>
-          <p v-else class="mb-4 text-sm text-on-surface-variant">
-            No approved enrollments yet.
-          </p>
+          <p v-else class="mb-4 text-sm text-on-surface-variant">No approved enrollments yet.</p>
 
           <div v-if="interactionsStore.pendingRequests.length" class="mb-4 space-y-2">
             <div
@@ -688,7 +749,7 @@ const stopCountering = () => {
               v-model="enrollRequestTeacherId"
               label="Request a teacher"
               placeholder="Select a teacher..."
-              :options="requestableTeachers.map(t => ({ value: t.id, label: t.name }))"
+              :options="requestableTeachers.map((t) => ({ value: t.id, label: t.name }))"
             />
             <button
               class="btn-primary w-full"
@@ -701,9 +762,11 @@ const stopCountering = () => {
         </section>
 
         <!-- Notice Board -->
-        <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
+        <section
+          class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+        >
           <div class="flex items-center justify-between mb-8">
-            <h3 class="text-xl font-bold text-on-surface dark:text-on-surface flex items-center gap-3">
+            <h3 class="text-xl font-bold text-on-surface flex items-center gap-3">
               <span
                 class="material-symbols-outlined text-primary"
                 style="font-variation-settings: 'FILL' 1"
@@ -712,7 +775,7 @@ const stopCountering = () => {
               Notice Board
             </h3>
             <button
-              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
+              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
               aria-label="More options"
             >
               <span class="material-symbols-outlined">more_horiz</span>
@@ -743,7 +806,9 @@ const stopCountering = () => {
                 >music_note</span
               >
             </div>
-            <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-4 rounded-3xl flex items-start gap-4">
+            <div
+              class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-4 rounded-3xl flex items-start gap-4"
+            >
               <div
                 class="size-10 bg-surface-container-highest rounded-2xl flex items-center justify-center shrink-0"
               >
@@ -754,10 +819,10 @@ const stopCountering = () => {
                 >
               </div>
               <div>
-                <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1">
+                <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">
                   Academy Tip
                 </p>
-                <p class="text-sm font-medium text-on-surface dark:text-on-surface leading-snug">
+                <p class="text-sm font-medium text-on-surface leading-snug">
                   Don't forget to book Studio A for next week's exam recording session.
                 </p>
               </div>
@@ -767,17 +832,19 @@ const stopCountering = () => {
 
         <!-- Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5">
+          <div
+            class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5"
+          >
             <p class="text-3xl font-semibold text-primary">{{ mySessions.length * 60 }}</p>
-            <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mt-1">
+            <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">
               Practice Hours
             </p>
           </div>
-          <div class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5">
-            <p class="text-3xl font-semibold text-on-surface dark:text-on-surface">A+</p>
-            <p class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mt-1">
-              Avg Grade
-            </p>
+          <div
+            class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5"
+          >
+            <p class="text-3xl font-semibold text-on-surface">A+</p>
+            <p class="text-xs font-semibold text-on-surface-variant uppercase mt-1">Avg Grade</p>
           </div>
         </div>
       </div>
@@ -804,27 +871,49 @@ const stopCountering = () => {
       >
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
         <div
-          class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
+          class="relative w-full max-w-md bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
           <!-- Header -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div
                 class="flex flex-col items-center justify-center size-14 rounded-2xl shadow-lg shrink-0"
-                :class="selectedSession.status === 'completed' ? 'bg-surface-container-high text-on-surface-variant' : selectedSession.status === 'pending_teacher' ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' : selectedSession.status === 'pending_admin' ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' : selectedSession.status === 'rejected' ? 'bg-red-900 text-red-300' : 'bg-primary text-on-surface'"
+                :class="
+                  selectedSession.status === 'completed'
+                    ? 'bg-surface-container-high text-on-surface-variant'
+                    : selectedSession.status === 'pending_teacher'
+                      ? 'bg-warning/20 border border-warning/40 text-warning'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'bg-tertiary/20 border border-tertiary/40 text-tertiary'
+                        : selectedSession.status === 'rejected'
+                          ? 'bg-error-container text-error'
+                          : 'bg-primary text-on-primary'
+                "
               >
                 <span class="text-xs uppercase font-semibold">{{
                   formatMonth(selectedSession.startTime)
                 }}</span>
-                <span class="text-xl font-semibold">{{ formatDay(selectedSession.startTime) }}</span>
+                <span class="text-xl font-semibold">{{
+                  formatDay(selectedSession.startTime)
+                }}</span>
               </div>
               <div>
-                <h3 id="session-modal-title" class="text-xl font-semibold text-on-surface dark:text-on-surface">
+                <h3 id="session-modal-title" class="text-xl font-semibold text-on-surface">
                   Session #{{ selectedSession.id }}
                 </h3>
                 <span
                   class="px-2 py-0.5 text-xs font-bold rounded-full uppercase border inline-block mt-1"
-                  :class="selectedSession.status === 'pending_teacher' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400' : selectedSession.status === 'pending_admin' ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : selectedSession.status === 'rejected' ? 'bg-red-500/20 border-red-500/30 text-red-400' : selectedSession.status === 'completed' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-primary/20 border-primary/30 text-primary'"
+                  :class="
+                    selectedSession.status === 'pending_teacher'
+                      ? 'bg-warning/20 border-warning/30 text-warning'
+                      : selectedSession.status === 'pending_admin'
+                        ? 'bg-tertiary/20 border-tertiary/30 text-tertiary'
+                        : selectedSession.status === 'rejected'
+                          ? 'bg-error/20 border-error/30 text-error'
+                          : selectedSession.status === 'completed'
+                            ? 'bg-success/20 border-success/30 text-success'
+                            : 'bg-primary/20 border-primary/30 text-primary'
+                  "
                 >
                   {{
                     selectedSession.status === 'pending_teacher'
@@ -841,7 +930,7 @@ const stopCountering = () => {
               </div>
             </div>
             <button
-              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1 self-start"
+              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1 self-start"
               aria-label="Close modal"
               @click="closeSessionModal"
             >
@@ -851,23 +940,35 @@ const stopCountering = () => {
 
           <!-- Info rows -->
           <div class="space-y-4">
-            <div class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5">
-              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Teacher</span>
-              <span class="text-sm font-bold text-on-surface dark:text-on-surface"
+            <div
+              class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
+            >
+              <span class="text-xs text-on-surface-variant">Teacher</span>
+              <span class="text-sm font-bold text-on-surface"
                 >Teacher #{{ selectedSession.teacherId }}</span
               >
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5">
-              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Time</span>
-              <span class="text-sm font-bold text-on-surface dark:text-on-surface">{{
+            <div
+              class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
+            >
+              <span class="text-xs text-on-surface-variant">Time</span>
+              <span class="text-sm font-bold text-on-surface">{{
                 formatTime(selectedSession.startTime)
               }}</span>
             </div>
-            <div class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5">
-              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant">Homework</span>
+            <div
+              class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
+            >
+              <span class="text-xs text-on-surface-variant">Homework</span>
               <span
                 class="text-sm font-bold"
-                :class="selectedSession.homeworkCompleted ? 'text-emerald-400' : selectedSession.homeworkAssigned ? 'text-amber-400' : 'text-on-surface-variant'"
+                :class="
+                  selectedSession.homeworkCompleted
+                    ? 'text-success'
+                    : selectedSession.homeworkAssigned
+                      ? 'text-warning'
+                      : 'text-on-surface-variant'
+                "
               >
                 {{
                   selectedSession.homeworkCompleted
@@ -879,72 +980,130 @@ const stopCountering = () => {
               </span>
             </div>
             <div v-if="selectedSession.notes" class="py-2">
-              <span class="text-xs text-on-surface-variant dark:text-on-surface-variant block mb-1">Notes</span>
+              <span class="text-xs text-on-surface-variant block mb-1">Notes</span>
               <p class="text-sm text-on-surface-variant italic">{{ selectedSession.notes }}</p>
             </div>
           </div>
 
           <!-- Proof Section -->
           <div
-            v-if="['scheduled', 'overdue', 'completed', 'pending_verification', 'overdue_rejected'].includes(selectedSession.status)"
+            v-if="
+              [
+                'scheduled',
+                'overdue',
+                'completed',
+                'pending_verification',
+                'overdue_rejected',
+              ].includes(selectedSession.status)
+            "
             class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
           >
-            <h4 class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-3">
+            <h4 class="text-xs font-semibold text-on-surface-variant uppercase mb-3">
               Session Proofs
             </h4>
 
             <div v-if="selectedSession.status === 'overdue_rejected'" class="alert-error mb-4">
-              <p class="text-xs font-semibold uppercase text-red-500 mb-1">Proof Rejected</p>
-              <p class="text-xs text-red-400 font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
-              <p class="text-xs text-on-surface-variant">Please upload a valid proof and provide justification below.</p>
+              <p class="text-xs font-semibold uppercase text-error mb-1">Proof Rejected</p>
+              <p class="text-xs text-error font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
+              <p class="text-xs text-on-surface-variant">
+                Please upload a valid proof and provide justification below.
+              </p>
             </div>
 
             <div class="space-y-3 mb-4">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-on-surface-variant">Your Proof</span>
-                <span class="text-sm font-bold" :class="selectedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'text-emerald-500' : 'text-amber-500'">
-                  {{ selectedSession.proofs?.some(p => p.uploaderRole === 'student') ? 'Uploaded ✓' : 'Pending' }}
+                <span
+                  class="text-sm font-bold"
+                  :class="
+                    selectedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                      ? 'text-success'
+                      : 'text-warning'
+                  "
+                >
+                  {{
+                    selectedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                      ? 'Uploaded ✓'
+                      : 'Pending'
+                  }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-on-surface-variant">Teacher's Proof</span>
-                <span class="text-sm font-bold" :class="selectedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'text-emerald-500' : 'text-amber-500'">
-                  {{ selectedSession.proofs?.some(p => p.uploaderRole === 'teacher') ? 'Uploaded ✓' : 'Pending' }}
+                <span
+                  class="text-sm font-bold"
+                  :class="
+                    selectedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                      ? 'text-success'
+                      : 'text-warning'
+                  "
+                >
+                  {{
+                    selectedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                      ? 'Uploaded ✓'
+                      : 'Pending'
+                  }}
                 </span>
               </div>
             </div>
 
-            <div v-if="selectedSession.proofs?.some(p => p.uploaderRole === 'student')" class="flex flex-col gap-3">
+            <div
+              v-if="selectedSession.proofs?.some((p) => p.uploaderRole === 'student')"
+              class="flex flex-col gap-3"
+            >
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0">
-                    <img :src="selectedSession.proofs?.find(p => p.uploaderRole === 'student')?.imageUrl" class="w-full h-full object-cover" />
+                  <div
+                    class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant shrink-0"
+                  >
+                    <img
+                      :src="
+                        selectedSession.proofs?.find((p) => p.uploaderRole === 'student')?.imageUrl
+                      "
+                      class="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
-                    <p class="text-sm font-bold text-on-surface dark:text-on-surface">Your Proof</p>
-                    <p class="text-xs text-emerald-400">Recorded ✓</p>
+                    <p class="text-sm font-bold text-on-surface">Your Proof</p>
+                    <p class="text-xs text-success">Recorded ✓</p>
                   </div>
                 </div>
                 <button
-                  class="px-4 py-2 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface dark:text-on-surface text-xs font-bold rounded-lg transition-all border border-on-surface/[0.08] dark:border-on-surface/10"
-                  @click="showProofViewer = true; proofPreviewUrl = selectedSession.proofs?.find(p => p.uploaderRole === 'student')?.imageUrl || null"
+                  class="px-4 py-2 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface text-xs font-bold rounded-lg transition-all border border-on-surface/[0.08] dark:border-on-surface/10"
+                  @click="showProofViewer = true; proofPreviewUrl = selectedSession.proofs?.find((p) => p.uploaderRole === 'student')?.imageUrl || null"
                 >
                   View
                 </button>
               </div>
 
-              <div v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)" class="mt-2 pt-3 border-t border-outline/[0.04] dark:border-on-surface/5 space-y-3">
-                <label class="block text-xs text-on-surface-variant mb-1 font-bold">Add a note for the Admin (Optional)</label>
-                <textarea v-model="approvalJustification" rows="2" class="input resize-none" placeholder="E.g. Class was conducted successfully..."></textarea>
-                <button class="w-full py-2 bg-primary hover:scale-[1.02] active:scale-95 text-on-primary font-bold rounded-xl transition-all text-sm shadow-md" @click="submitApprovalRequest(selectedSession.id)">
+              <div
+                v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)"
+                class="mt-2 pt-3 border-t border-outline/[0.04] dark:border-on-surface/5 space-y-3"
+              >
+                <label class="block text-xs text-on-surface-variant mb-1 font-bold"
+                  >Add a note for the Admin (Optional)</label
+                >
+                <textarea
+                  v-model="approvalJustification"
+                  rows="2"
+                  class="input resize-none"
+                  placeholder="E.g. Class was conducted successfully..."
+                ></textarea>
+                <button
+                  class="w-full py-2 bg-primary hover:scale-[1.02] active:scale-95 text-on-primary font-bold rounded-xl transition-all text-sm shadow-md"
+                  @click="submitApprovalRequest(selectedSession.id)"
+                >
                   Submit Request for Approval
                 </button>
               </div>
             </div>
 
-            <div v-else-if="selectedSession.status === 'pending_verification'" class="alert-success mt-4">
-              <p class="text-xs font-bold text-emerald-500">Approval Request Pending</p>
-              <p class="text-xs text-emerald-400 mt-1">An admin or teacher is reviewing your proof.</p>
+            <div
+              v-else-if="selectedSession.status === 'pending_verification'"
+              class="alert-success mt-4"
+            >
+              <p class="text-xs font-bold text-success">Approval Request Pending</p>
+              <p class="text-xs text-success mt-1">An admin or teacher is reviewing your proof.</p>
             </div>
 
             <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
@@ -952,7 +1111,7 @@ const stopCountering = () => {
                 <p class="text-sm font-bold text-primary mb-2">Teacher proposed a new time</p>
                 <div v-if="!isCountering" class="flex gap-3">
                   <button
-                    class="flex-1 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                    class="flex-1 py-2 bg-success/20 hover:bg-success/30 border border-success/30 text-success text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
                     @click="approveCounter"
                   >
                     <span class="material-symbols-outlined text-sm">check_circle</span>
@@ -970,22 +1129,22 @@ const stopCountering = () => {
                   <input
                     v-model="counterForm.startTime"
                     type="datetime-local"
-                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
+                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface [color-scheme:dark]"
                   />
                   <input
                     v-model="counterForm.endTime"
                     type="datetime-local"
-                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface dark:text-on-surface [color-scheme:dark]"
+                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface [color-scheme:dark]"
                   />
                   <div class="flex gap-2">
                     <button
-                      class="flex-1 py-2 bg-primary text-on-surface text-xs font-bold rounded-xl"
+                      class="flex-1 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl"
                       @click="submitStudentCounter"
                     >
                       Send Proposal
                     </button>
                     <button
-                      class="px-4 py-2 bg-on-surface/5 dark:bg-on-surface/5 text-xs font-bold rounded-xl"
+                      class="px-4 py-2 bg-on-surface/5 text-xs font-bold rounded-xl"
                       @click="stopCountering"
                     >
                       Cancel
@@ -998,12 +1157,12 @@ const stopCountering = () => {
             <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
               <div class="flex items-center gap-3">
                 <div
-                  class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant dark:border-outline-variant shrink-0"
+                  class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant shrink-0"
                 >
                   <img :src="stagedProofUrl" class="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <p class="text-sm font-bold text-on-surface dark:text-on-surface">Ready to save</p>
+                  <p class="text-sm font-bold text-on-surface">Ready to save</p>
                   <label class="text-xs text-primary cursor-pointer hover:underline">
                     Replace
                     <input
@@ -1023,19 +1182,23 @@ const stopCountering = () => {
               </button>
             </div>
 
-            <div v-else-if="['scheduled', 'overdue', 'overdue_rejected'].includes(selectedSession.status)">
+            <div
+              v-else-if="
+                ['scheduled', 'overdue', 'overdue_rejected'].includes(selectedSession.status)
+              "
+            >
               <label
                 class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50 transition-all cursor-pointer group text-center"
               >
                 <span
-                  class="material-symbols-outlined text-on-surface-variant dark:text-on-surface-variant group-hover:text-primary text-2xl mb-1"
+                  class="material-symbols-outlined text-on-surface-variant group-hover:text-primary text-2xl mb-1"
                   >upload</span
                 >
                 <span
-                  class="text-sm font-bold text-on-surface dark:text-on-surface group-hover:text-primary transition-colors"
+                  class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors"
                   >Select Image</span
                 >
-                <span class="text-xs text-on-surface-variant dark:text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
+                <span class="text-xs text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -1097,19 +1260,16 @@ const stopCountering = () => {
         aria-labelledby="request-modal-title"
         @click.self="closeRequestModal"
       >
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeRequestModal" />
         <div
-          class="absolute inset-0 bg-black/40 dark:bg-black/70"
-          @click="closeRequestModal"
-        />
-        <div
-          class="relative w-full max-w-md bg-surface-container-high dark:bg-surface-container-high border border-outline-variant dark:border-outline-variant rounded-2xl p-6 shadow-2xl"
+          class="relative w-full max-w-md bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl"
         >
           <div class="flex items-center justify-between mb-6">
-            <h3 id="request-modal-title" class="text-xl font-semibold text-on-surface dark:text-on-surface">
+            <h3 id="request-modal-title" class="text-xl font-semibold text-on-surface">
               Request a Session
             </h3>
             <button
-              class="text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded-lg p-1"
+              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1"
               aria-label="Close modal"
               @click="closeRequestModal"
             >
@@ -1119,21 +1279,25 @@ const stopCountering = () => {
           <form class="space-y-4" @submit.prevent="submitRequest">
             <div>
               <label
-                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1.5 block"
+                class="text-xs font-semibold text-on-surface-variant uppercase mb-1.5 block"
                 for="req-teacher"
                 >Preferred Teacher</label
               >
               <BaseDropdown
                 v-model="requestForm.teacherId"
-                :options="[{ value: null, label: 'Select a teacher...' }, ...myTeachers.map(t => ({ value: t.id, label: t.name }))]"
+                :options="[
+                  { value: null, label: 'Select a teacher...' },
+                  ...myTeachers.map((t) => ({ value: t.id, label: t.name })),
+                ]"
               />
               <p v-if="!myTeachers.length" class="mt-2 text-xs text-on-surface-variant">
-                You are not enrolled with any teacher yet. Request enrollment below to start booking.
+                You are not enrolled with any teacher yet. Request enrollment below to start
+                booking.
               </p>
             </div>
             <div>
               <label
-                class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-1.5 block"
+                class="text-xs font-semibold text-on-surface-variant uppercase mb-1.5 block"
                 for="req-date"
                 >Preferred Date &amp; Time</label
               >
@@ -1148,7 +1312,7 @@ const stopCountering = () => {
             <div class="flex gap-3 pt-2">
               <button
                 type="button"
-                class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
+                class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
                 @click="closeRequestModal"
               >
                 Cancel

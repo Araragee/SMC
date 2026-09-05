@@ -70,82 +70,81 @@ watch(myId, (newId) => {
   }
 })
 
-
-const getStudentName = function(id: number): string  {
+const getStudentName = function (id: number): string {
   return usersStore.users.find((u: any) => u.id === id)?.name ?? `Student #${id}`
 }
 
-const onDayClick = function({ date, sessions }: { date: Date; sessions: Session[] }) {
+const onDayClick = function ({ date, sessions }: { date: Date; sessions: Session[] }) {
   selectedDate.value = date
   selectedDaySessions.value = sessions
 }
 
-const onSessionClick = function(session: Session) {
+const onSessionClick = function (session: Session) {
   selectedSession.value = session
 }
 
-const handleApproveStudent = async function(sessionId: number) {
+const handleApproveStudent = async function (sessionId: number) {
   try {
     await scheduleStore.approveAsTeacher(sessionId)
     toast.success('Request approved!', 'Forwarded to admin for final approval.')
     selectedDate.value = null
-    await scheduleStore.fetchUserSessions(myId.value);
+    await scheduleStore.fetchUserSessions(myId.value)
   } catch {
     toast.error('Failed to approve request')
   }
 }
 
-const openReject = function(sessionId: number) {
+const openReject = function (sessionId: number) {
   rejectModal.value = { open: true, sessionId, notes: '' }
   selectedDate.value = null
 }
 
-const confirmReject = async function() {
+const confirmReject = async function () {
   try {
     await scheduleStore.rejectAsTeacher(rejectModal.value.sessionId, rejectModal.value.notes)
     toast.success('Request declined', 'The student has been notified.')
     rejectModal.value.open = false
-    await scheduleStore.fetchUserSessions(myId.value);
+    await scheduleStore.fetchUserSessions(myId.value)
   } catch {
     toast.error('Failed to decline request')
   }
 }
 
-const openCounter = function(session: Session) {
+const openCounter = function (session: Session) {
   counterModal.value = {
     open: true,
     sessionId: session.id,
     startTime: session.startTime.slice(0, 16),
     endTime: session.endTime?.slice(0, 16) || '',
-    notes: `Counter proposal: Original time didn't work for me.`
+    notes: `Counter proposal: Original time didn't work for me.`,
   }
 }
 
-const confirmCounter = async function() {
+const confirmCounter = async function () {
   try {
-    const startTime = new Date(counterModal.value.startTime).toISOString();
-    let endTime = '';
+    const startTime = new Date(counterModal.value.startTime).toISOString()
+    let endTime = ''
     if (counterModal.value.endTime) {
-        endTime = new Date(counterModal.value.endTime).toISOString();
+      endTime = new Date(counterModal.value.endTime).toISOString()
     } else {
-        // Default to 1 hour after start if missing
-        endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString();
+      // Default to 1 hour after start if missing
+      endTime = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString()
     }
 
     await scheduleStore.counterAsTeacher(counterModal.value.sessionId, {
       startTime,
       endTime,
-      notes: counterModal.value.notes
+      notes: counterModal.value.notes,
     })
     toast.success('Counter proposal sent!', 'The student has been notified.')
     counterModal.value.open = false
-    await scheduleStore.fetchUserSessions(myId.value);
+    await scheduleStore.fetchUserSessions(myId.value)
   } catch {
     toast.error('Failed to send counter proposal')
   }
 }
 
-const onProposeSubmit = async function(session: Session) {
+const onProposeSubmit = async function (session: Session) {
   try {
     await scheduleStore.proposeSessionAsTeacher({
       teacherId: myId.value,
@@ -161,8 +160,7 @@ const onProposeSubmit = async function(session: Session) {
   }
 }
 
-
-const formatDateTime = function(iso: string): string  {
+const formatDateTime = function (iso: string): string {
   return new Date(iso).toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -173,7 +171,7 @@ const formatDateTime = function(iso: string): string  {
   })
 }
 
-const formatTime = function(iso: string): string  {
+const formatTime = function (iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -181,11 +179,11 @@ const formatTime = function(iso: string): string  {
   })
 }
 
-const formatMonth = function(iso: string): string  {
+const formatMonth = function (iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short' })
 }
 
-const formatDay = function(iso: string): string  {
+const formatDay = function (iso: string): string {
   return String(new Date(iso).getDate())
 }
 </script>
@@ -197,10 +195,10 @@ const formatDay = function(iso: string): string  {
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
       <div>
-        <h1 class="text-5xl font-semibold tracking-tight text-on-surface dark:text-on-surface mb-2">My Schedule</h1>
-        <p class="text-on-surface-variant dark:text-on-surface-variant font-medium">
-          <span class="text-on-surface dark:text-on-surface font-bold">{{ mySessions.length }}</span> total sessions,
-          <span class="text-amber-400 font-bold">{{ studentProposals.length }}</span> student
+        <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">My Schedule</h1>
+        <p class="text-on-surface-variant font-medium">
+          <span class="text-on-surface font-bold">{{ mySessions.length }}</span> total sessions,
+          <span class="text-warning font-bold">{{ studentProposals.length }}</span> student
           proposals awaiting review.
         </p>
       </div>
@@ -225,19 +223,19 @@ const formatDay = function(iso: string): string  {
     <!-- Student Proposals Panel -->
     <section
       v-if="studentProposals.length > 0"
-      class="liquid-glass rounded-3xl p-6 border border-amber-500/20"
+      class="liquid-glass rounded-3xl p-6 border border-warning/20"
     >
       <div class="flex items-center gap-3 mb-4">
-        <div class="size-10 rounded-2xl bg-amber-500/20 flex items-center justify-center">
+        <div class="size-10 rounded-2xl bg-warning/20 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-amber-400"
+            class="material-symbols-outlined text-warning"
             style="font-variation-settings: 'FILL' 1"
             >pending_actions</span
           >
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Student Proposals</h3>
-          <p class="text-on-surface-variant dark:text-on-surface-variant text-sm">
+          <h3 class="text-lg font-semibold text-on-surface">Student Proposals</h3>
+          <p class="text-on-surface-variant text-sm">
             {{ studentProposals.length }} request{{ studentProposals.length !== 1 ? 's' : '' }}
             awaiting your review
           </p>
@@ -248,37 +246,37 @@ const formatDay = function(iso: string): string  {
         <div
           v-for="session in studentProposals"
           :key="session.id"
-          class="alert-warning items-center gap-4"
+          class="alert-warning flex-wrap items-start gap-3 sm:items-center sm:gap-4"
         >
           <div
-            class="size-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-semibold text-sm shrink-0"
+            class="size-10 rounded-full bg-warning/20 border border-warning/30 flex items-center justify-center text-warning font-semibold text-sm shrink-0"
           >
             {{ getStudentName(session.studentId).charAt(0) }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-on-surface dark:text-on-surface font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
-            <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">{{ formatDateTime(session.startTime) }}</p>
-            <p v-if="session.notes" class="text-on-surface-variant dark:text-on-surface-variant text-xs mt-0.5 italic">
+            <p class="text-on-surface font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
+            <p class="text-on-surface-variant text-xs">{{ formatDateTime(session.startTime) }}</p>
+            <p v-if="session.notes" class="text-on-surface-variant text-xs mt-0.5 italic">
               "{{ session.notes }}"
             </p>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
+          <div class="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
             <button
-              class="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              class="flex-1 justify-center px-3 sm:px-4 py-2 rounded-xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-xs font-bold transition-all flex items-center gap-1.5 sm:flex-none"
               @click="handleApproveStudent(session.id)"
             >
               <span class="material-symbols-outlined text-sm">check_circle</span>
               Approve
             </button>
             <button
-              class="px-4 py-2 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-bold transition-all flex items-center gap-1.5"
+              class="flex-1 justify-center px-3 sm:px-4 py-2 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-bold transition-all flex items-center gap-1.5 sm:flex-none"
               @click="openCounter(session)"
             >
               <span class="material-symbols-outlined text-sm">swap_horiz</span>
               Counter
             </button>
             <button
-              class="px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 text-xs font-bold transition-all flex items-center gap-1.5"
+              class="flex-1 justify-center px-3 sm:px-4 py-2 rounded-xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-xs font-bold transition-all flex items-center gap-1.5 sm:flex-none"
               @click="openReject(session.id)"
             >
               <span class="material-symbols-outlined text-sm">cancel</span>
@@ -290,22 +288,34 @@ const formatDay = function(iso: string): string  {
     </section>
 
     <!-- Weekly Calendar -->
-    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
-      <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface flex items-center gap-3 mb-6">
-        <span class="size-10 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500">
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_month</span>
+    <section
+      class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+    >
+      <h3 class="text-xl font-semibold text-on-surface flex items-center gap-3 mb-6">
+        <span
+          class="size-10 rounded-2xl bg-success/10 flex items-center justify-center text-success"
+        >
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+            >calendar_month</span
+          >
         </span>
         Weekly Schedule
       </h3>
-      <BaseCalendar :sessions="mySessions" @day-click="onDayClick" @session-click="onSessionClick" />
+      <BaseCalendar
+        :sessions="mySessions"
+        @day-click="onDayClick"
+        @session-click="onSessionClick"
+      />
     </section>
 
     <!-- Upcoming Confirmed Sessions -->
-    <section class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5">
-      <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface mb-6 flex items-center gap-3">
-        <span class="size-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+    <section
+      class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+    >
+      <h3 class="text-xl font-semibold text-on-surface mb-6 flex items-center gap-3">
+        <span class="size-10 rounded-2xl bg-success/10 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-emerald-400"
+            class="material-symbols-outlined text-success"
             style="font-variation-settings: 'FILL' 1"
             >event_available</span
           >
@@ -322,17 +332,17 @@ const formatDay = function(iso: string): string  {
             <p class="text-xs font-semibold text-primary uppercase">
               {{ formatMonth(session.startTime) }}
             </p>
-            <p class="text-2xl font-semibold text-on-surface dark:text-on-surface">{{ formatDay(session.startTime) }}</p>
+            <p class="text-2xl font-semibold text-on-surface">{{ formatDay(session.startTime) }}</p>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-on-surface dark:text-on-surface font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
-            <p class="text-on-surface-variant dark:text-on-surface-variant text-xs">
+            <p class="text-on-surface font-bold text-sm">{{ getStudentName(session.studentId) }}</p>
+            <p class="text-on-surface-variant text-xs">
               {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
             </p>
           </div>
           <span class="size-2 rounded-full bg-primary shrink-0"></span>
         </div>
-        <div v-if="upcomingSessions.length === 0" class="text-center py-6 text-on-surface-variant dark:text-on-surface-variant">
+        <div v-if="upcomingSessions.length === 0" class="text-center py-6 text-on-surface-variant">
           No upcoming sessions
         </div>
       </div>
@@ -360,8 +370,13 @@ const formatDay = function(iso: string): string  {
             class="relative w-full max-w-sm liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-on-surface dark:text-on-surface">Decline Session Request</h3>
-              <button class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="rejectModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <h3 class="text-lg font-semibold text-on-surface">Decline Session Request</h3>
+              <button
+                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
+                @click="rejectModal.open = false"
+              >
+                <span class="material-symbols-outlined text-base">close</span>
+              </button>
             </div>
             <textarea
               v-model="rejectModal.notes"
@@ -371,13 +386,13 @@ const formatDay = function(iso: string): string  {
             />
             <div class="flex gap-3">
               <button
-                class="flex-1 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold rounded-2xl text-sm transition-all"
+                class="flex-1 py-3 bg-error/20 hover:bg-error/30 border border-error/30 text-error font-bold rounded-2xl text-sm transition-all"
                 @click="confirmReject"
               >
                 Confirm Decline
               </button>
               <button
-                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="rejectModal.open = false"
               >
                 Cancel
@@ -410,13 +425,20 @@ const formatDay = function(iso: string): string  {
             class="relative w-full max-w-md liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
           >
             <div class="flex items-center justify-between">
-              <h3 class="text-xl font-semibold text-on-surface dark:text-on-surface">Counter Proposal</h3>
-              <button class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all" @click="counterModal.open = false"><span class="material-symbols-outlined text-base">close</span></button>
+              <h3 class="text-xl font-semibold text-on-surface">Counter Proposal</h3>
+              <button
+                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
+                @click="counterModal.open = false"
+              >
+                <span class="material-symbols-outlined text-base">close</span>
+              </button>
             </div>
-            
+
             <div class="space-y-4">
               <div>
-                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block">New Start Time</label>
+                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
+                  >New Start Time</label
+                >
                 <input
                   v-model="counterModal.startTime"
                   type="datetime-local"
@@ -424,7 +446,9 @@ const formatDay = function(iso: string): string  {
                 />
               </div>
               <div>
-                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block">New End Time</label>
+                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
+                  >New End Time</label
+                >
                 <input
                   v-model="counterModal.endTime"
                   type="datetime-local"
@@ -432,12 +456,10 @@ const formatDay = function(iso: string): string  {
                 />
               </div>
               <div>
-                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block">Notes to Student</label>
-                <textarea
-                  v-model="counterModal.notes"
-                  rows="3"
-                  class="input resize-none"
-                />
+                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
+                  >Notes to Student</label
+                >
+                <textarea v-model="counterModal.notes" rows="3" class="input resize-none" />
               </div>
             </div>
 
@@ -449,7 +471,7 @@ const formatDay = function(iso: string): string  {
                 Send Counter
               </button>
               <button
-                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant dark:text-on-surface-variant font-bold rounded-2xl text-sm"
+                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant font-bold rounded-2xl text-sm"
                 @click="counterModal.open = false"
               >
                 Cancel
@@ -465,14 +487,15 @@ const formatDay = function(iso: string): string  {
       :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
-    @approve-teacher="(id: number) => { handleApproveStudent(id); selectedSession = null }"
-    @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
-    @counter-teacher="(s: Session) => { openCounter(s); selectedSession = null }"
-    @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+      @approve-teacher="(id: number) => { handleApproveStudent(id); selectedSession = null }"
+      @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
+      @counter-teacher="(s: Session) => { openCounter(s); selectedSession = null }"
+      @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
     <!-- Propose Modal -->
-    <ProposeSessionModal :is-open="showProposeModal"
+    <ProposeSessionModal
+      :is-open="showProposeModal"
       v-if="showProposeModal"
       user-role="teacher"
       :current-user-id="authStore.currentUser?.id ?? 0"

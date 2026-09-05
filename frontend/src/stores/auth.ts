@@ -88,7 +88,7 @@ export const useAuthStore = defineStore('auth', {
         formData.append('password', password)
 
         const response = await axios.post(`${API_URL}/login`, formData, {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         })
 
         const data = response.data
@@ -148,7 +148,7 @@ export const useAuthStore = defineStore('auth', {
 
         const response = await axios.post(`${API_URL}/auth/2fa/verify`, {
           challenge_token: this.challengeToken,
-          code
+          code,
         })
 
         const data = response.data
@@ -253,7 +253,9 @@ export const useAuthStore = defineStore('auth', {
           {},
           { withCredentials: true, timeout: 3000, headers: { Authorization: undefined } }
         )
-      } catch { /* offline / 401 — local cleanup proceeds either way */ }
+      } catch {
+        /* offline / 401 — local cleanup proceeds either way */
+      }
 
       // Tear down feature stores. Dynamic imports avoid circular deps and
       // keep auth importable from any store. `$reset()` is available on
@@ -262,20 +264,26 @@ export const useAuthStore = defineStore('auth', {
         const { useScheduleStore } = await import('@stores/schedule')
         const schedule = useScheduleStore()
         schedule.$reset?.()
-      } catch { /* store not loaded */ }
+      } catch {
+        /* store not loaded */
+      }
 
       try {
         const { useMessagingStore } = await import('@stores/messaging')
         const messaging = useMessagingStore()
         messaging.disconnectWS?.()
         messaging.$reset?.()
-      } catch { /* store not loaded */ }
+      } catch {
+        /* store not loaded */
+      }
 
       try {
         const { useShopStore } = await import('@stores/shop')
         const shop = useShopStore()
         shop.$reset?.()
-      } catch { /* store not loaded */ }
+      } catch {
+        /* store not loaded */
+      }
 
       // Purge per-session nudge throttling keys.
       const keysToRemove: string[] = []
@@ -350,15 +358,20 @@ export const useAuthStore = defineStore('auth', {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     },
 
-    async updateProfile(payload: { name?: string; email?: string; avatar_url?: string; password?: string }) {
+    async updateProfile(payload: {
+      name?: string
+      email?: string
+      avatar_url?: string
+      password?: string
+    }) {
       const toast = useToastStore()
       if (!this.user?.id) return
-      
+
       this.isLoading = true
       try {
         const response = await axios.put(`${API_URL}/users/${this.user.id}`, payload)
         const updatedUser = response.data
-        
+
         // Update local state
         this.user = {
           ...this.user,
@@ -366,7 +379,10 @@ export const useAuthStore = defineStore('auth', {
           email: updatedUser.email,
           role: (updatedUser.role?.name?.toLowerCase() || this.user.role) as Role,
           avatarUrl: updatedUser.avatar_url,
-          totpEnabled: updatedUser.totp_enabled !== undefined ? updatedUser.totp_enabled : this.user.totpEnabled
+          totpEnabled:
+            updatedUser.totp_enabled !== undefined
+              ? updatedUser.totp_enabled
+              : this.user.totpEnabled,
         }
         localStorage.setItem('user', JSON.stringify(this.user))
         toast.success('Profile updated', 'Your changes have been saved.')
@@ -378,6 +394,6 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.isLoading = false
       }
-    }
+    },
   },
 })

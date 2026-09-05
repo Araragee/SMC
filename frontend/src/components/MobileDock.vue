@@ -60,7 +60,7 @@ const scrollers = (): (HTMLElement | Window)[] => {
   return app ? [window, app] : [window]
 }
 
-const handleScroll = function() {
+const handleScroll = function () {
   const app = document.getElementById('app')
   const currentScrollY = Math.max(window.scrollY, app?.scrollTop ?? 0)
   if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -81,11 +81,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div 
+  <div
     class="fixed left-1/2 -translate-x-1/2 z-[100] bottom-[max(1rem,env(safe-area-inset-bottom))]"
     :class="isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90'"
   >
-    <nav class="flex items-center gap-0.5 p-1.5 sm:gap-1 sm:p-2 bg-surface-container-low/80 rounded-full border border-on-surface/10 shadow-2xl shadow-e2">
+    <nav
+      class="flex items-center gap-0.5 p-1.5 sm:gap-1 sm:p-2 bg-surface-container-low/80 rounded-full border border-on-surface/10 shadow-2xl shadow-e2"
+    >
       <router-link
         v-for="item in navItems"
         :key="item.path"
@@ -93,17 +95,21 @@ onUnmounted(() => {
         class="relative p-2.5 sm:p-3 rounded-full group"
         :class="isActive(item.path) ? 'bg-primary scale-110 shadow-lg' : 'hover:bg-on-surface/5'"
       >
-        <span 
+        <span
           class="material-symbols-outlined"
-          :class="isActive(item.path) ? 'text-on-surface' : 'text-on-surface-variant group-hover:text-on-surface'"
+          :class="
+            isActive(item.path)
+              ? 'text-on-surface'
+              : 'text-on-surface-variant group-hover:text-on-surface'
+          "
           :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
           aria-hidden="true"
         >
           {{ item.icon }}
         </span>
-        
+
         <!-- Subtle Active Indicator Dot -->
-        <div 
+        <div
           v-if="isActive(item.path)"
           class="absolute -bottom-1 left-1/2 -translate-x-1/2 size-1 bg-surface-container-lowest rounded-full"
         ></div>
@@ -112,44 +118,52 @@ onUnmounted(() => {
       <div class="w-px h-6 bg-on-surface/10 mx-0.5 sm:mx-1"></div>
 
       <!-- Notifications -->
-      <button 
+      <button
         class="relative p-2.5 sm:p-3 rounded-full hover:bg-on-surface/5 group"
         @click="modalStore.openNotifications()"
       >
-        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">notifications</span>
-        <span 
+        <span
+          class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface"
+          aria-hidden="true"
+          >notifications</span
+        >
+        <span
           v-if="notifStore.unreadCount > 0"
-          class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
+          class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-primary flex items-center justify-center"
         >
           {{ notifStore.unreadCount > 9 ? '9+' : notifStore.unreadCount }}
         </span>
       </button>
 
       <!-- Messaging -->
-      <button 
+      <button
         class="relative p-2.5 sm:p-3 rounded-full hover:bg-on-surface/5 group"
         @click="messagingStore.isOpen = true"
       >
-        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">chat</span>
-        <span 
+        <span
+          class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface"
+          aria-hidden="true"
+          >chat</span
+        >
+        <span
           v-if="messagingStore.totalUnread > 0"
-          class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
+          class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-primary flex items-center justify-center"
         >
           {{ messagingStore.totalUnread > 9 ? '9+' : messagingStore.totalUnread }}
         </span>
       </button>
 
       <!-- Profile/Logout -->
-      <button 
-        class="icon-btn"
-        @click="modalStore.openSettings()"
-      >
-        <img 
-          v-if="authStore.currentUser?.avatarUrl" 
-          :src="authStore.currentUser.avatarUrl" 
-          class="w-full h-full object-cover" 
+      <button class="icon-btn" @click="modalStore.openSettings()">
+        <img
+          v-if="authStore.currentUser?.avatarUrl"
+          :src="authStore.currentUser.avatarUrl"
+          class="w-full h-full object-cover"
         />
-        <div v-else class="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-semibold uppercase">
+        <div
+          v-else
+          class="w-full h-full bg-primary/20 flex items-center justify-center text-primary text-xs font-semibold uppercase"
+        >
           {{ authStore.currentUser?.name?.charAt(0) || '?' }}
         </div>
       </button>

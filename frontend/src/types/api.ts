@@ -6,12 +6,7 @@
  * `./index.ts`. Keep these in sync with the corresponding Pydantic models.
  */
 
-import type {
-  Role,
-  SessionStatus,
-  ConversationType,
-  OrderStatus,
-} from './index'
+import type { Role, SessionStatus, ConversationType, OrderStatus } from './index'
 
 // ── Role / Instrument ─────────────────────────────────────────────────────────
 
@@ -214,7 +209,6 @@ export interface EnrollmentResponse {
   status?: 'pending' | 'active' | 'rejected'
   created_at: string
 }
-
 
 // ── Shop ──────────────────────────────────────────────────────────────────────
 

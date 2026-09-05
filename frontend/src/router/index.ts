@@ -50,9 +50,9 @@ const router = createRouter({
           path: '',
           name: 'login',
           component: Login,
-          meta: { requiresAuth: false }
-        }
-      ]
+          meta: { requiresAuth: false },
+        },
+      ],
     },
     {
       // Phase 2 password-reset flow: both pages re-use AuthLayout so they
@@ -107,9 +107,13 @@ const router = createRouter({
         { path: 'instruments', name: 'admin-instruments', component: AdminInstruments },
         { path: 'payments', name: 'admin-payments', component: AdminPayments },
         { path: 'activity-log', name: 'admin-activity-log', component: AdminActivityLog },
-        { path: 'students/:id/records', name: 'admin-student-records', component: AdminStudentRecords },
-        { path: ':module', component: NotFoundView }
-      ]
+        {
+          path: 'students/:id/records',
+          name: 'admin-student-records',
+          component: AdminStudentRecords,
+        },
+        { path: ':module', component: NotFoundView },
+      ],
     },
     // Teacher Routes
     {
@@ -123,8 +127,8 @@ const router = createRouter({
         { path: 'instruments', name: 'teacher-instruments', component: TeacherInstruments },
         { path: 'payments', name: 'teacher-payments', component: TeacherPayments },
         { path: 'shop', name: 'teacher-shop', component: TeacherShop },
-        { path: ':module', component: NotFoundView }
-      ]
+        { path: ':module', component: NotFoundView },
+      ],
     },
     // Student Routes
     {
@@ -137,8 +141,8 @@ const router = createRouter({
         { path: 'homework', name: 'student-homework', component: StudentHomework },
         { path: 'payments', name: 'student-payments', component: StudentPayments },
         { path: 'shop', name: 'student-shop', component: StudentShop },
-        { path: ':module', component: NotFoundView }
-      ]
+        { path: ':module', component: NotFoundView },
+      ],
     },
     // General redirection
     {
@@ -147,13 +151,13 @@ const router = createRouter({
         const auth = useAuthStore()
         if (!auth.isAuthenticated) return '/login'
         return `/${auth.userRole}`
-      }
+      },
     },
     {
       path: '/:pathMatch(.*)*',
-      component: NotFoundView
-    }
-  ]
+      component: NotFoundView,
+    },
+  ],
 })
 
 router.beforeEach(async (to, _from, next) => {
@@ -176,7 +180,11 @@ router.beforeEach(async (to, _from, next) => {
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')
-  } else if (to.meta.roles && auth.userRole && !(to.meta.roles as string[]).includes(auth.userRole)) {
+  } else if (
+    to.meta.roles &&
+    auth.userRole &&
+    !(to.meta.roles as string[]).includes(auth.userRole)
+  ) {
     next(`/${auth.userRole}`)
   } else if (to.path === '/login' && auth.isAuthenticated) {
     next(`/${auth.userRole}`)

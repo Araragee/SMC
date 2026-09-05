@@ -29,9 +29,7 @@ export const usePaymentsStore = defineStore('payments', {
   }),
   getters: {
     totalRevenue: (state) =>
-      state.payments
-        .filter((p) => p.status === 'completed')
-        .reduce((sum, p) => sum + p.amount, 0),
+      state.payments.filter((p) => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0),
     pendingCount: (state) => state.payments.filter((p) => p.status === 'pending').length,
     completedCount: (state) => state.payments.filter((p) => p.status === 'completed').length,
   },
@@ -43,7 +41,10 @@ export const usePaymentsStore = defineStore('payments', {
         this.payments = response.data
       } catch (err: any) {
         this.error = err.message
-        useToastStore().error('Failed to load payments', err?.response?.data?.detail || err.message || 'Please try again.')
+        useToastStore().error(
+          'Failed to load payments',
+          err?.response?.data?.detail || err.message || 'Please try again.'
+        )
       } finally {
         this.isLoading = false
       }
@@ -61,7 +62,7 @@ export const usePaymentsStore = defineStore('payments', {
     },
     async updatePayment(
       paymentId: number,
-      payload: Partial<Pick<Payment, 'status' | 'notes' | 'method' | 'amount'>>,
+      payload: Partial<Pick<Payment, 'status' | 'notes' | 'method' | 'amount'>>
     ) {
       try {
         const response = await axios.patch(`${API_URL}/payments/${paymentId}`, payload, {

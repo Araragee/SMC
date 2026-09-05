@@ -74,13 +74,13 @@ const submit = async () => {
       <!-- Same message regardless of whether the email existed: prevents
            enumeration. -->
       <div v-else class="space-y-3 text-center">
-        <div class="size-12 mx-auto rounded-full bg-emerald-500/15 flex items-center justify-center">
-          <span class="material-symbols-outlined text-emerald-500">mark_email_read</span>
+        <div class="size-12 mx-auto rounded-full bg-success/15 flex items-center justify-center">
+          <span class="material-symbols-outlined text-success">mark_email_read</span>
         </div>
         <p class="text-on-surface font-semibold">Check your inbox</p>
         <p class="text-on-surface-variant text-sm">
-          If an account exists for <strong>{{ email }}</strong>, we just emailed a reset link.
-          It expires in 30&nbsp;minutes.
+          If an account exists for <strong>{{ email }}</strong
+          >, we just emailed a reset link. It expires in 30&nbsp;minutes.
         </p>
       </div>
 

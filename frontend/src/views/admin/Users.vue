@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseDropdown from '@/components/BaseDropdown.vue';
+import BaseDropdown from '@/components/BaseDropdown.vue'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUsersStore } from '@stores/users'
@@ -28,15 +28,15 @@ const editForm = reactive({
 
 onMounted(async () => {
   await usersStore.fetchUsers()
-  
+
   // Handle query parameters
   if (route.query.action === 'create') {
     showAddModal.value = true
   }
-  
+
   if (route.query.edit) {
     const userId = Number(route.query.edit)
-    const user = usersStore.users.find(u => u.id === userId)
+    const user = usersStore.users.find((u) => u.id === userId)
     if (user) {
       openEditModal(user)
     }
@@ -91,7 +91,7 @@ const handleUpdateUser = async () => {
 const handleDeleteUser = async (user: User) => {
   const entered = await dialog.prompt(`Type "${user.name}" to confirm deactivating this account:`, {
     title: 'Deactivate User',
-    placeholder: user.name
+    placeholder: user.name,
   })
   if (entered !== user.name) {
     if (entered !== null) {
@@ -132,7 +132,9 @@ const handleDeleteUser = async (user: User) => {
       </div>
 
       <div v-else-if="users.length === 0" class="empty-state">
-        <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true">group_off</span>
+        <span class="material-symbols-outlined text-4xl text-on-surface-variant" aria-hidden="true"
+          >group_off</span
+        >
         <p class="section-title">No users yet</p>
         <p class="section-caption">Start by creating your first student or teacher.</p>
         <button class="btn-primary btn-sm" @click="openAddModal">Create user</button>
@@ -141,7 +143,9 @@ const handleDeleteUser = async (user: User) => {
       <div v-else class="md:overflow-x-auto">
         <table class="data-table stacked">
           <thead>
-            <tr class="text-xs font-semibold text-on-surface-variant uppercase bg-surface-container-highest/20">
+            <tr
+              class="text-xs font-semibold text-on-surface-variant uppercase bg-surface-container-highest/20"
+            >
               <th>Member Identity</th>
               <th>Access Level</th>
               <th>Quota / Status</th>
@@ -159,7 +163,11 @@ const handleDeleteUser = async (user: User) => {
                   <div
                     class="size-12 rounded-2xl bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center text-on-surface font-semibold text-lg shadow-sm overflow-hidden"
                   >
-                    <img v-if="user.avatarUrl" :src="user.avatarUrl" class="w-full h-full object-cover" />
+                    <img
+                      v-if="user.avatarUrl"
+                      :src="user.avatarUrl"
+                      class="w-full h-full object-cover"
+                    />
                     <span v-else>{{ user.name.charAt(0) }}</span>
                   </div>
                   <div class="min-w-0">
@@ -171,7 +179,11 @@ const handleDeleteUser = async (user: User) => {
               <td data-label="Access level" class="whitespace-nowrap">
                 <span
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold uppercase border transition-colors shadow-sm"
-                  :class="{ 'bg-primary/10 text-primary border-primary/20': user.role === 'admin', 'bg-blue-500/10 text-blue-500 border-blue-500/20': user.role === 'teacher', 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': user.role === 'student' }"
+                  :class="{
+                    'bg-primary/10 text-primary border-primary/20': user.role === 'admin',
+                    'bg-tertiary/10 text-tertiary border-tertiary/20': user.role === 'teacher',
+                    'bg-success/10 text-success border-success/20': user.role === 'student',
+                  }"
                 >
                   <span class="size-1 rounded-full bg-current"></span>
                   {{ user.role }}
@@ -182,9 +194,13 @@ const handleDeleteUser = async (user: User) => {
                   <span class="text-sm font-semibold text-on-surface">
                     {{ user.sessionsLeft !== undefined ? user.sessionsLeft : '0' }}
                   </span>
-                  <span class="text-xs font-bold text-on-surface-variant uppercase tracking-tight">Credits</span>
+                  <span class="text-xs font-bold text-on-surface-variant uppercase tracking-tight"
+                    >Credits</span
+                  >
                 </div>
-                <span v-else class="text-xs text-on-surface-variant italic opacity-50">Authorized Access</span>
+                <span v-else class="text-xs text-on-surface-variant italic opacity-50"
+                  >Authorized Access</span
+                >
               </td>
               <td data-label="" class="text-right">
                 <div class="flex w-full items-center justify-end gap-2">
@@ -196,11 +212,7 @@ const handleDeleteUser = async (user: User) => {
                   >
                     <span class="material-symbols-outlined text-lg">folder_open</span>
                   </button>
-                  <button
-                    class="icon-btn"
-                    title="Edit Profile"
-                    @click="openEditModal(user)"
-                  >
+                  <button class="icon-btn" title="Edit Profile" @click="openEditModal(user)">
                     <span class="material-symbols-outlined text-lg">edit_note</span>
                   </button>
                   <button
@@ -240,9 +252,16 @@ const handleDeleteUser = async (user: User) => {
           class="fixed inset-0 z-[200] flex items-center justify-center p-4"
           @click.self="showEditModal = false"
         >
-          <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="showEditModal = false" />
-          <div class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-3xl p-8 shadow-2xl overflow-hidden">
-            <div class="absolute top-0 right-0 size-32 bg-primary/10 blur-[64px] rounded-full -z-10" />
+          <div
+            class="absolute inset-0 bg-black/40 dark:bg-black/70"
+            @click="showEditModal = false"
+          />
+          <div
+            class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-3xl p-8 shadow-2xl overflow-hidden"
+          >
+            <div
+              class="absolute top-0 right-0 size-32 bg-primary/10 blur-[64px] rounded-full -z-10"
+            />
 
             <div class="flex items-center justify-between mb-8">
               <div>
@@ -268,19 +287,38 @@ const handleDeleteUser = async (user: User) => {
                   <div class="space-y-1.5">
                     <label class="field-label">System Role</label>
                     <div class="relative">
-                      <BaseDropdown v-model="editForm.role" :options="[{ value: 'student', label: 'Student' }, { value: 'teacher', label: 'Teacher' }, { value: 'admin', label: 'Admin' }]" />
-                      <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
+                      <BaseDropdown
+                        v-model="editForm.role"
+                        :options="[
+                          { value: 'student', label: 'Student' },
+                          { value: 'teacher', label: 'Teacher' },
+                          { value: 'admin', label: 'Admin' },
+                        ]"
+                      />
+                      <span
+                        class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg"
+                        >expand_more</span
+                      >
                     </div>
                   </div>
                   <div v-if="editForm.role === 'student'" class="space-y-1.5">
                     <label class="field-label">Remaining Credits</label>
-                    <input v-model.number="editForm.sessionsLeft" type="number" min="0" class="input" />
+                    <input
+                      v-model.number="editForm.sessionsLeft"
+                      type="number"
+                      min="0"
+                      class="input"
+                    />
                   </div>
                 </div>
               </div>
 
               <div class="flex gap-3 pt-6">
-                <button type="submit" :disabled="isSubmitting" class="flex-1 py-4 rounded-2xl bg-primary text-on-primary text-sm font-semibold uppercase transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20">
+                <button
+                  type="submit"
+                  :disabled="isSubmitting"
+                  class="flex-1 py-4 rounded-2xl bg-primary text-on-primary text-sm font-semibold uppercase transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20"
+                >
                   {{ isSubmitting ? 'Updating...' : 'Save Changes' }}
                 </button>
               </div>

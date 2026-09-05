@@ -1,92 +1,101 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { useInteractionsStore } from '@/stores/interactions';
-import { useToastStore } from '@/stores/toast';
+import { computed, ref, watch } from 'vue'
+import { useInteractionsStore } from '@/stores/interactions'
+import { useToastStore } from '@/stores/toast'
 
 interface HomeworkSession {
-  id: number;
-  homeworkAssigned?: string | null;
-  homeworkCompleted?: boolean | null;
-  teacherName?: string | null;
-  startTime?: string | null;
+  id: number
+  homeworkAssigned?: string | null
+  homeworkCompleted?: boolean | null
+  teacherName?: string | null
+  startTime?: string | null
 }
 
-const props = withDefaults(defineProps<{
-  isOpen?: boolean;
-  session?: HomeworkSession | null;
-}>(), {
-  isOpen: false,
-  session: null
-});
+const props = withDefaults(
+  defineProps<{
+    isOpen?: boolean
+    session?: HomeworkSession | null
+  }>(),
+  {
+    isOpen: false,
+    session: null,
+  }
+)
 
 const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'submitted'): void;
-}>();
+  (e: 'close'): void
+  (e: 'submitted'): void
+}>()
 
-const interactionsStore = useInteractionsStore();
-const toast = useToastStore();
+const interactionsStore = useInteractionsStore()
+const toast = useToastStore()
 
-const file = ref<File | null>(null);
-const previewUrl = ref<string | null>(null);
-const isSubmitting = ref(false);
+const file = ref<File | null>(null)
+const previewUrl = ref<string | null>(null)
+const isSubmitting = ref(false)
 
 const dueLabel = computed(() => {
-  if (!props.session?.startTime) return 'Due for next session';
+  if (!props.session?.startTime) return 'Due for next session'
   return `From your session on ${new Date(props.session.startTime).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric'
-  })}`;
-});
+    month: 'short',
+    day: 'numeric',
+  })}`
+})
 
 const reset = () => {
-  if (previewUrl.value) window.URL.revokeObjectURL(previewUrl.value);
-  file.value = null;
-  previewUrl.value = null;
-  isSubmitting.value = false;
-};
+  if (previewUrl.value) window.URL.revokeObjectURL(previewUrl.value)
+  file.value = null
+  previewUrl.value = null
+  isSubmitting.value = false
+}
 
 // Clear the staged file whenever the modal closes, so reopening it for a
 // different homework never shows the previous one's preview.
-watch(() => props.isOpen, open => { if (!open) reset(); });
+watch(
+  () => props.isOpen,
+  (open) => {
+    if (!open) reset()
+  }
+)
 
 const selectFile = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  if (!input.files?.[0]) return;
-  if (previewUrl.value) window.URL.revokeObjectURL(previewUrl.value);
-  file.value = input.files[0];
-  previewUrl.value = window.URL.createObjectURL(file.value);
-};
+  const input = event.target as HTMLInputElement
+  if (!input.files?.[0]) return
+  if (previewUrl.value) window.URL.revokeObjectURL(previewUrl.value)
+  file.value = input.files[0]
+  previewUrl.value = window.URL.createObjectURL(file.value)
+}
 
-const close = () => emit('close');
+const close = () => emit('close')
 
 const submitWithFile = async () => {
-  if (!props.session || !file.value) return;
-  isSubmitting.value = true;
+  if (!props.session || !file.value) return
+  isSubmitting.value = true
   try {
-    await interactionsStore.uploadHomeworkFile(props.session.id, file.value);
-    toast.success('Homework submitted!', 'Your teacher can now review it.');
-    emit('submitted');
-    close();
+    await interactionsStore.uploadHomeworkFile(props.session.id, file.value)
+    toast.success('Homework submitted!', 'Your teacher can now review it.')
+    emit('submitted')
+    close()
   } catch {
     // The store surfaces the error toast; keep the modal open so the student
     // can retry without re-picking the file.
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
-};
+}
 
 const markDoneWithoutFile = async () => {
-  if (!props.session) return;
-  isSubmitting.value = true;
+  if (!props.session) return
+  isSubmitting.value = true
   try {
-    await interactionsStore.completeHomework(props.session.id);
-    toast.success('Marked as done', 'Your teacher has been notified.');
-    emit('submitted');
-    close();
+    await interactionsStore.completeHomework(props.session.id)
+    toast.success('Marked as done', 'Your teacher has been notified.')
+    emit('submitted')
+    close()
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
-};
+}
 </script>
 
 <template>
@@ -99,7 +108,9 @@ const markDoneWithoutFile = async () => {
     <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="close" />
 
-      <div class="modal-shell relative z-10 w-full max-w-lg rounded-3xl border border-outline-variant bg-surface-container shadow-2xl">
+      <div
+        class="modal-shell relative z-10 w-full max-w-lg rounded-3xl border border-outline-variant bg-surface-container shadow-2xl"
+      >
         <div class="flex items-start justify-between p-6 pb-4">
           <div>
             <p class="mb-1 text-xs font-semibold uppercase text-primary">Homework</p>
@@ -127,11 +138,18 @@ const markDoneWithoutFile = async () => {
             class="flex min-h-[150px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-outline-variant p-4 text-center transition-colors hover:border-primary/50"
             :class="previewUrl ? 'border-primary/50' : ''"
           >
-            <img v-if="previewUrl" :src="previewUrl" alt="Homework preview" class="max-h-40 rounded-xl object-contain" />
+            <img
+              v-if="previewUrl"
+              :src="previewUrl"
+              alt="Homework preview"
+              class="max-h-40 rounded-xl object-contain"
+            />
             <template v-else>
               <span class="material-symbols-outlined mb-2 text-3xl text-primary">add_a_photo</span>
               <p class="font-semibold text-on-surface">Attach a photo of your work</p>
-              <p class="mt-1 text-xs text-on-surface-variant">Optional — you can also just mark it done</p>
+              <p class="mt-1 text-xs text-on-surface-variant">
+                Optional — you can also just mark it done
+              </p>
             </template>
             <input type="file" accept="image/*" class="hidden" @change="selectFile" />
           </label>
@@ -145,11 +163,7 @@ const markDoneWithoutFile = async () => {
             >
               Mark as done
             </button>
-            <button
-              class="btn-primary"
-              :disabled="isSubmitting || !file"
-              @click="submitWithFile"
-            >
+            <button class="btn-primary" :disabled="isSubmitting || !file" @click="submitWithFile">
               {{ isSubmitting ? 'Submitting…' : 'Upload & submit' }}
             </button>
           </div>

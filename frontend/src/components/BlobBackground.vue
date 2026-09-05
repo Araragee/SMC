@@ -43,16 +43,8 @@
   background:
     /* Warm apricot at the top-left, sage at the top-right; both fade out
        well before the fold so content sits on the flat surface colour. */
-    radial-gradient(
-      60rem 32rem at 12% -8%,
-      rgb(var(--primary-rgb) / 0.10),
-      transparent 70%
-    ),
-    radial-gradient(
-      52rem 28rem at 88% -4%,
-      rgb(var(--secondary-rgb) / 0.10),
-      transparent 70%
-    ),
+    radial-gradient(60rem 32rem at 12% -8%, rgb(var(--primary-rgb) / 0.1), transparent 70%),
+    radial-gradient(52rem 28rem at 88% -4%, rgb(var(--secondary-rgb) / 0.1), transparent 70%),
     var(--background);
   opacity: 1;
 }

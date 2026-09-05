@@ -38,7 +38,7 @@ let isRefreshing = false
 let refreshQueue: Array<(token: string | null) => void> = []
 
 const drainQueue = (token: string | null) => {
-  refreshQueue.forEach(cb => cb(token))
+  refreshQueue.forEach((cb) => cb(token))
   refreshQueue = []
 }
 
@@ -62,16 +62,12 @@ axios.interceptors.response.use(
     // error handling report it.
     const CREDENTIAL_ENDPOINTS = ['/login', '/auth/refresh', '/auth/2fa/verify', '/auth/logout']
     const isCredentialCheck = CREDENTIAL_ENDPOINTS.some((path) =>
-      originalRequest?.url?.includes(path),
+      originalRequest?.url?.includes(path)
     )
 
     // Only intercept 401s that haven't already been retried and aren't a
     // credential check (infinite-loop and false-logout guard).
-    if (
-      error.response?.status !== 401 ||
-      originalRequest?._refreshRetry ||
-      isCredentialCheck
-    ) {
+    if (error.response?.status !== 401 || originalRequest?._refreshRetry || isCredentialCheck) {
       return Promise.reject(error)
     }
 
