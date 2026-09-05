@@ -130,7 +130,7 @@ const closeModal = () => {
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeModal" />
 
         <!-- Modal -->
-        <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
           <!-- Header -->
           <div class="flex items-center justify-between p-6 border-b border-on-surface/5 dark:border-on-surface/5 shrink-0">
             <div>

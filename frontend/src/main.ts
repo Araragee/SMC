@@ -54,12 +54,23 @@ axios.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Only intercept 401s that haven't already been retried and aren't the
-    // refresh endpoint itself (infinite-loop guard).
+    // Endpoints where a 401 means "these credentials are wrong", not "this
+    // session expired". Refreshing on those is nonsense: there is no session
+    // to refresh, the refresh call fails, and the failure path runs a full
+    // logout() — which fires a "Signed out" toast at someone who was never
+    // signed in and wipes their cart and store state. Let the caller's own
+    // error handling report it.
+    const CREDENTIAL_ENDPOINTS = ['/login', '/auth/refresh', '/auth/2fa/verify', '/auth/logout']
+    const isCredentialCheck = CREDENTIAL_ENDPOINTS.some((path) =>
+      originalRequest?.url?.includes(path),
+    )
+
+    // Only intercept 401s that haven't already been retried and aren't a
+    // credential check (infinite-loop and false-logout guard).
     if (
       error.response?.status !== 401 ||
       originalRequest?._refreshRetry ||
-      originalRequest?.url?.includes('/auth/refresh')
+      isCredentialCheck
     ) {
       return Promise.reject(error)
     }

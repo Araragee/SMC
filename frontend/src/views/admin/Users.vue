@@ -138,8 +138,8 @@ const handleDeleteUser = async (user: User) => {
         <button class="btn-primary btn-sm" @click="openAddModal">Create user</button>
       </div>
 
-      <div v-else class="overflow-x-auto">
-        <table class="data-table">
+      <div v-else class="md:overflow-x-auto">
+        <table class="data-table stacked">
           <thead>
             <tr class="text-xs font-semibold text-on-surface-variant uppercase bg-surface-container-highest/20">
               <th>Member Identity</th>
@@ -154,7 +154,7 @@ const handleDeleteUser = async (user: User) => {
               :key="user.id"
               class="group hover:bg-primary/[0.03] dark:hover:bg-primary/[0.05] transition-all"
             >
-              <td>
+              <td data-label="">
                 <div class="flex items-center gap-4">
                   <div
                     class="size-12 rounded-2xl bg-surface-container-highest border border-outline-variant/30 flex items-center justify-center text-on-surface font-semibold text-lg shadow-sm overflow-hidden"
@@ -168,7 +168,7 @@ const handleDeleteUser = async (user: User) => {
                   </div>
                 </div>
               </td>
-              <td class="whitespace-nowrap">
+              <td data-label="Access level" class="whitespace-nowrap">
                 <span
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold uppercase border transition-colors shadow-sm"
                   :class="{ 'bg-primary/10 text-primary border-primary/20': user.role === 'admin', 'bg-blue-500/10 text-blue-500 border-blue-500/20': user.role === 'teacher', 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': user.role === 'student' }"
@@ -177,7 +177,7 @@ const handleDeleteUser = async (user: User) => {
                   {{ user.role }}
                 </span>
               </td>
-              <td>
+              <td data-label="Quota">
                 <div v-if="user.role === 'student'" class="flex items-center gap-2">
                   <span class="text-sm font-semibold text-on-surface">
                     {{ user.sessionsLeft !== undefined ? user.sessionsLeft : '0' }}
@@ -186,8 +186,8 @@ const handleDeleteUser = async (user: User) => {
                 </div>
                 <span v-else class="text-xs text-on-surface-variant italic opacity-50">Authorized Access</span>
               </td>
-              <td class="text-right">
-                <div class="flex items-center justify-end gap-2">
+              <td data-label="" class="text-right">
+                <div class="flex w-full items-center justify-end gap-2">
                   <button
                     v-if="user.role === 'student'"
                     class="icon-btn"

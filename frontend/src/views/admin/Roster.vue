@@ -229,8 +229,8 @@ onMounted(async () => {
           <p class="section-title">No pending requests</p>
           <p class="section-caption">Student enrollment requests will appear here for approval.</p>
         </div>
-        <div v-else class="overflow-x-auto">
-          <table class="data-table">
+        <div v-else class="md:overflow-x-auto">
+          <table class="data-table stacked">
             <thead>
               <tr>
                 <th scope="col">Student</th>
@@ -241,13 +241,13 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr v-for="req in rosterStore.pendingEnrollments" :key="req.id">
-                <td class="cell-strong">{{ userName(req.studentId) }}</td>
-                <td>{{ userName(req.teacherId) }}</td>
-                <td class="cell-muted">{{ new Date(req.createdAt).toLocaleDateString() }}</td>
-                <td class="text-right">
+                <td data-label="Student" class="cell-strong">{{ userName(req.studentId) }}</td>
+                <td data-label="Teacher">{{ userName(req.teacherId) }}</td>
+                <td data-label="Requested" class="cell-muted">{{ new Date(req.createdAt).toLocaleDateString() }}</td>
+                <td data-label="" class="text-right">
                   <!-- Hours are set at approval because they follow payment;
                        the request itself carries none. -->
-                  <div v-if="approvingId === req.id" class="flex items-center justify-end gap-2">
+                  <div v-if="approvingId === req.id" class="flex w-full items-center justify-end gap-2">
                     <input
                       v-model.number="approveHours"
                       type="number"
@@ -260,7 +260,7 @@ onMounted(async () => {
                     </button>
                     <button class="btn-ghost btn-sm" @click="approvingId = null">Cancel</button>
                   </div>
-                  <div v-else class="flex items-center justify-end gap-2">
+                  <div v-else class="flex w-full items-center justify-end gap-2">
                     <button class="btn-primary btn-sm" @click="approvingId = req.id; approveHours = 8">Approve</button>
                     <button class="btn-subtle btn-sm" @click="rejectRequest(req)">Reject</button>
                   </div>
@@ -281,8 +281,8 @@ onMounted(async () => {
           <p class="section-caption">Enroll students in bulk to grant session credits.</p>
           <button class="btn-primary btn-sm" @click="openPicker()">Bulk enroll</button>
         </div>
-        <div v-else class="overflow-x-auto">
-          <table class="data-table">
+        <div v-else class="md:overflow-x-auto">
+          <table class="data-table stacked">
             <thead>
               <tr>
                 <th scope="col">Student</th>
@@ -296,12 +296,12 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr v-for="enrollment in enrollmentRows" :key="enrollment.id">
-                <td class="cell-strong">{{ userName(enrollment.studentId) }}</td>
-                <td class="cell-muted">{{ userName(enrollment.teacherId) }}</td>
-                <td class="num">{{ enrollment.sessionsPurchased }}</td>
-                <td class="num">{{ enrollment.sessionsUsed }}</td>
-                <td class="num cell-strong">{{ enrollment.sessionsLeft }}</td>
-                <td>
+                <td data-label="Student" class="cell-strong">{{ userName(enrollment.studentId) }}</td>
+                <td data-label="Teacher" class="cell-muted">{{ userName(enrollment.teacherId) }}</td>
+                <td data-label="Purchased" class="num">{{ enrollment.sessionsPurchased }}</td>
+                <td data-label="Used" class="num">{{ enrollment.sessionsUsed }}</td>
+                <td data-label="Left" class="num cell-strong">{{ enrollment.sessionsLeft }}</td>
+                <td data-label="Status">
                   <span
                     class="badge"
                     :class="enrollment.isActive === false ? 'border-outline-variant/40 text-on-surface-variant' : 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400'"
@@ -309,8 +309,8 @@ onMounted(async () => {
                     {{ enrollment.isActive === false ? 'Archived' : 'Active' }}
                   </span>
                 </td>
-                <td>
-                  <div class="flex justify-end gap-2">
+                <td data-label="">
+                  <div class="flex w-full justify-end gap-2">
                     <button
                       class="icon-btn"
                       :aria-label="`Edit enrollment for ${userName(enrollment.studentId)}`"

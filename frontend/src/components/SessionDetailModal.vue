@@ -372,7 +372,7 @@ const statusContext = computed(() => {
         />
 
         <!-- Modal -->
-        <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <!-- Coloured header stripe -->
           <div :class="`${statusConfig.headerBg} p-4 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`">
             <div class="flex items-start justify-between gap-3">

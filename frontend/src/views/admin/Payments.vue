@@ -291,7 +291,7 @@ async function submitPayment() {
         <input
           v-model="search"
           placeholder="Search by student, method, notes…"
-          class="bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
+          class="bg-transparent text-base sm:text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
         />
       </div>
 

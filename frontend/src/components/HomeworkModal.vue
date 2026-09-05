@@ -99,7 +99,7 @@ const markDoneWithoutFile = async () => {
     <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="close" />
 
-      <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-outline-variant bg-surface-container shadow-2xl">
+      <div class="modal-shell relative z-10 w-full max-w-lg rounded-3xl border border-outline-variant bg-surface-container shadow-2xl">
         <div class="flex items-start justify-between p-6 pb-4">
           <div>
             <p class="mb-1 text-xs font-semibold uppercase text-primary">Homework</p>

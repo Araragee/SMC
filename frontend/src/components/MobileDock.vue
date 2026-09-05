@@ -51,8 +51,18 @@ const isActive = (path: string) => {
   return route.path.startsWith(path)
 }
 
+// Below 640px style.css pins the body and scrolls #app instead, so window
+// emits no scroll event there. Which element scrolls also depends on how much
+// content the route ends up rendering, so listen to both and read whichever
+// one actually moved.
+const scrollers = (): (HTMLElement | Window)[] => {
+  const app = document.getElementById('app')
+  return app ? [window, app] : [window]
+}
+
 const handleScroll = function() {
-  const currentScrollY = window.scrollY
+  const app = document.getElementById('app')
+  const currentScrollY = Math.max(window.scrollY, app?.scrollTop ?? 0)
   if (currentScrollY > lastScrollY && currentScrollY > 100) {
     isVisible.value = false
   } else {
@@ -62,25 +72,25 @@ const handleScroll = function() {
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll)
+  scrollers().forEach((s) => s.addEventListener('scroll', handleScroll, { passive: true }))
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  scrollers().forEach((s) => s.removeEventListener('scroll', handleScroll))
 })
 </script>
 
 <template>
   <div 
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]"
+    class="fixed left-1/2 -translate-x-1/2 z-[100] bottom-[max(1rem,env(safe-area-inset-bottom))]"
     :class="isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-90'"
   >
-    <nav class="flex items-center gap-1 p-2 bg-surface-container-low/80 rounded-full border border-on-surface/10 shadow-2xl shadow-e2">
+    <nav class="flex items-center gap-0.5 p-1.5 sm:gap-1 sm:p-2 bg-surface-container-low/80 rounded-full border border-on-surface/10 shadow-2xl shadow-e2">
       <router-link
         v-for="item in navItems"
         :key="item.path"
         :to="item.path"
-        class="relative p-3 rounded-full group"
+        class="relative p-2.5 sm:p-3 rounded-full group"
         :class="isActive(item.path) ? 'bg-primary scale-110 shadow-lg' : 'hover:bg-on-surface/5'"
       >
         <span 
@@ -99,17 +109,17 @@ onUnmounted(() => {
         ></div>
       </router-link>
 
-      <div class="w-px h-6 bg-on-surface/10 mx-1"></div>
+      <div class="w-px h-6 bg-on-surface/10 mx-0.5 sm:mx-1"></div>
 
       <!-- Notifications -->
       <button 
-        class="relative p-3 rounded-full hover:bg-on-surface/5 group"
+        class="relative p-2.5 sm:p-3 rounded-full hover:bg-on-surface/5 group"
         @click="modalStore.openNotifications()"
       >
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">notifications</span>
         <span 
           v-if="notifStore.unreadCount > 0"
-          class="absolute top-2 right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
+          class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
         >
           {{ notifStore.unreadCount > 9 ? '9+' : notifStore.unreadCount }}
         </span>
@@ -117,13 +127,13 @@ onUnmounted(() => {
 
       <!-- Messaging -->
       <button 
-        class="relative p-3 rounded-full hover:bg-on-surface/5 group"
+        class="relative p-2.5 sm:p-3 rounded-full hover:bg-on-surface/5 group"
         @click="messagingStore.isOpen = true"
       >
         <span class="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface" aria-hidden="true">chat</span>
         <span 
           v-if="messagingStore.totalUnread > 0"
-          class="absolute top-2 right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
+          class="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 size-4 bg-primary rounded-full border-2 border-surface-container-low text-[8px] font-semibold text-on-surface flex items-center justify-center"
         >
           {{ messagingStore.totalUnread > 9 ? '9+' : messagingStore.totalUnread }}
         </span>

@@ -530,7 +530,7 @@ p {
 @layer components {
 
   /* — Page shell ————————————————————————— */
-  .page            { @apply mx-auto w-full max-w-[1600px] space-y-8 px-4 pb-28 sm:px-6; }
+  .page            { @apply mx-auto w-full max-w-[1600px] space-y-8 px-0 pb-28 sm:px-6; }
   .page-header     { @apply flex flex-col gap-4 md:flex-row md:items-end md:justify-between; }
   .page-eyebrow    { @apply text-xs font-semibold uppercase text-primary; }
   .page-title      { @apply text-balance text-3xl font-bold text-on-surface; }
@@ -550,7 +550,7 @@ p {
   .field-error { @apply text-xs font-medium text-red-500; }
   .input {
     @apply w-full rounded-xl border border-outline-variant/40 bg-surface-container-highest/20 px-4 py-3
-           text-sm text-on-surface transition-colors placeholder:text-on-surface-variant/60
+           text-base sm:text-sm text-on-surface transition-colors placeholder:text-on-surface-variant/60
            focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/30;
   }
   .select { @apply input cursor-pointer appearance-none pr-10; }
@@ -576,12 +576,37 @@ p {
   /* — Tables ——————————————————————————————— */
   .data-table       { @apply w-full border-collapse text-left; }
   .data-table thead { @apply bg-surface-container-highest/20; }
-  .data-table th    { @apply px-6 py-4 text-xs font-semibold uppercase text-on-surface-variant; }
-  .data-table td    { @apply px-6 py-4 align-middle text-sm text-on-surface; }
+  .data-table th    { @apply px-4 py-3 sm:px-6 sm:py-4 text-xs font-semibold uppercase text-on-surface-variant; }
+  .data-table td    { @apply px-4 py-3 sm:px-6 sm:py-4 align-middle text-sm text-on-surface; }
   .data-table tbody tr { @apply border-t border-outline-variant/15; }
+  /* Below md a wide table cannot be read by scrolling sideways through three
+     screenfuls, so `.stacked` re-flows each row into a label/value card. The
+     header row is hidden and every cell prints its own label from data-label,
+     which keeps one set of markup instead of a table plus a parallel card list.
+     Cells whose value is self-describing (an identity block, a row of action
+     buttons) pass data-label="" to suppress the label. */
+  @media (max-width: 767px) {
+    .data-table.stacked thead { @apply hidden; }
+    .data-table.stacked,
+    .data-table.stacked tbody,
+    .data-table.stacked tr,
+    .data-table.stacked td { @apply block w-full; }
+    .data-table.stacked tr { @apply border-t border-outline-variant/15 px-4 py-3; }
+    .data-table.stacked td { @apply flex items-center justify-between gap-3 px-0 py-1.5 text-right; }
+    .data-table.stacked td::before {
+      content: attr(data-label);
+      @apply shrink-0 text-left text-xs font-semibold uppercase text-on-surface-variant;
+    }
+    .data-table.stacked td[data-label=""] { @apply justify-start text-left; }
+    .data-table.stacked td[data-label=""]::before { @apply hidden; }
+  }
+
   .cell-strong  { @apply font-semibold text-on-surface; }
   .cell-muted   { @apply text-sm text-on-surface-variant; }
   .num          { @apply tabular-nums; }
+
+  /* — Overlays ————————————————————————————— */
+  .modal-shell { @apply max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain; }
 
   /* — Alerts —————————————————————————————
      Status banners use the pastel container tokens rather than a translucent
