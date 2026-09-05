@@ -81,7 +81,7 @@ const formatTime = function (iso: string) {
 
         <!-- Modal -->
         <div
-          class="relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+          class="modal-shell relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl flex flex-col"
         >
           <!-- Header Section -->
           <div class="p-8 pb-4">

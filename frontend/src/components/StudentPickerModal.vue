@@ -78,7 +78,7 @@ watch(
     >
       <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="emit('close')" />
 
-      <div class="card relative flex max-h-[85dvh] w-full max-w-lg flex-col bg-surface-container shadow-xl">
+      <div class="card modal-shell relative flex w-full max-w-lg flex-col bg-surface-container shadow-xl">
         <header class="card-header">
           <div class="space-y-1">
             <h2 id="student-picker-title" class="section-title">

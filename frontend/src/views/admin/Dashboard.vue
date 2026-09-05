@@ -855,8 +855,8 @@ const openLiveAnalytics = function () {
             </p>
           </div>
 
-          <div v-else class="overflow-x-auto">
-            <table class="data-table">
+          <div v-else class="md:overflow-x-auto">
+            <table class="data-table stacked">
               <thead>
                 <tr
                   class="text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase"
@@ -874,7 +874,7 @@ const openLiveAnalytics = function () {
                   :key="teacher.id"
                   class="group hover:bg-on-surface/[0.02] dark:hover:bg-on-surface/[0.02] transition-colors"
                 >
-                  <td>
+                  <td data-label="">
                     <div class="flex items-center gap-4">
                       <div
                         class="size-12 rounded-[18px] bg-surface-container-highest border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center justify-center text-on-surface dark:text-on-surface font-semibold text-lg"
@@ -891,10 +891,10 @@ const openLiveAnalytics = function () {
                       </div>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="Department">
                     <span class="text-xs font-medium text-on-surface-variant">Music Faculty</span>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span
                       class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                     >
@@ -904,7 +904,7 @@ const openLiveAnalytics = function () {
                       Available
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Sessions">
                     <span class="text-sm font-semibold text-on-surface dark:text-on-surface">
                       {{
                         scheduleStore.allSessions.filter((s: any) => s.teacherId === teacher.id)
@@ -912,8 +912,8 @@ const openLiveAnalytics = function () {
                       }}
                     </span>
                   </td>
-                  <td class="text-right">
-                    <div class="flex items-center justify-end gap-1">
+                  <td data-label="" class="text-right">
+                    <div class="flex w-full items-center justify-end gap-1">
                       <RouterLink
                         :to="`/admin/users?edit=${teacher.id}`"
                         class="p-2 text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"

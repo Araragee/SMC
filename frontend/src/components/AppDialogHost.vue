@@ -36,7 +36,7 @@ function handleKeydown(e: KeyboardEvent) {
       >
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="handleCancel" />
 
-        <div class="relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl overflow-hidden">
+        <div class="modal-shell relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl">
           <!-- Accent glow -->
           <div
             class="absolute top-0 right-0 size-28 blur-[64px] rounded-full -z-10 pointer-events-none"

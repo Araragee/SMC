@@ -67,7 +67,7 @@ const getRoleColor = function(role: string) {
       @click.self="emit('close')"
     >
       <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="emit('close')" />
-      <div class="relative w-full max-w-md glass-heavy rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh]">
+      <div class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh]">
         <!-- Header -->
         <div class="flex items-center justify-between">
           <h3 class="text-xl font-semibold text-on-surface">New Conversation</h3>

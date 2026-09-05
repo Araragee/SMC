@@ -119,8 +119,8 @@ const monthlyBreakdown = computed(() => {
         <p class="text-on-surface-variant mt-2 font-medium">When students complete enrollments, they will appear here.</p>
       </div>
 
-      <div v-else class="overflow-x-auto">
-        <table class="data-table">
+      <div v-else class="md:overflow-x-auto">
+        <table class="data-table stacked">
           <thead>
             <tr class="text-xs font-semibold text-on-surface-variant uppercase bg-surface-container-highest/20">
               <th>Transaction Date</th>
@@ -132,8 +132,8 @@ const monthlyBreakdown = computed(() => {
           </thead>
           <tbody class="divide-y divide-outline-variant/10">
             <tr v-for="pay in paymentsStore.payments" :key="pay.id" class="group hover:bg-primary/[0.02] transition-colors">
-              <td class="text-sm font-bold text-on-surface">{{ formatDate(pay.date) }}</td>
-              <td>
+              <td data-label="Date" class="text-sm font-bold text-on-surface">{{ formatDate(pay.date) }}</td>
+              <td data-label="Student">
                 <div class="flex items-center gap-3">
                   <div class="size-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-xs font-semibold">
                     {{ getStudentName(pay.student_id).charAt(0).toUpperCase() }}
@@ -141,18 +141,18 @@ const monthlyBreakdown = computed(() => {
                   <span class="text-sm font-bold text-on-surface">{{ getStudentName(pay.student_id) }}</span>
                 </div>
               </td>
-              <td>
+              <td data-label="Method">
                 <span class="text-xs font-medium text-on-surface-variant flex items-center gap-2">
                   <span class="material-symbols-outlined text-sm opacity-50">{{ pay.method === 'card' ? 'credit_card' : 'account_balance' }}</span>
                   {{ pay.method.toUpperCase().replace('_', ' ') }}
                 </span>
               </td>
-              <td>
+              <td data-label="Status">
                 <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase border" :class="statusClass(pay.status)">
                   {{ pay.status }}
                 </span>
               </td>
-              <td class="text-right text-lg font-semibold text-on-surface">
+              <td data-label="Amount" class="text-right text-lg font-semibold text-on-surface">
                 {{ formatCurrency(pay.amount) }}
               </td>
             </tr>
@@ -167,8 +167,8 @@ const monthlyBreakdown = computed(() => {
         <span class="material-symbols-outlined text-primary">bar_chart</span>
         <h2 class="text-sm font-semibold text-on-surface uppercase">Monthly Breakdown</h2>
       </div>
-      <div class="overflow-x-auto">
-        <table class="data-table">
+      <div class="md:overflow-x-auto">
+        <table class="data-table stacked">
           <thead>
             <tr class="text-xs font-semibold text-on-surface-variant uppercase bg-surface-container-highest/20">
               <th>Month</th>
@@ -178,9 +178,9 @@ const monthlyBreakdown = computed(() => {
           </thead>
           <tbody class="divide-y divide-outline-variant/10">
             <tr v-for="row in monthlyBreakdown" :key="row.label" class="hover:bg-primary/[0.02] transition-colors">
-              <td class="text-sm font-bold text-on-surface">{{ row.label }}</td>
-              <td class="text-right text-sm text-on-surface-variant font-medium">{{ row.count }}</td>
-              <td class="text-right text-sm font-semibold text-emerald-500">{{ formatCurrency(row.completed) }}</td>
+              <td data-label="Month" class="text-sm font-bold text-on-surface">{{ row.label }}</td>
+              <td data-label="Transactions" class="text-right text-sm text-on-surface-variant font-medium">{{ row.count }}</td>
+              <td data-label="Collected" class="text-right text-sm font-semibold text-emerald-500">{{ formatCurrency(row.completed) }}</td>
             </tr>
           </tbody>
         </table>

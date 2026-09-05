@@ -81,7 +81,7 @@ const handleSubmit = async () => {
 
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70">
-    <BaseCard class="w-full max-w-md max-h-[90vh] overflow-y-auto liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
+    <BaseCard class="modal-shell w-full max-w-md liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
       <button @click="$emit('close')" class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined">close</button>
 
       <h2 class="text-xl font-bold text-on-surface mb-2">Add Past Session</h2>
@@ -99,7 +99,7 @@ const handleSubmit = async () => {
           <BaseDropdown v-model="formData.instrumentId" placeholder="No instruments enrolled" :options="[{ value: '', label: 'Select an instrument (Optional)' }, ...studentInstruments.map(inst => ({ value: inst.id, label: inst.name }))]" />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
            <div class="col-span-2">
              <BaseInput v-model="formData.date" type="date" label="Date" required />
            </div>

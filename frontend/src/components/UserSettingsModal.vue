@@ -107,7 +107,7 @@ const handleLogout = () => {
 
         <!-- Modal Card -->
         <div
-          class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          class="modal-shell relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           <!-- Header Section -->
           <div class="p-8 pb-0 flex items-start justify-between">

@@ -256,7 +256,7 @@ function timeAgo(dateStr: string) {
           v-model="search"
           @input="resetPage"
           placeholder="Search descriptions, actors…"
-          class="bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
+          class="bg-transparent text-base sm:text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none flex-1 font-medium"
         />
       </div>
       <BaseDropdown v-model="actionFilter" @change="resetPage" :options="[{ value: 'all', label: 'All Actions' }, ...ACTION_TYPES.map(a => ({ value: a, label: actionLabel(a) }))]" />

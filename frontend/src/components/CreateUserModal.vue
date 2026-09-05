@@ -203,7 +203,7 @@ const handleBackOrClose = () => {
 
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/70">
-    <BaseCard class="w-full max-w-2xl max-h-[90vh] overflow-y-auto liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
+    <BaseCard class="modal-shell w-full max-w-2xl liquid-glass border border-on-surface/10 p-6 flex flex-col relative">
       <button @click="closeModal" class="absolute top-4 right-4 text-on-surface/50 hover:text-on-surface material-symbols-outlined">close</button>
 
       <h2 class="text-2xl font-bold text-on-surface mb-6">
@@ -249,7 +249,7 @@ const handleBackOrClose = () => {
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">person</span> Personal Information
             </h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="formData.name" label="Full Name" required />
               <BaseInput v-model="formData.birthday" label="Birthday" type="date" @change="calculateAge" />
               <BaseInput v-model.number="formData.age" label="Age (Auto-computed)" type="number" readonly />
@@ -264,7 +264,7 @@ const handleBackOrClose = () => {
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">shield_person</span> Account
             </h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="relative">
                 <BaseInput v-model="formData.username" label="Username" />
                 <button v-if="suggestedUsername && !formData.username" type="button" @click="useSuggestedUsername" class="absolute right-2 top-8 text-xs text-primary hover:underline">Use {{ suggestedUsername }}</button>
@@ -287,7 +287,7 @@ const handleBackOrClose = () => {
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">family_restroom</span> Parent/Guardian
             </h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="formData.parentName" label="Parent's Name" />
               <BaseInput v-model="formData.parentContact" label="Parent's Contact Number" />
               <div class="col-span-2">
@@ -350,7 +350,7 @@ const handleBackOrClose = () => {
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">person</span> Personal Information
             </h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="formData.name" label="Full Name" required />
               <BaseInput v-model="formData.contactNumber" label="Contact Number" />
               <div class="col-span-2">
@@ -363,7 +363,7 @@ const handleBackOrClose = () => {
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">shield_person</span> Account
             </h3>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <BaseInput v-model="formData.username" label="Username" />
               <BaseInput v-model="formData.email" label="Email Address" type="email" required />
               <div class="col-span-2 relative">

@@ -169,7 +169,7 @@ const submit = async function() {
 
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
-        <div class="relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
+        <div class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
           <!-- Header -->
           <div class="flex items-center justify-between p-6 border-b border-on-surface/5 dark:border-on-surface/5">
             <div>
@@ -201,7 +201,7 @@ const submit = async function() {
             </div>
 
             <!-- Date & Time -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-on-surface-variant dark:text-on-surface-variant uppercase mb-2">Date</label>
                 <input
