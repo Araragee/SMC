@@ -3,6 +3,7 @@ import pluginVue from 'eslint-plugin-vue'
 import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import prettier from 'eslint-config-prettier'
+import globals from 'globals'
 
 export default [
   js.configs.recommended,
@@ -11,34 +12,8 @@ export default [
   {
     languageOptions: {
       globals: {
-        // Browser globals
-        window: 'readonly',
-        document: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly',
-        MouseEvent: 'readonly',
-        FocusEvent: 'readonly',
-        Event: 'readonly',
-        HTMLInputElement: 'readonly',
-        navigator: 'readonly',
-        console: 'readonly',
-        setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        URLSearchParams: 'readonly',
-        File: 'readonly',
-        FormData: 'readonly',
-        crypto: 'readonly',
-        fetch: 'readonly',
-        Headers: 'readonly',
-        Request: 'readonly',
-        Response: 'readonly',
-        // Node globals
-        process: 'readonly',
-        __dirname: 'readonly',
-        __filename: 'readonly',
-        import: 'readonly',
+        ...globals.browser,
+        ...globals.node,
       },
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -56,6 +31,9 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
     },
+    rules: {
+      'no-undef': 'off',
+    },
   },
   {
     files: ['**/*.vue'],
@@ -71,6 +49,9 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
     },
+    rules: {
+      'no-undef': 'off',
+    },
   },
   {
     rules: {
@@ -81,7 +62,6 @@ export default [
       'vue/multi-word-component-names': 'off',
       'vue/require-default-prop': 'off',
       'vue/block-lang': 'off',
-      'no-undef': 'error',
     },
   },
   {

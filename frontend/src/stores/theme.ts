@@ -36,9 +36,7 @@ export const useThemeStore = defineStore('theme', () => {
   })
 
   // Listen for OS-level changes
-  // eslint-disable-next-line no-undef
   let mediaQuery: MediaQueryList | null = null
-  // eslint-disable-next-line no-undef
   const handleSystemChange = (e: MediaQueryListEvent) => {
     systemPrefersDark.value = e.matches
   }
