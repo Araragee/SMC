@@ -7,6 +7,8 @@ import BaseButton from '@components/BaseButton.vue';
 import BaseInput from '@components/BaseInput.vue';
 import BaseDropdown from '@components/BaseDropdown.vue';
 import type { User, Role, InstrumentRecord } from '@types';
+import { useToastStore } from '@stores/toast';
+import { apiError } from '@/utils/apiError';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -146,7 +148,11 @@ const handleSubmit = async () => {
     emit('created', created);
     emit('close');
   } catch (err) {
+    // createUser() rethrows without reporting, so without this the admin sees
+    // nothing at all when the API rejects the payload — "Email already
+    // registered" being the common one.
     console.error(err);
+    useToastStore().error('Could not create user', apiError(err, 'Failed to create user'));
   }
 };
 

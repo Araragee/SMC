@@ -3,6 +3,7 @@ import axios from 'axios'
 import type { User, Role } from '@types'
 import { useToastStore } from '@stores/toast'
 import { API_URL } from '@typescript/constants'
+import { apiError } from '@/utils/apiError'
 
 // Phase 2: refresh token lives in an HttpOnly cookie now. We need
 // axios to send cookies on cross-origin requests, otherwise the browser
@@ -128,7 +129,7 @@ export const useAuthStore = defineStore('auth', {
         toast.success('Welcome back!', `Signed in as ${this.user?.name}`)
         return { requires2FA: false }
       } catch (err: any) {
-        this.error = err.response?.data?.detail || err.message || 'Login failed'
+        this.error = apiError(err, 'Login failed')
         toast.error('Login failed', this.error || undefined)
         throw err
       } finally {
@@ -180,7 +181,7 @@ export const useAuthStore = defineStore('auth', {
         toast.success('Welcome back!', `Signed in as ${this.user?.name}`)
         return true
       } catch (err: any) {
-        this.error = err.response?.data?.detail || err.message || '2FA verification failed'
+        this.error = apiError(err, '2FA verification failed')
         toast.error('Verification failed', this.error || undefined)
         throw err
       } finally {
@@ -194,7 +195,7 @@ export const useAuthStore = defineStore('auth', {
         const response = await axios.post(`${API_URL}/auth/2fa/setup`)
         return response.data // secret, provisioning_uri, qr_code_png_base64
       } catch (err: any) {
-        const errorMsg = err.response?.data?.detail || 'Failed to setup 2FA'
+        const errorMsg = apiError(err, 'Failed to setup 2FA')
         useToastStore().error('Setup failed', errorMsg)
         throw err
       } finally {
@@ -213,7 +214,7 @@ export const useAuthStore = defineStore('auth', {
         useToastStore().success('2FA Enabled', 'Two-factor authentication is now active.')
         return true
       } catch (err: any) {
-        const errorMsg = err.response?.data?.detail || 'Failed to enable 2FA'
+        const errorMsg = apiError(err, 'Failed to enable 2FA')
         useToastStore().error('Activation failed', errorMsg)
         throw err
       } finally {
@@ -232,7 +233,7 @@ export const useAuthStore = defineStore('auth', {
         useToastStore().success('2FA Disabled', 'Two-factor authentication has been deactivated.')
         return true
       } catch (err: any) {
-        const errorMsg = err.response?.data?.detail || 'Failed to disable 2FA'
+        const errorMsg = apiError(err, 'Failed to disable 2FA')
         useToastStore().error('Deactivation failed', errorMsg)
         throw err
       } finally {
@@ -240,7 +241,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async logout() {
+    async logout(opts: { silent?: boolean } = {}) {
       const toast = useToastStore()
 
       // Best-effort: tell the server to revoke the refresh token and clear
@@ -296,7 +297,9 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       delete axios.defaults.headers.common['Authorization']
-      toast.info('Signed out', 'See you next time!')
+      // Silent when the session was torn down for us (expired refresh token)
+      // rather than by the user clicking sign out.
+      if (!opts.silent) toast.info('Signed out', 'See you next time!')
     },
 
     /** Silently rotate the access token using the HttpOnly refresh cookie.
@@ -327,8 +330,14 @@ export const useAuthStore = defineStore('auth', {
         }
         return true
       } catch {
-        // Refresh cookie missing / revoked / expired — force full logout
-        await this.logout()
+        // Refresh cookie missing / revoked / expired — force full logout.
+        // Silent: the user did not ask to sign out, so "See you next time!"
+        // would be a lie. The caller surfaces the expiry instead.
+        const wasSignedIn = !!this.token
+        await this.logout({ silent: true })
+        if (wasSignedIn) {
+          useToastStore().info('Session expired', 'Please sign in again.')
+        }
         return false
       }
     },
@@ -363,7 +372,7 @@ export const useAuthStore = defineStore('auth', {
         toast.success('Profile updated', 'Your changes have been saved.')
         return true
       } catch (err: any) {
-        const errorMsg = err.response?.data?.detail || 'Failed to update profile'
+        const errorMsg = apiError(err, 'Failed to update profile')
         toast.error('Update failed', errorMsg)
         return false
       } finally {
