@@ -5,6 +5,8 @@ import { useScheduleStore } from '@stores/schedule'
 import { useToastStore } from '@stores/toast'
 import { useAuthStore } from '@stores/auth'
 import { API_URL } from '@typescript/constants'
+import { apiError } from '@/utils/apiError'
+import { validateImageUpload } from '@/utils/upload'
 
 const authHeaders = function () {
   const auth = useAuthStore()
@@ -196,21 +198,25 @@ export const useInteractionsStore = defineStore('interactions', {
     },
 
     async uploadImageProof(sessionId: number, file: File) {
+      const problem = validateImageUpload(file)
+      if (problem) {
+        this.error = problem
+        useToastStore().error('Upload failed', problem)
+        throw new Error(problem)
+      }
+
       this.isLoading = true
       this.error = null
       try {
         const formData = new FormData()
         formData.append('file', file)
 
+        // No Content-Type header on purpose — see the note in schedule.ts.
+        // The browser has to set it so the multipart boundary is included.
         const response = await axios.post(
           `${API_URL}/session-proofs/?session_id=${sessionId}`,
           formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              ...authHeaders(),
-            },
-          }
+          { headers: authHeaders() }
         )
 
         const scheduleStore = useScheduleStore()
@@ -235,10 +241,14 @@ export const useInteractionsStore = defineStore('interactions', {
           session.proofs.push(newProof)
         }
         return response.data
-      } catch (err: any) {
+      } catch (err: unknown) {
         const toast = useToastStore()
-        this.error = err.message || 'Failed to upload image proof'
-        toast.error('Upload failed', this.error || undefined)
+        // apiError, not err.message: the server explains exactly why an upload
+        // was refused (too large, unreadable, wrong format) and the user can
+        // act on that. err.message only ever said "Request failed with status
+        // code 400".
+        this.error = apiError(err, 'Failed to upload image proof')
+        toast.error('Upload failed', this.error)
         console.error(err)
         throw err
       } finally {
@@ -329,27 +339,44 @@ export const useInteractionsStore = defineStore('interactions', {
      * accompanies — a completeHomework call.
      */
     async uploadHomeworkFile(sessionId: number, file: File) {
+      const problem = validateImageUpload(file)
+      if (problem) {
+        this.error = problem
+        useToastStore().error('Upload failed', problem)
+        throw new Error(problem)
+      }
+
       this.isLoading = true
       this.error = null
       try {
-        const sessionResponse = await axios.get(`${API_URL}/sessions/`, { headers: authHeaders() })
-        const sessionData = sessionResponse.data.find((s: any) => s.id === Number(sessionId))
-        const homeworkId = sessionData?.homeworks?.[0]?.id
-        if (!homeworkId) throw new Error('No homework found for this session')
+        // Ask for this session's homework directly. This used to fetch every
+        // session in the school and search the array client-side for one id —
+        // which put a full-table read in front of every upload and returned
+        // nothing at all once that list was filtered or paginated.
+        const homeworkResponse = await axios.get(
+          `${API_URL}/sessions/${sessionId}/homework`,
+          { headers: authHeaders() }
+        )
+        const homeworkId = homeworkResponse.data?.[0]?.id
+        if (!homeworkId) throw new Error('No homework has been assigned for this session yet.')
 
         const formData = new FormData()
         formData.append('file', file)
+        // No Content-Type header — see the note in schedule.ts.
         const response = await axios.post(`${API_URL}/homework/${homeworkId}/upload`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', ...authHeaders() },
+          headers: authHeaders(),
         })
 
         const scheduleStore = useScheduleStore()
         const session = scheduleStore.allSessions.find((s) => s.id === sessionId)
         if (session) session.homeworkCompleted = true
         return response.data
-      } catch (err: any) {
-        this.error = err.response?.data?.detail || err.message || 'Failed to upload homework'
-        useToastStore().error('Upload failed', this.error ?? undefined)
+      } catch (err: unknown) {
+        this.error =
+          err instanceof Error && !('response' in err)
+            ? err.message
+            : apiError(err, 'Failed to upload homework')
+        useToastStore().error('Upload failed', this.error)
         throw err
       } finally {
         this.isLoading = false

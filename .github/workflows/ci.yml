@@ -50,10 +50,17 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install
         run: npm ci
+      # eslint exits non-zero only on errors; warnings still exit 0. The
+      # `|| echo` that used to be here swallowed the errors too, so the step
+      # could not fail — including on the missing `v-for` key and the no-op
+      # try/catch wrappers that were sitting in the tree.
       - name: Lint
-        run: npx eslint src/ || echo "::warning::eslint warnings present"
+        run: npx eslint src/
+      # vue-tsc, not tsc: plain tsc does not look inside .vue single-file
+      # components, which is most of this codebase. The type check that the
+      # frontend actually relies on was not being run in CI at all.
       - name: Type check
-        run: npx tsc --noEmit
+        run: npx vue-tsc --noEmit
       - name: Build
         run: npm run build
 

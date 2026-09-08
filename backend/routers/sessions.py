@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import math
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import Response
@@ -22,6 +22,7 @@ from ..dependencies import (
 )
 from ..services.notifier import safe_notify
 from ..utils.signed_urls import sign_url
+from ..utils.time import UTC
 from ..utils.uploads import save_upload
 from .activity import log_activity
 from .notifications import notify_users
@@ -1967,6 +1968,29 @@ def recalculate_student_sessions(
     db.commit()
     return {"student_id": student_id, "old_sessions_left": old_value, "new_sessions_left": recalculated}
 
+def _require_session_participant(db_session: models.Session, user: models.User) -> None:
+    """Allow only the session's teacher, its student, or an admin.
+
+    Every route that reads or writes something *belonging to a session* —
+    proofs, homework files, attachments — needs exactly this rule, so it lives
+    in one place. Where each route open-coded it, they drifted: some checked
+    only that a student was not impersonating another student, which left
+    every teacher in the school with access to every session.
+    """
+    if user.role and user.role.name.lower() == "admin":
+        return
+    # ``user.id is not None`` is not paranoia about the primary key: a session
+    # with an unassigned teacher_id stores NULL, and ``None in (None, 2)`` is
+    # True — so without this guard any caller whose id failed to resolve would
+    # match an unassigned slot.
+    if user.id is not None and user.id in (db_session.teacher_id, db_session.student_id):
+        return
+    raise HTTPException(
+        status_code=403,
+        detail="You are not a participant of this session.",
+    )
+
+
 # --- Homework ---
 
 def _serialize_homework(db_homework: models.Homework) -> dict:
@@ -1994,6 +2018,14 @@ def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(
     if not db_homework:
         raise HTTPException(status_code=404, detail="Homework not found")
 
+    # This route had no object-level check at all: any authenticated account
+    # could mark any homework in the school complete (or un-complete) by
+    # guessing an id — and completion is what the teacher grades against.
+    db_session = db.query(models.Session).filter(models.Session.id == db_homework.session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _require_session_participant(db_session, current_user)
+
     db_homework.is_completed = is_completed
     db.commit()
     db.refresh(db_homework)
@@ -2001,31 +2033,71 @@ def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(
 
 @router.get("/homework/user/{user_id}", response_model=list[schemas.Homework])
 def get_user_homework(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    """Fetch all homework assigned to a student."""
-    if current_user.role.name.lower() == "student" and current_user.id != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    """Fetch all homework assigned to a student.
+
+    The guard used to check only that a *student* was asking about themselves,
+    which left every teacher in the school able to read any student's homework
+    by changing the id. ``require_can_view_user`` narrows that to the student,
+    an admin, or a teacher with a real relationship to them.
+    """
+    require_can_view_user(db, current_user, user_id)
 
     rows = db.query(models.Homework).join(models.Session).filter(models.Session.student_id == user_id).all()
     return [_serialize_homework(hw) for hw in rows]
 
+
+@router.get("/sessions/{session_id}/homework", response_model=list[schemas.Homework])
+def get_session_homework(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Homework attached to one session.
+
+    Exists so the frontend can resolve a session's homework id directly. It
+    previously fetched the *entire* session list and searched it client-side
+    for one id — which grew with the school, broke the moment that list was
+    filtered or paginated, and put a full table read in front of every
+    homework upload.
+    """
+    db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _require_session_participant(db_session, current_user)
+
+    rows = db.query(models.Homework).filter(models.Homework.session_id == session_id).all()
+    return [_serialize_homework(hw) for hw in rows]
+
+
 @router.post("/homework/{homework_id}/upload", response_model=schemas.Homework)
+@_limiter.limit("10/minute")
 def upload_homework_file(
+    request: Request,
     homework_id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
-    """Students upload proof of completed homework."""
+    """Students upload proof of completed homework.
+
+    Rate-limited because it is an unauthenticated-adjacent write path: each
+    call decodes and re-encodes an image, which is the most CPU-expensive
+    thing any non-admin can ask this server to do.
+    """
     db_homework = db.query(models.Homework).filter(models.Homework.id == homework_id).first()
     if not db_homework:
         raise HTTPException(status_code=404, detail="Homework not found")
 
-    # Check if student is the owner
+    # Any participant on the session may attach the file (a teacher uploading
+    # on behalf of a student in the room is a real case); nobody else may,
+    # whatever their role. The previous check only constrained students, so a
+    # teacher could overwrite any student's homework in the school.
     session = db.query(models.Session).filter(models.Session.id == db_homework.session_id).first()
-    if current_user.role.name.lower() == "student" and session.student_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _require_session_participant(session, current_user)
 
-    public_url, _ = save_upload(file, "homework", {"jpg", "jpeg", "png", "webp"})
+    public_url, _ = save_upload(file, "homework")
 
     db_homework.file_url = public_url
     db_homework.is_completed = True
@@ -2040,7 +2112,9 @@ def upload_homework_file(
 # --- Session Proofs ---
 
 @router.post("/session-proofs/", response_model=schemas.SessionProof)
+@_limiter.limit("10/minute")
 def create_session_proof(
+    request: Request,
     session_id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -2050,16 +2124,9 @@ def create_session_proof(
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Only the teacher or student on this session (or an admin) may upload proof.
-    is_admin = current_user.role and current_user.role.name == "admin"
-    is_party = current_user.id in (db_session.teacher_id, db_session.student_id)
-    if not is_admin and not is_party:
-        raise HTTPException(
-            status_code=403,
-            detail="You are not a participant of this session and cannot upload proof.",
-        )
+    _require_session_participant(db_session, current_user)
 
-    image_url, _ = save_upload(file, "proofs", {"jpg", "jpeg", "png", "webp"})
+    image_url, _ = save_upload(file, "proofs")
 
     db_proof = models.SessionProof(
         session_id=session_id,

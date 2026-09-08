@@ -8,6 +8,7 @@ from .. import models, schemas
 from ..config import settings
 from ..database import get_db
 from ..dependencies import get_current_user, require_admin
+from ..utils.time import UTC
 from ..utils.uploads import save_upload
 from .activity import log_activity
 from .notifications import notify_users
@@ -86,7 +87,9 @@ def upload_product_image(id: int, file: UploadFile = File(...), db: Session = De
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    public_url, _ = save_upload(file, "shop", {"jpg", "jpeg", "png", "webp"})
+    # Default allowlist: admins photograph stock on the same phones everyone
+    # else uses, so HEIC needs to work here too.
+    public_url, _ = save_upload(file, "shop")
 
     product.image_url = public_url
     db.commit()
@@ -288,7 +291,7 @@ def update_order_status(id: int, status_in: schemas.OrderStatusUpdate, db: Sessi
             if item.product.stock < LOW_STOCK_THRESHOLD:
                 low_stock_products.append(item.product)
         order.approved_by = current_user.id
-        order.approved_at = datetime.datetime.now(datetime.UTC)
+        order.approved_at = datetime.datetime.now(UTC)
 
     elif old_status == "approved" and new_status == "fulfilled":
         notify_users(

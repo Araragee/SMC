@@ -15,8 +15,9 @@ Endpoints:
 import base64
 import hashlib
 import io
+import logging
 import secrets
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import jwt
 import pyotp
@@ -37,8 +38,11 @@ from ..dependencies import (
 )
 from ..services.notifier import safe_notify
 from ..utils.passwords import enforce_password_strength
+from ..utils.time import UTC
 from ..utils.totp_crypt import decrypt_totp_secret, encrypt_totp_secret, is_encrypted
 from .activity import log_activity
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 _limiter = Limiter(key_func=get_remote_address)
@@ -331,6 +335,25 @@ def reset_password(request: Request, req: schemas.ResetPasswordRequest, db: Sess
     pwd = req.new_password
     # Enforce the password policy (length floor + 72-byte ceiling + weak-list).
     enforce_password_strength(pwd)
+
+    # ``change-password`` already refuses a no-op change; a reset must too, or
+    # the flow most often reached *because* a credential is suspect quietly
+    # accepts re-setting that same credential. There is no plaintext old
+    # password here, but the stored hash answers the question.
+    try:
+        unchanged = pwd_context.verify(pwd[:72], user.hashed_password)
+    except ValueError:
+        # A malformed or legacy hash cannot answer "is this the same?". Let the
+        # reset proceed — refusing would lock the user out of the one flow that
+        # would replace the unusable hash.
+        logger.warning("Could not verify the existing hash for user %s during reset.", user.id)
+        unchanged = False
+    if unchanged:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be different from your current password",
+        )
+
     user.hashed_password = pwd_context.hash(pwd[:72])
     prt.used_at = _naive(_utcnow())
     # A successful reset counts as the user rotating their credential —
