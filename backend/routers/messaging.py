@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import datetime
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
@@ -8,10 +8,27 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import SessionLocal, get_db
 from ..dependencies import ALGORITHM, SECRET_KEY, get_current_active_user
+from ..utils.time import UTC
 
 router = APIRouter()
 
 class ConnectionManager:
+    """Live WebSocket connections, keyed by user id.
+
+    **This state is process-local, and that constrains how the app may be
+    deployed.** A message is delivered by looking the recipient up in the dict
+    below, so it only reaches viewers connected to *this* process. With more
+    than one uvicorn worker or more than one replica, two people in the same
+    conversation land on different processes and simply stop seeing each
+    other's messages — with no error anywhere to say so.
+
+    ``entrypoint.sh`` therefore runs a single worker, which makes this correct
+    today. Before adding ``--workers N`` or a second replica, the fan-out has
+    to move to something shared (Redis pub/sub or equivalent), and the
+    reminder sweep gated by ``ENABLE_SESSION_CHECKER`` has to be pinned to one
+    instance for the same reason.
+    """
+
     def __init__(self):
         self.active_connections: dict[int, list[WebSocket]] = {}
 

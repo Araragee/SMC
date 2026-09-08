@@ -4,6 +4,8 @@ import type { InstrumentProduct, Order, OrderStatus } from '../types'
 import { useAuthStore } from './auth'
 import { useToastStore } from './toast'
 import { API_URL } from '@typescript/constants'
+import { apiError } from '@/utils/apiError'
+import { validateImageUpload } from '@/utils/upload'
 
 // Explicit auth header helper — consistent with payments.ts / schedule.ts pattern
 const authHeaders = () => {
@@ -115,9 +117,17 @@ export const useShopStore = defineStore('shop', {
 
     async uploadProductImage(id: number, file: File) {
       const toast = useToastStore()
+
+      const problem = validateImageUpload(file)
+      if (problem) {
+        toast.error('Upload failed', problem)
+        throw new Error(problem)
+      }
+
       const formData = new FormData()
       formData.append('file', file)
       try {
+        // No Content-Type header: the browser sets it with the boundary.
         const response = await axios.post(`${API_URL}/shop/products/${id}/image`, formData, {
           headers: authHeaders(),
         })
@@ -125,7 +135,9 @@ export const useShopStore = defineStore('shop', {
         if (index !== -1) this.products[index].imageUrl = response.data.url
         return response.data.url
       } catch (error) {
-        toast.error('Error', 'Failed to upload image')
+        // The server says whether it was the size, the format or the contents;
+        // a flat "Failed to upload image" leaves the admin guessing.
+        toast.error('Upload failed', apiError(error, 'Failed to upload image'))
         throw error
       }
     },

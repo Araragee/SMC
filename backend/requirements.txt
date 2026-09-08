@@ -16,6 +16,15 @@ alembic==1.13.3
 slowapi==0.1.9
 pyotp==2.9.0
 qrcode[pil]==7.4.2
+
+# Image handling for uploads. Pillow used to arrive only as a transitive extra
+# of qrcode[pil] — every proof upload depended on a dependency of a dependency,
+# and any change to qrcode would have broken uploads with a 500. Pinned here
+# because this is where it is actually used.
+Pillow==11.0.0
+# HEIC/HEIF decoding. The default iPhone camera format, so on a school app this
+# is most of the photos students submit as proof.
+pillow-heif==0.20.0
 pywebpush==2.0.0
 cryptography==43.0.3
 sqlalchemy-cockroachdb==2.0.4

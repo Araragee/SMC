@@ -11,8 +11,8 @@ import time
 from urllib.parse import parse_qs, urlparse
 
 from backend.utils.signed_urls import (
-    DEFAULT_TTL_SECONDS,
     _SIG_LEN,
+    DEFAULT_TTL_SECONDS,
     _compute_sig,
     sign_url,
     verify_sig,

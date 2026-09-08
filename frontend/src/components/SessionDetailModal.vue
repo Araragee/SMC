@@ -33,6 +33,7 @@ const emit = defineEmits<{
 import { watch, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
+import { IMAGE_ACCEPT_ATTR } from '@/utils/upload'
 
 const toast = useToastStore()
 const scheduleStore = useScheduleStore()
@@ -1014,7 +1015,7 @@ const statusContext = computed(() => {
                 ref="fileInput"
                 type="file"
                 class="hidden"
-                accept="image/*"
+                :accept="IMAGE_ACCEPT_ATTR"
                 @change="handleFileChange"
               />
 

@@ -20,7 +20,6 @@ from backend.utils.passwords import (  # noqa: E402
     validate_password_strength,
 )
 
-
 # ── validate_password_strength: accepts ───────────────────────────────────────
 
 def test_strong_password_has_no_reasons():

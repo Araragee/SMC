@@ -50,38 +50,26 @@ export const usePaymentsStore = defineStore('payments', {
       }
     },
     async createPayment(paymentData: Partial<Payment>) {
-      try {
-        const response = await axios.post(`${API_URL}/payments/`, paymentData, {
-          headers: authHeaders(),
-        })
-        this.payments.unshift(response.data)
-        return response.data
-      } catch (err: any) {
-        throw err
-      }
+      const response = await axios.post(`${API_URL}/payments/`, paymentData, {
+        headers: authHeaders(),
+      })
+      this.payments.unshift(response.data)
+      return response.data
     },
     async updatePayment(
       paymentId: number,
       payload: Partial<Pick<Payment, 'status' | 'notes' | 'method' | 'amount'>>
     ) {
-      try {
-        const response = await axios.patch(`${API_URL}/payments/${paymentId}`, payload, {
-          headers: authHeaders(),
-        })
-        const idx = this.payments.findIndex((p) => p.id === paymentId)
-        if (idx !== -1) this.payments[idx] = response.data
-        return response.data
-      } catch (err: any) {
-        throw err
-      }
+      const response = await axios.patch(`${API_URL}/payments/${paymentId}`, payload, {
+        headers: authHeaders(),
+      })
+      const idx = this.payments.findIndex((p) => p.id === paymentId)
+      if (idx !== -1) this.payments[idx] = response.data
+      return response.data
     },
     async deletePayment(paymentId: number) {
-      try {
-        await axios.delete(`${API_URL}/payments/${paymentId}`, { headers: authHeaders() })
-        this.payments = this.payments.filter((p) => p.id !== paymentId)
-      } catch (err: any) {
-        throw err
-      }
+      await axios.delete(`${API_URL}/payments/${paymentId}`, { headers: authHeaders() })
+      this.payments = this.payments.filter((p) => p.id !== paymentId)
     },
   },
 })
