@@ -8,6 +8,12 @@ The models declare both columns NOT NULL, but the migrations that introduced
 them left the database nullable — ``alembic check`` reported the drift. A NULL
 in either column breaks code that treats them as a plain bool/int, so backfill
 the existing rows and tighten the constraint to match the model.
+
+Uses ``batch_alter_table``: SQLite has no ``ALTER COLUMN``, so a plain
+``alter_column`` raises a syntax error there and this migration could not be
+applied to a fresh dev or CI database at all. Batch mode rebuilds the table
+through a copy on SQLite and passes the operation straight through on
+PostgreSQL, so one code path serves both.
 """
 from __future__ import annotations
 
@@ -41,11 +47,13 @@ def upgrade() -> None:
         if not _has_column(table, column):
             continue
         op.execute(f"UPDATE {table} SET {column} = {default} WHERE {column} IS NULL")
-        op.alter_column(table, column, existing_type=type_, nullable=False)
+        with op.batch_alter_table(table) as batch:
+            batch.alter_column(column, existing_type=type_, nullable=False)
 
 
 def downgrade() -> None:
     for table, column, type_, _, _unused in _COLUMNS:
         if not _has_column(table, column):
             continue
-        op.alter_column(table, column, existing_type=type_, nullable=True)
+        with op.batch_alter_table(table) as batch:
+            batch.alter_column(column, existing_type=type_, nullable=True)

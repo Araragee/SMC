@@ -3,6 +3,20 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
+from .utils.time import UTC
+
+
+def _is_past(moment: datetime) -> bool:
+    """Compare a stored timestamp against now, whichever way it is tagged.
+
+    Columns here are declared without ``timezone=True``, so SQLite hands back
+    naive values while a freshly constructed one is aware. Comparing the two
+    directly raises ``TypeError``, so naive values are read as the UTC they
+    were written as.
+    """
+    reference = moment if moment.tzinfo is not None else moment.replace(tzinfo=UTC)
+    return reference < datetime.now(UTC)
+
 # ── String length caps ───────────────────────────────────────────────────────
 # Centralized so the values are auditable and adjustable in one place.
 # Applied with Annotated[str, Field(max_length=N)] on user-facing string fields
@@ -71,19 +85,84 @@ class Notification(NotificationBase):
     model_config = {"from_attributes": True}
 
 
+HomeworkStatus = Literal["assigned", "overdue", "submitted", "reviewed"]
+
+# Free text so a school can use whatever it already uses — letters, percentages,
+# "Needs work". Bounded because it renders in a list cell.
+GRADE_LEN = 32
+
+
 class HomeworkBase(BaseModel):
     description: Annotated[str, Field(min_length=1, max_length=NOTE_LEN)]
     is_completed: bool = False
     file_url: OptUrl = None
 
+
 class HomeworkCreate(HomeworkBase):
-    pass
+    """What a teacher supplies when assigning work."""
+
+    due_date: datetime | None = None
+
+
+class HomeworkUpdate(BaseModel):
+    """Editing an existing assignment. Every field optional — a PATCH only
+    carries what changed, and ``None`` means "leave alone", not "clear"."""
+
+    description: Annotated[str | None, Field(default=None, min_length=1, max_length=NOTE_LEN)] = None
+    due_date: datetime | None = None
+    # Explicit opt-in to clearing the due date, because `due_date: None` is
+    # indistinguishable from "not supplied" in a PATCH body.
+    clear_due_date: bool = False
+
+
+class HomeworkReview(BaseModel):
+    """A teacher's response to a submission."""
+
+    grade: Annotated[str | None, Field(default=None, max_length=GRADE_LEN)] = None
+    feedback: OptNote = None
+
 
 class Homework(HomeworkBase):
     id: int
     session_id: int
     created_at: datetime
+    due_date: datetime | None = None
+    assigned_by_id: int | None = None
+    completed_at: datetime | None = None
+    grade: str | None = None
+    feedback: str | None = None
+    reviewed_at: datetime | None = None
+    reviewed_by_id: int | None = None
+
+    # Context from the owning session, so a teacher's list can name the student
+    # and the lesson without a follow-up request per row. Populated only where
+    # the caller already loaded the relationship; None elsewhere rather than
+    # triggering a lazy load nobody asked for.
+    student_id: int | None = None
+    student_name: str | None = None
+    session_start_time: datetime | None = None
+
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def status(self) -> HomeworkStatus:
+        """Where this assignment is in its lifecycle.
+
+        Derived rather than stored so it cannot drift from the timestamps that
+        justify it, and computed once here rather than re-implemented in each
+        of the teacher list, the student list and the dashboard badge.
+
+        Order matters: a reviewed assignment is reviewed even if it came in
+        late, and a submitted one is no longer overdue.
+        """
+        if self.reviewed_at is not None:
+            return "reviewed"
+        if self.is_completed or self.completed_at is not None:
+            return "submitted"
+        if self.due_date is not None and _is_past(self.due_date):
+            return "overdue"
+        return "assigned"
 
 class SessionProofBase(BaseModel):
     image_url: Annotated[str, Field(min_length=1, max_length=URL_LEN)]

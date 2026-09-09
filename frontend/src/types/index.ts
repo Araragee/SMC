@@ -1,3 +1,7 @@
+import type { HomeworkStatus } from './api'
+
+export type { HomeworkStatus }
+
 export type Role = 'admin' | 'teacher' | 'student'
 
 export type SessionStatus =
@@ -63,6 +67,18 @@ export interface Homework {
   isCompleted: boolean
   fileUrl?: string
   createdAt: string
+  dueDate?: string | null
+  assignedById?: number | null
+  completedAt?: string | null
+  grade?: string | null
+  feedback?: string | null
+  reviewedAt?: string | null
+  status: HomeworkStatus
+  /** Filled in on the teacher's list so a row can name the student and the
+   * lesson without a second request per row. */
+  studentId?: number | null
+  studentName?: string | null
+  sessionStartTime?: string | null
 }
 
 export interface Session {

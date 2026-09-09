@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from backend import models
 from backend.database import Base, SessionLocal, engine
+from backend.utils.time import utcnow
 
 # Check command line flags
 fresh_mode = "--fresh" in sys.argv
@@ -26,7 +27,7 @@ def pw(plain: str) -> str:
     return passlib.hash.bcrypt.hash(plain)
 
 def dt(days_offset: int = 0, hour: int = 10, minute: int = 0) -> datetime.datetime:
-    base = datetime.datetime.now(datetime.UTC).replace(
+    base = utcnow().replace(
         hour=hour, minute=minute, second=0, microsecond=0
     )
     return base + timedelta(days=days_offset)
@@ -61,17 +62,17 @@ def main():
         if not admin_role:
             admin_role = models.Role(name="admin")
             db.add(admin_role)
-        
+
         teacher_role = db.query(models.Role).filter(models.Role.name == "teacher").first()
         if not teacher_role:
             teacher_role = models.Role(name="teacher")
             db.add(teacher_role)
-            
+
         student_role = db.query(models.Role).filter(models.Role.name == "student").first()
         if not student_role:
             student_role = models.Role(name="student")
             db.add(student_role)
-            
+
         db.flush()
 
         # ── instruments ───────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ def main():
                 db.add(instr)
                 db.flush()
             instruments[name.lower()] = instr
-            
+
         guitar = instruments["guitar"]
         piano = instruments["piano"]
         drums = instruments["drums"]
@@ -178,7 +179,7 @@ def main():
         s1, s2, s3, s4, s5, s6 = students
 
         # ── sessions ──────────────────────────────────────────────────────────────
-        now = datetime.datetime.now(datetime.UTC)
+        now = utcnow()
 
         def session(teacher, student, instr, days, hour=14, status="scheduled", notes=None, proposed_by=None):
             start = dt(days, hour)

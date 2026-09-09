@@ -9,6 +9,7 @@ import { useInteractionsStore } from '@stores/interactions'
 import { useToastStore } from '@stores/toast'
 import type { Session } from '@types'
 import ProposeSessionModal from '@components/ProposeSessionModal.vue'
+import { IMAGE_ACCEPT_ATTR } from '@/utils/upload'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -733,7 +734,7 @@ const formatTime = (dt: string | undefined) => {
                   Replace Image
                   <input
                     type="file"
-                    accept="image/*"
+                    :accept="IMAGE_ACCEPT_ATTR"
                     class="hidden"
                     @change="handleStagedProofUpload"
                   />
@@ -752,7 +753,7 @@ const formatTime = (dt: string | undefined) => {
                   Change
                   <input
                     type="file"
-                    accept="image/*"
+                    :accept="IMAGE_ACCEPT_ATTR"
                     class="hidden"
                     @change="handleStagedProofUpload"
                   />
@@ -779,7 +780,7 @@ const formatTime = (dt: string | undefined) => {
               </div>
               <input
                 type="file"
-                accept="image/*"
+                :accept="IMAGE_ACCEPT_ATTR"
                 class="absolute inset-0 opacity-0 cursor-pointer"
                 aria-label="Upload session proof"
                 @change="handleStagedProofUpload"

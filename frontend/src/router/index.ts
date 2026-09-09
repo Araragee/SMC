@@ -37,6 +37,7 @@ const TeacherShop = () => import('@views/teacher/Shop.vue')
 // Schedule views
 const AdminSchedule = () => import('@views/admin/Schedule.vue')
 const TeacherSchedule = () => import('@views/teacher/Schedule.vue')
+const TeacherHomework = () => import('@views/teacher/Homework.vue')
 
 // Student Views
 const StudentShop = () => import('@views/student/Shop.vue')
@@ -131,6 +132,7 @@ const router = createRouter({
         { path: '', name: 'teacher-dashboard', component: TeacherDashboard },
         { path: 'schedule', name: 'teacher-schedule', component: TeacherSchedule },
         { path: 'students', name: 'teacher-students', component: TeacherStudents },
+        { path: 'homework', name: 'teacher-homework', component: TeacherHomework },
         { path: 'instruments', name: 'teacher-instruments', component: TeacherInstruments },
         { path: 'payments', name: 'teacher-payments', component: TeacherPayments },
         { path: 'shop', name: 'teacher-shop', component: TeacherShop, meta: { shop: true } },
