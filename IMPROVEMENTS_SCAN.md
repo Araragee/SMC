@@ -57,10 +57,14 @@ giving real breached-password coverage without storing any corpus.
 
 ## P3 — Features (carried from `plans.md`, still open)
 
-**7. Teacher-side homework management — [needs-review]**
-The `Homework` model exists and students have a homework route, but there is no teacher
-view to create/assign/grade homework. This is the largest genuine product gap; it spans
-backend endpoints + a new frontend view and needs product direction before building.
+**7. Teacher-side homework management — [DONE]**
+~~The `Homework` model exists and students have a homework route, but there is no teacher
+view to create/assign/grade homework.~~ Built on
+`claude/upload-api-security-tech-debt-dpe2hf`: assignment lifecycle columns
+(migration `q4r5s6t7u8v9`), a derived status, assign/edit/review/withdraw
+endpoints scoped to the session's own teacher, `GET /homework/assigned` as the
+review queue, and `views/teacher/Homework.vue`. The student view now shows the
+deadline, the review state and the teacher's grade and feedback.
 
 ## P4 — Ops / pipeline (not code)
 
@@ -85,4 +89,5 @@ is also gated in CI.
 2. **[needs-review]** Item 1 (random default passwords) — high security value; flag the
    behaviour change for the owner.
 3. **[needs-review]** Item 2 (reset-password reuse guard) — small, security-positive.
-4. Leave items 3, 6, 7 for human direction; items 8–9 are environment, not code.
+4. Leave items 3 and 6 for human direction; items 8–9 are environment, not code.
+   (Item 7 has since been built — see above.)

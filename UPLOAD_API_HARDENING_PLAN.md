@@ -117,8 +117,9 @@ Findings from reading the upload path end to end (`frontend/src/stores/*.ts` →
 
 ## Deliberately out of scope
 
-- **Teacher-side homework management** (`IMPROVEMENTS_SCAN` #7) — a genuine
-  product gap, but it needs product direction, not an unattended build.
+- ~~**Teacher-side homework management**~~ (`IMPROVEMENTS_SCAN` #7) — was out of
+  scope pending product direction; that direction was given mid-run, so it is
+  **built and included**. See "Phase 6" below.
 - **Renaming the `.glass*` classes** (`AUDIT.md` §5) — a 48-file mechanical
   rename that would bury this diff.
 - **Self-hosting the Google fonts** (`AUDIT.md` §4.3) — worth doing, but it means
@@ -172,3 +173,68 @@ Three problems the read-through turned up that were not in any backlog:
 - **Uploads answer 413 and 415** where everything used to be a 400.
 - **Images are stored stripped of metadata** — including EXIF GPS — and
   upright, and HEIC is accepted.
+
+
+---
+
+## Phase 6 — Teacher-side homework management
+
+`IMPROVEMENTS_SCAN` #7 and `plans.md` #10, the largest open product gap: the
+`Homework` model existed and students could submit against it, but there was no
+way for a teacher to assign work, set a deadline, or respond to what came back.
+
+### What the table could not record
+
+Only a description, a completion boolean and an optional file. Migration
+`q4r5s6t7u8v9` adds `due_date`, `assigned_by_id`, `completed_at`, `grade`,
+`feedback`, `reviewed_at` and `reviewed_by_id`. Every column is nullable and no
+existing row is rewritten, so old rows keep working and simply read as
+"assigned, never reviewed, no deadline".
+
+Status (`assigned` / `overdue` / `submitted` / `reviewed`) is **derived** from
+those timestamps in `schemas.Homework.status` rather than stored, so it cannot
+drift from the history that justifies it, and the teacher list, the student
+list and the filters all agree by construction.
+
+### Endpoints
+
+| Route | Who |
+|---|---|
+| `POST /homework/` (assign, with due date) | the session's teacher |
+| `PATCH /homework/{id}` (edit brief / deadline) | the session's teacher |
+| `POST /homework/{id}/review` (grade + feedback) | the session's teacher |
+| `DELETE /homework/{id}` (withdraw) | the session's teacher |
+| `GET /homework/assigned` (the review queue, filterable) | the calling teacher, scoped to their own sessions |
+| `PUT /homework/{id}` (completion toggle) | any session participant — unchanged |
+
+Two guards, deliberately distinct: `_require_session_participant` (may submit)
+and `_require_can_teach_session` (may assign, edit, grade, withdraw). Collapsing
+them is what would let a student grade their own work.
+
+### A fourth security hole found here
+
+`create_homework` was gated by `require_teacher`, which only asks whether the
+caller is *a* teacher — never whether they teach *this* session. Any teacher in
+the school could assign homework to any student's lesson. Now checked.
+
+### Frontend
+
+`views/teacher/Homework.vue` plus a `homework` store, routed at
+`/teacher/homework` and added to the sidebar. It opens on the review queue,
+because that is the only status where someone else is blocked. Assign, edit,
+review and withdraw are all inline.
+
+The student view was updated to match: it now shows the deadline, whether the
+work is awaiting review or reviewed, and **the teacher's grade and feedback** —
+without which the whole review workflow would have been invisible to the person
+it is for. Its upload was also brought in line with the rest of Phase 1 (shared
+validation, no hand-set `Content-Type`, real error messages), and its `accept`
+list no longer offers `.doc`/`.docx`, which the server has never accepted.
+
+Re-submitting after a review clears the recorded grade: it described the
+previous file.
+
+The mobile dock was left alone — every role has exactly four entries and the
+pill also carries notification and profile buttons, so teachers reach this from
+the sidebar (which has its own mobile trigger) rather than by displacing
+Payments.

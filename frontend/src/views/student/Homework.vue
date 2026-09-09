@@ -4,6 +4,9 @@ import { API_URL } from '@typescript/constants'
 import axios from 'axios'
 import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
+import { mapHomework } from '@stores/homework'
+import { apiError } from '@/utils/apiError'
+import { IMAGE_ACCEPT_ATTR, validateImageUpload } from '@/utils/upload'
 import type { Homework } from '@types'
 
 const authStore = useAuthStore()
@@ -19,16 +22,11 @@ onMounted(async () => {
     const res = await axios.get(`${API_URL}/homework/user/${authStore.currentUser?.id}`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
     })
-    homeworks.value = res.data.map((hw: any) => ({
-      id: hw.id,
-      sessionId: hw.session_id,
-      description: hw.description,
-      isCompleted: hw.is_completed,
-      fileUrl: hw.file_url,
-      createdAt: hw.created_at,
-    }))
+    // Shared with the teacher view so both sides read the same shape — and so
+    // `status`, `grade` and `feedback` do not get silently dropped here.
+    homeworks.value = res.data.map(mapHomework)
   } catch (err) {
-    toast.error('Failed to load homework')
+    toast.error('Failed to load homework', apiError(err, 'Please try again.'))
   } finally {
     isLoading.value = false
   }
@@ -37,30 +35,51 @@ onMounted(async () => {
 const pendingHomework = computed(() => homeworks.value.filter((h) => !h.isCompleted))
 const completedHomework = computed(() => homeworks.value.filter((h) => h.isCompleted))
 
+const formatDate = (value?: string | null) =>
+  value
+    ? new Date(value).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : null
+
+const dueLabel = (hw: Homework) => {
+  if (!hw.dueDate) return null
+  return hw.status === 'overdue' ? `Overdue — was due ${formatDate(hw.dueDate)}` : `Due ${formatDate(hw.dueDate)}`
+}
+
 async function handleFileUpload(event: Event, homeworkId: number) {
   const target = event.target as HTMLInputElement
   if (!target.files?.length) return
 
   const file = target.files[0]
+  // Clear the input so picking the same file again after a failure still fires
+  // a change event.
+  target.value = ''
+
+  const problem = validateImageUpload(file)
+  if (problem) {
+    toast.error('Upload failed', problem)
+    return
+  }
+
   const formData = new FormData()
   formData.append('file', file)
 
   isUploading.value = homeworkId
   try {
+    // No Content-Type header: the browser must set it so the multipart
+    // boundary is included.
     const res = await axios.post(`${API_URL}/homework/${homeworkId}/upload`, formData, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { Authorization: `Bearer ${authStore.token}` },
     })
     const index = homeworks.value.findIndex((h) => h.id === homeworkId)
-    if (index !== -1) {
-      homeworks.value[index].isCompleted = true
-      homeworks.value[index].fileUrl = res.data.file_url
-    }
-    toast.success('Upload Successful', 'Your homework has been submitted.')
+    if (index !== -1) homeworks.value[index] = mapHomework(res.data)
+    toast.success('Upload Successful', 'Your homework has been submitted for review.')
   } catch (err) {
-    toast.error('Upload Failed', 'Please try again later.')
+    toast.error('Upload Failed', apiError(err, 'Please try again later.'))
   } finally {
     isUploading.value = null
   }
@@ -120,9 +139,12 @@ async function handleFileUpload(event: Event, homeworkId: number) {
                 <span class="text-xs font-semibold text-tertiary uppercase"
                   >Session #{{ hw.sessionId }}</span
                 >
-                <span class="text-xs font-bold text-on-surface-variant">{{
-                  new Date(hw.createdAt).toLocaleDateString()
-                }}</span>
+                <span
+                  class="text-xs font-bold"
+                  :class="hw.status === 'overdue' ? 'text-error' : 'text-on-surface-variant'"
+                >
+                  {{ dueLabel(hw) || new Date(hw.createdAt).toLocaleDateString() }}
+                </span>
               </div>
 
               <h3
@@ -140,7 +162,7 @@ async function handleFileUpload(event: Event, homeworkId: number) {
                     type="file"
                     class="hidden"
                     @change="(e) => handleFileUpload(e, hw.id)"
-                    accept="image/*,.pdf,.doc,.docx"
+                    :accept="IMAGE_ACCEPT_ATTR"
                   />
                   <div
                     class="w-full py-4 bg-tertiary text-on-tertiary rounded-2xl text-xs font-semibold uppercase flex items-center justify-center gap-2 shadow-lg shadow-tertiary/20 hover:scale-[1.02] active:scale-95 transition-all"
@@ -170,24 +192,46 @@ async function handleFileUpload(event: Event, homeworkId: number) {
           <div
             v-for="hw in completedHomework"
             :key="hw.id"
-            class="glass-medium rounded-3xl p-6 border border-outline-variant/20 flex items-center justify-between group"
+            class="glass-medium rounded-3xl p-6 border border-outline-variant/20 space-y-3 group"
           >
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-success uppercase mb-1 flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">check_circle</span>
-                Completed
-              </p>
-              <h4 class="font-bold text-on-surface truncate text-sm">{{ hw.description }}</h4>
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <p
+                  class="text-xs font-semibold uppercase mb-1 flex items-center gap-1"
+                  :class="hw.status === 'reviewed' ? 'text-secondary' : 'text-success'"
+                >
+                  <span class="material-symbols-outlined text-xs">
+                    {{ hw.status === 'reviewed' ? 'grading' : 'check_circle' }}
+                  </span>
+                  {{ hw.status === 'reviewed' ? 'Reviewed' : 'Awaiting review' }}
+                </p>
+                <h4 class="font-bold text-on-surface truncate text-sm">{{ hw.description }}</h4>
+              </div>
+
+              <a
+                v-if="hw.fileUrl"
+                :href="hw.fileUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="ml-4 size-10 shrink-0 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
+              >
+                <span class="material-symbols-outlined">visibility</span>
+              </a>
             </div>
 
-            <a
-              v-if="hw.fileUrl"
-              :href="hw.fileUrl"
-              target="_blank"
-              class="ml-4 size-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
+            <!-- The teacher's response. Without this the whole review workflow
+                 is invisible to the person it is for. -->
+            <div
+              v-if="hw.grade || hw.feedback"
+              class="rounded-2xl bg-secondary/5 border border-secondary/15 px-4 py-3 space-y-1"
             >
-              <span class="material-symbols-outlined">visibility</span>
-            </a>
+              <p v-if="hw.grade" class="text-sm font-semibold text-on-surface">
+                Grade: {{ hw.grade }}
+              </p>
+              <p v-if="hw.feedback" class="text-sm text-on-surface/70 whitespace-pre-line">
+                {{ hw.feedback }}
+              </p>
+            </div>
           </div>
         </div>
       </section>

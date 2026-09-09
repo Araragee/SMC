@@ -20,6 +20,11 @@ from ..dependencies import (
     require_student,
     require_teacher,
 )
+from ..dependencies import (
+    # Aliased: several helpers in this module take a local ``is_admin`` flag
+    # parameter, and an unaliased import would be shadowed inside them.
+    is_admin as user_is_admin,
+)
 from ..services.notifier import safe_notify
 from ..utils.signed_urls import sign_url
 from ..utils.time import UTC
@@ -44,6 +49,17 @@ _limiter = Limiter(key_func=_nudge_key)
 
 def format_dt(dt: datetime) -> str:
     return dt.strftime("%b %d at %I:%M %p") if dt else "Unknown"
+
+
+def _naive_utcnow() -> datetime:
+    """UTC now, without the tzinfo.
+
+    The timestamp columns are declared without ``timezone=True``, so an aware
+    value round-trips as naive anyway. Writing naive keeps stored values
+    mutually comparable instead of leaving a mix that raises ``TypeError`` on
+    the first comparison after a restart.
+    """
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def _check_version(db_session: models.Session, expected: int | None) -> None:
@@ -1993,40 +2009,185 @@ def _require_session_participant(db_session: models.Session, user: models.User) 
 
 # --- Homework ---
 
-def _serialize_homework(db_homework: models.Homework) -> dict:
-    """Pydantic-validate a Homework row and sign its file_url for safe rendering."""
+def _serialize_homework(db_homework: models.Homework, *, with_context: bool = False) -> dict:
+    """Pydantic-validate a Homework row and sign its file_url for safe rendering.
+
+    ``with_context`` adds the student and lesson time from the owning session.
+    It is opt-in because it walks the ``session`` relationship: on a list that
+    eager-loaded it that is free, and on one that did not it would be an N+1.
+    """
     out = schemas.Homework.model_validate(db_homework).model_dump()
     out["file_url"] = _signed_or_passthrough(out.get("file_url"))
+
+    if with_context:
+        session = db_homework.session
+        if session is not None:
+            out["student_id"] = session.student_id
+            out["student_name"] = session.student.name if session.student else None
+            out["session_start_time"] = session.start_time
+
     return out
 
 
-@router.post("/homework/", response_model=schemas.Homework)
+def _homework_or_404(db: Session, homework_id: int) -> tuple[models.Homework, models.Session]:
+    """Load a homework row together with its session, or 404.
+
+    Returned as a pair because every route that touches homework needs the
+    session to answer "may this caller do that?" — fetching it separately at
+    each call site is how the guards drifted apart in the first place.
+    """
+    db_homework = db.query(models.Homework).filter(models.Homework.id == homework_id).first()
+    if not db_homework:
+        raise HTTPException(status_code=404, detail="Homework not found")
+    db_session = db.query(models.Session).filter(models.Session.id == db_homework.session_id).first()
+    if not db_session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return db_homework, db_session
+
+
+def _require_can_teach_session(db_session: models.Session, user: models.User) -> None:
+    """Allow the session's own teacher, or an admin.
+
+    Assigning, editing, grading and deleting are the teacher's side of the
+    workflow — a student who is a participant may submit to an assignment but
+    must not create or grade one.
+    """
+    if user.role and user.role.name.lower() == "admin":
+        return
+    if user.id is not None and user.id == db_session.teacher_id:
+        return
+    raise HTTPException(
+        status_code=403,
+        detail="Only the teacher of this session can manage its homework.",
+    )
+
+
+@router.post("/homework/", response_model=schemas.Homework, status_code=201)
 def create_homework(session_id: int, homework: schemas.HomeworkCreate, db: Session = Depends(get_db), current_user: models.User = Depends(require_teacher)):
+    """Assign homework on a session."""
     db_session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    db_homework = models.Homework(**homework.model_dump(), session_id=session_id)
+    # ``require_teacher`` only asked whether the caller is *a* teacher, never
+    # whether they teach *this* session — so any teacher in the school could
+    # assign homework to any student's lesson.
+    _require_can_teach_session(db_session, current_user)
+
+    db_homework = models.Homework(
+        **homework.model_dump(),
+        session_id=session_id,
+        assigned_by_id=current_user.id,
+    )
     db.add(db_homework)
+    db.commit()
+    db.refresh(db_homework)
+
+    if db_session.student_id:
+        due = f" (due {format_dt(db_homework.due_date)})" if db_homework.due_date else ""
+        notify_users(
+            db, [db_session.student_id],
+            f"📚 {current_user.name} assigned you homework{due}.",
+            link="/student/homework",
+        )
+
+    return _serialize_homework(db_homework)
+
+
+@router.patch("/homework/{homework_id}", response_model=schemas.Homework)
+def edit_homework(
+    homework_id: int,
+    payload: schemas.HomeworkUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Correct the brief or move the deadline. Teacher (or admin) only.
+
+    Separate from ``PUT /homework/{id}``, which is the student's completion
+    toggle: they are different actions by different people, and collapsing
+    them into one endpoint is what let a student edit an assignment.
+    """
+    db_homework, db_session = _homework_or_404(db, homework_id)
+    _require_can_teach_session(db_session, current_user)
+
+    if payload.description is not None:
+        db_homework.description = payload.description
+    if payload.clear_due_date:
+        db_homework.due_date = None
+    elif payload.due_date is not None:
+        db_homework.due_date = payload.due_date
+
     db.commit()
     db.refresh(db_homework)
     return _serialize_homework(db_homework)
 
+
+@router.post("/homework/{homework_id}/review", response_model=schemas.Homework)
+def review_homework(
+    homework_id: int,
+    payload: schemas.HomeworkReview,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Record a grade and/or feedback on a submission."""
+    db_homework, db_session = _homework_or_404(db, homework_id)
+    _require_can_teach_session(db_session, current_user)
+
+    # Reviewing work that was never handed in is a mistake worth catching: it
+    # is almost always the wrong row, and it would leave a "reviewed" status on
+    # an assignment the student still has to do.
+    if not (db_homework.is_completed or db_homework.completed_at):
+        raise HTTPException(
+            status_code=400,
+            detail="This homework has not been submitted yet, so there is nothing to review.",
+        )
+
+    db_homework.grade = payload.grade
+    db_homework.feedback = payload.feedback
+    db_homework.reviewed_at = _naive_utcnow()
+    db_homework.reviewed_by_id = current_user.id
+    db.commit()
+    db.refresh(db_homework)
+
+    if db_session.student_id:
+        notify_users(
+            db, [db_session.student_id],
+            f"✅ {current_user.name} reviewed your homework.",
+            link="/student/homework",
+        )
+
+    return _serialize_homework(db_homework)
+
+
+@router.delete("/homework/{homework_id}", response_model=schemas.SimpleOK)
+def delete_homework(
+    homework_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user),
+):
+    """Withdraw an assignment. Teacher (or admin) only."""
+    db_homework, db_session = _homework_or_404(db, homework_id)
+    _require_can_teach_session(db_session, current_user)
+
+    db.delete(db_homework)
+    db.commit()
+    return schemas.SimpleOK(detail="Homework deleted")
+
+
 @router.put("/homework/{homework_id}", response_model=schemas.Homework)
 def update_homework(homework_id: int, is_completed: bool, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    db_homework = db.query(models.Homework).filter(models.Homework.id == homework_id).first()
-    if not db_homework:
-        raise HTTPException(status_code=404, detail="Homework not found")
+    """The student's completion toggle. Any participant on the session."""
+    db_homework, db_session = _homework_or_404(db, homework_id)
 
     # This route had no object-level check at all: any authenticated account
     # could mark any homework in the school complete (or un-complete) by
     # guessing an id — and completion is what the teacher grades against.
-    db_session = db.query(models.Session).filter(models.Session.id == db_homework.session_id).first()
-    if not db_session:
-        raise HTTPException(status_code=404, detail="Session not found")
     _require_session_participant(db_session, current_user)
 
     db_homework.is_completed = is_completed
+    # Keep the timestamp in step with the flag so a status derived from either
+    # agrees. Un-completing clears it: the work has not been handed in.
+    db_homework.completed_at = _naive_utcnow() if is_completed else None
     db.commit()
     db.refresh(db_homework)
     return _serialize_homework(db_homework)
@@ -2044,6 +2205,81 @@ def get_user_homework(user_id: int, db: Session = Depends(get_db), current_user:
 
     rows = db.query(models.Homework).join(models.Session).filter(models.Session.student_id == user_id).all()
     return [_serialize_homework(hw) for hw in rows]
+
+
+@router.get("/homework/assigned", response_model=list[schemas.Homework])
+def get_assigned_homework(
+    student_id: int | None = Query(default=None),
+    status: schemas.HomeworkStatus | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_teacher),
+):
+    """Every assignment on the calling teacher's own sessions.
+
+    This is the teacher's working view, and the reason the scope is "sessions
+    I teach" rather than a ``teacher_id`` path parameter: an id in the path is
+    an invitation to change it, and there is no legitimate case for one teacher
+    reading another's assignments. An admin sees the whole school.
+
+    Sorted with the work needing attention first — submissions waiting on a
+    review, then the nearest deadline — because that is the order a teacher
+    actually works through it, and the alternative is scrolling.
+    """
+    query = (
+        db.query(models.Homework)
+        .join(models.Session, models.Homework.session_id == models.Session.id)
+        # The rows render alongside the student's name and the lesson time;
+        # without this the list is one query per row.
+        .options(
+            joinedload(models.Homework.session).joinedload(models.Session.student),
+            joinedload(models.Homework.session).joinedload(models.Session.instrument),
+        )
+    )
+
+    if not user_is_admin(current_user):
+        query = query.filter(models.Session.teacher_id == current_user.id)
+
+    if student_id is not None:
+        query = query.filter(models.Session.student_id == student_id)
+
+    if status == "reviewed":
+        query = query.filter(models.Homework.reviewed_at.isnot(None))
+    elif status == "submitted":
+        query = query.filter(
+            models.Homework.reviewed_at.is_(None),
+            (models.Homework.is_completed.is_(True)) | (models.Homework.completed_at.isnot(None)),
+        )
+    elif status in ("assigned", "overdue"):
+        # Both are "not handed in"; overdue additionally has a deadline behind
+        # us. The boundary is evaluated in SQL so paging stays consistent with
+        # the filter, rather than fetching a page and discarding half of it.
+        query = query.filter(
+            models.Homework.reviewed_at.is_(None),
+            models.Homework.is_completed.isnot(True),
+            models.Homework.completed_at.is_(None),
+        )
+        cutoff = _naive_utcnow()
+        if status == "overdue":
+            query = query.filter(models.Homework.due_date.isnot(None), models.Homework.due_date < cutoff)
+        else:
+            query = query.filter(
+                (models.Homework.due_date.is_(None)) | (models.Homework.due_date >= cutoff)
+            )
+
+    rows = (
+        query.order_by(
+            models.Homework.reviewed_at.isnot(None),        # unreviewed first
+            models.Homework.due_date.is_(None),             # dated before undated
+            models.Homework.due_date.asc(),
+            models.Homework.created_at.desc(),
+        )
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return [_serialize_homework(hw, with_context=True) for hw in rows]
 
 
 @router.get("/sessions/{session_id}/homework", response_model=list[schemas.Homework])
@@ -2101,8 +2337,23 @@ def upload_homework_file(
 
     db_homework.file_url = public_url
     db_homework.is_completed = True
+    db_homework.completed_at = _naive_utcnow()
+    # Re-submitting after a review reopens the assignment: the grade on record
+    # describes the previous file, so leaving it would show the student a mark
+    # for work they have just replaced.
+    db_homework.reviewed_at = None
+    db_homework.reviewed_by_id = None
+    db_homework.grade = None
+    db_homework.feedback = None
     db.commit()
     db.refresh(db_homework)
+
+    if session.teacher_id and session.teacher_id != current_user.id:
+        notify_users(
+            db, [session.teacher_id],
+            f"📎 {current_user.name} submitted homework for review.",
+            link="/teacher/homework",
+        )
     # Return a copy with the URL signed so the frontend can render it
     # immediately without a separate sign step.
     out = schemas.Homework.model_validate(db_homework).model_dump()

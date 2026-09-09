@@ -176,6 +176,20 @@ class Enrollment(Base):
     teacher = relationship("User", foreign_keys=[teacher_id])
 
 class Homework(Base):
+    """An assignment a teacher gives on a session, and the student's response.
+
+    One row carries the whole lifecycle, which is why the timestamps are
+    separate nullable columns rather than a single status enum: each one
+    records *when* a transition happened, and a status derived from them can
+    never disagree with the history. ``schemas.Homework.status`` does that
+    derivation in one place.
+
+        assigned  → the teacher created it
+        submitted → the student attached a file (completed_at set)
+        reviewed  → the teacher graded it (reviewed_at set)
+        overdue   → past due_date and not yet submitted
+    """
+
     __tablename__ = "homework"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -185,7 +199,31 @@ class Homework(Base):
     file_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.datetime.now(UTC))
 
+    # When the work is due. Nullable: plenty of practice assignments are "by
+    # next lesson" with no hard date, and forcing one would make teachers
+    # invent them.
+    due_date = Column(DateTime, nullable=True, index=True)
+
+    # Who assigned it. Nullable because rows created before this column
+    # existed have no answer, and guessing one would be worse than admitting
+    # it — the UI reads "Unknown" rather than crediting the wrong teacher.
+    assigned_by_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    # Set when the student submits. Kept alongside ``is_completed`` rather than
+    # replacing it: the boolean is the existing contract the student app reads,
+    # and this answers "when", which grading and overdue reporting need.
+    completed_at = Column(DateTime, nullable=True)
+
+    # The teacher's response. ``reviewed_at`` is what makes a submission
+    # "reviewed" — a grade or feedback may legitimately be left blank.
+    grade = Column(String, nullable=True)
+    feedback = Column(String, nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    reviewed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     session = relationship("Session", back_populates="homeworks")
+    assigned_by = relationship("User", foreign_keys=[assigned_by_id])
+    reviewed_by = relationship("User", foreign_keys=[reviewed_by_id])
 
 class SessionProof(Base):
     __tablename__ = "session_proofs"
