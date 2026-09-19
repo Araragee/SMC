@@ -151,6 +151,14 @@ const router = createRouter({
         { path: ':module', component: NotFoundView },
       ],
     },
+    {
+      // "One Stroke" — the sumi-e short. Public and chrome-free: it is meant to
+      // be opened straight from a link, so it sits outside every layout.
+      path: '/sumi-e',
+      name: 'sumi-e',
+      component: () => import('@views/SumieShort.vue'),
+      meta: { requiresAuth: false },
+    },
     // General redirection
     {
       path: '/',

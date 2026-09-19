@@ -1,0 +1,15 @@
+{
+  "name": "sumie-render",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Renders the One Stroke short to a 1080x1350 MP4 (picture from frontend/src/sumie, audio synthesised here).",
+  "scripts": {
+    "render": "node render.mjs",
+    "preview": "node render.mjs --preview --out out/preview.mp4"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.60",
+    "ffmpeg-static": "^5.2.0"
+  }
+}
