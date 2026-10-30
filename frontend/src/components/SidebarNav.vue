@@ -59,6 +59,7 @@ const navItems = computed(() => {
   } else if (role === 'teacher') {
     items.push(
       { label: 'Students', icon: 'group', path: '/teacher/students' },
+      { label: 'Homework', icon: 'assignment', path: '/teacher/homework' },
       { label: 'Instruments', icon: 'piano', path: '/teacher/instruments' },
       { label: 'Payments', icon: 'payments', path: '/teacher/payments' },
       ...(SHOP_ENABLED ? [{ label: 'Shop', icon: 'storefront', path: '/teacher/shop' }] : [])

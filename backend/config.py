@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     SCHOOL_TIMEZONE: str = "Asia/Manila"   # Timezone for validating school working hours
     MAINTENANCE_MODE: bool = False
 
+    # The background sweep that sends stale-proof reminders. It keeps its state
+    # in the process, so every replica running it duplicates every reminder.
+    # Safe to leave on for a single-instance deployment (the default); when
+    # scaling out, enable it on exactly one instance.
+    ENABLE_SESSION_CHECKER: bool = True
+
 
 
 

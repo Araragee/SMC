@@ -25,3 +25,4 @@ uploads/
 
 # Production account credentials — never commit
 PROD_ACCOUNTS.md
+.venv/

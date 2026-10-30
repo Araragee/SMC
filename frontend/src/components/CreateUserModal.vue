@@ -114,14 +114,12 @@ const suggestedUsername = computed(() => {
   return ''
 })
 
-const generatedPassword = computed(() => {
-  if (selectedRole.value === 'student' && formData.value.name) {
-    const firstName = formData.value.name.split(' ')[0].toLowerCase()
-    const ageStr = formData.value.age ? String(formData.value.age) : ''
-    return `${firstName}${ageStr}SMC`
-  }
-  return ''
-})
+// The password the server generated for the account just created, held only
+// long enough for the admin to copy it. There is deliberately no client-side
+// generator any more: this used to compute `{firstname}{age}SMC` and send it,
+// which meant the credential for every student account was derivable from the
+// student's own profile page. The server now mints a random one.
+const issuedPassword = ref('')
 
 const toggleInstrument = (inst: InstrumentRecord) => {
   if (!formData.value.instruments) formData.value.instruments = []
@@ -147,9 +145,9 @@ const handleNext = () => {
 
 const handleSubmit = async () => {
   try {
-    const pwd =
-      selectedRole.value === 'student' && !password.value ? generatedPassword.value : password.value
-    const created = await usersStore.createUser(formData.value, pwd)
+    // Blank means "let the server generate one" — it returns what it chose.
+    const created = await usersStore.createUser(formData.value, password.value || undefined)
+    if (created?.tempPassword) issuedPassword.value = created.tempPassword
 
     if (selectedRole.value === 'student' && enrollTeacherId.value && created?.id) {
       await rosterStore.createEnrollment({
@@ -160,7 +158,19 @@ const handleSubmit = async () => {
     }
 
     emit('created', created)
-    emit('close')
+
+    // A generated password is shown exactly once and is not recoverable, so
+    // the modal stays open until the admin has had a chance to copy it. When
+    // they supplied the password themselves there is nothing to hand over and
+    // the dialog closes as before.
+    if (issuedPassword.value) {
+      useToastStore().success(
+        'User created',
+        'Copy the generated password before closing — it cannot be shown again.'
+      )
+    } else {
+      emit('close')
+    }
   } catch (err) {
     // createUser() rethrows without reporting, so without this the admin sees
     // nothing at all when the API rejects the payload — "Email already
@@ -199,7 +209,7 @@ const togglePasswordVisibility = () => {
 }
 
 const copyGeneratedPassword = () => {
-  copyToClipboard(password.value || generatedPassword.value)
+  copyToClipboard(password.value || issuedPassword.value)
 }
 
 const setSessionOption = (opt: number) => {
@@ -343,9 +353,9 @@ const handleBackOrClose = () => {
               <div class="col-span-2 relative">
                 <BaseInput
                   v-model="password"
-                  :label="password ? 'Password' : 'Password (Auto-generated if empty)'"
+                  :label="password ? 'Password' : 'Password (leave blank to generate one)'"
                   :type="showPassword ? 'text' : 'password'"
-                  :placeholder="generatedPassword"
+                  placeholder="A random password will be generated"
                 />
                 <button
                   type="button"
@@ -362,8 +372,10 @@ const handleBackOrClose = () => {
                 >
                   content_copy
                 </button>
-                <p v-if="!password && generatedPassword" class="text-xs text-on-surface/40 mt-1">
-                  Generated: {{ generatedPassword }}
+                <p v-if="issuedPassword" class="text-xs text-on-surface/70 mt-1">
+                  Generated password:
+                  <span class="font-mono select-all">{{ issuedPassword }}</span> — copy it now, it
+                  cannot be shown again. The account must change it at first login.
                 </p>
               </div>
             </div>

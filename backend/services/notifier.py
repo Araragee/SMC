@@ -162,11 +162,19 @@ def get_notifier() -> Notifier:
 
 
 def safe_notify(method: str, *args, **kwargs) -> None:
-    """Call a notifier method by name, swallowing all errors. Use this in
-    request handlers so a notifier glitch never aborts the user's action."""
+    """Call a notifier method by name, swallowing delivery errors.
+
+    Use this in request handlers: an SMTP timeout must not abort the action the
+    user actually asked for. What it deliberately does *not* swallow is a name
+    that does not exist — that is a typo in our own call site, it means the
+    notification will never be sent no matter how healthy the mail server is,
+    and silently doing nothing is exactly how such a bug survives to
+    production. It is raised so a test or a first run catches it.
+    """
+    fn = getattr(get_notifier(), method, None)
+    if fn is None:
+        raise AttributeError(f"No notifier method named {method!r}")
     try:
-        fn = getattr(get_notifier(), method, None)
-        if fn:
-            fn(*args, **kwargs)
+        fn(*args, **kwargs)
     except Exception as exc:  # noqa: BLE001
         logger.exception("notifier.%s failed: %s", method, exc)

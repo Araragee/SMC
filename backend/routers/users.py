@@ -1,4 +1,6 @@
-from datetime import UTC, datetime, timedelta
+import logging
+import secrets
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -17,12 +19,14 @@ from ..dependencies import (
     related_user_ids,
     require_admin,
     require_can_view_user,
-    require_self_or_admin,
 )
-from ..utils.passwords import enforce_password_strength
-from .auth import revoke_all_user_refresh_tokens
 from ..services.notifier import safe_notify
+from ..utils.passwords import enforce_password_strength
+from ..utils.time import UTC
 from .activity import log_activity
+from .auth import revoke_all_user_refresh_tokens
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -106,8 +110,12 @@ def login(
     is_valid_hash = False
     try:
         is_valid_hash = pwd_context.verify(form_data.password[:72], user.hashed_password)
-    except Exception:
-        pass
+    except ValueError:
+        # A malformed or legacy hash in the row. Treated as a failed attempt so
+        # the response is identical to a wrong password — anything else would
+        # tell an attacker which accounts have unusable hashes — but logged,
+        # because it means a real account cannot log in at all.
+        logger.warning("Unusable password hash for user id %s.", user.id)
 
     if not is_valid_hash:
         # Track failed attempt and possibly lock the account.
@@ -143,10 +151,20 @@ def login(
     return pair.model_dump()
 
 
+def _generate_temp_password() -> str:
+    """A random one-time password for an account an admin creates.
+
+    ``token_urlsafe(12)`` is 96 bits of entropy in 16 characters — short enough
+    to read aloud or copy from the screen once, and unrelated to anything on
+    the student's profile. It is paired with ``must_change_password``, so it is
+    a handover token rather than a credential.
+    """
+    return secrets.token_urlsafe(12)
+
+
 @router.post("/users/")
 def create_user(
     user: schemas.UserCreate,
-    response: Response,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin),
 ):
@@ -165,13 +183,18 @@ def create_user(
             username = f"{base}{counter}"
             counter += 1
 
+    # A password the admin typed is theirs to choose and is held to the normal
+    # policy. When they leave it blank we mint one — previously
+    # ``{firstname}{age}SMC`` for students and the literal ``password123`` for
+    # everyone else. Both were derivable from the student's own profile page,
+    # and ``password123`` is on this app's own weak-password blocklist: the
+    # system was issuing credentials it would have refused from a user.
     password = user.password
-    if not password and role and role.name.lower() == "student":
-        first_name = user.name.split(" ")[0].lower()
-        age_str = str(user.age) if user.age else ""
-        password = f"{first_name}{age_str}SMC"
-    elif not password:
-        password = "password123"
+    generated_password: str | None = None
+    if password:
+        enforce_password_strength(password)
+    else:
+        generated_password = password = _generate_temp_password()
 
     if len(password.encode()) > 72:
         raise HTTPException(status_code=400, detail="Password too long (max 72 bytes)")
@@ -181,6 +204,11 @@ def create_user(
     user_data = user.model_dump(exclude={"password", "instrument_ids", "username"})
     user_data["hashed_password"] = hashed_password
     user_data["username"] = username
+    # A password nobody chose is a password the account holder has never seen
+    # anywhere but a handover note, so it must not become their standing
+    # credential. The SPA redirects to /change-password whenever this is set.
+    if generated_password:
+        user_data["must_change_password"] = True
 
     db_user = models.User(**user_data)
     db.add(db_user)
@@ -201,10 +229,19 @@ def create_user(
 
     safe_notify("send_welcome", db_user, password)
 
-    # New users get the HttpOnly cookie immediately so the SPA never has to
-    # touch the refresh token directly.
-    from .auth import build_token_pair_with_cookie
-    return build_token_pair_with_cookie(db, db_user, response).model_dump()
+    # This route used to end by issuing the *new* user's token pair and setting
+    # their HttpOnly refresh cookie on the response — which went to the admin
+    # who made the call, silently replacing their own refresh cookie. The next
+    # /auth/refresh then handed the admin a session as the student they had
+    # just created. Creating an account is not an act of logging into it, so no
+    # credentials are issued here at all.
+    #
+    # The generated password is returned so the admin can hand it over; it is
+    # the only time it is available, and this route is admin-only.
+    return {
+        "user": schemas.User.model_validate(db_user).model_dump(),
+        "temp_password": generated_password,
+    }
 
 @router.put("/users/{user_id}", response_model=schemas.User)
 @limiter.limit("10/minute")

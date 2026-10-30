@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useInteractionsStore } from '@/stores/interactions'
 import { useToastStore } from '@/stores/toast'
+import { IMAGE_ACCEPT_ATTR } from '@/utils/upload'
 
 interface HomeworkSession {
   id: number
@@ -151,7 +152,7 @@ const markDoneWithoutFile = async () => {
                 Optional — you can also just mark it done
               </p>
             </template>
-            <input type="file" accept="image/*" class="hidden" @change="selectFile" />
+            <input type="file" :accept="IMAGE_ACCEPT_ATTR" class="hidden" @change="selectFile" />
           </label>
 
           <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

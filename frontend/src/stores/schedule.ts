@@ -6,26 +6,18 @@ import { useToastStore } from '@stores/toast'
 import type { Session, Schedule } from '@types'
 
 import { API_URL } from '@typescript/constants'
+import { apiError } from '@/utils/apiError'
+import { validateImageUpload } from '@/utils/upload'
 
 const authHeaders = function () {
   const auth = useAuthStore()
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 }
 
-const errMsg = (e: unknown): string => {
-  if (axios.isAxiosError(e)) {
-    const detail = e.response?.data?.detail
-    if (typeof detail === 'string') return detail
-    if (Array.isArray(detail)) {
-      return detail.map((d: any) => d.msg || d.message || JSON.stringify(d)).join(', ')
-    }
-    return e.response?.data?.message || e.message
-  }
-  if (e instanceof Error) return e.message
-  if (typeof e === 'object' && e && 'message' in e)
-    return String((e as { message?: unknown }).message ?? '')
-  return String(e ?? '')
-}
+// One error formatter for the whole app. This module used to carry its own,
+// which reported axios's "Request failed with status code 413" wherever the
+// server had sent a perfectly good explanation.
+const errMsg = (e: unknown): string => apiError(e)
 
 const mapSession = function (session: any): Session {
   return {
@@ -653,15 +645,26 @@ export const useScheduleStore = defineStore('schedule', {
     },
 
     async uploadSessionProof(sessionId: number, file: File) {
+      // Catch the obvious rejections before spending thirty seconds pushing the
+      // file up a phone connection to be told no. The server checks all of this
+      // again — this is a courtesy, not a control.
+      const problem = validateImageUpload(file)
+      if (problem) {
+        this.error = problem
+        useToastStore().error('Upload failed', problem)
+        throw new Error(problem)
+      }
+
       this.isLoading = true
       try {
         const formData = new FormData()
         formData.append('file', file)
+        // Deliberately no Content-Type header: the browser must set it itself
+        // so it can append the multipart boundary. Naming the type by hand
+        // sends "multipart/form-data" with no boundary, which the server
+        // cannot parse.
         await axios.post(`${API_URL}/session-proofs/?session_id=${sessionId}`, formData, {
-          headers: {
-            ...authHeaders(),
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: authHeaders(),
         })
         const auth = useAuthStore()
         if (auth.user?.role === 'admin') {

@@ -5,6 +5,7 @@ import OrderStatusBadge from '@components/shop/OrderStatusBadge.vue'
 import { API_URL } from '@typescript/constants'
 import type { OrderStatus, InstrumentProduct, Order } from '@types'
 import { useDialog } from '@composables/useDialog'
+import { IMAGE_ACCEPT_ATTR } from '@/utils/upload'
 
 const shopStore = useShopStore()
 const dialog = useDialog()
@@ -263,7 +264,7 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
               type="file"
               class="hidden"
               @change="(e) => handleFileUpload(e, product.id)"
-              accept="image/*"
+              :accept="IMAGE_ACCEPT_ATTR"
             />
             <span class="material-symbols-outlined">add_a_photo</span>
           </label>
@@ -385,7 +386,7 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
                 type="file"
                 class="hidden"
                 @change="onFileSelected"
-                accept="image/*"
+                :accept="IMAGE_ACCEPT_ATTR"
               />
             </div>
           </div>

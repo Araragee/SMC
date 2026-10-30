@@ -1,20 +1,20 @@
 import asyncio
-import os
 import logging
-import uuid
+import os
 import traceback
+import uuid
 from contextlib import asynccontextmanager
 
 import jwt
-from fastapi import FastAPI, Request, Response, status, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy import text
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import models
 
@@ -23,6 +23,7 @@ from .config import settings
 from .database import SessionLocal
 from .routers import activity, auth, messaging, notifications, payments, push, sessions, shop, uploads, users
 from .routers.sessions import session_checker_task
+from .utils.time import utcnow
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -79,10 +80,9 @@ def _seed_defaults() -> None:
 
 def _purge_stale_tokens() -> None:
     """Delete expired and revoked auth tokens to prevent unbounded table growth."""
-    import datetime
     db = SessionLocal()
     try:
-        now = datetime.datetime.now(datetime.UTC)
+        now = utcnow()
         deleted_refresh = (
             db.query(models.RefreshToken)
             .filter(
@@ -110,13 +110,31 @@ async def lifespan(app: FastAPI):
     """Application lifespan: seed DB on startup, clean up on shutdown."""
     _seed_defaults()
     _purge_stale_tokens()
-    checker = asyncio.create_task(session_checker_task())
+
+    # The sweep sends stale-proof reminders on a timer. It is process-local, so
+    # every replica that runs it sends its own copy of each reminder — with two
+    # instances a student is nudged twice about the same session. Deployments
+    # that run more than one instance must enable it on exactly one of them;
+    # see the scaling note on ConnectionManager in routers/messaging.py.
+    checker = None
+    if settings.ENABLE_SESSION_CHECKER:
+        checker = asyncio.create_task(session_checker_task())
+    else:
+        logger.info("Session checker disabled (ENABLE_SESSION_CHECKER=false).")
+
     yield
-    checker.cancel()
-    try:
-        await checker
-    except asyncio.CancelledError:
-        pass
+
+    if checker is not None:
+        checker.cancel()
+        try:
+            await checker
+        except asyncio.CancelledError:
+            pass
+
+    # Release the object-storage connection pool so shutdown does not leave
+    # sockets open to the bucket.
+    from .utils import storage as _storage
+    _storage.close_client()
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 app.state.limiter = limiter
@@ -302,6 +320,6 @@ def health_check():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connection failed"
-        )
+        ) from e
     finally:
         db.close()

@@ -9,6 +9,7 @@ import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
 import { useInteractionsStore } from '@stores/interactions'
 import type { Session } from '@types'
+import { IMAGE_ACCEPT_ATTR } from '@/utils/upload'
 
 const router = useRouter()
 const scheduleStore = useScheduleStore()
@@ -581,7 +582,7 @@ const stopCountering = () => {
 
               <input
                 type="file"
-                accept="image/*"
+                :accept="IMAGE_ACCEPT_ATTR"
                 class="hidden"
                 aria-label="Upload session photo proof"
                 @change="handleGenericProofSelection"
@@ -1167,7 +1168,7 @@ const stopCountering = () => {
                     Replace
                     <input
                       type="file"
-                      accept="image/*"
+                      :accept="IMAGE_ACCEPT_ATTR"
                       class="hidden"
                       @change="handleStagedProofUpload"
                     />
@@ -1201,7 +1202,7 @@ const stopCountering = () => {
                 <span class="text-xs text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
                 <input
                   type="file"
-                  accept="image/*"
+                  :accept="IMAGE_ACCEPT_ATTR"
                   class="hidden"
                   @change="handleStagedProofUpload"
                 />

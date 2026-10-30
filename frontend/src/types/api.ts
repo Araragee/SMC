@@ -71,6 +71,10 @@ export interface SessionProofResponse {
   uploader_role?: string | null
 }
 
+/** Where an assignment sits in its lifecycle. Derived server-side from the
+ * timestamps below, so it can never disagree with them. */
+export type HomeworkStatus = 'assigned' | 'overdue' | 'submitted' | 'reviewed'
+
 /** Backend `Homework` schema. */
 export interface HomeworkResponse {
   id: number
@@ -79,6 +83,14 @@ export interface HomeworkResponse {
   is_completed: boolean
   file_url?: string | null
   created_at: string
+  due_date?: string | null
+  assigned_by_id?: number | null
+  completed_at?: string | null
+  grade?: string | null
+  feedback?: string | null
+  reviewed_at?: string | null
+  reviewed_by_id?: number | null
+  status: HomeworkStatus
 }
 
 /** Backend `Session` schema (full, with relations). */

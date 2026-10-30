@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import jwt
 import passlib.hash
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .config import settings
 from .database import get_db
+from .utils.time import UTC
 
 pwd_context = passlib.hash.bcrypt
 

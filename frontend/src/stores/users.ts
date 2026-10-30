@@ -4,6 +4,7 @@ import { useAuthStore } from '@stores/auth'
 import type { User, Role, InstrumentRecord } from '@types'
 
 import { API_URL } from '@typescript/constants'
+import { apiError } from '@/utils/apiError'
 
 const authHeaders = function () {
   const auth = useAuthStore()
@@ -179,7 +180,12 @@ export const useUsersStore = defineStore('users', {
         }
 
         const response = await axios.post(`${API_URL}/users/`, payload)
-        const { user: newUser, access_token } = response.data
+        // The endpoint returns { user, temp_password }. It used to return the
+        // NEW user's token pair, and setting that pair's refresh cookie on the
+        // response replaced the admin's own — the next /auth/refresh handed the
+        // admin a session as the student they had just created.
+        const newUser = response.data.user
+        const tempPassword: string | null = response.data.temp_password ?? null
 
         const frontendUser: User = {
           id: Number(newUser.id),
@@ -202,16 +208,11 @@ export const useUsersStore = defineStore('users', {
 
         this.users.push(frontendUser)
 
-        // If not already logged in, automatically log in as the new user
-        // OR if this was a student creation from a register-like flow
-        const authStore = (await import('./auth')).useAuthStore()
-        if (!authStore.token) {
-          authStore.setTokenAndUser(access_token, frontendUser)
-        }
-
-        return frontendUser
-      } catch (err: any) {
-        this.error = err.message || 'Failed to create user'
+        // The temp password rides along so the caller can show it once for the
+        // admin to hand over; it is never stored and cannot be read back.
+        return { ...frontendUser, tempPassword }
+      } catch (err: unknown) {
+        this.error = apiError(err, 'Failed to create user')
         console.error(err)
         throw err
       } finally {

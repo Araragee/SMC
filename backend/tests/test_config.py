@@ -40,5 +40,44 @@ def test_refresh_cookie_samesite_is_valid():
 
 
 def test_allowed_origins_is_non_empty_list():
-    assert isinstance(settings.ALLOWED_ORIGINS, list)
-    assert settings.ALLOWED_ORIGINS
+    """``ALLOWED_ORIGINS`` is stored as raw text and parsed by ``cors_origins``.
+
+    It was a ``list[str]`` once, and this assertion was left behind pointing at
+    the raw field — so it has been failing (and CI with it) since the type
+    changed. The parsing rules themselves are covered below.
+    """
+    assert isinstance(settings.cors_origins, list)
+    assert settings.cors_origins
+
+
+def test_cors_origins_accepts_a_comma_separated_list():
+    settings.__dict__.pop("cors_origins", None)  # clear the cached_property
+    try:
+        settings.ALLOWED_ORIGINS = "https://a.example, https://b.example/"
+        # Trailing slashes are stripped: a browser's Origin header never
+        # carries one and the comparison is exact.
+        assert settings.cors_origins == ["https://a.example", "https://b.example"]
+    finally:
+        settings.__dict__.pop("cors_origins", None)
+
+
+def test_cors_origins_accepts_a_json_list():
+    settings.__dict__.pop("cors_origins", None)
+    try:
+        settings.ALLOWED_ORIGINS = '["https://a.example", "https://b.example"]'
+        assert settings.cors_origins == ["https://a.example", "https://b.example"]
+    finally:
+        settings.__dict__.pop("cors_origins", None)
+
+
+def test_a_malformed_origin_list_does_not_take_the_api_down():
+    """The whole reason this field is plain text: as ``list[str]``,
+    pydantic-settings JSON-decoded it while building Settings, so one
+    misformatted value raised at import and the process died before serving
+    anything. A bad list must refuse origins, not the API."""
+    settings.__dict__.pop("cors_origins", None)
+    try:
+        settings.ALLOWED_ORIGINS = "[not json at all"
+        assert settings.cors_origins == []
+    finally:
+        settings.__dict__.pop("cors_origins", None)

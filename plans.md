@@ -43,8 +43,8 @@ _No `plans.md` existed, so the app was audited and this plan was produced, then 
 
 **P4 — Noted, not auto-executed (need product direction)**
 9. `frontend/node_modules` is stale vs `package.json` (eslint broken). Needs `npm install`.
-10. Teacher-side homework assignment UI: `Homework` model exists and students have a homework route,
-    but there is no teacher homework management view. Candidate feature.
+10. ~~Teacher-side homework assignment UI~~ — **built**. See `UPLOAD_API_HARDENING_PLAN.md`
+    "Phase 6" for the schema, endpoints and views.
 
 ## Execution Plan (this run)
 

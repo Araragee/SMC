@@ -270,6 +270,7 @@ const submit = async function () {
               <div class="flex flex-wrap gap-1.5 mt-1">
                 <span
                   v-for="slot in busySlotsOnSelectedDate"
+                  :key="`${slot.startTime}-${slot.endTime}`"
                   class="text-xs font-bold bg-error/10 border border-error/20 text-on-error-container dark:text-error px-2 py-0.5 rounded-lg"
                 >
                   {{ formatSlotTime(slot.startTime) }} - {{ formatSlotTime(slot.endTime) }}
