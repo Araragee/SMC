@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import BaseDropdown from '@/components/BaseDropdown.vue'
 import { onMounted, computed, ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -234,94 +235,62 @@ const handleDeleteUser = async (user: User) => {
       @created="handleUserCreated"
     />
 
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition-all ease-out"
-        enter-from-class="opacity-0 scale-95 blur-[8px]"
-        enter-to-class="opacity-100 scale-100 blur-0"
-        leave-active-class="transition-all ease-in"
-        leave-from-class="opacity-100 scale-100 blur-0"
-        leave-to-class="opacity-0 scale-95 blur-[8px]"
-      >
-        <div
-          v-if="showEditModal"
-          class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          @click.self="showEditModal = false"
-        >
-          <div
-            class="absolute inset-0 bg-black/40 dark:bg-black/70"
-            @click="showEditModal = false"
-          />
-          <div
-            class="relative w-full max-w-md glass-heavy border border-outline-variant/30 rounded-3xl p-8 shadow-2xl overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 size-32 bg-primary/10 blur-[64px] rounded-full -z-10"
-            />
-
-            <div class="flex items-center justify-between mb-8">
-              <div>
-                <p class="text-xs font-semibold text-primary uppercase mb-1">Update Member</p>
-                <h3 class="text-2xl font-semibold text-on-surface">Edit User</h3>
-              </div>
-              <button class="icon-btn" @click="showEditModal = false">
-                <span class="material-symbols-outlined text-on-surface-variant">close</span>
-              </button>
+    <BaseModal
+      :is-open="showEditModal"
+      size="md"
+      eyebrow="Update Member"
+      title="Edit User"
+      close-label="Close user editor"
+      @close="showEditModal = false"
+    >
+      <form id="edit-user-form" class="space-y-4" @submit.prevent="handleUpdateUser">
+      <div class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="field-label">Full Name</label>
+          <input v-model="editForm.name" type="text" required class="input" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="field-label">Email Address</label>
+          <input v-model="editForm.email" type="email" required class="input" readonly />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="field-label">System Role</label>
+            <div class="relative">
+              <BaseDropdown
+                v-model="editForm.role"
+                :options="[
+                  { value: 'student', label: 'Student' },
+                  { value: 'teacher', label: 'Teacher' },
+                  { value: 'admin', label: 'Admin' },
+                ]"
+              />
+              <span
+                class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg"
+                >expand_more</span
+              >
             </div>
-
-            <form class="space-y-4" @submit.prevent="handleUpdateUser">
-              <div class="space-y-4">
-                <div class="space-y-1.5">
-                  <label class="field-label">Full Name</label>
-                  <input v-model="editForm.name" type="text" required class="input" />
-                </div>
-                <div class="space-y-1.5">
-                  <label class="field-label">Email Address</label>
-                  <input v-model="editForm.email" type="email" required class="input" readonly />
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-1.5">
-                    <label class="field-label">System Role</label>
-                    <div class="relative">
-                      <BaseDropdown
-                        v-model="editForm.role"
-                        :options="[
-                          { value: 'student', label: 'Student' },
-                          { value: 'teacher', label: 'Teacher' },
-                          { value: 'admin', label: 'Admin' },
-                        ]"
-                      />
-                      <span
-                        class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg"
-                        >expand_more</span
-                      >
-                    </div>
-                  </div>
-                  <div v-if="editForm.role === 'student'" class="space-y-1.5">
-                    <label class="field-label">Remaining Credits</label>
-                    <input
-                      v-model.number="editForm.sessionsLeft"
-                      type="number"
-                      min="0"
-                      class="input"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex gap-3 pt-6">
-                <button
-                  type="submit"
-                  :disabled="isSubmitting"
-                  class="flex-1 py-4 rounded-2xl bg-primary text-on-primary text-sm font-semibold uppercase transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-lg shadow-primary/20"
-                >
-                  {{ isSubmitting ? 'Updating...' : 'Save Changes' }}
-                </button>
-              </div>
-            </form>
+          </div>
+          <div v-if="editForm.role === 'student'" class="space-y-1.5">
+            <label class="field-label">Remaining Credits</label>
+            <input
+              v-model.number="editForm.sessionsLeft"
+              type="number"
+              min="0"
+              class="input"
+            />
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </div>
+
+      </form>
+
+      <template #footer>
+        <button class="btn-ghost" @click="showEditModal = false">Cancel</button>
+        <button type="submit" form="edit-user-form" :disabled="isSubmitting" class="btn-primary">
+          {{ isSubmitting ? 'Updating…' : 'Save Changes' }}
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>
