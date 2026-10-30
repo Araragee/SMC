@@ -2,6 +2,8 @@ import asyncio
 import logging
 import math
 from datetime import datetime, timedelta
+from functools import lru_cache
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import Response
@@ -114,6 +116,27 @@ _MAX_SESSION_MINUTES = 240
 _PAST_CLOCK_SKEW_SECONDS = 60
 
 
+@lru_cache(maxsize=1)
+def _school_tz() -> ZoneInfo | None:
+    """The school's timezone, or None if the configured name is unusable.
+
+    Resolved once per process. ``config`` validates this at startup so a typo
+    never reaches here, but a slim container missing tzdata can still fail at
+    runtime, and that must be loud: the working-hours rule is measured in
+    school-local time, and Manila is UTC+8.
+    """
+    try:
+        return ZoneInfo(settings.SCHOOL_TIMEZONE)
+    except Exception:
+        logger.error(
+            "SCHOOL_TIMEZONE %r could not be resolved; working-hours validation "
+            "is DISABLED. Install tzdata or correct the setting.",
+            settings.SCHOOL_TIMEZONE,
+            exc_info=True,
+        )
+        return None
+
+
 def _validate_session_window(
     start: datetime,
     end: datetime | None,
@@ -176,14 +199,17 @@ def _validate_session_window(
             )
 
     if not is_admin:
-        try:
-            from zoneinfo import ZoneInfo
-            tz = ZoneInfo(settings.SCHOOL_TIMEZONE)
-            start_local = start.astimezone(tz)
-            end_local = end.astimezone(tz)
-        except Exception:
-            start_local = start
-            end_local = end
+        tz = _school_tz()
+        if tz is None:
+            # No usable timezone, so there is no honest local time to measure
+            # against. Skipping the check is wrong in one direction; measuring
+            # against UTC is wrong in both — it used to reject a 09:00 Manila
+            # lesson while quoting a window that booking was inside, and wave
+            # through one at 23:00. _school_tz has already logged.
+            return end
+
+        start_local = start.astimezone(tz)
+        end_local = end.astimezone(tz)
 
         if start_local.date() != end_local.date():
             raise HTTPException(

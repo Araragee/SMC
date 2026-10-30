@@ -1,7 +1,9 @@
 import json
 import os
 from functools import cached_property
+from zoneinfo import ZoneInfo
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -57,6 +59,27 @@ class Settings(BaseSettings):
     WORKING_HOURS_START: int = 8           # Start of school working hours (inclusive hour, e.g. 8 = 08:00)
     WORKING_HOURS_END: int = 22             # End of school working hours (exclusive hour, e.g. 22 = 22:00)
     SCHOOL_TIMEZONE: str = "Asia/Manila"   # Timezone for validating school working hours
+
+    @field_validator("SCHOOL_TIMEZONE")
+    @classmethod
+    def _timezone_must_resolve(cls, v: str) -> str:
+        """Refuse to start on a timezone name we cannot resolve.
+
+        Working hours are measured in school-local time. A typo here used to
+        degrade silently to UTC, which for Manila (UTC+8) rejected ordinary
+        morning lessons and accepted late-night ones. Failing at boot makes a
+        misconfiguration impossible to miss, instead of surfacing weeks later
+        as "the booking form is broken sometimes".
+        """
+        try:
+            ZoneInfo(v)
+        except Exception as err:
+            raise ValueError(
+                f"SCHOOL_TIMEZONE {v!r} is not a timezone this system knows. "
+                "Use an IANA name such as 'Asia/Manila'; on a slim container "
+                "the tzdata package may also be missing."
+            ) from err
+        return v
     MAINTENANCE_MODE: bool = False
 
     # The background sweep that sends stale-proof reminders. It keeps its state
