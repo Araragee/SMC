@@ -241,8 +241,6 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Enrollments -->
-      <!-- Pending student requests -->
       <div v-if="activeTab === 'requests'">
         <div v-if="!rosterStore.pendingEnrollments.length" class="empty-state">
           <span
@@ -395,7 +393,6 @@ onMounted(async () => {
       @confirm="handlePicked"
     />
 
-    <!-- Edit enrollment -->
     <Teleport to="body">
       <div
         v-if="editing"

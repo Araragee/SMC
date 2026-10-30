@@ -117,7 +117,6 @@ onUnmounted(() => {
 
       <div class="w-px h-6 bg-on-surface/10 mx-0.5 sm:mx-1"></div>
 
-      <!-- Notifications -->
       <button
         class="relative p-2.5 sm:p-3 rounded-full hover:bg-on-surface/5 group"
         @click="modalStore.openNotifications()"
@@ -135,7 +134,6 @@ onUnmounted(() => {
         </span>
       </button>
 
-      <!-- Messaging -->
       <button
         class="relative p-2.5 sm:p-3 rounded-full hover:bg-on-surface/5 group"
         @click="messagingStore.isOpen = true"
@@ -153,7 +151,6 @@ onUnmounted(() => {
         </span>
       </button>
 
-      <!-- Profile/Logout -->
       <button class="icon-btn" @click="modalStore.openSettings()">
         <img
           v-if="authStore.currentUser?.avatarUrl"

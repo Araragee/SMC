@@ -81,7 +81,6 @@ const monthlyBreakdown = computed(() => {
 
 <template>
   <div class="page">
-    <!-- Header -->
     <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 py-8">
       <div>
         <div class="flex items-center gap-3 mb-3">
@@ -129,7 +128,6 @@ const monthlyBreakdown = computed(() => {
       </div>
     </header>
 
-    <!-- Ledger Table -->
     <section
       class="glass-heavy rounded-3xl border border-outline-variant/30 overflow-hidden shadow-2xl shadow-e2 dark:shadow-e2"
     >
@@ -212,7 +210,6 @@ const monthlyBreakdown = computed(() => {
       </div>
     </section>
 
-    <!-- Monthly Breakdown -->
     <section
       v-if="monthlyBreakdown.length > 0"
       class="glass-heavy rounded-3xl border border-outline-variant/30 overflow-hidden shadow-2xl shadow-e2 dark:shadow-e2"

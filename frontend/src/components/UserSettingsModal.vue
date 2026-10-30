@@ -136,14 +136,11 @@ const handleLogout = () => {
         class="fixed inset-0 z-[220] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
-        <!-- Modal Card -->
         <div
           class="modal-shell relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
-          <!-- Header -->
           <div class="flex items-start justify-between gap-4 px-5 pt-5 sm:px-8 sm:pt-7">
             <div class="min-w-0">
               <p class="text-xs font-semibold text-primary uppercase mb-1">Account Control</p>
@@ -161,7 +158,6 @@ const handleLogout = () => {
           </div>
 
           <div class="flex-1 overflow-y-auto px-5 py-6 sm:px-8 custom-scrollbar">
-            <!-- Identity -->
             <div class="flex items-center gap-4">
               <div
                 class="size-14 shrink-0 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden"
@@ -202,7 +198,6 @@ const handleLogout = () => {
               />
             </div>
 
-            <!-- Security -->
             <h3
               class="mt-9 mb-4 pb-2 border-b border-outline-variant/20 text-xs font-semibold uppercase text-on-surface-variant"
             >
@@ -297,7 +292,6 @@ const handleLogout = () => {
               Set Up Authenticator
             </button>
 
-            <!-- Session -->
             <h3
               class="mt-9 mb-4 pb-2 border-b border-outline-variant/20 text-xs font-semibold uppercase text-on-surface-variant"
             >
@@ -310,7 +304,6 @@ const handleLogout = () => {
             </button>
           </div>
 
-          <!-- Sticky Footer -->
           <div
             class="shrink-0 flex items-center justify-end gap-3 px-5 py-4 sm:px-8 border-t border-on-surface/5 bg-on-surface/[0.02]"
           >

@@ -33,7 +33,6 @@ const filteredProducts = computed(() => {
 
 <template>
   <div class="space-y-8">
-    <!-- Filters -->
     <div
       class="flex flex-col md:flex-row gap-4 items-center justify-between glass-thin p-4 rounded-3xl border border-outline-variant/20 dark:border-on-surface/5 bg-surface-container-low/50 dark:bg-transparent"
     >
@@ -78,7 +77,6 @@ const filteredProducts = computed(() => {
       </div>
     </div>
 
-    <!-- Grid -->
     <div
       v-if="filteredProducts.length > 0"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -91,7 +89,6 @@ const filteredProducts = computed(() => {
       />
     </div>
 
-    <!-- Empty State -->
     <div
       v-else
       class="py-40 flex flex-col items-center justify-center glass-thin rounded-[3rem] border border-on-surface/5"

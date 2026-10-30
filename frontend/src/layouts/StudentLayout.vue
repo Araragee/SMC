@@ -13,7 +13,6 @@ import BlobBackground from '@components/BlobBackground.vue'
         <SidebarNav />
       </div>
 
-      <!-- Main Content -->
       <main class="lg:col-span-5 min-h-screen w-full pt-16 lg:pt-0">
         <RouterView />
       </main>

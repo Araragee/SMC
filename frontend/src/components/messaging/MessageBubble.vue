@@ -17,7 +17,6 @@ const formatTime = function (iso: string) {
 </script>
 
 <template>
-  <!-- Own message -->
   <div v-if="isMine" class="flex justify-end mb-1.5">
     <div class="relative group max-w-[75%]">
       <div class="bg-primary text-on-primary rounded-3xl rounded-br-sm px-4 py-2 text-sm">
@@ -33,7 +32,6 @@ const formatTime = function (iso: string) {
     </div>
   </div>
 
-  <!-- Other's message -->
   <div v-else class="flex justify-start mb-1.5 gap-2">
     <div
       v-if="showSender && message.senderName"

@@ -46,7 +46,6 @@ const handleCheckout = async function () {
         <div
           class="flex h-full flex-col bg-surface border-l border-outline-variant/20 dark:border-on-surface/5 shadow-e3"
         >
-          <!-- Header -->
           <div
             class="p-8 border-b border-outline-variant/20 dark:border-on-surface/5 flex items-center justify-between"
           >
@@ -61,7 +60,6 @@ const handleCheckout = async function () {
             </button>
           </div>
 
-          <!-- Items -->
           <div class="flex-1 overflow-y-auto p-8 scrollbar-hide">
             <div v-if="shopStore.cart.length > 0" class="space-y-6">
               <div
@@ -128,7 +126,6 @@ const handleCheckout = async function () {
                 </div>
               </div>
 
-              <!-- Notes -->
               <div class="pt-6">
                 <label class="text-xs font-semibold text-on-surface-variant uppercase mb-3 block"
                   >Order Notes</label
@@ -154,7 +151,6 @@ const handleCheckout = async function () {
             </div>
           </div>
 
-          <!-- Footer -->
           <div
             v-if="shopStore.cart.length > 0"
             class="p-8 border-t border-outline-variant/20 dark:border-on-surface/5 bg-surface-container dark:bg-on-surface/20"

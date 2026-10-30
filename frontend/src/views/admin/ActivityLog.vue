@@ -181,7 +181,6 @@ function timeAgo(dateStr: string) {
 
 <template>
   <div class="max-w-[1000px] mx-auto pb-28 space-y-10 px-4 sm:px-6">
-    <!-- Header -->
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div
@@ -222,7 +221,6 @@ function timeAgo(dateStr: string) {
       </div>
     </header>
 
-    <!-- Summary strip -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
       <div class="glass-heavy rounded-3xl p-4 border border-outline-variant/30 text-center">
         <p class="text-2xl font-semibold text-on-surface">{{ totalCount }}</p>
@@ -248,7 +246,6 @@ function timeAgo(dateStr: string) {
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="flex flex-wrap gap-3">
       <div
         class="flex items-center gap-2 flex-1 min-w-[200px] glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3"
@@ -271,9 +268,7 @@ function timeAgo(dateStr: string) {
       />
     </div>
 
-    <!-- Log Feed -->
     <section>
-      <!-- Loading -->
       <div
         v-if="isLoading"
         class="glass-medium rounded-3xl p-20 text-center border border-outline-variant/30"
@@ -285,7 +280,6 @@ function timeAgo(dateStr: string) {
         <p class="text-sm font-bold text-on-surface-variant">Loading activity log…</p>
       </div>
 
-      <!-- Error -->
       <div
         v-else-if="error"
         class="glass-medium rounded-3xl p-12 text-center border border-error/20"
@@ -294,7 +288,6 @@ function timeAgo(dateStr: string) {
         <p class="text-sm font-bold text-on-surface-variant">{{ error }}</p>
       </div>
 
-      <!-- Empty -->
       <div
         v-else-if="entries.length === 0"
         class="glass-medium rounded-[3rem] p-20 text-center border-dashed border-2 border-outline-variant/30"
@@ -308,9 +301,7 @@ function timeAgo(dateStr: string) {
         </p>
       </div>
 
-      <!-- Timeline -->
       <div v-else class="relative">
-        <!-- vertical line -->
         <div
           class="absolute left-[22px] top-4 bottom-4 w-px bg-outline-variant/20 hidden sm:block"
         ></div>
@@ -331,7 +322,6 @@ function timeAgo(dateStr: string) {
               >
             </div>
 
-            <!-- Mobile icon (inline) -->
             <div
               class="sm:hidden size-9 rounded-2xl flex items-center justify-center shrink-0 border"
               :class="actionColor(entry.action_type)"
@@ -342,7 +332,6 @@ function timeAgo(dateStr: string) {
               >
             </div>
 
-            <!-- Content -->
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between gap-3 flex-wrap">
                 <div>
@@ -381,7 +370,6 @@ function timeAgo(dateStr: string) {
         </div>
       </div>
 
-      <!-- Pagination -->
       <div
         v-if="totalCount > PAGE_SIZE"
         class="flex items-center justify-between mt-6 gap-3 flex-wrap"

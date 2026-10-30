@@ -308,7 +308,6 @@ const stopCountering = () => {
 
 <template>
   <div class="w-full mx-auto pb-10">
-    <!-- Hero Welcome -->
     <div class="flex items-start justify-between gap-4 mb-6">
       <div>
         <h2 class="text-5xl font-semibold tracking-tighter text-on-surface mb-3">
@@ -338,7 +337,6 @@ const stopCountering = () => {
       </div>
     </div>
 
-    <!-- Overdue Warning -->
     <div v-if="overdueSessions.length > 0" class="alert-error mb-6">
       <span
         class="material-symbols-outlined shrink-0 text-error [font-variation-settings:'FILL'_1]"
@@ -356,11 +354,8 @@ const stopCountering = () => {
       </div>
     </div>
 
-    <!-- Main Grid -->
     <div class="grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-4">
-      <!-- Left Column -->
       <div class="col-span-1 md:col-span-8 space-y-4">
-        <!-- My Sessions -->
         <section
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
@@ -389,7 +384,6 @@ const stopCountering = () => {
             </div>
           </div>
 
-          <!-- Loading -->
           <div v-if="scheduleStore.isLoading" class="space-y-4">
             <div
               v-for="i in 3"
@@ -398,7 +392,6 @@ const stopCountering = () => {
             />
           </div>
 
-          <!-- Empty -->
           <div
             v-else-if="mySessions.length === 0"
             class="py-12 flex flex-col items-center text-center"
@@ -419,7 +412,6 @@ const stopCountering = () => {
             </button>
           </div>
 
-          <!-- Session list -->
           <div v-else class="space-y-4">
             <div
               v-for="session in mySessions"
@@ -427,7 +419,6 @@ const stopCountering = () => {
               class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-4 rounded-3xl flex items-center gap-6 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 hover:translate-x-1 transition-all cursor-pointer group"
               @click="selectSession(session.id)"
             >
-              <!-- Date badge -->
               <div
                 class="flex flex-col items-center justify-center size-16 rounded-xl shadow-lg shrink-0"
                 :class="
@@ -450,7 +441,6 @@ const stopCountering = () => {
                 <span class="text-2xl font-semibold">{{ formatDay(session.startTime) }}</span>
               </div>
 
-              <!-- Info -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span
@@ -492,7 +482,6 @@ const stopCountering = () => {
                 </p>
               </div>
 
-              <!-- Right actions -->
               <div class="flex items-center gap-3 shrink-0">
                 <span
                   v-if="session.homeworkAssigned && !session.homeworkCompleted"
@@ -596,7 +585,6 @@ const stopCountering = () => {
               </button>
             </div>
 
-            <!-- Pending homework -->
             <div
               v-if="pendingHomework"
               class="bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5 p-6 rounded-3xl flex items-center gap-4 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all"
@@ -632,9 +620,7 @@ const stopCountering = () => {
         </section>
       </div>
 
-      <!-- Right Column -->
       <div class="col-span-1 md:col-span-4 space-y-4">
-        <!-- Enrollment Status -->
         <section
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 relative overflow-hidden group"
         >
@@ -758,7 +744,6 @@ const stopCountering = () => {
           </div>
         </section>
 
-        <!-- Notice Board -->
         <section
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
@@ -824,7 +809,6 @@ const stopCountering = () => {
           </div>
         </section>
 
-        <!-- Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div
             class="liquid-glass rounded-3xl p-6 text-center border border-on-surface/[0.04] dark:border-on-surface/5"
@@ -845,7 +829,6 @@ const stopCountering = () => {
     </div>
   </div>
 
-  <!-- Session Detail Modal -->
   <Teleport to="body">
     <Transition
       enter-active-class="transition opacity-200 ease-out"
@@ -867,7 +850,6 @@ const stopCountering = () => {
         <div
           class="relative w-full max-w-md bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
         >
-          <!-- Header -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div
@@ -932,7 +914,6 @@ const stopCountering = () => {
             </button>
           </div>
 
-          <!-- Info rows -->
           <div class="space-y-4">
             <div
               class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
@@ -979,7 +960,6 @@ const stopCountering = () => {
             </div>
           </div>
 
-          <!-- Proof Section -->
           <div
             v-if="
               [
@@ -1207,7 +1187,6 @@ const stopCountering = () => {
     </Transition>
   </Teleport>
 
-  <!-- Proof Viewer Lightbox -->
   <Teleport to="body">
     <Transition
       enter-active-class="transition opacity-200 ease-out"
@@ -1236,7 +1215,6 @@ const stopCountering = () => {
     </Transition>
   </Teleport>
 
-  <!-- Request Session Modal -->
   <Teleport to="body">
     <Transition
       enter-active-class="transition opacity-200 ease-out"

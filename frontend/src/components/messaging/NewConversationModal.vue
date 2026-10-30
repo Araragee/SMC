@@ -69,7 +69,6 @@ const getRoleColor = function (role: string) {
       <div
         class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[80vh]"
       >
-        <!-- Header -->
         <div class="flex items-center justify-between">
           <h3 class="text-xl font-semibold text-on-surface">New Conversation</h3>
           <button
@@ -80,7 +79,6 @@ const getRoleColor = function (role: string) {
           </button>
         </div>
 
-        <!-- Tabs -->
         <div class="flex gap-2 p-1 bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl">
           <button
             class="flex-1 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
@@ -106,13 +104,10 @@ const getRoleColor = function (role: string) {
           </button>
         </div>
 
-        <!-- Group name input -->
         <input v-if="tab === 'group'" v-model="groupName" class="input" placeholder="Group name…" />
 
-        <!-- Search -->
         <input v-model="search" class="input" placeholder="Search people…" />
 
-        <!-- User list -->
         <div class="flex-1 overflow-y-auto space-y-1 max-h-48">
           <button
             v-for="user in filtered"
@@ -158,7 +153,6 @@ const getRoleColor = function (role: string) {
           </p>
         </div>
 
-        <!-- Confirm -->
         <button
           class="w-full py-3 rounded-2xl bg-primary text-on-primary font-semibold text-sm uppercase disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity active:scale-[0.98]"
           :disabled="

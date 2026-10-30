@@ -25,17 +25,14 @@ const back = function () {
       leave-to-class="translate-x-full"
     >
       <div v-if="store.isOpen" class="fixed inset-0 z-[300] flex justify-end pointer-events-none">
-        <!-- Backdrop -->
         <div
           class="absolute inset-0 bg-black/40 dark:bg-black/70 pointer-events-auto"
           @click="store.closePanel()"
         />
 
-        <!-- Drawer -->
         <div
           class="relative w-full max-w-sm h-full glass-heavy flex flex-col pointer-events-auto shadow-2xl"
         >
-          <!-- Header -->
           <div
             class="flex items-center gap-3 px-4 py-4 border-b border-on-surface/[0.04] dark:border-on-surface/5 shrink-0"
           >
@@ -59,13 +56,11 @@ const back = function () {
             </button>
           </div>
 
-          <!-- Body -->
           <div class="flex-1 min-h-0">
             <ConversationList v-if="!store.activeConversationId" @select="selectConversation" />
             <ChatWindow v-else :conversation-id="store.activeConversationId" />
           </div>
 
-          <!-- WS status indicator -->
           <div
             v-if="store.wsStatus !== 'connected'"
             class="px-4 py-2 text-center text-xs font-bold"

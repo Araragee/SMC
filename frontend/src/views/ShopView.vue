@@ -44,7 +44,6 @@ const handleAddToCart = function (product: any) {
 
 <template>
   <div class="min-h-screen pb-20">
-    <!-- Header -->
     <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div>
         <h1 class="text-4xl md:text-5xl font-semibold text-on-surface mb-4 tracking-tight">
@@ -73,7 +72,6 @@ const handleAddToCart = function (product: any) {
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-on-surface/5 pb-4">
       <button
         @click="activeTab = 'products'"
@@ -99,7 +97,6 @@ const handleAddToCart = function (product: any) {
       </button>
     </div>
 
-    <!-- Content -->
     <div v-if="activeTab === 'products'">
       <div v-if="shopStore.isLoading" class="flex flex-col items-center justify-center py-40">
         <div
@@ -156,7 +153,6 @@ const handleAddToCart = function (product: any) {
             </div>
           </div>
 
-          <!-- Order Items Preview -->
           <div
             class="mt-6 pt-6 border-t border-outline-variant/20 dark:border-on-surface/5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
           >
@@ -188,7 +184,6 @@ const handleAddToCart = function (product: any) {
             </div>
           </div>
 
-          <!-- Rejection Reason -->
           <div
             v-if="order.status === 'rejected' && order.rejectionReason"
             class="alert-error mt-4 text-xs font-bold"
@@ -198,7 +193,6 @@ const handleAddToCart = function (product: any) {
         </div>
       </div>
 
-      <!-- Empty Orders -->
       <div
         v-else
         class="flex flex-col items-center justify-center py-20 glass-thin rounded-[3rem] border border-outline-variant/20 dark:border-on-surface/5 bg-surface-container-low/50 dark:bg-transparent"
@@ -219,7 +213,6 @@ const handleAddToCart = function (product: any) {
       </div>
     </div>
 
-    <!-- Product Detail Modal -->
     <div
       v-if="isProductModalOpen && selectedProduct"
       class="fixed inset-0 z-[60] flex items-center justify-center p-6"
@@ -232,7 +225,6 @@ const handleAddToCart = function (product: any) {
       <div
         class="relative w-full max-w-4xl glass-heavy rounded-[3rem] border border-outline-variant/20 dark:border-on-surface/10 overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
       >
-        <!-- Product Image -->
         <div class="w-full md:w-1/2 bg-on-surface/20 relative aspect-square md:aspect-auto">
           <img
             :src="
@@ -255,7 +247,6 @@ const handleAddToCart = function (product: any) {
           </button>
         </div>
 
-        <!-- Product Info -->
         <div class="w-full md:w-1/2 p-10 md:p-12 overflow-y-auto custom-scrollbar flex flex-col">
           <div class="hidden md:flex justify-end mb-8">
             <button

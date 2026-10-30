@@ -136,7 +136,6 @@ const formatDay = function (iso: string): string {
 
 <template>
   <div class="w-full mx-auto pb-28 space-y-4">
-    <!-- Header -->
     <div
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
@@ -161,7 +160,6 @@ const formatDay = function (iso: string): string {
       </div>
     </div>
 
-    <!-- Pending Sessions Notice -->
     <section
       v-if="pendingSessions.length > 0"
       class="liquid-glass rounded-3xl p-4 border border-warning/20"
@@ -211,7 +209,6 @@ const formatDay = function (iso: string): string {
       </div>
     </section>
 
-    <!-- Weekly Calendar -->
     <section
       class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
     >
@@ -232,7 +229,6 @@ const formatDay = function (iso: string): string {
       />
     </section>
 
-    <!-- Upcoming Sessions -->
     <section
       class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
     >
@@ -252,7 +248,6 @@ const formatDay = function (iso: string): string {
           :key="session.id"
           class="flex items-center gap-4 p-4 rounded-2xl bg-on-surface/[0.02] dark:bg-on-surface/[0.02] border border-on-surface/[0.04] dark:border-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-on-surface/10 transition-all group"
         >
-          <!-- Date badge -->
           <div
             class="size-14 rounded-2xl bg-primary/20 border border-primary/20 flex flex-col items-center justify-center shrink-0"
           >
@@ -286,7 +281,6 @@ const formatDay = function (iso: string): string {
       </div>
     </section>
 
-    <!-- Session Detail Modal -->
     <SessionDetailModal
       :session="selectedSession"
       user-role="student"
@@ -321,7 +315,6 @@ const formatDay = function (iso: string): string {
       "
     />
 
-    <!-- Propose Modal -->
     <ProposeSessionModal
       :is-open="showProposeModal"
       v-if="showProposeModal"

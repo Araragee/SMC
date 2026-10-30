@@ -276,7 +276,6 @@ const formatTime = (dt: string | undefined) => {
 
 <template>
   <div class="w-full mx-auto pb-10">
-    <!-- Hero Header -->
     <section class="mb-8">
       <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-3">
         Welcome back, <span class="text-primary">Maestro.</span>
@@ -289,7 +288,6 @@ const formatTime = (dt: string | undefined) => {
       </p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Current Session Card -->
         <div
           v-if="currentSession"
           class="relative liquid-glass border border-primary/20 rounded-3xl overflow-hidden cursor-pointer hover:border-primary/50 transition-all flex flex-col group"
@@ -357,11 +355,8 @@ const formatTime = (dt: string | undefined) => {
       </div>
     </section>
 
-    <!-- Main Grid -->
     <div class="grid grid-cols-1 gap-4">
-      <!-- Full Column -->
       <div class="col-span-full space-y-4">
-        <!-- Student Roster -->
         <div
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3"
         >
@@ -381,7 +376,6 @@ const formatTime = (dt: string | undefined) => {
             </button>
           </div>
 
-          <!-- Loading -->
           <div v-if="usersStore.isLoading" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div
               v-for="i in 2"
@@ -425,7 +419,6 @@ const formatTime = (dt: string | undefined) => {
               >
             </div>
 
-            <!-- Enroll New -->
             <div
               class="bg-on-surface/[0.04] dark:bg-on-surface/5 p-4 rounded-3xl flex items-center justify-center border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 hover:border-primary/50 hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.08] transition-all group cursor-pointer"
             >
@@ -440,7 +433,6 @@ const formatTime = (dt: string | undefined) => {
           </div>
         </div>
 
-        <!-- Weekly Schedule -->
         <div
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 space-y-3"
         >
@@ -492,7 +484,6 @@ const formatTime = (dt: string | undefined) => {
                     {{ day.dateNum }}
                   </div>
                 </div>
-                <!-- Has session -->
                 <div
                   v-if="day.session"
                   class="rounded-2xl p-2 sm:p-4 border min-h-[7rem] sm:min-h-[8rem] flex flex-col justify-between cursor-pointer hover:opacity-80 transition-opacity"
@@ -532,7 +523,6 @@ const formatTime = (dt: string | undefined) => {
                     }}
                   </p>
                 </div>
-                <!-- Empty slot -->
                 <div
                   v-else
                   class="h-28 sm:h-32 border border-dashed rounded-2xl flex items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors"
@@ -560,7 +550,6 @@ const formatTime = (dt: string | undefined) => {
       </div>
     </div>
 
-    <!-- Footer Stats -->
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
       <div
         class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 flex items-center gap-4 group hover:bg-on-surface/5 dark:hover:bg-on-surface/5 transition-all"
@@ -608,7 +597,6 @@ const formatTime = (dt: string | undefined) => {
     </section>
   </div>
 
-  <!-- Propose Session Modal -->
   <ProposeSessionModal
     v-if="showProposeModal"
     :is-open="showProposeModal"
@@ -643,7 +631,6 @@ const formatTime = (dt: string | undefined) => {
         <div
           class="relative w-full max-w-lg bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
         >
-          <!-- Header -->
           <div class="flex items-start justify-between">
             <div>
               <h3
@@ -669,7 +656,6 @@ const formatTime = (dt: string | undefined) => {
             </button>
           </div>
 
-          <!-- Proof Section -->
           <div class="space-y-3">
             <div class="flex items-center justify-between mb-2">
               <label class="text-xs font-semibold text-on-surface-variant uppercase"
@@ -786,7 +772,6 @@ const formatTime = (dt: string | undefined) => {
             </label>
           </div>
 
-          <!-- Negotiation Buttons -->
           <div
             v-if="expandedSession.status === 'pending_teacher'"
             class="p-4 bg-primary/5 border border-primary/20 rounded-3xl space-y-3"
@@ -819,7 +804,6 @@ const formatTime = (dt: string | undefined) => {
             </button>
           </div>
 
-          <!-- Practice Goals -->
           <div class="space-y-3">
             <label class="text-xs font-semibold text-on-surface-variant uppercase"
               >Practice Goals / Notes</label
@@ -831,7 +815,6 @@ const formatTime = (dt: string | undefined) => {
             ></textarea>
           </div>
 
-          <!-- Action Buttons -->
           <div class="flex gap-3 pt-2">
             <button
               class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10"
@@ -851,7 +834,6 @@ const formatTime = (dt: string | undefined) => {
     </Transition>
   </Teleport>
 
-  <!-- Teacher Counter Modal -->
   <Teleport to="body">
     <Transition
       enter-active-class="transition opacity-150 ease-out"

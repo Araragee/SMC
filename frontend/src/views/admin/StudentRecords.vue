@@ -118,7 +118,6 @@ const handleRecalculate = async () => {
 
 <template>
   <div class="space-y-8 max-w-[1600px] mx-auto pb-12 px-4 sm:px-6">
-    <!-- Header/Profile Info -->
     <section v-if="student" class="flex flex-col md:flex-row gap-6 items-start">
       <BaseCard
         class="flex-1 p-6 liquid-glass border border-on-surface/10 relative overflow-hidden group"
@@ -188,7 +187,6 @@ const handleRecalculate = async () => {
       </BaseCard>
     </section>
 
-    <!-- Enrollments -->
     <section v-if="interactionsStore.enrollments.length > 0">
       <h2 class="text-xs font-semibold uppercase text-on-surface/40 mb-3">Enrollments</h2>
       <div class="space-y-2">
@@ -225,7 +223,6 @@ const handleRecalculate = async () => {
       </div>
     </section>
 
-    <!-- Controls -->
     <section class="flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex gap-4 w-full sm:w-auto">
         <BaseDropdown
@@ -251,7 +248,6 @@ const handleRecalculate = async () => {
       </BaseButton>
     </section>
 
-    <!-- Timeline -->
     <section>
       <div v-if="isLoading" class="flex justify-center p-12">
         <span class="material-symbols-outlined animate-spin text-primary text-4xl">autorenew</span>

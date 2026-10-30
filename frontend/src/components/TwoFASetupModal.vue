@@ -90,14 +90,11 @@ const handleConfirm = async () => {
       leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]"
     >
       <div v-if="isOpen" class="fixed inset-0 z-[230] flex items-center justify-center p-4">
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
-        <!-- Modal Card -->
         <div
           class="modal-shell relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col p-8 max-h-[90vh]"
         >
-          <!-- Header -->
           <div class="flex justify-between items-start mt-4">
             <div>
               <p class="text-xs font-semibold text-primary uppercase mb-1">Security Setup</p>
@@ -110,7 +107,6 @@ const handleConfirm = async () => {
 
           <!-- Content Area (Scrollable if needed) -->
           <div class="flex-1 overflow-y-auto space-y-6 pt-4 pr-1 custom-scrollbar">
-            <!-- Loading state -->
             <div v-if="loading" class="flex flex-col items-center justify-center py-12 space-y-4">
               <div
                 class="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"
@@ -118,7 +114,6 @@ const handleConfirm = async () => {
               <p class="text-xs font-bold text-on-surface-variant uppercase">Generating keys...</p>
             </div>
 
-            <!-- Main Setup UI -->
             <div v-else-if="setupData" class="space-y-6">
               <!-- Step 1: Scan QR Code -->
               <div class="space-y-3">
@@ -188,7 +183,6 @@ const handleConfirm = async () => {
               <p v-if="errorMsg" class="text-error text-xs text-center font-bold">{{ errorMsg }}</p>
             </div>
 
-            <!-- Error fallback -->
             <div v-else class="py-8 text-center space-y-4">
               <span class="material-symbols-outlined text-error text-5xl">warning</span>
               <p class="text-sm font-bold text-on-surface">
@@ -204,7 +198,6 @@ const handleConfirm = async () => {
             </div>
           </div>
 
-          <!-- Footer -->
           <div
             class="pt-6 border-t border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] -mx-8 -mb-8 p-8 flex items-center justify-end gap-4 shrink-0"
           >

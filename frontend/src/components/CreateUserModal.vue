@@ -305,7 +305,6 @@ const handleBackOrClose = () => {
 
       <!-- Step 2: Form -->
       <form v-else @submit.prevent="handleSubmit" class="space-y-8">
-        <!-- Student Form -->
         <template v-if="selectedRole === 'student'">
           <section>
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
@@ -486,7 +485,6 @@ const handleBackOrClose = () => {
           </section>
         </template>
 
-        <!-- Teacher Form -->
         <template v-if="selectedRole === 'teacher'">
           <section>
             <h3 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">

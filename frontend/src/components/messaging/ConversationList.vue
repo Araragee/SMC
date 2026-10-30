@@ -43,7 +43,6 @@ const onCreated = function (id: number) {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Search / New -->
     <div class="px-4 py-3 border-b border-on-surface/[0.04] dark:border-on-surface/5">
       <button
         class="w-full flex items-center justify-center gap-2 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-2xl text-primary text-xs font-semibold uppercase transition-colors"
@@ -54,7 +53,6 @@ const onCreated = function (id: number) {
       </button>
     </div>
 
-    <!-- List -->
     <div class="flex-1 overflow-y-auto">
       <div
         v-if="store.sortedConversations.length === 0"
@@ -72,7 +70,6 @@ const onCreated = function (id: number) {
         :class="conv.id === store.activeConversationId ? 'bg-primary/5' : ''"
         @click="emit('select', conv.id)"
       >
-        <!-- Avatar -->
         <div
           class="size-10 rounded-2xl flex items-center justify-center shrink-0 text-sm font-semibold"
           :class="
@@ -89,7 +86,6 @@ const onCreated = function (id: number) {
           >
         </div>
 
-        <!-- Content -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2">
             <p class="text-sm font-bold text-on-surface truncate">{{ getDisplayName(conv) }}</p>
@@ -102,7 +98,6 @@ const onCreated = function (id: number) {
           </p>
         </div>
 
-        <!-- Unread badge -->
         <span
           v-if="(store.unreadCounts[conv.id] ?? conv.unreadCount) > 0"
           class="min-w-[18px] h-[18px] bg-primary rounded-full text-xs font-semibold text-on-primary flex items-center justify-center px-1 shrink-0"

@@ -359,7 +359,6 @@ async function handleRejectProof(sessionId: number) {
 
 <template>
   <div class="page">
-    <!-- Header -->
     <div>
       <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">Students</h1>
       <p class="text-on-surface-variant font-medium">
@@ -369,7 +368,6 @@ async function handleRejectProof(sessionId: number) {
 
     <!-- Search + Filter toolbar -->
     <div class="space-y-3">
-      <!-- Search bar -->
       <div class="relative group">
         <span
           class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl pointer-events-none transition-colors group-focus-within:text-success"
@@ -401,7 +399,6 @@ async function handleRejectProof(sessionId: number) {
 
       <!-- Filter pills + Sort -->
       <div class="flex items-center gap-2">
-        <!-- Scrollable pills -->
         <div class="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-0.5 min-w-0">
           <button
             v-for="f in listFilters"
@@ -426,7 +423,6 @@ async function handleRejectProof(sessionId: number) {
           </button>
         </div>
 
-        <!-- Sort dropdown -->
         <div class="relative shrink-0">
           <button
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition-all whitespace-nowrap"
@@ -510,7 +506,6 @@ async function handleRejectProof(sessionId: number) {
       </Transition>
     </div>
 
-    <!-- Student List -->
     <section
       class="liquid-glass rounded-3xl border border-on-surface/[0.04] dark:border-on-surface/5 overflow-hidden"
     >
@@ -540,7 +535,6 @@ async function handleRejectProof(sessionId: number) {
           class="w-full flex items-center gap-4 px-6 py-4 hover:bg-on-surface/[0.02] dark:hover:bg-on-surface/[0.02] transition-colors text-left group"
           @click="openStudent(student)"
         >
-          <!-- Avatar -->
           <div
             class="size-11 rounded-2xl bg-success/20 border border-success/20 flex items-center justify-center text-success font-semibold text-base shrink-0 overflow-hidden"
           >
@@ -551,12 +545,10 @@ async function handleRejectProof(sessionId: number) {
             />
             <span v-else>{{ student.name.charAt(0).toUpperCase() }}</span>
           </div>
-          <!-- Info -->
           <div class="flex-1 min-w-0">
             <p class="font-bold text-on-surface text-sm truncate">{{ student.name }}</p>
             <p class="text-on-surface-variant text-xs truncate">{{ student.email }}</p>
           </div>
-          <!-- Status indicators -->
           <div class="flex items-center gap-2 shrink-0">
             <span
               v-if="hasOverdue(student)"
@@ -609,7 +601,6 @@ async function handleRejectProof(sessionId: number) {
           <div
             class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl flex flex-col max-h-[90vh]"
           >
-            <!-- Header -->
             <div class="flex items-center gap-4 p-6 border-b border-on-surface/5">
               <div
                 class="size-14 rounded-2xl bg-success/20 border border-success/20 flex items-center justify-center text-success font-semibold text-xl overflow-hidden shrink-0"
@@ -632,9 +623,7 @@ async function handleRejectProof(sessionId: number) {
               </button>
             </div>
 
-            <!-- Body -->
             <div class="overflow-y-auto flex-1 p-6 space-y-4 custom-scrollbar">
-              <!-- Info grid -->
               <div class="grid grid-cols-2 gap-3">
                 <div
                   v-if="selectedStudent.school"
@@ -669,7 +658,6 @@ async function handleRejectProof(sessionId: number) {
                 </div>
               </div>
 
-              <!-- Stat chips -->
               <div>
                 <p class="text-xs font-semibold text-on-surface-variant uppercase mb-3">
                   Session Breakdown
@@ -694,7 +682,6 @@ async function handleRejectProof(sessionId: number) {
                 </div>
               </div>
 
-              <!-- Session list -->
               <div v-if="filteredSessions.length > 0" class="space-y-2">
                 <p class="text-xs font-semibold text-on-surface-variant uppercase">
                   {{ activeChip ? chips.find((c) => c.key === activeChip)?.label : 'All' }} Sessions
@@ -740,7 +727,6 @@ async function handleRejectProof(sessionId: number) {
       </Transition>
     </Teleport>
 
-    <!-- Session Detail Modal -->
     <SessionDetailModal
       :session="selectedSession"
       user-role="admin"

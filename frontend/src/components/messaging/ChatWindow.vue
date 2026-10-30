@@ -108,7 +108,6 @@ const getConvLabel = function (): string {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Session thread header -->
     <div
       v-if="conv?.type === 'session_thread'"
       class="px-4 py-2 bg-tertiary/5 border-b border-tertiary/10"
@@ -117,9 +116,7 @@ const getConvLabel = function (): string {
       <p class="text-xs font-bold text-on-surface truncate">{{ conv.name }}</p>
     </div>
 
-    <!-- Message list -->
     <div ref="listRef" class="flex-1 overflow-y-auto px-4 py-3 space-y-0.5 scroll-smooth">
-      <!-- Load more -->
       <div class="flex justify-center mb-2">
         <button
           v-if="nextCursor"
@@ -139,7 +136,6 @@ const getConvLabel = function (): string {
         :show-sender="isGroup"
       />
 
-      <!-- Typing indicator -->
       <div v-if="typingList.length > 0" class="flex justify-start mb-1.5">
         <div
           class="bg-on-surface/[0.06] dark:bg-on-surface/10 rounded-3xl rounded-bl-sm px-4 py-3 flex gap-1 items-center"
@@ -156,7 +152,6 @@ const getConvLabel = function (): string {
         </div>
       </div>
 
-      <!-- Empty state -->
       <div
         v-if="msgs.length === 0 && !isLoadingMore"
         class="flex flex-col items-center justify-center py-12 text-center"
@@ -169,7 +164,6 @@ const getConvLabel = function (): string {
       </div>
     </div>
 
-    <!-- Input bar -->
     <div class="px-4 py-3 border-t border-on-surface/[0.04] dark:border-on-surface/5">
       <div class="flex items-end gap-2">
         <textarea

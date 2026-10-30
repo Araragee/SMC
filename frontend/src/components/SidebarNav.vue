@@ -194,7 +194,6 @@ onMounted(() => {
     class="fixed top-0 left-0 h-screen w-[280px] max-w-[85vw] glass-thin border-r border-on-surface/5 p-4 flex flex-col z-[100] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:w-full lg:max-w-none lg:sticky lg:top-6 lg:h-auto lg:rounded-3xl lg:border-r-0 lg:shadow-2xl lg:translate-x-0 lg:transition-none"
     :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
   >
-    <!-- Logo Section -->
     <div class="flex flex-col items-center py-4 mb-2">
       <div
         class="size-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shrink-0 mb-3 overflow-hidden"
@@ -209,7 +208,6 @@ onMounted(() => {
 
     <div class="h-px bg-on-surface/[0.04] dark:bg-on-surface/5 my-4"></div>
 
-    <!-- Nav Links -->
     <nav
       class="flex flex-col flex-1 lg:flex-none lg:max-h-[50vh] overflow-y-auto overflow-x-hidden pt-2 scrollbar-hide"
     >
@@ -234,12 +232,10 @@ onMounted(() => {
       </router-link>
     </nav>
 
-    <!-- Bottom Section -->
     <div
       class="py-3 border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col gap-3 relative"
     >
       <div class="flex flex-col items-center gap-2 w-full">
-        <!-- Notifications -->
         <button
           class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-2xl text-on-surface-variant hover:text-on-surface group border border-on-surface/[0.04] dark:border-on-surface/5"
           @click="openNotifications"
@@ -252,7 +248,6 @@ onMounted(() => {
             >{{ unreadCount > 9 ? '9+' : unreadCount }}</span
           >
         </button>
-        <!-- Messages -->
         <button
           class="w-full relative flex-1 flex items-center justify-start gap-2 p-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 rounded-2xl text-on-surface-variant hover:text-on-surface group border border-on-surface/[0.04] dark:border-on-surface/5"
           @click="openMessaging"
@@ -270,7 +265,6 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- User Profile Dropdown -->
       <div class="relative w-full">
         <button
           class="w-full flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 group border border-transparent"
@@ -305,7 +299,6 @@ onMounted(() => {
           >
         </button>
 
-        <!-- Dropdown Content -->
         <div
           v-if="isUserDropdownOpen"
           v-click-outside="() => (isUserDropdownOpen = false)"
@@ -349,7 +342,6 @@ onMounted(() => {
     </div>
   </aside>
 
-  <!-- Notifications Modal -->
   <NotificationsModal
     :is-open="modalStore.isNotificationsOpen"
     :notifications="notifStore.notifications"
@@ -357,16 +349,13 @@ onMounted(() => {
     @select="openNotificationDetail"
   />
 
-  <!-- Notification Detail Modal -->
   <NotificationDetailModal
     :notification="selectedNotification"
     @close="selectedNotification = null"
   />
 
-  <!-- User Settings Modal -->
   <UserSettingsModal :is-open="modalStore.isSettingsOpen" @close="modalStore.closeSettings()" />
 
-  <!-- Preferences Modal -->
   <PreferencesModal
     :is-open="modalStore.isPreferencesOpen"
     @close="modalStore.closePreferences()"

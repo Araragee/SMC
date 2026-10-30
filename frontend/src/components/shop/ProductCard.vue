@@ -26,7 +26,6 @@ const handleAddToCart = function (e: Event) {
   <div
     class="glass-thin rounded-3xl overflow-hidden border border-outline-variant/20 dark:border-on-surface/5 hover:border-primary/30 transition-all group flex flex-col h-full bg-surface-container-low/50 dark:bg-transparent"
   >
-    <!-- Image -->
     <div class="aspect-square relative overflow-hidden bg-on-surface/5 dark:bg-on-surface/40">
       <img
         v-if="product.imageUrl"
@@ -39,7 +38,6 @@ const handleAddToCart = function (e: Event) {
         <span class="material-symbols-outlined text-6xl">image</span>
       </div>
 
-      <!-- Category Badge -->
       <div v-if="product.category" class="absolute top-4 left-4">
         <span
           class="px-4 py-1.5 rounded-full bg-on-surface/40 dark:bg-on-surface/60 border border-on-surface/10 text-xs font-semibold uppercase text-on-surface"
@@ -61,7 +59,6 @@ const handleAddToCart = function (e: Event) {
       </div>
     </div>
 
-    <!-- Info -->
     <div class="p-6 flex flex-col flex-grow">
       <div class="mb-4">
         <h3 class="text-xl font-semibold text-on-surface line-clamp-1 mb-1">{{ product.name }}</h3>

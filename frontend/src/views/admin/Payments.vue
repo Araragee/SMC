@@ -226,7 +226,6 @@ async function submitPayment() {
 
 <template>
   <div class="max-w-[1100px] mx-auto pb-28 space-y-10 px-4 sm:px-6">
-    <!-- Header -->
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div
@@ -253,7 +252,6 @@ async function submitPayment() {
       </div>
     </header>
 
-    <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="glass-heavy rounded-3xl p-6 border border-outline-variant/30">
         <p class="text-xs font-semibold text-on-surface-variant uppercase mb-2">Total Revenue</p>
@@ -276,7 +274,6 @@ async function submitPayment() {
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="flex flex-wrap gap-3 items-center">
       <div
         class="flex items-center gap-2 flex-1 min-w-[200px] glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3"
@@ -322,9 +319,7 @@ async function submitPayment() {
       />
     </div>
 
-    <!-- Table / List -->
     <section>
-      <!-- Loading -->
       <div
         v-if="paymentsStore.isLoading"
         class="glass-medium rounded-3xl p-20 text-center border border-outline-variant/30"
@@ -336,7 +331,6 @@ async function submitPayment() {
         <p class="text-sm font-bold text-on-surface-variant">Loading ledger…</p>
       </div>
 
-      <!-- Empty -->
       <div
         v-else-if="filteredPayments.length === 0"
         class="glass-medium rounded-[3rem] p-20 text-center border-dashed border-2 border-outline-variant/30"
@@ -350,7 +344,6 @@ async function submitPayment() {
         </p>
       </div>
 
-      <!-- Rows -->
       <div v-else class="space-y-3">
         <!-- Header row (hidden on mobile) -->
         <div
@@ -369,7 +362,6 @@ async function submitPayment() {
           :key="pay.id"
           class="glass-heavy rounded-3xl px-6 py-4 border border-outline-variant/30 grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_100px_72px] gap-3 sm:gap-4 items-center hover:border-success/20 transition-all"
         >
-          <!-- Student -->
           <div class="flex items-center gap-3">
             <div
               class="size-10 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center shrink-0"
@@ -388,18 +380,14 @@ async function submitPayment() {
             </div>
           </div>
 
-          <!-- Date -->
           <p class="text-sm font-medium text-on-surface-variant">{{ formatDate(pay.date) }}</p>
 
-          <!-- Method -->
           <p class="text-sm font-bold text-on-surface capitalize">
             {{ pay.method.replace('_', ' ') }}
           </p>
 
-          <!-- Amount -->
           <p class="text-sm font-semibold text-on-surface">{{ formatCurrency(pay.amount) }}</p>
 
-          <!-- Status badge -->
           <span
             class="px-3 py-1 rounded-full text-xs font-semibold uppercase border self-start sm:self-center"
             :class="statusColor(pay.status)"
@@ -407,7 +395,6 @@ async function submitPayment() {
             {{ pay.status }}
           </span>
 
-          <!-- Actions -->
           <div class="flex items-center gap-1 justify-end">
             <button
               class="tap-target p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
@@ -434,7 +421,6 @@ async function submitPayment() {
         </div>
       </div>
 
-      <!-- Summary footer -->
       <div
         v-if="filteredPayments.length > 0"
         class="mt-4 px-6 py-3 glass-medium rounded-2xl border border-outline-variant/20 flex items-center justify-between text-sm"
@@ -452,7 +438,6 @@ async function submitPayment() {
     </section>
   </div>
 
-  <!-- Add Payment Modal -->
   <Teleport to="body">
     <div
       v-if="showAddModal"
@@ -473,7 +458,6 @@ async function submitPayment() {
         </div>
 
         <div class="space-y-4">
-          <!-- Student -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Student *</label
@@ -485,7 +469,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Amount -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Amount (PHP) *</label
@@ -500,7 +483,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Method -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
@@ -517,7 +499,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Status -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
@@ -532,7 +513,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Notes -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Notes (optional)</label
@@ -558,7 +538,6 @@ async function submitPayment() {
     </div>
   </Teleport>
 
-  <!-- Edit Payment Modal -->
   <Teleport to="body">
     <div
       v-if="showEditModal"
@@ -593,7 +572,6 @@ async function submitPayment() {
             </div>
           </div>
 
-          <!-- Amount -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Amount (PHP) *</label
@@ -608,7 +586,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Method -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Method</label
@@ -625,7 +602,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Status -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Status</label
@@ -640,7 +616,6 @@ async function submitPayment() {
             />
           </div>
 
-          <!-- Notes -->
           <div>
             <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
               >Notes (optional)</label

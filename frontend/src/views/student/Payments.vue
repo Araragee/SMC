@@ -84,7 +84,6 @@ const totalPaid = computed(() =>
       </p>
     </header>
 
-    <!-- Summary card -->
     <div v-if="paymentsStore.payments.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
       <div class="glass-medium rounded-3xl p-4 border border-outline-variant/30">
         <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Total Paid</p>
@@ -103,7 +102,6 @@ const totalPaid = computed(() =>
     </div>
 
     <div class="grid grid-cols-1 gap-6">
-      <!-- Loading skeleton -->
       <div v-if="paymentsStore.isLoading" class="space-y-4">
         <div
           v-for="i in 3"
@@ -120,7 +118,6 @@ const totalPaid = computed(() =>
         </div>
       </div>
 
-      <!-- Empty state -->
       <div
         v-else-if="paymentsStore.payments.length === 0"
         class="glass-medium rounded-[3rem] p-20 text-center border-dashed border-2 border-outline-variant/30"
@@ -134,7 +131,6 @@ const totalPaid = computed(() =>
         </p>
       </div>
 
-      <!-- Payment list -->
       <div v-else class="space-y-4">
         <div
           v-for="pay in paymentsStore.payments"

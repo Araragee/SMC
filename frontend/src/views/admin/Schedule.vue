@@ -320,7 +320,6 @@ const statusBadgeClass = function (status: string): string {
 
 <template>
   <div class="page">
-    <!-- Page Header -->
     <div
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
@@ -356,7 +355,6 @@ const statusBadgeClass = function (status: string): string {
       </div>
     </div>
 
-    <!-- Pending Approvals Panel -->
     <section
       v-if="pendingSessions.length > 0"
       class="liquid-glass rounded-3xl p-6 border border-warning/20"
@@ -388,7 +386,6 @@ const statusBadgeClass = function (status: string): string {
               : 'bg-warning/5 border-warning/20'
           "
         >
-          <!-- Time & Participants -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
               <span
@@ -413,7 +410,6 @@ const statusBadgeClass = function (status: string): string {
             </p>
           </div>
 
-          <!-- Actions -->
           <div class="flex items-center gap-2 shrink-0">
             <button
               v-if="session.status === 'pending_admin'"
@@ -436,7 +432,6 @@ const statusBadgeClass = function (status: string): string {
       </div>
     </section>
 
-    <!-- Weekly Calendar -->
     <section
       class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
     >
@@ -459,7 +454,6 @@ const statusBadgeClass = function (status: string): string {
       />
     </section>
 
-    <!-- All Sessions Table -->
     <section
       class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
     >
@@ -554,7 +548,6 @@ const statusBadgeClass = function (status: string): string {
       </div>
     </section>
 
-    <!-- Reject Modal (inline) -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition opacity-150 ease-out"
@@ -610,7 +603,6 @@ const statusBadgeClass = function (status: string): string {
       </Transition>
     </Teleport>
 
-    <!-- Edit Session Modal -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition opacity-150 ease-out"
@@ -680,7 +672,6 @@ const statusBadgeClass = function (status: string): string {
       </Transition>
     </Teleport>
 
-    <!-- Session Detail Modal -->
     <SessionDetailModal
       :session="selectedSession"
       user-role="admin"
@@ -701,7 +692,6 @@ const statusBadgeClass = function (status: string): string {
       @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
-    <!-- Propose Modal -->
     <ProposeSessionModal
       v-if="showProposeModal"
       :is-open="showProposeModal"

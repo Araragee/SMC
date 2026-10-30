@@ -190,7 +190,6 @@ const formatDay = function (iso: string): string {
 
 <template>
   <div class="w-full mx-auto pb-28 space-y-4">
-    <!-- Header -->
     <div
       class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6"
     >
@@ -220,7 +219,6 @@ const formatDay = function (iso: string): string {
       </div>
     </div>
 
-    <!-- Student Proposals Panel -->
     <section
       v-if="studentProposals.length > 0"
       class="liquid-glass rounded-3xl p-6 border border-warning/20"
@@ -286,7 +284,6 @@ const formatDay = function (iso: string): string {
       </div>
     </section>
 
-    <!-- Weekly Calendar -->
     <section
       class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
     >
@@ -307,7 +304,6 @@ const formatDay = function (iso: string): string {
       />
     </section>
 
-    <!-- Upcoming Confirmed Sessions -->
     <section
       class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
     >
@@ -346,7 +342,6 @@ const formatDay = function (iso: string): string {
       </div>
     </section>
 
-    <!-- Reject Modal -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition opacity-150 ease-out"
@@ -401,7 +396,6 @@ const formatDay = function (iso: string): string {
       </Transition>
     </Teleport>
 
-    <!-- Counter Modal -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition opacity-150 ease-out"
@@ -491,7 +485,6 @@ const formatDay = function (iso: string): string {
       @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
     />
 
-    <!-- Propose Modal -->
     <ProposeSessionModal
       :is-open="showProposeModal"
       v-if="showProposeModal"
@@ -504,7 +497,6 @@ const formatDay = function (iso: string): string {
       @submitted="onProposeSubmit"
     />
 
-    <!-- Recurring Session Modal -->
     <RecurringSessionModal
       v-if="showRecurringModal"
       :is-open="showRecurringModal"

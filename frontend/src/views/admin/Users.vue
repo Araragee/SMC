@@ -110,7 +110,6 @@ const handleDeleteUser = async (user: User) => {
 
 <template>
   <div class="page">
-    <!-- Header -->
     <header class="page-header">
       <div class="space-y-2">
         <p class="page-eyebrow">Administration</p>
@@ -125,7 +124,6 @@ const handleDeleteUser = async (user: User) => {
       </button>
     </header>
 
-    <!-- Users List Section -->
     <section class="card overflow-hidden">
       <div v-if="usersStore.isLoading && users.length === 0" class="space-y-3 p-6">
         <div v-for="i in 5" :key="i" class="skeleton-row" />
@@ -230,14 +228,12 @@ const handleDeleteUser = async (user: User) => {
       </div>
     </section>
 
-    <!-- Add User Modal -->
     <CreateUserModal
       :is-open="showAddModal"
       @close="showAddModal = false"
       @created="handleUserCreated"
     />
 
-    <!-- Edit User Modal -->
     <Teleport to="body">
       <Transition
         enter-active-class="transition-all ease-out"

@@ -364,7 +364,6 @@ const openLiveAnalytics = function () {
 
 <template>
   <div class="page">
-    <!-- Page Header -->
     <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-5xl font-semibold tracking-tight text-on-surface mb-2">Admin Dashboard</h1>
@@ -372,7 +371,6 @@ const openLiveAnalytics = function () {
       </div>
     </div>
 
-    <!-- Bento Stats Grid -->
     <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <!-- Live Analytics (col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2) -->
       <div
@@ -461,7 +459,6 @@ const openLiveAnalytics = function () {
         </p>
       </div>
 
-      <!-- New Registrations -->
       <div
         class="liquid-glass p-4 rounded-3xl border border-on-surface/[0.04] dark:border-on-surface/5 flex flex-col justify-between"
       >
@@ -495,7 +492,6 @@ const openLiveAnalytics = function () {
         </div>
       </div>
 
-      <!-- Pending Approvals -->
       <RouterLink
         to="/admin/schedule"
         class="liquid-glass p-4 rounded-3xl border border-warning/20 flex flex-col justify-between hover:bg-warning/5 transition-all group"
@@ -521,7 +517,6 @@ const openLiveAnalytics = function () {
         </p>
       </RouterLink>
 
-      <!-- Monthly Revenue -->
       <RouterLink
         to="/admin/payments"
         class="liquid-glass p-4 rounded-3xl border border-success/20 flex flex-col justify-between hover:bg-success/5 transition-all group"
@@ -543,7 +538,6 @@ const openLiveAnalytics = function () {
         </p>
       </RouterLink>
 
-      <!-- Overdue Sessions -->
       <RouterLink
         to="/admin/schedule"
         class="liquid-glass p-4 rounded-3xl border border-error/20 flex flex-col justify-between hover:bg-error/5 transition-all group"
@@ -570,11 +564,9 @@ const openLiveAnalytics = function () {
       </RouterLink>
     </section>
 
-    <!-- Main Layout -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <!-- Left: Schedule + Faculty -->
       <div class="col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-2 space-y-4">
-        <!-- Music Schedule -->
         <section
           class="liquid-glass rounded-3xl p-6 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
@@ -586,7 +578,6 @@ const openLiveAnalytics = function () {
               </p>
             </div>
             <div class="flex items-center gap-2">
-              <!-- View Mode Toggle -->
               <div class="flex bg-on-surface/5 p-1 rounded-2xl border border-on-surface/5 mr-2">
                 <button
                   class="px-4 py-2 rounded-xl text-xs font-semibold uppercase transition-all"
@@ -631,9 +622,7 @@ const openLiveAnalytics = function () {
             </div>
           </div>
 
-          <!-- Daily List View -->
           <div v-if="viewMode === 'daily'">
-            <!-- Column headers -->
             <div
               class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5 mb-4 px-2"
             >
@@ -645,7 +634,6 @@ const openLiveAnalytics = function () {
               </div>
             </div>
 
-            <!-- Loading -->
             <div v-if="scheduleStore.isLoading" class="space-y-4">
               <div
                 v-for="i in 3"
@@ -654,7 +642,6 @@ const openLiveAnalytics = function () {
               />
             </div>
 
-            <!-- Empty -->
             <div
               v-else-if="scheduleStore.allSessions.length === 0"
               class="py-10 flex flex-col items-center text-center"
@@ -669,7 +656,6 @@ const openLiveAnalytics = function () {
               </p>
             </div>
 
-            <!-- Session rows -->
             <div v-else class="space-y-2">
               <div
                 v-for="session in pagedSessions"
@@ -718,7 +704,6 @@ const openLiveAnalytics = function () {
             </div>
           </div>
 
-          <!-- Weekly Grid View -->
           <div v-else class="space-y-6">
             <div class="overflow-x-auto pb-4 custom-scrollbar">
               <div class="flex gap-4 min-w-[1000px]">
@@ -765,7 +750,6 @@ const openLiveAnalytics = function () {
             </div>
           </div>
 
-          <!-- Global Add Section -->
           <div
             class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-2 px-4 -mx-2 mt-4"
           >
@@ -780,7 +764,6 @@ const openLiveAnalytics = function () {
           </div>
         </section>
 
-        <!-- Faculty & Staff -->
         <section
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5 overflow-hidden"
         >
@@ -917,7 +900,6 @@ const openLiveAnalytics = function () {
 
       <!-- Right: Alerts + Quick Assign -->
       <div class="space-y-4">
-        <!-- Alerts & Updates -->
         <section
           class="liquid-glass rounded-3xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
         >
@@ -959,7 +941,6 @@ const openLiveAnalytics = function () {
               </div>
             </div>
 
-            <!-- Dynamic Notifications -->
             <div
               v-if="notifStore.notifications.length === 0 && stats.scheduledSessions === 0"
               class="py-12 text-center opacity-40"
@@ -1027,7 +1008,6 @@ const openLiveAnalytics = function () {
           </RouterLink>
         </section>
 
-        <!-- Roster -->
         <section class="card card-pad space-y-6">
           <div class="flex items-start justify-between gap-4">
             <div class="space-y-1">
@@ -1077,7 +1057,6 @@ const openLiveAnalytics = function () {
           <p v-else class="section-caption">Every student is on a roster.</p>
         </section>
 
-        <!-- Quick Assign -->
         <section
           class="bg-primary-container text-on-primary-container rounded-3xl p-4 shadow-e1 relative overflow-hidden"
         >
@@ -1140,7 +1119,6 @@ const openLiveAnalytics = function () {
     </div>
   </div>
 
-  <!-- Session Detail Modal -->
   <SessionDetailModal
     :session="selectedSession"
     user-role="admin"
@@ -1186,7 +1164,6 @@ const openLiveAnalytics = function () {
     "
   />
 
-  <!-- Add Session Modal -->
   <ProposeSessionModal
     v-if="showAddSessionModal"
     :is-open="showAddSessionModal"

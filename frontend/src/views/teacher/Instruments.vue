@@ -96,7 +96,6 @@ async function removeInstrument(instrumentId: string | number) {
 
 <template>
   <div class="max-w-[1200px] mx-auto pb-28 space-y-8 px-4 sm:px-6">
-    <!-- Header -->
     <header class="relative py-8">
       <div
         class="absolute -top-10 -left-10 size-64 bg-primary/10 blur-[100px] rounded-full -z-10 animate-pulse"
@@ -119,7 +118,6 @@ async function removeInstrument(instrumentId: string | number) {
       </div>
     </header>
 
-    <!-- Tabs -->
     <div
       v-if="SHOP_ENABLED"
       class="flex gap-4 mb-10 border-b border-outline-variant/20 dark:border-on-surface/5 pb-4"
@@ -153,7 +151,6 @@ async function removeInstrument(instrumentId: string | number) {
       v-if="activeTab === 'my-instruments'"
       class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
     >
-      <!-- Currently Teaching -->
       <section class="lg:col-span-8 space-y-6">
         <div class="flex items-center justify-between px-2">
           <h2 class="text-xl font-semibold text-on-surface uppercase flex items-center gap-2">
@@ -191,7 +188,6 @@ async function removeInstrument(instrumentId: string | number) {
             :key="inst.id"
             class="group relative overflow-hidden glass-heavy rounded-3xl border border-outline-variant/20 hover:border-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1 p-6"
           >
-            <!-- Decorative bg -->
             <div
               class="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 transition-all"
             >
@@ -231,7 +227,6 @@ async function removeInstrument(instrumentId: string | number) {
         <div
           class="glass-medium rounded-3xl border border-outline-variant/30 p-6 space-y-6 shadow-xl"
         >
-          <!-- Search box -->
           <div class="relative group">
             <span
               class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
@@ -247,7 +242,6 @@ async function removeInstrument(instrumentId: string | number) {
 
           <div class="h-px bg-outline-variant/10 mx-2" />
 
-          <!-- Instrument list -->
           <div class="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             <div
               v-for="inst in availableInstruments"
@@ -289,7 +283,6 @@ async function removeInstrument(instrumentId: string | number) {
       </section>
     </div>
 
-    <!-- Order History View -->
     <div v-else class="space-y-6">
       <div v-if="shopStore.myOrders.length > 0" class="grid gap-4">
         <div
@@ -334,7 +327,6 @@ async function removeInstrument(instrumentId: string | number) {
             </div>
           </div>
 
-          <!-- Order Items Preview -->
           <div
             class="mt-6 pt-6 border-t border-outline-variant/20 dark:border-on-surface/5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide"
           >
@@ -366,7 +358,6 @@ async function removeInstrument(instrumentId: string | number) {
             </div>
           </div>
 
-          <!-- Rejection Reason -->
           <div
             v-if="order.status === 'rejected' && order.rejectionReason"
             class="alert-error mt-4 text-xs font-bold"
@@ -376,7 +367,6 @@ async function removeInstrument(instrumentId: string | number) {
         </div>
       </div>
 
-      <!-- Empty Orders -->
       <div
         v-else
         class="flex flex-col items-center justify-center py-20 glass-heavy rounded-[3rem] border border-outline-variant/20 dark:border-on-surface/5 bg-surface-container-low/50 dark:bg-transparent"

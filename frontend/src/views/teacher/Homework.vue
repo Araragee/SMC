@@ -245,7 +245,6 @@ const withdraw = async (item: Homework) => {
       </div>
     </header>
 
-    <!-- Assign -->
     <section v-if="showAssignForm" class="glass rounded-3xl p-5 sm:p-6 space-y-4">
       <h2 class="font-semibold text-on-surface">New assignment</h2>
 
@@ -292,7 +291,6 @@ const withdraw = async (item: Homework) => {
       </div>
     </section>
 
-    <!-- Filters -->
     <div class="flex flex-wrap items-center gap-2">
       <button
         v-for="tab in TABS"
@@ -321,7 +319,6 @@ const withdraw = async (item: Homework) => {
       </select>
     </div>
 
-    <!-- List -->
     <section class="space-y-3">
       <p v-if="homeworkStore.isLoading" class="text-sm text-on-surface/60 py-8 text-center">
         Loading homework…
@@ -397,7 +394,6 @@ const withdraw = async (item: Homework) => {
           </span>
         </div>
 
-        <!-- Existing review -->
         <div
           v-if="item.status === 'reviewed' && reviewingId !== item.id"
           class="rounded-2xl bg-secondary/5 border border-secondary/15 px-4 py-3 space-y-1"
@@ -413,7 +409,6 @@ const withdraw = async (item: Homework) => {
           </p>
         </div>
 
-        <!-- Review form -->
         <div v-if="reviewingId === item.id" class="space-y-3 pt-1">
           <BaseInput
             v-model="reviewGrade"
@@ -435,7 +430,6 @@ const withdraw = async (item: Homework) => {
           </div>
         </div>
 
-        <!-- Actions -->
         <div
           v-if="reviewingId !== item.id && editingId !== item.id"
           class="flex flex-wrap items-center gap-2 pt-1"

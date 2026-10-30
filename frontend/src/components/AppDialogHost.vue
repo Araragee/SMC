@@ -39,13 +39,11 @@ function handleKeydown(e: KeyboardEvent) {
         <div
           class="modal-shell relative w-full max-w-sm glass-heavy border border-outline-variant/30 rounded-3xl p-6 shadow-2xl"
         >
-          <!-- Accent glow -->
           <div
             class="absolute top-0 right-0 size-28 blur-[64px] rounded-full -z-10 pointer-events-none"
             :class="dialogState.destructive ? 'bg-error/20' : 'bg-primary/15'"
           />
 
-          <!-- Header -->
           <div class="flex items-center gap-3 mb-4">
             <span
               class="material-symbols-outlined text-2xl"
@@ -62,7 +60,6 @@ function handleKeydown(e: KeyboardEvent) {
             <h3 class="text-lg font-semibold text-on-surface">{{ dialogState.title }}</h3>
           </div>
 
-          <!-- Message -->
           <p class="text-sm text-on-surface-variant mb-4 leading-relaxed">
             {{ dialogState.message }}
           </p>
@@ -78,7 +75,6 @@ function handleKeydown(e: KeyboardEvent) {
             />
           </div>
 
-          <!-- Actions -->
           <div class="flex gap-3 justify-end">
             <button
               class="px-4 py-2 rounded-2xl text-sm font-bold text-on-surface-variant bg-surface-container-highest/40 hover:bg-surface-container-highest/70 border border-outline-variant/20 transition-all"

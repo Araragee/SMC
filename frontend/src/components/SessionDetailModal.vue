@@ -537,14 +537,11 @@ const statusContext = computed(() => {
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
-        <!-- Modal -->
         <div
           class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
         >
-          <!-- Coloured header stripe -->
           <div
             :class="`${statusConfig.headerBg} p-4 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`"
           >
@@ -575,11 +572,9 @@ const statusContext = computed(() => {
                     >{{ statusConfig.icon }}</span
                   >
                 </div>
-                <!-- Copy link button -->
                 <button class="icon-btn" title="Copy session link" @click="copySessionLink">
                   <span class="material-symbols-outlined text-lg">link</span>
                 </button>
-                <!-- Universal close button -->
                 <button class="icon-btn" @click="emit('close')">
                   <span class="material-symbols-outlined text-lg">close</span>
                 </button>
@@ -587,9 +582,7 @@ const statusContext = computed(() => {
             </div>
           </div>
 
-          <!-- Scrollable body -->
           <div class="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar">
-            <!-- Tabs -->
             <div
               class="flex bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/[0.06] dark:border-on-surface/10"
             >
@@ -618,7 +611,6 @@ const statusContext = computed(() => {
             </div>
 
             <div v-if="activeTab === 'overview'" class="space-y-4">
-              <!-- Context message -->
               <div
                 v-if="statusContext"
                 class="flex items-start gap-2 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.04] border border-on-surface/[0.04] dark:border-on-surface/5"
@@ -631,7 +623,6 @@ const statusContext = computed(() => {
                 <p class="text-sm text-on-surface-variant">{{ statusContext.text }}</p>
               </div>
 
-              <!-- Participants -->
               <div class="grid grid-cols-2 gap-2">
                 <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
                   <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">
@@ -651,7 +642,6 @@ const statusContext = computed(() => {
                 </div>
               </div>
 
-              <!-- Notes -->
               <div
                 v-if="session.notes"
                 class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3"
@@ -701,7 +691,6 @@ const statusContext = computed(() => {
                 "
                 class="space-y-4"
               >
-                <!-- Proof status table -->
                 <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-4 space-y-3">
                   <p class="text-xs text-on-surface-variant uppercase font-semibold">
                     Proof Status
@@ -797,7 +786,6 @@ const statusContext = computed(() => {
                 </div>
               </div>
 
-              <!-- Verif status pill -->
               <div v-if="session.status === 'pending_verification'" class="alert-info">
                 <span class="material-symbols-outlined text-tertiary text-lg">hourglass_top</span>
                 <div>
@@ -809,7 +797,6 @@ const statusContext = computed(() => {
               </div>
             </div>
 
-            <!-- History Tab -->
             <div v-else class="space-y-3">
               <p class="text-xs text-on-surface-variant uppercase font-semibold">
                 Activity History
@@ -1045,7 +1032,6 @@ const statusContext = computed(() => {
       </div>
     </Transition>
 
-    <!-- Proof Lightbox -->
     <Transition
       enter-active-class="transition-all duration-150 ease-out"
       enter-from-class="opacity-0 scale-95"
@@ -1063,7 +1049,6 @@ const statusContext = computed(() => {
           <span class="material-symbols-outlined">close</span>
         </button>
 
-        <!-- Prev Button -->
         <button
           v-if="proofUrls.length > 1"
           class="absolute left-5 size-12 rounded-full bg-on-surface/10 hover:bg-on-surface/20 border border-on-surface/10 flex items-center justify-center text-on-surface transition-all select-none"
@@ -1077,7 +1062,6 @@ const statusContext = computed(() => {
           class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-on-surface/10"
         />
 
-        <!-- Next Button -->
         <button
           v-if="proofUrls.length > 1"
           class="absolute right-5 size-12 rounded-full bg-on-surface/10 hover:bg-on-surface/20 border border-on-surface/10 flex items-center justify-center text-on-surface transition-all select-none"

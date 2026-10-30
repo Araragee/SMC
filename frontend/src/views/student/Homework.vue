@@ -88,7 +88,6 @@ async function handleFileUpload(event: Event, homeworkId: number) {
 
 <template>
   <div class="max-w-[1200px] mx-auto pb-28 space-y-10 px-4 sm:px-6">
-    <!-- Header -->
     <header class="pt-8">
       <div class="flex items-center gap-3 mb-3">
         <div
@@ -107,7 +106,6 @@ async function handleFileUpload(event: Event, homeworkId: number) {
     </header>
 
     <div class="space-y-12">
-      <!-- Pending Section -->
       <section class="space-y-6">
         <div class="flex items-center gap-4">
           <h2 class="text-xl font-semibold text-on-surface uppercase">Active Tasks</h2>
@@ -179,7 +177,6 @@ async function handleFileUpload(event: Event, homeworkId: number) {
         </div>
       </section>
 
-      <!-- Completed Section -->
       <section class="space-y-6">
         <div class="flex items-center gap-4">
           <h2 class="text-xl font-semibold text-on-surface uppercase text-on-surface-variant">

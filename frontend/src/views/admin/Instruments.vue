@@ -156,7 +156,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
 
 <template>
   <div class="min-h-screen pb-20">
-    <!-- Header -->
     <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div>
         <h1 class="text-4xl md:text-5xl font-semibold text-on-surface mb-4 tracking-tight">
@@ -178,7 +177,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="flex gap-4 mb-10 border-b border-on-surface/5 pb-4">
       <button
         @click="activeTab = 'catalog'"
@@ -204,7 +202,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
       </button>
     </div>
 
-    <!-- Catalog View -->
     <div v-if="activeTab === 'catalog'" class="grid grid-cols-1 gap-4">
       <div
         v-for="product in shopStore.products"
@@ -284,7 +281,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
       </div>
     </div>
 
-    <!-- Orders View -->
     <div v-else class="space-y-4">
       <!-- Order Status Filter Tabs -->
       <div
@@ -340,7 +336,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
       </div>
     </div>
 
-    <!-- Product Editor Modal -->
     <div
       v-if="isEditorOpen && selectedProduct"
       class="fixed inset-0 z-50 flex items-center justify-center p-6"
@@ -438,7 +433,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
       </div>
     </div>
 
-    <!-- Order Detail Modal -->
     <div
       v-if="isOrderDetailOpen && selectedOrder"
       class="fixed inset-0 z-50 flex items-center justify-center p-6"
@@ -559,7 +553,6 @@ const updateOrderStatus = async function (id: number, status: OrderStatus) {
             </p>
           </div>
 
-          <!-- Actions -->
           <div v-if="selectedOrder.status === 'pending'" class="flex gap-4 pt-4">
             <button
               @click="updateOrderStatus(selectedOrder.id, 'rejected')"

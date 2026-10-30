@@ -187,7 +187,6 @@ const submit = async function () {
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
 
         <div class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl">
-          <!-- Header -->
           <div class="flex items-center justify-between p-6 border-b border-on-surface/5">
             <div>
               <p class="text-xs font-semibold text-primary uppercase mb-1">
@@ -200,7 +199,6 @@ const submit = async function () {
             </button>
           </div>
 
-          <!-- Form -->
           <div class="p-6 space-y-4">
             <!-- Teacher select (for student / admin) -->
             <div v-if="userRole === 'student' || userRole === 'admin'">
@@ -226,7 +224,6 @@ const submit = async function () {
               />
             </div>
 
-            <!-- Date & Time -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
@@ -245,7 +242,6 @@ const submit = async function () {
               ⚠️ Selected date & time cannot be in the past.
             </p>
 
-            <!-- Duration -->
             <div>
               <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
                 >Duration</label
@@ -295,7 +291,6 @@ const submit = async function () {
               />
             </div>
 
-            <!-- Notes -->
             <div>
               <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
                 >Notes
@@ -327,7 +322,6 @@ const submit = async function () {
             </div>
           </div>
 
-          <!-- Footer -->
           <div class="p-4 border-t border-on-surface/5 flex gap-3">
             <button
               :disabled="!isValid || isSubmitting"

@@ -137,14 +137,11 @@ const closeModal = () => {
         class="fixed inset-0 z-[200] flex items-center justify-center p-4"
         @click.self="closeModal"
       >
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeModal" />
 
-        <!-- Modal -->
         <div
           class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         >
-          <!-- Header -->
           <div
             class="flex items-center justify-between gap-3 p-5 sm:p-6 border-b border-on-surface/5 shrink-0"
           >
@@ -167,7 +164,6 @@ const closeModal = () => {
             </div>
           </div>
 
-          <!-- Filter Pills -->
           <div
             class="px-5 sm:px-6 py-2 flex gap-1.5 overflow-x-auto custom-scrollbar shrink-0 border-b border-on-surface/5 bg-on-surface/[0.01] dark:bg-on-surface/[0.01]"
           >
@@ -186,7 +182,6 @@ const closeModal = () => {
             </button>
           </div>
 
-          <!-- Notification List -->
           <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             <div v-if="notifications.length === 0" class="text-center py-12">
               <div
@@ -215,7 +210,6 @@ const closeModal = () => {
               @click="handleNotifClick(notif)"
             >
               <div class="flex gap-4">
-                <!-- Icon/Indicator -->
                 <div
                   class="size-10 rounded-xl shrink-0 flex items-center justify-center border"
                   :class="typeClasses(notif.type)"
@@ -223,7 +217,6 @@ const closeModal = () => {
                   <span class="material-symbols-outlined text-xl">{{ typeIcon(notif.type) }}</span>
                 </div>
 
-                <!-- Content -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start justify-between gap-2 mb-1">
                     <h4
@@ -243,7 +236,6 @@ const closeModal = () => {
                 </div>
               </div>
 
-              <!-- Unread Dot -->
               <div
                 v-if="!notif.isRead"
                 class="absolute top-4 right-4 size-2 bg-primary rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
@@ -251,7 +243,6 @@ const closeModal = () => {
             </div>
           </div>
 
-          <!-- Footer -->
           <div
             class="p-4 border-t border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] shrink-0 text-center"
           >

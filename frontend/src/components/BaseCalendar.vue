@@ -304,7 +304,6 @@ const viewOptions = [
   <div
     class="bg-surface-container-lowest liquid-glass rounded-3xl p-4 sm:p-6 border border-outline-variant shadow-xl transition-colors duration-300 flex flex-col h-full space-y-4 sm:space-y-6"
   >
-    <!-- Calendar Controls -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-3">
         <h3 class="text-lg sm:text-2xl font-semibold text-on-surface tracking-tight">
@@ -356,7 +355,6 @@ const viewOptions = [
           <span class="material-symbols-outlined text-lg">chevron_right</span>
         </button>
 
-        <!-- Legend, on demand -->
         <div class="relative">
           <button
             class="icon-btn rounded-full border border-outline-variant"
@@ -395,7 +393,6 @@ const viewOptions = [
       </div>
     </div>
 
-    <!-- Calendar Grid -->
     <div
       class="grid flex-1 gap-2 sm:gap-3"
       :class="{
@@ -412,7 +409,6 @@ const viewOptions = [
         @drop="onDrop($event, day.date)"
         @click="emit('dayClick', { date: day.date, sessions: day.sessions })"
       >
-        <!-- Day Header -->
         <div
           class="flex w-16 shrink-0 flex-col items-center justify-center border-r p-2 text-center border-outline-variant sm:w-auto sm:border-b sm:border-r-0"
           :class="day.isToday ? 'bg-success/10' : 'bg-surface-container-high'"
@@ -437,7 +433,6 @@ const viewOptions = [
           </div>
         </div>
 
-        <!-- Session List -->
         <div
           class="relative flex-1 space-y-1.5 p-1.5 min-h-[64px]"
           :class="activeView === 'month' ? 'sm:min-h-[90px]' : 'sm:min-h-[120px]'"
@@ -465,7 +460,6 @@ const viewOptions = [
             </p>
           </div>
 
-          <!-- Session Overflow Chip -->
           <div v-if="day.sessions.length > limitForView" class="mt-1">
             <button
               class="w-full text-center py-1 text-xs font-semibold uppercase text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
@@ -488,7 +482,6 @@ const viewOptions = [
           </div>
         </div>
 
-        <!-- Overflow Popover -->
         <div
           v-if="overflowOpenDay === day.iso"
           class="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-surface-container-lowest border border-outline-variant rounded-2xl p-3 shadow-2xl space-y-2 max-h-60 overflow-y-auto"
