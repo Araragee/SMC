@@ -10,6 +10,11 @@ import { API_URL } from '@typescript/constants'
 // http -> ws, https -> wss. Override with VITE_WS_BASE_URL if WS lives elsewhere.
 const WS_URL = import.meta.env.VITE_WS_BASE_URL || API_URL.replace(/^http/, 'ws')
 
+// Mirrors WS_UNAUTHORIZED in backend/routers/messaging.py: the server accepted
+// the handshake and then closed because the token was missing, expired or for
+// the wrong user. Anything else is a transport problem.
+const WS_UNAUTHORIZED = 4001
+
 const authHeaders = function () {
   const auth = useAuthStore()
   return auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
@@ -60,6 +65,8 @@ interface MessagingState {
   _typingTimers: Record<string, ReturnType<typeof setTimeout>>
   _reconnectTimer: ReturnType<typeof setTimeout> | null
   _reconnectAttempts: number
+  /** Whether this run of failures has already spent its token refresh. */
+  _authRetried: boolean
 }
 
 export const useMessagingStore = defineStore('messaging', {
@@ -75,6 +82,7 @@ export const useMessagingStore = defineStore('messaging', {
     _typingTimers: {},
     _reconnectTimer: null,
     _reconnectAttempts: 0,
+    _authRetried: false,
   }),
 
   getters: {
@@ -98,7 +106,17 @@ export const useMessagingStore = defineStore('messaging', {
     connectWS() {
       const auth = useAuthStore()
       if (!auth.token || !auth.currentUser) return
-      if (this._ws && this._ws.readyState === WebSocket.OPEN) return
+      // CONNECTING counts too. App.vue calls this from both onMounted and the
+      // isAuthenticated watcher, which can fire together at login; without
+      // this the second call built a second socket and orphaned the first,
+      // whose onclose still fired and scheduled a reconnect of its own.
+      if (
+        this._ws &&
+        (this._ws.readyState === WebSocket.OPEN ||
+          this._ws.readyState === WebSocket.CONNECTING)
+      ) {
+        return
+      }
 
       this.wsStatus = 'connecting'
       const userId = auth.currentUser.id
@@ -111,15 +129,34 @@ export const useMessagingStore = defineStore('messaging', {
       ws.onopen = () => {
         this.wsStatus = 'connected'
         this._reconnectAttempts = 0
+        this._authRetried = false
         this.fetchConversations()
       }
 
       ws.onmessage = (e) => this._handleIncoming(e)
 
-      ws.onclose = () => {
+      ws.onclose = async (event) => {
         this.wsStatus = 'disconnected'
         this._ws = null
         if (this._reconnectTimer) clearTimeout(this._reconnectTimer)
+
+        // A 4001 means the token was rejected, so retrying with the same one
+        // is pointless. Access tokens last 15 minutes and only the axios 401
+        // interceptor renews them — but this channel is push-only, so a tab
+        // left open makes no HTTP calls and nothing ever triggers a renewal.
+        // Messaging would go quiet for good while the socket retried every
+        // 30s with a token the server had already refused.
+        //
+        // One refresh per run of failures: if the socket is rejected again
+        // afterwards the cause is not expiry (a user id that does not match
+        // the token, say) and hammering /auth/refresh would not help.
+        if (event.code === WS_UNAUTHORIZED && !this._authRetried) {
+          this._authRetried = true
+          const auth = useAuthStore()
+          // On failure this has already run a full logout; the watcher in
+          // App.vue tears the socket down, so there is nothing to schedule.
+          if (!(await auth.refreshAccessToken())) return
+        }
 
         // Exponential backoff: 1s, 2s, 4s, 8s, 16s, max 30s
         const delay = Math.min(1000 * Math.pow(2, this._reconnectAttempts), 30000)
@@ -142,6 +179,8 @@ export const useMessagingStore = defineStore('messaging', {
         this._ws = null
       }
       this.wsStatus = 'disconnected'
+      this._reconnectAttempts = 0
+      this._authRetried = false
     },
 
     _handleIncoming(event: MessageEvent) {
