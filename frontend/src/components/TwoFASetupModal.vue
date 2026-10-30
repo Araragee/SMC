@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@stores/auth'
 import { useToastStore } from '@stores/toast'
@@ -80,147 +81,118 @@ const handleConfirm = async () => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]"
-      enter-to-class="opacity-100 scale-100 translate-y-0 blur-0"
-      leave-active-class="transition-all duration-300 ease-in"
-      leave-from-class="opacity-100 scale-100 translate-y-0 blur-0"
-      leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]"
-    >
-      <div v-if="isOpen" class="fixed inset-0 z-[230] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
-
+  <BaseModal
+    :is-open="isOpen"
+    size="lg"
+    layer="raised"
+    eyebrow="Security Setup"
+    title="Enable 2FA"
+    close-label="Close two-factor setup"
+    @close="$emit('close')"
+  >
+      <div v-if="loading" class="flex flex-col items-center justify-center py-12 space-y-4">
         <div
-          class="modal-shell relative w-full max-w-lg glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col p-8 max-h-[90vh]"
-        >
-          <div class="flex justify-between items-start mt-4">
-            <div>
-              <p class="text-xs font-semibold text-primary uppercase mb-1">Security Setup</p>
-              <h2 class="text-2xl font-semibold text-on-surface tracking-tight">Enable 2FA</h2>
-            </div>
-            <button class="icon-btn" @click="$emit('close')">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
+          class="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"
+        ></div>
+        <p class="text-xs font-bold text-on-surface-variant uppercase">Generating keys...</p>
+      </div>
 
-          <!-- Content Area (Scrollable if needed) -->
-          <div class="flex-1 overflow-y-auto space-y-6 pt-4 pr-1 custom-scrollbar">
-            <div v-if="loading" class="flex flex-col items-center justify-center py-12 space-y-4">
-              <div
-                class="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"
-              ></div>
-              <p class="text-xs font-bold text-on-surface-variant uppercase">Generating keys...</p>
-            </div>
-
-            <div v-else-if="setupData" class="space-y-6">
-              <!-- Step 1: Scan QR Code -->
-              <div class="space-y-3">
-                <h4 class="text-xs font-semibold text-on-surface uppercase">
-                  1. Scan this QR Code
-                </h4>
-                <p class="text-xs text-on-surface-variant leading-relaxed">
-                  Open your authenticator app (Google Authenticator, Microsoft Authenticator,
-                  1Password, Duo, etc.) and scan the QR code below.
-                </p>
-                <div
-                  class="flex items-center justify-center p-4 bg-surface-container-lowest rounded-3xl size-48 mx-auto border border-on-surface/5 dark:border-on-surface/10 shadow-lg"
-                >
-                  <img
-                    :src="`data:image/png;base64,${setupData.qr_code_png_base64}`"
-                    alt="2FA QR Code"
-                    class="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
-
-              <!-- Step 2: Manual Key backup -->
-              <div class="space-y-3">
-                <h4 class="text-xs font-semibold text-on-surface uppercase">
-                  2. Or enter the Secret Key manually
-                </h4>
-                <p class="text-xs text-on-surface-variant leading-relaxed">
-                  If you cannot scan the QR code, type this secret key into your authenticator app.
-                </p>
-                <div
-                  class="flex items-center justify-between gap-3 bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl p-4"
-                >
-                  <span
-                    class="font-mono text-sm font-bold text-on-surface select-all overflow-x-auto break-all"
-                    >{{ setupData.secret }}</span
-                  >
-                  <button
-                    type="button"
-                    class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-semibold uppercase transition-all"
-                    @click="handleCopySecret"
-                  >
-                    {{ isCopied ? 'Copied!' : 'Copy' }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Step 3: Enter confirmation code -->
-              <div class="space-y-3">
-                <h4 class="text-xs font-semibold text-on-surface uppercase">
-                  3. Enter Authenticator Code
-                </h4>
-                <p class="text-xs text-on-surface-variant leading-relaxed">
-                  Enter the 6-digit code shown in your authenticator app to verify the setup.
-                </p>
-                <input
-                  v-model="code"
-                  type="text"
-                  maxlength="6"
-                  pattern="[0-9]*"
-                  inputmode="numeric"
-                  placeholder="000000"
-                  class="input text-center"
-                  @input="code = code.replace(/[^0-9]/g, '')"
-                />
-              </div>
-
-              <p v-if="errorMsg" class="text-error text-xs text-center font-bold">{{ errorMsg }}</p>
-            </div>
-
-            <div v-else class="py-8 text-center space-y-4">
-              <span class="material-symbols-outlined text-error text-5xl">warning</span>
-              <p class="text-sm font-bold text-on-surface">
-                {{ errorMsg || 'An unexpected error occurred' }}
-              </p>
-              <button
-                type="button"
-                class="px-6 py-3 bg-primary text-on-primary font-bold rounded-2xl text-xs uppercase"
-                @click="loadSetup"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-
+      <div v-else-if="setupData" class="space-y-6">
+        <!-- Step 1: Scan QR Code -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-semibold text-on-surface uppercase">
+            1. Scan this QR Code
+          </h4>
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            Open your authenticator app (Google Authenticator, Microsoft Authenticator,
+            1Password, Duo, etc.) and scan the QR code below.
+          </p>
           <div
-            class="pt-6 border-t border-on-surface/5 bg-on-surface/[0.02] dark:bg-on-surface/[0.02] -mx-8 -mb-8 p-8 flex items-center justify-end gap-4 shrink-0"
+            class="flex items-center justify-center p-4 bg-surface-container-lowest rounded-3xl size-48 mx-auto border border-on-surface/5 dark:border-on-surface/10 shadow-lg"
           >
-            <button
-              class="px-6 py-3 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors"
-              @click="$emit('close')"
+            <img
+              :src="`data:image/png;base64,${setupData.qr_code_png_base64}`"
+              alt="2FA QR Code"
+              class="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+
+        <!-- Step 2: Manual Key backup -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-semibold text-on-surface uppercase">
+            2. Or enter the Secret Key manually
+          </h4>
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            If you cannot scan the QR code, type this secret key into your authenticator app.
+          </p>
+          <div
+            class="flex items-center justify-between gap-3 bg-on-surface/5 border border-on-surface/8 dark:border-on-surface/10 rounded-2xl p-4"
+          >
+            <span
+              class="font-mono text-sm font-bold text-on-surface select-all overflow-x-auto break-all"
+              >{{ setupData.secret }}</span
             >
-              Cancel
-            </button>
             <button
-              v-if="setupData"
-              :disabled="isEnabling || code.length < 6"
-              class="px-10 py-3 bg-primary text-on-primary font-semibold rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
-              @click="handleConfirm"
+              type="button"
+              class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-semibold uppercase transition-all"
+              @click="handleCopySecret"
             >
-              <span v-if="isEnabling" class="material-symbols-outlined animate-spin text-sm"
-                >progress_activity</span
-              >
-              {{ isEnabling ? 'VERIFYING...' : 'CONFIRM & ACTIVATE' }}
+              {{ isCopied ? 'Copied!' : 'Copy' }}
             </button>
           </div>
         </div>
+
+        <!-- Step 3: Enter confirmation code -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-semibold text-on-surface uppercase">
+            3. Enter Authenticator Code
+          </h4>
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            Enter the 6-digit code shown in your authenticator app to verify the setup.
+          </p>
+          <input
+            v-model="code"
+            type="text"
+            maxlength="6"
+            pattern="[0-9]*"
+            inputmode="numeric"
+            placeholder="000000"
+            class="input text-center"
+            @input="code = code.replace(/[^0-9]/g, '')"
+          />
+        </div>
+
+        <p v-if="errorMsg" class="text-error text-xs text-center font-bold">{{ errorMsg }}</p>
       </div>
-    </Transition>
-  </Teleport>
+
+      <div v-else class="py-8 text-center space-y-4">
+        <span class="material-symbols-outlined text-error text-5xl">warning</span>
+        <p class="text-sm font-bold text-on-surface">
+          {{ errorMsg || 'An unexpected error occurred' }}
+        </p>
+        <button
+          type="button"
+          class="px-6 py-3 bg-primary text-on-primary font-bold rounded-2xl text-xs uppercase"
+          @click="loadSetup"
+        >
+          Retry
+        </button>
+      </div>
+
+    <template #footer>
+      <button class="btn-ghost" @click="$emit('close')">Cancel</button>
+      <button
+        v-if="setupData"
+        :disabled="isEnabling || code.length < 6"
+        class="btn-primary gap-2"
+        @click="handleConfirm"
+      >
+        <span v-if="isEnabling" class="material-symbols-outlined animate-spin text-sm"
+          >progress_activity</span
+        >
+        {{ isEnabling ? 'Verifying…' : 'Confirm & activate' }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
