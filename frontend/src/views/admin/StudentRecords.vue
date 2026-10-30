@@ -148,7 +148,7 @@ const handleRecalculate = async () => {
               <span
                 v-for="inst in student.instruments"
                 :key="inst.id"
-                class="px-2 py-1 rounded-md bg-on-surface/5 border border-on-surface/10 text-xs font-bold text-on-surface/80 uppercase"
+                class="px-2 py-1 rounded-lg bg-on-surface/5 border border-on-surface/10 text-xs font-bold text-on-surface/80 uppercase"
               >
                 {{ inst.name }}
               </span>
@@ -292,7 +292,7 @@ const handleRecalculate = async () => {
                   <h4 class="font-bold text-on-surface">{{ formatDate(session.startTime) }}</h4>
                   <span
                     v-if="session.isManualEntry"
-                    class="px-2 py-0.5 rounded text-xs uppercase font-bold bg-primary/20 text-primary border border-primary/30"
+                    class="px-2 py-0.5 rounded-lg text-xs uppercase font-bold bg-primary/20 text-primary border border-primary/30"
                     >Paper Record</span
                   >
                   <span v-if="session.sessionNumber" class="text-xs text-on-surface/40"

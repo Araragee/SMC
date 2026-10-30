@@ -468,7 +468,7 @@ const viewOptions = [
           <!-- Session Overflow Chip -->
           <div v-if="day.sessions.length > limitForView" class="mt-1">
             <button
-              class="w-full text-center py-1 text-xs font-semibold uppercase text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+              class="w-full text-center py-1 text-xs font-semibold uppercase text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
               @click.stop="toggleOverflow(day.iso, day.sessions)"
             >
               +{{ day.sessions.length - limitForView }} more

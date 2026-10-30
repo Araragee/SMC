@@ -645,6 +645,16 @@ p {
     .tap-target { @apply inline-flex min-h-11 min-w-11 items-center justify-center; }
   }
 
+  /* — Corner radius scale ————————————————————
+     One step per role, so a surface's radius says what kind of thing it is:
+       rounded-3xl  cards, modals, page-level panels
+       rounded-2xl  buttons, chips, panels nested inside a card
+       rounded-xl   inputs, icon buttons, list rows
+       rounded-lg   small badges and meters
+       rounded-full pills, avatars, dots
+     rounded-md and bare rounded are gone; they were a fourth and fifth size
+     doing the job of rounded-lg, scattered across five files. */
+
   /* — Tables ——————————————————————————————— */
   .data-table  { @apply w-full border-collapse text-left; }
   .data-table thead { @apply bg-surface-container-highest/20; }

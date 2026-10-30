@@ -384,7 +384,7 @@ const openLiveAnalytics = function () {
             <span class="text-xs font-semibold text-primary uppercase">Live Analytics</span>
             <div
               v-if="scheduleStore.isLoading"
-              class="h-10 w-48 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
+              class="h-10 w-48 rounded-lg bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
             />
             <h2 v-else class="text-3xl font-semibold mt-2 tracking-tight text-on-surface">
               {{ stats.scheduledSessions }} Active Today
@@ -450,7 +450,7 @@ const openLiveAnalytics = function () {
           <span class="text-xs font-semibold text-on-surface/70 uppercase">Retention Rate</span>
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-20 rounded bg-on-surface/20 animate-pulse mt-2"
+            class="h-14 w-20 rounded-lg bg-on-surface/20 animate-pulse mt-2"
           />
           <h2 v-else class="text-5xl font-semibold mt-2 tracking-tighter text-on-surface">
             {{ stats.completionRate }}%
@@ -471,7 +471,7 @@ const openLiveAnalytics = function () {
           >
           <div
             v-if="usersStore.isLoading"
-            class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded-lg bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2 v-else class="text-5xl font-semibold mt-2 tracking-tighter text-on-surface">
             {{ students.length }}
@@ -504,7 +504,7 @@ const openLiveAnalytics = function () {
           <span class="text-xs font-semibold text-warning uppercase">Pending Approvals</span>
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded-lg bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2
             v-else
@@ -530,7 +530,7 @@ const openLiveAnalytics = function () {
           <span class="text-xs font-semibold text-success uppercase">Monthly Revenue</span>
           <div
             v-if="paymentsStore.isLoading"
-            class="h-14 w-24 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
+            class="h-14 w-24 rounded-lg bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2 v-else class="text-3xl font-semibold mt-2 tracking-tighter text-success leading-none">
             {{ formatRevenue(thisMonthRevenue) }}
@@ -552,7 +552,7 @@ const openLiveAnalytics = function () {
           <span class="text-xs font-semibold text-error uppercase">Overdue</span>
           <div
             v-if="scheduleStore.isLoading"
-            class="h-14 w-16 rounded bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
+            class="h-14 w-16 rounded-lg bg-on-surface/[0.04] dark:bg-on-surface/5 animate-pulse mt-2"
           />
           <h2
             v-else

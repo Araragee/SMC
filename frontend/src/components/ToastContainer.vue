@@ -79,7 +79,7 @@ const toastIcon = (type: ToastType) =>
             </p>
           </div>
           <button
-            class="opacity-60 hover:opacity-100 transition-opacity shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-on-surface/20 dark:focus:ring-on-surface/30 rounded"
+            class="opacity-60 hover:opacity-100 transition-opacity shrink-0 ml-1 focus:outline-none focus:ring-2 focus:ring-on-surface/20 dark:focus:ring-on-surface/30 rounded-lg"
             :aria-label="`Dismiss notification: ${toast.title}`"
             @click="toastStore.remove(toast.id)"
           >
