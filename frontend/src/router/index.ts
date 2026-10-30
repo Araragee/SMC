@@ -158,7 +158,7 @@ const router = createRouter({
       path: '/',
       redirect: () => {
         const auth = useAuthStore()
-        if (!auth.isAuthenticated) return '/login'
+        if (!auth.isAuthenticated || !auth.userRole) return '/login'
         return `/${auth.userRole}`
       },
     },
@@ -195,14 +195,29 @@ router.beforeEach(async (to, _from, next) => {
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')
-  } else if (
-    to.meta.roles &&
-    auth.userRole &&
-    !(to.meta.roles as string[]).includes(auth.userRole)
-  ) {
-    next(`/${auth.userRole}`)
+  } else if (to.meta.roles) {
+    // Fail closed. `isAuthenticated` reads the token while `userRole` reads
+    // the persisted user, so the two can disagree — and the guard used to
+    // require `auth.userRole` as a *condition* of checking the role, which
+    // meant a session with a token but no loaded user skipped the check and
+    // fell through to next(). A role-gated route with no role to check is a
+    // broken session, not an authorised one: send it back to sign in.
+    const role = auth.userRole
+    if (!role) {
+      next('/login')
+    } else if (!(to.meta.roles as string[]).includes(role)) {
+      next(`/${role}`)
+    } else {
+      next()
+    }
   } else if (to.path === '/login' && auth.isAuthenticated) {
-    next(`/${auth.userRole}`)
+    // Same reason for the guard on `userRole`: without it this builds
+    // `/undefined` and lands the user on the 404 page.
+    if (auth.userRole) {
+      next(`/${auth.userRole}`)
+    } else {
+      next()
+    }
   } else {
     next()
   }
