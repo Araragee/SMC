@@ -4,6 +4,7 @@ import { ref } from 'vue'
 export const useModalStore = defineStore('modal', () => {
   const isNotificationsOpen = ref(false)
   const isSettingsOpen = ref(false)
+  const isPreferencesOpen = ref(false)
 
   const openNotifications = function () {
     isNotificationsOpen.value = true
@@ -21,12 +22,23 @@ export const useModalStore = defineStore('modal', () => {
     isSettingsOpen.value = false
   }
 
+  const openPreferences = function () {
+    isPreferencesOpen.value = true
+  }
+
+  const closePreferences = function () {
+    isPreferencesOpen.value = false
+  }
+
   return {
     isNotificationsOpen,
     isSettingsOpen,
+    isPreferencesOpen,
     openNotifications,
     closeNotifications,
     openSettings,
     closeSettings,
+    openPreferences,
+    closePreferences,
   }
 })

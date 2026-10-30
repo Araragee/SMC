@@ -9,6 +9,7 @@ import { useModalStore } from '@stores/modal'
 import NotificationsModal from '@components/NotificationsModal.vue'
 import NotificationDetailModal from '@components/NotificationDetailModal.vue'
 import UserSettingsModal from '@components/UserSettingsModal.vue'
+import PreferencesModal from '@components/PreferencesModal.vue'
 
 // ── click-outside directive ───────────────────────────────────────────────────
 const vClickOutside = {
@@ -118,6 +119,12 @@ const openMessaging = () => {
 
 const openSettings = () => {
   modalStore.openSettings()
+  isUserDropdownOpen.value = false
+  closeSidebar()
+}
+
+const openPreferences = () => {
+  modalStore.openPreferences()
   isUserDropdownOpen.value = false
   closeSidebar()
 }
@@ -324,7 +331,7 @@ onMounted(() => {
             </button>
             <button
               class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-xs font-bold"
-              @click="openSettings"
+              @click="openPreferences"
             >
               <span class="material-symbols-outlined text-lg">settings</span>
               Preferences
@@ -359,6 +366,12 @@ onMounted(() => {
 
   <!-- User Settings Modal -->
   <UserSettingsModal :is-open="modalStore.isSettingsOpen" @close="modalStore.closeSettings()" />
+
+  <!-- Preferences Modal -->
+  <PreferencesModal
+    :is-open="modalStore.isPreferencesOpen"
+    @close="modalStore.closePreferences()"
+  />
 </template>
 
 <style scoped>

@@ -2,7 +2,6 @@
 import { ref, reactive, watch } from 'vue'
 import { useAuthStore } from '@stores/auth'
 import BaseInput from '@components/BaseInput.vue'
-import { useThemeStore } from '@stores/theme'
 import { useRouter } from 'vue-router'
 import TwoFASetupModal from '@components/TwoFASetupModal.vue'
 import { apiError } from '@/utils/apiError'
@@ -19,7 +18,6 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
-const themeStore = useThemeStore()
 const router = useRouter()
 const toast = useToastStore()
 
@@ -298,42 +296,6 @@ const handleLogout = () => {
             >
               Set Up Authenticator
             </button>
-
-            <!-- Appearance -->
-            <h3
-              class="mt-9 mb-4 pb-2 border-b border-outline-variant/20 text-xs font-semibold uppercase text-on-surface-variant"
-            >
-              Appearance
-            </h3>
-
-            <div class="flex rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 gap-1">
-              <button
-                v-for="opt in [
-                  { value: 'system', icon: 'desktop_windows', label: 'System' },
-                  { value: 'light', icon: 'light_mode', label: 'Light' },
-                  { value: 'dark', icon: 'dark_mode', label: 'Dark' },
-                ] as const"
-                :key="opt.value"
-                class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-colors"
-                :class="
-                  themeStore.preference === opt.value
-                    ? 'bg-surface-container-lowest dark:bg-on-surface/15 text-primary shadow-sm'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                "
-                :aria-label="`Switch to ${opt.label} mode`"
-                :aria-pressed="themeStore.preference === opt.value"
-                @click="themeStore.setPreference(opt.value)"
-              >
-                <span
-                  class="material-symbols-outlined text-base"
-                  :style="
-                    themeStore.preference === opt.value ? 'font-variation-settings: \'FILL\' 1' : ''
-                  "
-                  >{{ opt.icon }}</span
-                >
-                {{ opt.label }}
-              </button>
-            </div>
 
             <!-- Session -->
             <h3
