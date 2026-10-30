@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useScheduleStore } from '@stores/schedule'
 import { useUsersStore } from '@stores/users'
@@ -225,8 +226,7 @@ const formatDay = function (iso: string): string {
     >
       <div class="flex items-center gap-3 mb-4">
         <div class="size-10 rounded-2xl bg-warning/20 flex items-center justify-center">
-          <span
-            class="material-symbols-outlined text-warning [font-variation-settings:'FILL'_1]"
+          <span class="material-symbols-outlined text-warning [font-variation-settings:'FILL'_1]"
             >pending_actions</span
           >
         </div>
@@ -309,8 +309,7 @@ const formatDay = function (iso: string): string {
     >
       <h3 class="text-xl font-semibold text-on-surface mb-6 flex items-center gap-3">
         <span class="size-10 rounded-2xl bg-success/10 flex items-center justify-center">
-          <span
-            class="material-symbols-outlined text-success [font-variation-settings:'FILL'_1]"
+          <span class="material-symbols-outlined text-success [font-variation-settings:'FILL'_1]"
             >event_available</span
           >
         </span>
@@ -342,147 +341,99 @@ const formatDay = function (iso: string): string {
       </div>
     </section>
 
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition opacity-150 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition opacity-150 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="rejectModal.open"
-          class="fixed inset-0 z-[250] flex items-center justify-center p-4"
-        >
-          <div
-            class="absolute inset-0 bg-black/40 dark:bg-black/70"
-            @click="rejectModal.open = false"
-          />
-          <div
-            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
+    <BaseModal
+      :is-open="rejectModal.open"
+      size="sm"
+      layer="raised"
+      title="Decline Session Request"
+      close-label="Close decline dialog"
+      @close="rejectModal.open = false"
+    >
+      <textarea
+        v-model="rejectModal.notes"
+        rows="3"
+        placeholder="Reason for declining (optional)..."
+        class="input resize-none"
+      />
+
+      <template #footer>
+        <button class="btn-ghost" @click="rejectModal.open = false">Cancel</button>
+        <button class="btn-danger" @click="confirmReject">Confirm Decline</button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :is-open="counterModal.open"
+      size="md"
+      layer="raised"
+      title="Counter Proposal"
+      close-label="Close counter proposal"
+      @close="counterModal.open = false"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
+            >New Start Time</label
           >
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-on-surface">Decline Session Request</h3>
-              <button
-                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
-                @click="rejectModal.open = false"
-              >
-                <span class="material-symbols-outlined text-base">close</span>
-              </button>
-            </div>
-            <textarea
-              v-model="rejectModal.notes"
-              rows="3"
-              placeholder="Reason for declining (optional)..."
-              class="input resize-none"
-            />
-            <div class="flex gap-3">
-              <button
-                class="flex-1 py-3 bg-error/20 hover:bg-error/30 border border-error/30 text-error font-bold rounded-2xl text-sm transition-all"
-                @click="confirmReject"
-              >
-                Confirm Decline
-              </button>
-              <button
-                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant font-bold rounded-2xl text-sm"
-                @click="rejectModal.open = false"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition opacity-150 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition opacity-150 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="counterModal.open"
-          class="fixed inset-0 z-[250] flex items-center justify-center p-4"
-        >
-          <div
-            class="absolute inset-0 bg-black/40 dark:bg-black/70"
-            @click="counterModal.open = false"
+          <input
+            v-model="counterModal.startTime"
+            type="datetime-local"
+            class="input [color-scheme:dark]"
           />
-          <div
-            class="relative w-full max-w-md liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
-          >
-            <div class="flex items-center justify-between">
-              <h3 class="text-xl font-semibold text-on-surface">Counter Proposal</h3>
-              <button
-                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
-                @click="counterModal.open = false"
-              >
-                <span class="material-symbols-outlined text-base">close</span>
-              </button>
-            </div>
-
-            <div class="space-y-4">
-              <div>
-                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
-                  >New Start Time</label
-                >
-                <input
-                  v-model="counterModal.startTime"
-                  type="datetime-local"
-                  class="input [color-scheme:dark]"
-                />
-              </div>
-              <div>
-                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
-                  >New End Time</label
-                >
-                <input
-                  v-model="counterModal.endTime"
-                  type="datetime-local"
-                  class="input [color-scheme:dark]"
-                />
-              </div>
-              <div>
-                <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
-                  >Notes to Student</label
-                >
-                <textarea v-model="counterModal.notes" rows="3" class="input resize-none" />
-              </div>
-            </div>
-
-            <div class="flex gap-3 pt-2">
-              <button
-                class="flex-1 py-3 bg-primary text-on-primary font-semibold rounded-2xl text-sm shadow-lg hover:scale-[1.02] active:scale-95 transition-all"
-                @click="confirmCounter"
-              >
-                Send Counter
-              </button>
-              <button
-                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant font-bold rounded-2xl text-sm"
-                @click="counterModal.open = false"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
         </div>
-      </Transition>
-    </Teleport>
+        <div>
+          <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
+            >New End Time</label
+          >
+          <input
+            v-model="counterModal.endTime"
+            type="datetime-local"
+            class="input [color-scheme:dark]"
+          />
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase text-on-surface-variant mb-2 block"
+            >Notes to Student</label
+          >
+          <textarea v-model="counterModal.notes" rows="3" class="input resize-none" />
+        </div>
+      </div>
+
+      <template #footer>
+        <button class="btn-ghost" @click="counterModal.open = false">Cancel</button>
+        <button class="btn-primary" @click="confirmCounter">Send Counter</button>
+      </template>
+    </BaseModal>
     <SessionDetailModal
       :session="selectedSession"
       user-role="teacher"
       :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
-      @approve-teacher="(id: number) => { handleApproveStudent(id); selectedSession = null }"
-      @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
-      @counter-teacher="(s: Session) => { openCounter(s); selectedSession = null }"
-      @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+      @approve-teacher="
+        (id: number) => {
+          handleApproveStudent(id)
+          selectedSession = null
+        }
+      "
+      @reject-teacher="
+        (id: number) => {
+          openReject(id)
+          selectedSession = null
+        }
+      "
+      @counter-teacher="
+        (s: Session) => {
+          openCounter(s)
+          selectedSession = null
+        }
+      "
+      @nudge="
+        (id: number) => {
+          scheduleStore.nudgeSession(id)
+          selectedSession = null
+        }
+      "
     />
 
     <ProposeSessionModal

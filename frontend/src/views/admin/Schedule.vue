@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import BaseDropdown from '@/components/BaseDropdown.vue'
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
@@ -361,8 +362,7 @@ const statusBadgeClass = function (status: string): string {
     >
       <div class="flex items-center gap-3 mb-6">
         <div class="size-10 rounded-2xl bg-warning/20 flex items-center justify-center">
-          <span
-            class="material-symbols-outlined text-warning [font-variation-settings:'FILL'_1]"
+          <span class="material-symbols-outlined text-warning [font-variation-settings:'FILL'_1]"
             >pending_actions</span
           >
         </div>
@@ -548,129 +548,61 @@ const statusBadgeClass = function (status: string): string {
       </div>
     </section>
 
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition opacity-150 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition opacity-150 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="rejectModal.open"
-          class="fixed inset-0 z-[250] flex items-center justify-center p-4"
-          @click.self="rejectModal.open = false"
-        >
-          <div
-            class="absolute inset-0 bg-black/40 dark:bg-black/70"
-            @click="rejectModal.open = false"
-          />
-          <div
-            class="relative w-full max-w-sm liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
-          >
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-on-surface">Reject Session</h3>
-              <button
-                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-all"
-                @click="rejectModal.open = false"
-              >
-                <span class="material-symbols-outlined text-base">close</span>
-              </button>
-            </div>
-            <textarea
-              v-model="rejectModal.notes"
-              rows="3"
-              placeholder="Reason for rejection (optional)..."
-              class="input resize-none"
-            />
-            <div class="flex gap-3">
-              <button
-                class="flex-1 py-3 bg-error/20 hover:bg-error/30 border border-error/30 text-error font-bold rounded-2xl text-sm transition-all"
-                @click="confirmReject"
-              >
-                Confirm Reject
-              </button>
-              <button
-                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant font-bold rounded-2xl text-sm transition-all"
-                @click="rejectModal.open = false"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <BaseModal
+      :is-open="rejectModal.open"
+      size="sm"
+      layer="raised"
+      title="Reject Session"
+      close-label="Close reject dialog"
+      @close="rejectModal.open = false"
+    >
+      <textarea
+        v-model="rejectModal.notes"
+        rows="3"
+        placeholder="Reason for rejection (optional)..."
+        class="input resize-none"
+      />
 
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition opacity-150 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition opacity-150 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="editModal.open"
-          class="fixed inset-0 z-[250] flex items-center justify-center p-4"
-          @click.self="editModal.open = false"
-        >
-          <div
-            class="absolute inset-0 bg-black/40 dark:bg-black/70"
-            @click="editModal.open = false"
-          />
-          <div
-            class="relative w-full max-w-md liquid-glass rounded-3xl border border-on-surface/[0.08] dark:border-on-surface/10 p-6 space-y-4"
+      <template #footer>
+        <button class="btn-ghost" @click="rejectModal.open = false">Cancel</button>
+        <button class="btn-danger" @click="confirmReject">Confirm Reject</button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :is-open="editModal.open"
+      size="md"
+      layer="raised"
+      title="Edit Session"
+      close-label="Close session editor"
+      @close="editModal.open = false"
+    >
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
+            >Date</label
           >
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-on-surface">Edit Session</h3>
-              <button
-                class="size-8 rounded-xl bg-on-surface/[0.04] dark:bg-on-surface/5 flex items-center justify-center text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface"
-                @click="editModal.open = false"
-              >
-                <span class="material-symbols-outlined text-base">close</span>
-              </button>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
-                  >Date</label
-                >
-                <input v-model="editModal.date" type="date" class="input" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
-                  >Time</label
-                >
-                <input v-model="editModal.time" type="time" class="input" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
-                >Notes</label
-              >
-              <textarea v-model="editModal.notes" rows="2" class="input resize-none" />
-            </div>
-            <div class="flex gap-3">
-              <button
-                class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl text-sm"
-                @click="confirmEdit"
-              >
-                Save Changes
-              </button>
-              <button
-                class="px-4 py-3 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant font-bold rounded-2xl text-sm"
-                @click="editModal.open = false"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+          <input v-model="editModal.date" type="date" class="input" />
         </div>
-      </Transition>
-    </Teleport>
+        <div>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
+            >Time</label
+          >
+          <input v-model="editModal.time" type="time" class="input" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant uppercase mb-2"
+          >Notes</label
+        >
+        <textarea v-model="editModal.notes" rows="2" class="input resize-none" />
+      </div>
+
+      <template #footer>
+        <button class="btn-ghost" @click="editModal.open = false">Cancel</button>
+        <button class="btn-primary" @click="confirmEdit">Save Changes</button>
+      </template>
+    </BaseModal>
 
     <SessionDetailModal
       :session="selectedSession"
@@ -678,18 +610,83 @@ const statusBadgeClass = function (status: string): string {
       :current-user-id="authStore.currentUser?.id ?? 0"
       :users="allUsers"
       @close="selectedSession = null"
-      @approve-admin="(id: number) => { handleApprove(id); selectedSession = null }"
-      @reject-admin="(id: number) => { openReject(id); selectedSession = null }"
-      @complete-admin="(id: number) => { handleCompleteAdmin(id); selectedSession = null }"
-      @reject-proof-admin="(id: number) => { handleRejectProofAdmin(id); selectedSession = null }"
-      @approve-teacher="(id: number) => { handleApprove(id); selectedSession = null }"
-      @reject-teacher="(id: number) => { openReject(id); selectedSession = null }"
-      @counter-teacher="(s: Session) => { handleApprove(s.id); selectedSession = null }"
-      @approve-student="(id: number) => { handleApprove(id); selectedSession = null }"
-      @reject-student="async (id: number) => { try { await scheduleStore.rejectAsStudent(id); await scheduleStore.fetchAllSessions() } catch { toast.error('Action failed') }; selectedSession = null }"
-      @counter-student="(s: Session) => { handleApprove(s.id); selectedSession = null }"
-      @edit-admin="(s: Session) => { openEdit(s); selectedSession = null }"
-      @nudge="(id: number) => { scheduleStore.nudgeSession(id); selectedSession = null }"
+      @approve-admin="
+        (id: number) => {
+          handleApprove(id)
+          selectedSession = null
+        }
+      "
+      @reject-admin="
+        (id: number) => {
+          openReject(id)
+          selectedSession = null
+        }
+      "
+      @complete-admin="
+        (id: number) => {
+          handleCompleteAdmin(id)
+          selectedSession = null
+        }
+      "
+      @reject-proof-admin="
+        (id: number) => {
+          handleRejectProofAdmin(id)
+          selectedSession = null
+        }
+      "
+      @approve-teacher="
+        (id: number) => {
+          handleApprove(id)
+          selectedSession = null
+        }
+      "
+      @reject-teacher="
+        (id: number) => {
+          openReject(id)
+          selectedSession = null
+        }
+      "
+      @counter-teacher="
+        (s: Session) => {
+          handleApprove(s.id)
+          selectedSession = null
+        }
+      "
+      @approve-student="
+        (id: number) => {
+          handleApprove(id)
+          selectedSession = null
+        }
+      "
+      @reject-student="
+        async (id: number) => {
+          try {
+            await scheduleStore.rejectAsStudent(id)
+            await scheduleStore.fetchAllSessions()
+          } catch {
+            toast.error('Action failed')
+          }
+          selectedSession = null
+        }
+      "
+      @counter-student="
+        (s: Session) => {
+          handleApprove(s.id)
+          selectedSession = null
+        }
+      "
+      @edit-admin="
+        (s: Session) => {
+          openEdit(s)
+          selectedSession = null
+        }
+      "
+      @nudge="
+        (id: number) => {
+          scheduleStore.nudgeSession(id)
+          selectedSession = null
+        }
+      "
     />
 
     <ProposeSessionModal

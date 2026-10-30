@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import BaseDropdown from '@/components/BaseDropdown.vue'
 import HomeworkModal from '@/components/HomeworkModal.vue'
 import { useRouter } from 'vue-router'
@@ -35,6 +36,15 @@ const stagedProofFile = ref<File | null>(null)
 const stagedProofUrl = ref<string | null>(null)
 
 const proofPreviewUrl = ref<string | null>(null)
+
+// Two statements, so it lives here rather than inline: Prettier splits a
+// multi-statement @click across lines and drops the separator, which Vue
+// cannot parse.
+const viewStudentProof = () => {
+  showProofViewer.value = true
+  proofPreviewUrl.value =
+    selectedSession.value?.proofs?.find((p) => p.uploaderRole === 'student')?.imageUrl || null
+}
 const proofPreviewFile = ref<File | null>(null)
 
 onMounted(async () => {
@@ -338,8 +348,7 @@ const stopCountering = () => {
     </div>
 
     <div v-if="overdueSessions.length > 0" class="alert-error mb-6">
-      <span
-        class="material-symbols-outlined shrink-0 text-error [font-variation-settings:'FILL'_1]"
+      <span class="material-symbols-outlined shrink-0 text-error [font-variation-settings:'FILL'_1]"
         >warning</span
       >
       <div>
@@ -1044,7 +1053,7 @@ const stopCountering = () => {
                 </div>
                 <button
                   class="px-4 py-2 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface text-xs font-bold rounded-lg transition-all border border-on-surface/[0.08] dark:border-on-surface/10"
-                  @click="showProofViewer = true; proofPreviewUrl = selectedSession.proofs?.find((p) => p.uploaderRole === 'student')?.imageUrl || null"
+                  @click="viewStudentProof"
                 >
                   View
                 </button>
@@ -1215,93 +1224,64 @@ const stopCountering = () => {
     </Transition>
   </Teleport>
 
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition opacity-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showRequestModal"
-        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="request-modal-title"
-        @click.self="closeRequestModal"
-      >
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeRequestModal" />
-        <div
-          class="relative w-full max-w-md bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl"
+  <BaseModal
+    :is-open="showRequestModal"
+    size="md"
+    layer="default"
+    title="Request a Session"
+    close-label="Close request dialog"
+    @close="closeRequestModal"
+  >
+    <form class="space-y-4" @submit.prevent="submitRequest">
+      <div>
+        <label
+          class="text-xs font-semibold text-on-surface-variant uppercase mb-1.5 block"
+          for="req-teacher"
+          >Preferred Teacher</label
         >
-          <div class="flex items-center justify-between mb-6">
-            <h3 id="request-modal-title" class="text-xl font-semibold text-on-surface">
-              Request a Session
-            </h3>
-            <button
-              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1"
-              aria-label="Close modal"
-              @click="closeRequestModal"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <form class="space-y-4" @submit.prevent="submitRequest">
-            <div>
-              <label
-                class="text-xs font-semibold text-on-surface-variant uppercase mb-1.5 block"
-                for="req-teacher"
-                >Preferred Teacher</label
-              >
-              <BaseDropdown
-                v-model="requestForm.teacherId"
-                :options="[
-                  { value: null, label: 'Select a teacher...' },
-                  ...myTeachers.map((t) => ({ value: t.id, label: t.name })),
-                ]"
-              />
-              <p v-if="!myTeachers.length" class="mt-2 text-xs text-on-surface-variant">
-                You are not enrolled with any teacher yet. Request enrollment below to start
-                booking.
-              </p>
-            </div>
-            <div>
-              <label
-                class="text-xs font-semibold text-on-surface-variant uppercase mb-1.5 block"
-                for="req-date"
-                >Preferred Date &amp; Time</label
-              >
-              <input
-                id="req-date"
-                v-model="requestForm.startTime"
-                type="datetime-local"
-                required
-                class="input"
-              />
-            </div>
-            <div class="flex gap-3 pt-2">
-              <button
-                type="button"
-                class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
-                @click="closeRequestModal"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="scheduleStore.isLoading"
-                class="flex-1 py-3 rounded-xl bg-primary hover:scale-[1.02] text-on-primary text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
-              >
-                {{ scheduleStore.isLoading ? 'Submitting...' : 'Request Session' }}
-              </button>
-            </div>
-          </form>
-        </div>
+        <BaseDropdown
+          v-model="requestForm.teacherId"
+          :options="[
+            { value: null, label: 'Select a teacher...' },
+            ...myTeachers.map((t) => ({ value: t.id, label: t.name })),
+          ]"
+        />
+        <p v-if="!myTeachers.length" class="mt-2 text-xs text-on-surface-variant">
+          You are not enrolled with any teacher yet. Request enrollment below to start booking.
+        </p>
       </div>
-    </Transition>
-  </Teleport>
+      <div>
+        <label
+          class="text-xs font-semibold text-on-surface-variant uppercase mb-1.5 block"
+          for="req-date"
+          >Preferred Date &amp; Time</label
+        >
+        <input
+          id="req-date"
+          v-model="requestForm.startTime"
+          type="datetime-local"
+          required
+          class="input"
+        />
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button
+          type="button"
+          class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all"
+          @click="closeRequestModal"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          :disabled="scheduleStore.isLoading"
+          class="flex-1 py-3 rounded-xl bg-primary hover:scale-[1.02] text-on-primary text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
+        >
+          {{ scheduleStore.isLoading ? 'Submitting...' : 'Request Session' }}
+        </button>
+      </div>
+    </form>
+  </BaseModal>
 
   <HomeworkModal
     :is-open="isHomeworkModalOpen"
