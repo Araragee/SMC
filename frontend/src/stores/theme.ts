@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 export type ThemePreference = 'light' | 'dark' | 'system'
 
@@ -35,21 +35,24 @@ export const useThemeStore = defineStore('theme', () => {
     applyTheme(isDarkMode.value)
   })
 
-  // Listen for OS-level changes
-  let mediaQuery: MediaQueryList | null = null
-  const handleSystemChange = (e: MediaQueryListEvent) => {
+  // Listen for OS-level changes.
+  //
+  // Bound here at store creation rather than in onMounted. main.ts calls
+  // useThemeStore() before app.mount(), so Pinia runs this setup with no
+  // active component instance: Vue warned on every boot and the listener was
+  // never attached, which left the 'system' preference frozen at whatever the
+  // OS reported at startup. Changing appearance did nothing until a reload.
+  //
+  // There is no matching teardown because the store lives as long as the page
+  // does. The old onUnmounted was the more dangerous half anyway — had this
+  // store first been touched inside a component, it would have ripped the
+  // listener out when that unrelated component unmounted.
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  mediaQuery.addEventListener('change', (e) => {
     systemPrefersDark.value = e.matches
-  }
-
-  onMounted(() => {
-    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', handleSystemChange)
-    applyTheme(isDarkMode.value)
   })
 
-  onUnmounted(() => {
-    mediaQuery?.removeEventListener('change', handleSystemChange)
-  })
+  applyTheme(isDarkMode.value)
 
   /** Cycle: system → light → dark → system */
   const toggleTheme = function() {
