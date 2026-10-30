@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useScheduleStore } from '@stores/schedule'
@@ -582,146 +583,133 @@ async function handleRejectStudent(sessionId: number) {
     </section>
 
     <!-- ── Student Detail Modal ────────────────────────────────────────────── -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition-all ease-out"
-        enter-from-class="opacity-0 translate-x-8"
-        enter-to-class="opacity-100 translate-x-0"
-        leave-active-class="transition-all ease-in"
-        leave-from-class="opacity-100 translate-x-0"
-        leave-to-class="opacity-0 translate-x-8"
-      >
+    <BaseModal
+      :is-open="!!selectedStudent"
+      size="xl"
+      close-label="Close student details"
+      @close="closeStudent"
+    >
+      <template v-if="selectedStudent" #header>
+      <div class="flex items-center gap-4 p-6 border-b border-on-surface/5">
         <div
-          v-if="selectedStudent"
-          class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-          @click.self="closeStudent"
+          class="size-14 rounded-2xl bg-success/20 border border-success/20 flex items-center justify-center text-success font-semibold text-xl overflow-hidden shrink-0"
         >
-          <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeStudent" />
+          <img
+            v-if="selectedStudent.avatarUrl"
+            :src="selectedStudent.avatarUrl"
+            class="w-full h-full object-cover"
+          />
+          <span v-else>{{ selectedStudent.name.charAt(0).toUpperCase() }}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h2 class="font-semibold text-xl text-on-surface truncate">
+            {{ selectedStudent.name }}
+          </h2>
+          <p class="text-on-surface-variant text-sm">{{ selectedStudent.email }}</p>
+        </div>
+        <button class="icon-btn" @click="closeStudent">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
 
+      </template>
+
+      <template v-if="selectedStudent">
+        <div class="grid grid-cols-2 gap-3">
           <div
-            class="relative w-full max-w-xl glass-heavy rounded-3xl shadow-2xl flex flex-col max-h-[90vh]"
+            v-if="selectedStudent.school"
+            class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
           >
-            <div class="flex items-center gap-4 p-6 border-b border-on-surface/5">
-              <div
-                class="size-14 rounded-2xl bg-success/20 border border-success/20 flex items-center justify-center text-success font-semibold text-xl overflow-hidden shrink-0"
-              >
-                <img
-                  v-if="selectedStudent.avatarUrl"
-                  :src="selectedStudent.avatarUrl"
-                  class="w-full h-full object-cover"
-                />
-                <span v-else>{{ selectedStudent.name.charAt(0).toUpperCase() }}</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <h2 class="font-semibold text-xl text-on-surface truncate">
-                  {{ selectedStudent.name }}
-                </h2>
-                <p class="text-on-surface-variant text-sm">{{ selectedStudent.email }}</p>
-              </div>
-              <button class="icon-btn" @click="closeStudent">
-                <span class="material-symbols-outlined text-lg">close</span>
-              </button>
-            </div>
-
-            <div class="overflow-y-auto flex-1 p-6 space-y-4 custom-scrollbar">
-              <div class="grid grid-cols-2 gap-3">
-                <div
-                  v-if="selectedStudent.school"
-                  class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
-                >
-                  <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">School</p>
-                  <p class="text-sm font-bold text-on-surface">{{ selectedStudent.school }}</p>
-                </div>
-                <div
-                  v-if="selectedStudent.contactNumber"
-                  class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
-                >
-                  <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">
-                    Contact
-                  </p>
-                  <p class="text-sm font-bold text-on-surface">
-                    {{ selectedStudent.contactNumber }}
-                  </p>
-                </div>
-                <div
-                  v-if="selectedStudent.parentName"
-                  class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
-                >
-                  <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Parent</p>
-                  <p class="text-sm font-bold text-on-surface">{{ selectedStudent.parentName }}</p>
-                </div>
-                <div class="bg-success/10 border border-success/20 rounded-2xl p-3">
-                  <p class="text-xs font-semibold text-success uppercase mb-1">Sessions Done</p>
-                  <p class="text-2xl font-semibold text-success">{{ stats.completed }}</p>
-                </div>
-              </div>
-
-              <div>
-                <p class="text-xs font-semibold text-on-surface-variant uppercase mb-3">
-                  Session Breakdown
-                </p>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    v-for="chip in chips"
-                    :key="chip.key"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold uppercase transition-all"
-                    :class="[
-                      chip.color,
-                      activeChip === chip.key
-                        ? 'ring-2 ring-offset-1 ring-offset-transparent scale-105'
-                        : 'opacity-80 hover:opacity-100',
-                    ]"
-                    @click="selectChip(chip.key)"
-                  >
-                    <span class="size-1.5 rounded-full" :class="chip.dot"></span>
-                    {{ chip.label }}
-                    <span class="font-semibold ml-0.5">{{ chip.count }}</span>
-                  </button>
-                </div>
-              </div>
-
-              <div v-if="filteredSessions.length > 0" class="space-y-2">
-                <p class="text-xs font-semibold text-on-surface-variant uppercase">
-                  {{ activeChip ? chips.find((c) => c.key === activeChip)?.label : 'All' }} Sessions
-                </p>
-                <button
-                  v-for="session in filteredSessions"
-                  :key="session.id"
-                  class="w-full flex items-center gap-3 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.05] dark:border-on-surface/5 hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.06] transition-all text-left group"
-                  @click="selectedSession = session"
-                >
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-on-surface">
-                      {{ formatTime(session.startTime) }}
-                    </p>
-                    <p class="text-xs text-on-surface-variant">{{ statusLabel(session.status) }}</p>
-                  </div>
-                  <span
-                    class="text-xs font-semibold px-2 py-1 rounded-full border"
-                    :class="statusBadge(session.status)"
-                  >
-                    {{ statusLabel(session.status) }}
-                  </span>
-                  <span
-                    class="material-symbols-outlined text-sm text-on-surface-variant/40 group-hover:text-on-surface-variant transition-colors"
-                    >chevron_right</span
-                  >
-                </button>
-              </div>
-              <div v-else-if="activeChip" class="text-center py-6 text-on-surface-variant text-sm">
-                No sessions in this category.
-              </div>
-              <div
-                v-else-if="studentSessions.length === 0"
-                class="text-center py-6 text-on-surface-variant text-sm"
-              >
-                No sessions with this student yet.
-              </div>
-            </div>
+            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">School</p>
+            <p class="text-sm font-bold text-on-surface">{{ selectedStudent.school }}</p>
+          </div>
+          <div
+            v-if="selectedStudent.contactNumber"
+            class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
+          >
+            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">
+              Contact
+            </p>
+            <p class="text-sm font-bold text-on-surface">
+              {{ selectedStudent.contactNumber }}
+            </p>
+          </div>
+          <div
+            v-if="selectedStudent.parentName"
+            class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
+          >
+            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Parent</p>
+            <p class="text-sm font-bold text-on-surface">{{ selectedStudent.parentName }}</p>
+          </div>
+          <div class="bg-success/10 border border-success/20 rounded-2xl p-3">
+            <p class="text-xs font-semibold text-success uppercase mb-1">Sessions Done</p>
+            <p class="text-2xl font-semibold text-success">{{ stats.completed }}</p>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+
+        <div>
+          <p class="text-xs font-semibold text-on-surface-variant uppercase mb-3">
+            Session Breakdown
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="chip in chips"
+              :key="chip.key"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold uppercase transition-all"
+              :class="[
+                chip.color,
+                activeChip === chip.key
+                  ? 'ring-2 ring-offset-1 ring-offset-transparent scale-105'
+                  : 'opacity-80 hover:opacity-100',
+              ]"
+              @click="selectChip(chip.key)"
+            >
+              <span class="size-1.5 rounded-full" :class="chip.dot"></span>
+              {{ chip.label }}
+              <span class="font-semibold ml-0.5">{{ chip.count }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div v-if="filteredSessions.length > 0" class="space-y-2">
+          <p class="text-xs font-semibold text-on-surface-variant uppercase">
+            {{ activeChip ? chips.find((c) => c.key === activeChip)?.label : 'All' }} Sessions
+          </p>
+          <button
+            v-for="session in filteredSessions"
+            :key="session.id"
+            class="w-full flex items-center gap-3 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.05] dark:border-on-surface/5 hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.06] transition-all text-left group"
+            @click="selectedSession = session"
+          >
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-on-surface">
+                {{ formatTime(session.startTime) }}
+              </p>
+              <p class="text-xs text-on-surface-variant">{{ statusLabel(session.status) }}</p>
+            </div>
+            <span
+              class="text-xs font-semibold px-2 py-1 rounded-full border"
+              :class="statusBadge(session.status)"
+            >
+              {{ statusLabel(session.status) }}
+            </span>
+            <span
+              class="material-symbols-outlined text-sm text-on-surface-variant/40 group-hover:text-on-surface-variant transition-colors"
+              >chevron_right</span
+            >
+          </button>
+        </div>
+        <div v-else-if="activeChip" class="text-center py-6 text-on-surface-variant text-sm">
+          No sessions in this category.
+        </div>
+        <div
+          v-else-if="studentSessions.length === 0"
+          class="text-center py-6 text-on-surface-variant text-sm"
+        >
+          No sessions with this student yet.
+        </div>
+      </template>
+    </BaseModal>
 
     <SessionDetailModal
       :session="selectedSession"
