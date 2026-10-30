@@ -227,7 +227,7 @@ onMounted(() => {
       >
         <span
           class="material-symbols-outlined text-xl"
-          :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
+          :class="isActive(item.path) ? `[font-variation-settings:'FILL'_1]` : ''"
           >{{ item.icon }}</span
         >
         <span>{{ item.label }}</span>
@@ -258,8 +258,7 @@ onMounted(() => {
           @click="openMessaging"
         >
           <span
-            class="material-symbols-outlined text-xl group-hover:scale-110"
-            style="font-variation-settings: 'FILL' 1"
+            class="material-symbols-outlined text-xl group-hover:scale-110 [font-variation-settings:'FILL'_1]"
             >chat</span
           >
           <span class="text-xs font-bold uppercase">Chat</span>

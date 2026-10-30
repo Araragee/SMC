@@ -102,7 +102,7 @@ onUnmounted(() => {
               ? 'text-on-surface'
               : 'text-on-surface-variant group-hover:text-on-surface'
           "
-          :style="isActive(item.path) ? 'font-variation-settings: \'FILL\' 1' : ''"
+          :class="isActive(item.path) ? `[font-variation-settings:'FILL'_1]` : ''"
           aria-hidden="true"
         >
           {{ item.icon }}

@@ -415,7 +415,7 @@ async function handleRejectStudent(sessionId: number) {
             "
             @click="listFilter = listFilter === f.key && f.key !== 'all' ? 'all' : f.key"
           >
-            <span class="material-symbols-outlined" style="font-size: 14px">{{ f.icon }}</span>
+            <span class="material-symbols-outlined text-sm">{{ f.icon }}</span>
             {{ f.label }}
             <span
               class="font-semibold"
@@ -436,11 +436,10 @@ async function handleRejectStudent(sessionId: number) {
             "
             @click.stop="sortOpen = !sortOpen"
           >
-            <span class="material-symbols-outlined" style="font-size: 14px">swap_vert</span>
+            <span class="material-symbols-outlined text-sm">swap_vert</span>
             {{ sortOptions.find((o) => o.key === sortBy)?.label }}
             <span
-              class="material-symbols-outlined transition-transform"
-              style="font-size: 14px"
+              class="material-symbols-outlined transition-transform text-sm"
               :class="sortOpen ? 'rotate-180' : ''"
               >expand_more</span
             >
@@ -469,14 +468,13 @@ async function handleRejectStudent(sessionId: number) {
                 "
                 @click="sortBy = opt.key; sortOpen = false"
               >
-                <span class="material-symbols-outlined" style="font-size: 14px">{{
+                <span class="material-symbols-outlined text-sm">{{
                   opt.icon
                 }}</span>
                 {{ opt.label }}
                 <span
                   v-if="sortBy === opt.key"
-                  class="material-symbols-outlined ml-auto"
-                  style="font-size: 14px"
+                  class="material-symbols-outlined ml-auto text-sm"
                   >check</span
                 >
               </button>
@@ -504,7 +502,7 @@ async function handleRejectStudent(sessionId: number) {
             class="ml-auto inline-flex items-center gap-1 font-bold text-error hover:text-error transition-colors"
             @click="clearAll"
           >
-            <span class="material-symbols-outlined" style="font-size: 14px">filter_list_off</span>
+            <span class="material-symbols-outlined text-sm">filter_list_off</span>
             Clear filters
           </button>
         </div>

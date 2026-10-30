@@ -84,8 +84,7 @@ const onCreated = function (id: number) {
           "
         >
           <span
-            class="material-symbols-outlined text-lg"
-            style="font-variation-settings: 'FILL' 1"
+            class="material-symbols-outlined text-lg [font-variation-settings:'FILL'_1]"
             >{{ getIcon(conv) }}</span
           >
         </div>

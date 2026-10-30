@@ -368,8 +368,7 @@ const formatTime = (dt: string | undefined) => {
           <div class="flex justify-between items-center">
             <h3 class="text-2xl font-semibold text-on-surface flex items-center gap-3">
               <span
-                class="material-symbols-outlined text-primary text-3xl"
-                style="font-variation-settings: 'FILL' 1"
+                class="material-symbols-outlined text-primary text-3xl [font-variation-settings:'FILL'_1]"
                 >diversity_3</span
               >
               Student Roster
@@ -582,7 +581,7 @@ const formatTime = (dt: string | undefined) => {
         <div
           class="size-20 rounded-3xl bg-primary/20 text-primary flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
         >
-          <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined text-4xl [font-variation-settings:'FILL'_1]"
             >star</span
           >
         </div>
@@ -597,7 +596,7 @@ const formatTime = (dt: string | undefined) => {
         <div
           class="size-20 rounded-3xl bg-success/20 text-success flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"
         >
-          <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined text-4xl [font-variation-settings:'FILL'_1]"
             >analytics</span
           >
         </div>
@@ -769,8 +768,7 @@ const formatTime = (dt: string | undefined) => {
                   class="size-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3"
                 >
                   <span
-                    class="material-symbols-outlined text-3xl text-primary"
-                    style="font-variation-settings: 'FILL' 1"
+                    class="material-symbols-outlined text-3xl text-primary [font-variation-settings:'FILL'_1]"
                     >add_a_photo</span
                   >
                 </div>

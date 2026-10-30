@@ -190,7 +190,7 @@ const getConvLabel = function (): string {
           :disabled="!input.trim()"
           @click="send"
         >
-          <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined text-lg [font-variation-settings:'FILL'_1]"
             >send</span
           >
         </button>

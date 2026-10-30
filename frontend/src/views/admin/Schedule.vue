@@ -364,8 +364,7 @@ const statusBadgeClass = function (status: string): string {
       <div class="flex items-center gap-3 mb-6">
         <div class="size-10 rounded-2xl bg-warning/20 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-warning"
-            style="font-variation-settings: 'FILL' 1"
+            class="material-symbols-outlined text-warning [font-variation-settings:'FILL'_1]"
             >pending_actions</span
           >
         </div>
@@ -445,7 +444,7 @@ const statusBadgeClass = function (status: string): string {
         <span
           class="size-10 rounded-2xl bg-success/10 flex items-center justify-center text-success"
         >
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined [font-variation-settings:'FILL'_1]"
             >calendar_month</span
           >
         </span>

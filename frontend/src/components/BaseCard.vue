@@ -104,13 +104,8 @@ const computedClasses = computed(() => [
     <!-- Inner specular glow ring (non-glass variants only) -->
     <div
       v-if="!isGlass"
-      class="absolute inset-0 pointer-events-none z-0"
+      class="specular-ring absolute inset-0 pointer-events-none z-0"
       :class="radiusClass[radius]"
-      style="
-        box-shadow:
-          inset 1px 1px 0px rgba(255, 255, 255, 0.07),
-          inset 0px -1px 0px rgba(0, 0, 0, 0.12);
-      "
     ></div>
 
     <div class="relative z-10 w-full h-full flex flex-col gap-6" :class="paddingClass[padding]">

@@ -148,8 +148,7 @@ const getRoleColor = function (role: string) {
                 (tab === 'dm' && selectedDM === user.id) ||
                 (tab === 'group' && selectedGroup.includes(user.id))
               "
-              class="material-symbols-outlined text-primary text-lg shrink-0"
-              style="font-variation-settings: 'FILL' 1"
+              class="material-symbols-outlined text-primary text-lg shrink-0 [font-variation-settings:'FILL'_1]"
               >check_circle</span
             >
           </button>

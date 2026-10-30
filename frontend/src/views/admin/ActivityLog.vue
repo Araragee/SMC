@@ -326,8 +326,7 @@ function timeAgo(dateStr: string) {
               :class="actionColor(entry.action_type)"
             >
               <span
-                class="material-symbols-outlined text-lg"
-                style="font-variation-settings: 'FILL' 1"
+                class="material-symbols-outlined text-lg [font-variation-settings:'FILL'_1]"
                 >{{ actionIcon(entry.action_type) }}</span
               >
             </div>
@@ -338,8 +337,7 @@ function timeAgo(dateStr: string) {
               :class="actionColor(entry.action_type)"
             >
               <span
-                class="material-symbols-outlined text-base"
-                style="font-variation-settings: 'FILL' 1"
+                class="material-symbols-outlined text-base [font-variation-settings:'FILL'_1]"
                 >{{ actionIcon(entry.action_type) }}</span
               >
             </div>

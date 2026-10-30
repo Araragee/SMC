@@ -228,8 +228,7 @@ const formatDay = function (iso: string): string {
       <div class="flex items-center gap-3 mb-4">
         <div class="size-10 rounded-2xl bg-warning/20 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-warning"
-            style="font-variation-settings: 'FILL' 1"
+            class="material-symbols-outlined text-warning [font-variation-settings:'FILL'_1]"
             >pending_actions</span
           >
         </div>
@@ -295,7 +294,7 @@ const formatDay = function (iso: string): string {
         <span
           class="size-10 rounded-2xl bg-success/10 flex items-center justify-center text-success"
         >
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+          <span class="material-symbols-outlined [font-variation-settings:'FILL'_1]"
             >calendar_month</span
           >
         </span>
@@ -315,8 +314,7 @@ const formatDay = function (iso: string): string {
       <h3 class="text-xl font-semibold text-on-surface mb-6 flex items-center gap-3">
         <span class="size-10 rounded-2xl bg-success/10 flex items-center justify-center">
           <span
-            class="material-symbols-outlined text-success"
-            style="font-variation-settings: 'FILL' 1"
+            class="material-symbols-outlined text-success [font-variation-settings:'FILL'_1]"
             >event_available</span
           >
         </span>

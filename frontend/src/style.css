@@ -645,6 +645,16 @@ p {
     .tap-target { @apply inline-flex min-h-11 min-w-11 items-center justify-center; }
   }
 
+  /* The inset highlight that lifts a solid card off the page. Two stacked
+     inset shadows, so it reads as a light source above and a shadow below.
+     A class rather than an inline style: it is fixed decoration, identical on
+     every card, and it was the last static style="" attribute in the app. */
+  .specular-ring {
+    box-shadow:
+      inset 1px 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12);
+  }
+
   /* — Corner radius scale ————————————————————
      One step per role, so a surface's radius says what kind of thing it is:
        rounded-3xl  cards, modals, page-level panels

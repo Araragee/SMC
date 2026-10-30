@@ -341,8 +341,7 @@ const stopCountering = () => {
     <!-- Overdue Warning -->
     <div v-if="overdueSessions.length > 0" class="alert-error mb-6">
       <span
-        class="material-symbols-outlined shrink-0 text-error"
-        style="font-variation-settings: 'FILL' 1"
+        class="material-symbols-outlined shrink-0 text-error [font-variation-settings:'FILL'_1]"
         >warning</span
       >
       <div>
@@ -370,7 +369,7 @@ const stopCountering = () => {
               <span
                 class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
               >
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+                <span class="material-symbols-outlined [font-variation-settings:'FILL'_1]"
                   >event_note</span
                 >
               </span>
@@ -405,8 +404,7 @@ const stopCountering = () => {
             class="py-12 flex flex-col items-center text-center"
           >
             <span
-              class="material-symbols-outlined text-5xl text-on-surface-variant/50 dark:text-on-surface-variant/40 mb-3"
-              style="font-variation-settings: 'FILL' 1"
+              class="material-symbols-outlined text-5xl text-on-surface-variant/50 dark:text-on-surface-variant/40 mb-3 [font-variation-settings:'FILL'_1]"
               >music_off</span
             >
             <p class="font-semibold text-on-surface-variant">No sessions yet</p>
@@ -523,7 +521,7 @@ const stopCountering = () => {
             <span
               class="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"
             >
-              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+              <span class="material-symbols-outlined [font-variation-settings:'FILL'_1]"
                 >cloud_upload</span
               >
             </span>
@@ -547,8 +545,7 @@ const stopCountering = () => {
                   class="size-14 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
                 >
                   <span
-                    class="material-symbols-outlined text-3xl"
-                    style="font-variation-settings: 'FILL' 1"
+                    class="material-symbols-outlined text-3xl [font-variation-settings:'FILL'_1]"
                     >add_a_photo</span
                   >
                 </div>
@@ -568,8 +565,7 @@ const stopCountering = () => {
                   class="relative z-10 size-12 rounded-full bg-success/20 text-success flex items-center justify-center mb-3"
                 >
                   <span
-                    class="material-symbols-outlined absolute"
-                    style="font-variation-settings: 'FILL' 1"
+                    class="material-symbols-outlined absolute [font-variation-settings:'FILL'_1]"
                     >check_circle</span
                   >
                 </div>
@@ -608,7 +604,7 @@ const stopCountering = () => {
               <div
                 class="size-12 bg-surface-container-high text-on-surface-variant rounded-2xl flex items-center justify-center shrink-0"
               >
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1"
+                <span class="material-symbols-outlined [font-variation-settings:'FILL'_1]"
                   >description</span
                 >
               </div>
@@ -668,7 +664,7 @@ const stopCountering = () => {
                   stroke-width="10"
                   stroke-linecap="round"
                   :stroke-dasharray="`${(sessionProgress * 527.8) / 100} 527.8`"
-                  style="transition: stroke-dasharray 0.8s ease"
+                  class="[transition:stroke-dasharray_0.8s_ease]"
                 />
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
@@ -769,8 +765,7 @@ const stopCountering = () => {
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-bold text-on-surface flex items-center gap-3">
               <span
-                class="material-symbols-outlined text-primary"
-                style="font-variation-settings: 'FILL' 1"
+                class="material-symbols-outlined text-primary [font-variation-settings:'FILL'_1]"
                 >campaign</span
               >
               Notice Board
@@ -802,8 +797,7 @@ const stopCountering = () => {
                 </button>
               </div>
               <span
-                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform"
-                style="font-variation-settings: 'FILL' 1"
+                class="material-symbols-outlined absolute -right-6 -bottom-6 text-8xl opacity-10 group-hover/promo:scale-110 transition-transform [font-variation-settings:'FILL'_1]"
                 >music_note</span
               >
             </div>
@@ -814,8 +808,7 @@ const stopCountering = () => {
                 class="size-10 bg-surface-container-highest rounded-2xl flex items-center justify-center shrink-0"
               >
                 <span
-                  class="material-symbols-outlined text-primary text-xl"
-                  style="font-variation-settings: 'FILL' 1"
+                  class="material-symbols-outlined text-primary text-xl [font-variation-settings:'FILL'_1]"
                   >lightbulb</span
                 >
               </div>

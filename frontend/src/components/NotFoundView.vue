@@ -20,8 +20,7 @@ function goHome() {
         class="size-16 rounded-full bg-surface-container-low border border-on-surface/[0.04] dark:border-on-surface/5 flex items-center justify-center mx-auto mb-4"
       >
         <span
-          class="material-symbols-outlined text-error text-3xl"
-          style="font-variation-settings: 'FILL' 1"
+          class="material-symbols-outlined text-error text-3xl [font-variation-settings:'FILL'_1]"
           >search_off</span
         >
       </div>
