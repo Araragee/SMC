@@ -54,6 +54,9 @@ export default [
     },
   },
   {
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': 'off',
