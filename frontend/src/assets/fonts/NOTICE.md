@@ -19,11 +19,21 @@ splits preserved, so a browser still downloads only the subsets it needs.
 
 - Upstream: https://fonts.google.com/icons (v382)
 - Licence: Apache License 2.0 — https://www.apache.org/licenses/LICENSE-2.0
-- One variable face, 1.1 MB, carrying the whole icon set.
+- Subset to the icons this app uses: 36 KB, down from 1,112 KB.
 
-That last file is the obvious thing to shrink. It is not shrunk here because
-self-hosting on its own is size-neutral — the browser already fetched this
-same 1.1 MB from Google — whereas subsetting is a behaviour change: 16 of the
-icon names in this app are bound at runtime from data, so a subset built from
-the 86 names visible in the templates would silently render some of them as
-blank boxes. Worth doing with a generated allow-list, not by hand.
+The committed file is a subset, not the upstream font. Regenerate it with
+`scripts/subset-icon-font.py` after adding or removing an icon; that script
+downloads the upstream font, so only the subset lives here.
+`icons-used.json` lists the names it was built for.
+
+The names are collected by harvesting every lowercase snake_case string
+literal in `src/` and keeping those the font recognises. That is wider than
+it needs to be on purpose: 32 icons here are bound at runtime from data —
+through helpers like `actionIcon()`, fields like `item.icon`, and `icon-left`
+props — so tracing only the element text would have missed them, and a missed
+name renders as a blank box.
+
+Verify against the font binary, not a browser: a machine with Material
+Symbols installed system-wide renders missing icons perfectly from the local
+copy, so a gap is invisible locally and broken for everyone else. The script's
+own output reports how many of the wanted names it retained.
