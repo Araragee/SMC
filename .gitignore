@@ -25,3 +25,8 @@ uploads/
 
 # Production account credentials — never commit
 PROD_ACCOUNTS.md
+
+# npm's cache directory — 116 MB of content-addressed blobs that were once
+# committed by accident. Render clones the repo for every build of both
+# services, so this was pure deploy latency.
+npm-cache-temp/

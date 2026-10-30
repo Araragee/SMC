@@ -61,17 +61,17 @@ def main():
         if not admin_role:
             admin_role = models.Role(name="admin")
             db.add(admin_role)
-        
+
         teacher_role = db.query(models.Role).filter(models.Role.name == "teacher").first()
         if not teacher_role:
             teacher_role = models.Role(name="teacher")
             db.add(teacher_role)
-            
+
         student_role = db.query(models.Role).filter(models.Role.name == "student").first()
         if not student_role:
             student_role = models.Role(name="student")
             db.add(student_role)
-            
+
         db.flush()
 
         # ── instruments ───────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ def main():
                 db.add(instr)
                 db.flush()
             instruments[name.lower()] = instr
-            
+
         guitar = instruments["guitar"]
         piano = instruments["piano"]
         drums = instruments["drums"]

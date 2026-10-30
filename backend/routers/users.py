@@ -17,12 +17,11 @@ from ..dependencies import (
     related_user_ids,
     require_admin,
     require_can_view_user,
-    require_self_or_admin,
 )
-from ..utils.passwords import enforce_password_strength
-from .auth import revoke_all_user_refresh_tokens
 from ..services.notifier import safe_notify
+from ..utils.passwords import enforce_password_strength
 from .activity import log_activity
+from .auth import revoke_all_user_refresh_tokens
 
 router = APIRouter()
 

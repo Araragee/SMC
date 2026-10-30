@@ -1,8 +1,9 @@
 # Render blueprint: FastAPI backend (Docker) + Vue SPA (static site).
 #
-# The database is CockroachDB Cloud and uploads live in a private Supabase
-# Storage bucket — Render's free web services have no persistent disk, so
-# anything written to the container filesystem is lost on every deploy.
+# The database is managed Postgres (Supabase's session pooler) or CockroachDB
+# Cloud, and uploads live in a private Supabase Storage bucket — Render's free
+# web services have no persistent disk, so anything written to the container
+# filesystem is lost on every deploy.
 #
 # Create with: Render dashboard → New → Blueprint → point at this repo.
 # Values marked `sync: false` are prompted for on first deploy and stored as
@@ -15,12 +16,23 @@ services:
     region: singapore
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
+    # Shallow liveness probe — no database call. See the docstring on
+    # /health in backend/main.py for why that matters here; /health/db is
+    # the endpoint to point an uptime monitor at.
     healthCheckPath: /health
     autoDeploy: true
+    # Don't rebuild and restart the API because a stylesheet changed. On the
+    # free plan a redeploy is also a cold start, so this is user-visible.
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
     envVars:
-      # CockroachDB Cloud connection string (Postgres wire protocol).
-      # Cluster → Connect → General connection string; swap the scheme for
-      # postgresql+psycopg2:// and keep ?sslmode=verify-full.
+      # Connection string (Postgres wire protocol). For Supabase use the
+      # **session pooler** URI — Render's free tier is IPv4-only and the
+      # direct database host is IPv6-only — with the scheme swapped for
+      # postgresql+psycopg2:// and ?sslmode=require appended. For CockroachDB
+      # Cloud keep ?sslmode=verify-full; its CA ships in the image.
       - key: DATABASE_URL
         sync: false
       - key: SECRET_KEY
@@ -38,10 +50,15 @@ services:
         sync: false
       - key: SUPABASE_BUCKET
         value: uploads
-      # Set to the static site's URL once Render assigns it, e.g.
-      # ["https://smc-web.onrender.com"]
+      # Resolved from the static site at deploy time, so the two services are
+      # not a chicken-and-egg problem any more. `host` yields a bare
+      # smc-web.onrender.com; Settings.cors_origins prepends https://.
+      # Replace this with an explicit value if you add a custom domain.
       - key: ALLOWED_ORIGINS
-        sync: false
+        fromService:
+          name: smc-web
+          type: web
+          property: host
       - key: REFRESH_COOKIE_SECURE
         value: "true"
       - key: REFRESH_COOKIE_SAMESITE
@@ -60,11 +77,20 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     autoDeploy: true
+    buildFilter:
+      paths:
+        - frontend/**
+        - render.yaml
     envVars:
-      # Baked into the bundle at build time. Set it to the API service URL,
-      # e.g. https://smc-api.onrender.com — changing it needs a rebuild.
+      # Baked into the bundle at build time, resolved from the API service so
+      # no manual copy-paste-redeploy round is needed. `host` has no scheme;
+      # src/typescript/constants.ts prepends https:// (and derives the wss://
+      # origin for the messaging WebSocket from it).
       - key: VITE_API_BASE_URL
-        sync: false
+        fromService:
+          name: smc-api
+          type: web
+          property: host
     headers:
       # Hashed filenames never change contents; index.html always must be
       # revalidated or a cached shell keeps requesting last deploy's assets.
@@ -72,6 +98,22 @@ services:
         name: Cache-Control
         value: public, max-age=31536000, immutable
       - path: /index.html
+        name: Cache-Control
+        value: no-cache
+      # The PWA's service workers and manifest keep their filenames across
+      # builds, so a cached copy pins returning visitors to an old bundle —
+      # a service worker especially, since it then serves its own stale
+      # precache and the deploy effectively never reaches them.
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /registerSW.js
+        name: Cache-Control
+        value: no-cache
+      - path: /push-sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /manifest.webmanifest
         name: Cache-Control
         value: no-cache
       - path: /*

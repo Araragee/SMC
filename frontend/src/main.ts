@@ -7,6 +7,10 @@ import '@/style.css'
 import App from '@/App.vue'
 import router from '@/router'
 import { useThemeStore } from '@stores/theme'
+// Statically imported on purpose: App.vue imports this store too, so a dynamic
+// import here cannot split it into its own chunk (rolldown reports
+// INEFFECTIVE_DYNAMIC_IMPORT) and only adds a promise to the 503 path.
+import { useMaintenanceStore } from '@stores/maintenance'
 
 // Phase 2: the refresh token is delivered as an HttpOnly cookie. Cookies
 // only ride along on cross-origin requests when withCredentials is true.
@@ -48,7 +52,6 @@ axios.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 503) {
-      const { useMaintenanceStore } = await import('@stores/maintenance')
       const maintenance = useMaintenanceStore()
       maintenance.setMaintenance(true)
       return Promise.reject(error)

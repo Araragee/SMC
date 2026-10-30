@@ -34,9 +34,12 @@ echo "==> Building images"
 echo "==> Starting stack"
 "${COMPOSE[@]}" up -d --remove-orphans
 
+# /health/db, not /health: this is a deploy gate, so it should not call the
+# stack healthy until the API can actually reach the database. /health is the
+# shallow liveness probe and answers before that is known.
 echo "==> Waiting for the API to report healthy"
 for _ in $(seq 1 60); do
-    if curl -fsS http://127.0.0.1:8000/health >/dev/null 2>&1; then
+    if curl -fsS http://127.0.0.1:8000/health/db >/dev/null 2>&1; then
         echo "API is up."
         "${COMPOSE[@]}" ps
         exit 0

@@ -82,14 +82,30 @@ class Settings(BaseSettings):
     # API down rather than just refusing that origin. Read `cors_origins`.
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173"
 
+    @staticmethod
+    def _normalize_origin(value: str) -> str:
+        """Coerce one configured value into something an Origin header matches.
+
+        Trailing slashes go because a browser's Origin header never carries
+        one and the comparison is exact. A value with no scheme gets
+        ``https://``: Render's blueprint wires this field from the static
+        site's ``host`` property, which yields a bare ``smc-web.onrender.com``
+        with no way to prepend a scheme declaratively. Without this, the
+        generated value silently matches nothing and the deployed frontend
+        gets a CORS error on its first request.
+        """
+        origin = value.strip().rstrip("/")
+        if origin and "://" not in origin:
+            origin = f"https://{origin}"
+        return origin
+
     @cached_property
     def cors_origins(self) -> list[str]:
         """Origins allowed to call this API.
 
         Accepts a JSON list, a comma-separated list, or a single bare origin:
         dashboard env fields are free text and every hosting UI encourages a
-        different shape. Trailing slashes are stripped because a browser's
-        Origin header never carries one and the comparison is exact.
+        different shape. Each entry is normalized by ``_normalize_origin``.
         """
         text = (self.ALLOWED_ORIGINS or "").strip()
         if not text:
@@ -104,8 +120,8 @@ class Settings(BaseSettings):
                     parsed = json.loads(cleaned)
                 except json.JSONDecodeError:
                     return []
-            return [str(v).strip().rstrip("/") for v in parsed if str(v).strip()]
-        return [part.strip().rstrip("/") for part in text.split(",") if part.strip()]
+            return [self._normalize_origin(str(v)) for v in parsed if str(v).strip()]
+        return [self._normalize_origin(part) for part in text.split(",") if part.strip()]
 
     # Refresh-token cookie (Phase 2).
     # The refresh token used to live in localStorage on the frontend — any XSS

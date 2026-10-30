@@ -47,3 +47,14 @@ test.db*
 uploads/
 .vscode/
 .git/
+
+# Test suite and lint config: CI runs these on the host, never in the shipped
+# image. Keeping them out shrinks the build context Render uploads and means a
+# new test file does not invalidate the image layer.
+tests/
+conftest.py
+dev-requirements.txt
+ruff.toml
+
+# Docs
+*.md

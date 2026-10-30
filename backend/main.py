@@ -1,20 +1,20 @@
 import asyncio
-import os
 import logging
-import uuid
+import os
 import traceback
+import uuid
 from contextlib import asynccontextmanager
 
 import jwt
-from fastapi import FastAPI, Request, Response, status, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy import text
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import models
 
@@ -35,18 +35,32 @@ limiter = Limiter(key_func=get_remote_address)
 # Do NOT call models.Base.metadata.create_all() here — it bypasses Alembic versioning.
 
 
+# Reference rows every deployment needs before anyone can log in.
+_REQUIRED_ROLES = ("admin", "teacher", "student")
+_REQUIRED_INSTRUMENTS = ("Guitar", "Bass", "Voice", "Drum", "Flute", "Violin", "Keyboard", "Ukulele")
+
+
 def _seed_defaults() -> None:
-    """Seed required roles, instruments, and a default admin on first boot."""
+    """Seed required roles, instruments, and a default admin on first boot.
+
+    This blocks the first request, so it reads the two reference tables in one
+    query each instead of one per row. A host that boots a fresh container
+    every time the service wakes from idle (Render's free tier) pays this cost
+    on every cold start, and eleven sequential round-trips to a managed
+    database — usually to discover nothing needs seeding at all — is the kind
+    of thing that is invisible locally and seconds away over the network.
+    """
     db = SessionLocal()
     try:
-        for role_name in ["admin", "teacher", "student"]:
-            if not db.query(models.Role).filter(models.Role.name == role_name).first():
-                db.add(models.Role(name=role_name))
-        db.commit()
+        existing_roles = {name for (name,) in db.query(models.Role.name).all()}
+        db.add_all([models.Role(name=n) for n in _REQUIRED_ROLES if n not in existing_roles])
 
-        for instrument_name in ["Guitar", "Bass", "Voice", "Drum", "Flute", "Violin", "Keyboard", "Ukulele"]:
-            if not db.query(models.Instrument).filter(models.Instrument.name == instrument_name).first():
-                db.add(models.Instrument(name=instrument_name))
+        existing_instruments = {name for (name,) in db.query(models.Instrument.name).all()}
+        db.add_all([
+            models.Instrument(name=n)
+            for n in _REQUIRED_INSTRUMENTS
+            if n not in existing_instruments
+        ])
         db.commit()
 
         admin_role = db.query(models.Role).filter(models.Role.name == "admin").first()
@@ -77,39 +91,17 @@ def _seed_defaults() -> None:
         db.close()
 
 
-def _purge_stale_tokens() -> None:
-    """Delete expired and revoked auth tokens to prevent unbounded table growth."""
-    import datetime
-    db = SessionLocal()
-    try:
-        now = datetime.datetime.now(datetime.UTC)
-        deleted_refresh = (
-            db.query(models.RefreshToken)
-            .filter(
-                (models.RefreshToken.revoked.is_(True))
-                | (models.RefreshToken.expires_at < now)
-            )
-            .delete(synchronize_session=False)
-        )
-        deleted_reset = (
-            db.query(models.PasswordResetToken)
-            .filter(models.PasswordResetToken.expires_at < now)
-            .delete(synchronize_session=False)
-        )
-        db.commit()
-        if deleted_refresh or deleted_reset:
-            logger.info(f"Token purge: removed {deleted_refresh} refresh token(s), {deleted_reset} reset token(s).")
-        else:
-            logger.info("Token purge completed: nothing to remove.")
-    finally:
-        db.close()
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan: seed DB on startup, clean up on shutdown."""
+    """Application lifespan: seed DB on startup, clean up on shutdown.
+
+    Only seeding runs inline, because nothing can serve a request until the
+    roles exist. Purging stale refresh/reset tokens deliberately does not:
+    ``session_checker_task`` does that on its own first pass (its purge clock
+    starts unset), so running it here only added two DELETE round-trips to
+    every cold start to do work that happens moments later in the background.
+    """
     _seed_defaults()
-    _purge_stale_tokens()
     checker = asyncio.create_task(session_checker_task())
     yield
     checker.cancel()
@@ -226,7 +218,7 @@ class MaintenanceModeMiddleware(BaseHTTPMiddleware):
     # Open during maintenance: health probe + the endpoints an admin needs to
     # authenticate. Token-issuing is harmless because non-admin tokens still
     # fail _is_admin on every protected route.
-    _ALLOWED_PATHS = {"/health", "/login", "/auth/refresh", "/auth/logout"}
+    _ALLOWED_PATHS = {"/health", "/health/db", "/login", "/auth/refresh", "/auth/logout"}
 
     async def dispatch(self, request: Request, call_next):
         if not settings.MAINTENANCE_MODE:
@@ -293,15 +285,45 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    db = SessionLocal()
+    """Liveness: is this process up and serving?
+
+    Deliberately touches nothing external. This is the endpoint the platform
+    polls (``healthCheckPath`` in render.yaml), and a probe that opens a
+    database connection makes the host restart the container whenever the
+    *database* has a bad minute — turning a brief upstream blip into a
+    restart loop, and on a free instance into a long cold start as well. It
+    also means every probe costs a connection from a small managed pool.
+
+    Nothing is lost by keeping it shallow: entrypoint.sh runs ``alembic
+    upgrade head`` before uvicorn starts and exits non-zero if the database
+    is unreachable, so a deploy with a broken DATABASE_URL never gets as far
+    as being probed. Use /health/db for the dependency check.
+    """
+    return {"status": "ok"}
+
+
+@app.get("/health/db")
+def health_check_db():
+    """Readiness: can we actually reach the database?
+
+    For humans and uptime monitors, not for the platform's restart decision.
+
+    Opening the session happens inside the try: a probe that answers 500
+    instead of 503 because the pool itself could not hand out a connection
+    tells a monitor "the app is broken" when the truth is "the database is
+    unreachable", which are different pages at 3am.
+    """
+    db = None
     try:
+        db = SessionLocal()
         db.execute(text("SELECT 1"))
-        return {"status": "ok"}
+        return {"status": "ok", "database": "ok"}
     except Exception as e:
         logger.error(f"Database health check failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database connection failed"
-        )
+        ) from e
     finally:
-        db.close()
+        if db is not None:
+            db.close()
