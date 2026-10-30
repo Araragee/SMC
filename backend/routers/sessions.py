@@ -789,6 +789,22 @@ def update_session(session_id: int, session: schemas.SessionEdit, db: Session = 
         update_data["notified_24h"] = False
         update_data["notified_12h"] = False
 
+    # Moving a session, or swapping either participant, can land it on top of
+    # a booking every other mutation path would have refused. This one checked
+    # nothing: a reassignment that left the times alone skipped the block above
+    # entirely, so an admin could put a session on a teacher who was already
+    # booked for that hour. The resolved end_time is read back out of
+    # update_data because the validation above may have supplied it.
+    if (time_fields | {"teacher_id", "student_id"}) & update_data.keys():
+        _check_overlap(
+            db,
+            update_data.get("teacher_id", db_session.teacher_id),
+            update_data.get("student_id", db_session.student_id),
+            update_data.get("start_time", db_session.start_time),
+            update_data.get("end_time", db_session.end_time),
+            exclude_session_id=session_id,
+        )
+
     changed_fields = list(update_data.keys())
     for key, value in update_data.items():
         setattr(db_session, key, value)
