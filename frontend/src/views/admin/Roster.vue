@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import BaseDropdown from '@/components/BaseDropdown.vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useUsersStore } from '@stores/users'
@@ -393,62 +394,51 @@ onMounted(async () => {
       @confirm="handlePicked"
     />
 
-    <Teleport to="body">
-      <div
-        v-if="editing"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="edit-enrollment-title"
-      >
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="editing = null" />
-        <div class="card relative w-full max-w-md bg-surface-container p-6 shadow-xl">
-          <div class="mb-6 flex items-start justify-between gap-4">
-            <div class="space-y-1">
-              <h2 id="edit-enrollment-title" class="section-title">Edit enrollment</h2>
-              <p class="section-caption">{{ userName(editing.studentId) }}</p>
-            </div>
-            <button class="icon-btn" aria-label="Close" @click="editing = null">
-              <span class="material-symbols-outlined text-lg" aria-hidden="true">close</span>
-            </button>
-          </div>
+    <BaseModal
+      :is-open="!!editing"
+      size="md"
+      title="Edit enrollment"
+      close-label="Close enrollment editor"
+      @close="editing = null"
+    >
+      <template v-if="editing">
+        <p class="section-caption -mt-2 mb-4">{{ userName(editing.studentId) }}</p>
+        <form id="edit-enrollment-form" class="space-y-4" @submit.prevent="saveEdit">
+    <div class="field">
+      <label for="edit-teacher" class="field-label">Teacher</label>
+      <BaseDropdown
+        :options="[
+          ...teachers.map((teacher) => ({ value: teacher.id, label: teacher.name })),
+        ]"
+      />
+    </div>
+    <div class="field">
+      <label for="edit-purchased" class="field-label">Sessions purchased</label>
+      <input
+        id="edit-purchased"
+        v-model.number="editForm.sessionsPurchased"
+        type="number"
+        :min="editing.sessionsUsed"
+        class="input num"
+      />
+      <p class="field-hint">
+        {{ editing.sessionsUsed }} already used — the student's credit balance moves by the
+        difference.
+      </p>
+    </div>
+    <label class="flex items-center gap-3 text-sm text-on-surface">
+      <input v-model="editForm.isActive" type="checkbox" class="size-4 accent-primary" />
+      Active
+    </label>
+        </form>
+      </template>
 
-          <form class="space-y-4" @submit.prevent="saveEdit">
-            <div class="field">
-              <label for="edit-teacher" class="field-label">Teacher</label>
-              <BaseDropdown
-                :options="[
-                  ...teachers.map((teacher) => ({ value: teacher.id, label: teacher.name })),
-                ]"
-              />
-            </div>
-            <div class="field">
-              <label for="edit-purchased" class="field-label">Sessions purchased</label>
-              <input
-                id="edit-purchased"
-                v-model.number="editForm.sessionsPurchased"
-                type="number"
-                :min="editing.sessionsUsed"
-                class="input num"
-              />
-              <p class="field-hint">
-                {{ editing.sessionsUsed }} already used — the student's credit balance moves by the
-                difference.
-              </p>
-            </div>
-            <label class="flex items-center gap-3 text-sm text-on-surface">
-              <input v-model="editForm.isActive" type="checkbox" class="size-4 accent-primary" />
-              Active
-            </label>
-            <div class="flex justify-end gap-3 pt-2">
-              <button type="button" class="btn-ghost" @click="editing = null">Cancel</button>
-              <button type="submit" class="btn-primary" :disabled="isSubmitting">
-                {{ isSubmitting ? 'Saving…' : 'Save changes' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Teleport>
+      <template #footer>
+        <button type="button" class="btn-ghost" @click="editing = null">Cancel</button>
+        <button type="submit" form="edit-enrollment-form" class="btn-primary" :disabled="isSubmitting">
+          {{ isSubmitting ? 'Saving…' : 'Save changes' }}
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>
