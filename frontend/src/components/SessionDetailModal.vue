@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import { NUDGE_COOLDOWN_MS, API_URL } from '@typescript/constants'
 import { ref, computed } from 'vue'
 import { useToastStore } from '@stores/toast'
@@ -523,515 +524,487 @@ const statusContext = computed(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95 translate-y-4 blur-[4px]"
-      enter-to-class="opacity-100 scale-100 translate-y-0 blur-0"
-      leave-active-class="transition-all duration-200 ease-in"
-      leave-from-class="opacity-100 scale-100 translate-y-0 blur-0"
-      leave-to-class="opacity-0 scale-95 translate-y-4 blur-[4px]"
-    >
+  <BaseModal
+    :is-open="!!session"
+    size="md"
+    :dismissible="!showProofViewer"
+    close-label="Close session detail"
+    @close="$emit('close')"
+  >
+    <template v-if="session">
       <div
-        v-if="session"
-        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        @click.self="$emit('close')"
+        :class="`${statusConfig.headerBg} p-4 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`"
       >
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="$emit('close')" />
-
-        <div
-          class="modal-shell relative w-full max-w-md glass-heavy rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-        >
-          <div
-            :class="`${statusConfig.headerBg} p-4 pb-4 border-b border-on-surface/5 dark:border-on-surface/5`"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold uppercase border mb-2"
-                  :class="statusConfig.badge"
-                >
-                  <span class="size-1.5 rounded-full" :class="statusConfig.dot"></span>
-                  {{ statusConfig.label }}
-                </span>
-                <p class="text-on-surface font-semibold text-lg leading-tight">
-                  {{ formatDateLong(session.startTime) }}
-                </p>
-                <p class="text-on-surface-variant text-sm mt-0.5 font-medium">
-                  {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
-                </p>
-              </div>
-              <!-- Status icon + copy + close -->
-              <div class="flex items-center gap-2 shrink-0">
-                <div
-                  class="size-10 rounded-2xl flex items-center justify-center"
-                  :class="statusConfig.badge"
-                >
-                  <span
-                    class="material-symbols-outlined text-lg [font-variation-settings:'FILL'_1]"
-                    >{{ statusConfig.icon }}</span
-                  >
-                </div>
-                <button class="icon-btn" title="Copy session link" @click="copySessionLink">
-                  <span class="material-symbols-outlined text-lg">link</span>
-                </button>
-                <button class="icon-btn" @click="emit('close')">
-                  <span class="material-symbols-outlined text-lg">close</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar">
-            <div
-              class="flex bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/[0.06] dark:border-on-surface/10"
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <span
+              class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold uppercase border mb-2"
+              :class="statusConfig.badge"
             >
-              <button
-                class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
-                :class="
-                  activeTab === 'overview'
-                    ? 'bg-primary text-on-primary shadow-md'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                "
-                @click="activeTab = 'overview'"
-              >
-                Overview
-              </button>
-              <button
-                class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
-                :class="
-                  activeTab === 'history'
-                    ? 'bg-primary text-on-primary shadow-md'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                "
-                @click="activeTab = 'history'"
-              >
-                History
-              </button>
+              <span class="size-1.5 rounded-full" :class="statusConfig.dot"></span>
+              {{ statusConfig.label }}
+            </span>
+            <p class="text-on-surface font-semibold text-lg leading-tight">
+              {{ formatDateLong(session.startTime) }}
+            </p>
+            <p class="text-on-surface-variant text-sm mt-0.5 font-medium">
+              {{ formatTime(session.startTime) }} – {{ formatTime(session.endTime) }}
+            </p>
+          </div>
+          <!-- Status icon + copy + close -->
+          <div class="flex items-center gap-2 shrink-0">
+            <div
+              class="size-10 rounded-2xl flex items-center justify-center"
+              :class="statusConfig.badge"
+            >
+              <span class="material-symbols-outlined text-lg [font-variation-settings:'FILL'_1]">{{
+                statusConfig.icon
+              }}</span>
             </div>
-
-            <div v-if="activeTab === 'overview'" class="space-y-4">
-              <div
-                v-if="statusContext"
-                class="flex items-start gap-2 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.04] border border-on-surface/[0.04] dark:border-on-surface/5"
-              >
-                <span
-                  class="material-symbols-outlined text-lg mt-0.5 shrink-0"
-                  :class="statusContext.color"
-                  >{{ statusContext.icon }}</span
-                >
-                <p class="text-sm text-on-surface-variant">{{ statusContext.text }}</p>
-              </div>
-
-              <div class="grid grid-cols-2 gap-2">
-                <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
-                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">
-                    Teacher
-                  </p>
-                  <p class="text-on-surface text-sm font-bold truncate">
-                    {{ getUser(session.teacherId) }}
-                  </p>
-                </div>
-                <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
-                  <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">
-                    Student
-                  </p>
-                  <p class="text-on-surface text-sm font-bold truncate">
-                    {{ getUser(session.studentId) }}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                v-if="session.notes"
-                class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3"
-              >
-                <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Notes</p>
-                <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
-              </div>
-
-              <!-- ────────────────────────────────────────────────
-                   STATUS SECTIONS
-                   ──────────────────────────────────────────────── -->
-
-              <!-- COMPLETED: proof thumbnails -->
-              <div v-if="session.status === 'completed'" class="space-y-3">
-                <p class="text-xs text-on-surface-variant uppercase font-semibold">
-                  Session Proofs
-                </p>
-                <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-3">
-                  <button
-                    v-for="proof in session.proofs"
-                    :key="proof.id"
-                    class="size-16 rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10 hover:brightness-110 transition-all relative shrink-0"
-                    @click="showProofViewer = proof.imageUrl?.startsWith('http') ? proof.imageUrl : `${API_URL}${proof.imageUrl}`"
-                  >
-                    <img
-                      :src="
-                        proof.imageUrl?.startsWith('http')
-                          ? proof.imageUrl
-                          : `${API_URL}${proof.imageUrl}`
-                      "
-                      class="w-full h-full object-cover"
-                    />
-                    <div
-                      class="absolute bottom-0 inset-x-0 bg-on-surface/50 text-[8px] text-on-surface font-bold text-center py-0.5"
-                    >
-                      {{ proof.uploaderRole === 'teacher' ? 'Teacher' : 'Student' }}
-                    </div>
-                  </button>
-                </div>
-                <p v-else class="text-xs text-on-surface-variant">No proofs attached</p>
-              </div>
-
-              <!-- OVERDUE / OVERDUE_REJECTED / PENDING_VERIFICATION: proof status -->
-              <div
-                v-if="
-                  ['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)
-                "
-                class="space-y-4"
-              >
-                <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-4 space-y-3">
-                  <p class="text-xs text-on-surface-variant uppercase font-semibold">
-                    Proof Status
-                  </p>
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-on-surface-variant">Teacher</span>
-                    <div class="flex items-center gap-2">
-                      <span
-                        class="font-bold"
-                        :class="
-                          session.proofs?.some((p) => p.uploaderRole === 'teacher')
-                            ? 'text-success'
-                            : 'text-warning'
-                        "
-                      >
-                        {{
-                          session.proofs?.some((p) => p.uploaderRole === 'teacher')
-                            ? 'Uploaded ✓'
-                            : session.isForceCompleted
-                              ? 'Force completed'
-                              : 'Pending'
-                        }}
-                      </span>
-                      <button
-                        v-if="
-                          !session.proofs?.some((p) => p.uploaderRole === 'teacher') &&
-                          !session.isForceCompleted
-                        "
-                        v-tooltip="
-                          isNudgeOnCooldown(session.id)
-                            ? `Cooldown: ${nudgeCooldownLabel(session.id)}`
-                            : 'Nudge Teacher to upload proof'
-                        "
-                        class="p-1 rounded-lg transition-colors"
-                        :class="
-                          isNudgeOnCooldown(session.id)
-                            ? 'text-on-surface-variant cursor-not-allowed'
-                            : 'text-warning hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-warning'
-                        "
-                        :disabled="isNudgeOnCooldown(session.id)"
-                        @click="sendNudge(session.id)"
-                      >
-                        <span class="material-symbols-outlined text-[16px]"
-                          >notifications_active</span
-                        >
-                      </button>
-                    </div>
-                  </div>
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-on-surface-variant">Student</span>
-                    <div class="flex items-center gap-2">
-                      <span
-                        class="font-bold"
-                        :class="
-                          session.proofs?.some((p) => p.uploaderRole === 'student')
-                            ? 'text-success'
-                            : 'text-warning'
-                        "
-                      >
-                        {{
-                          session.proofs?.some((p) => p.uploaderRole === 'student')
-                            ? 'Uploaded ✓'
-                            : session.isForceCompleted
-                              ? 'Force completed'
-                              : 'Pending'
-                        }}
-                      </span>
-                      <button
-                        v-if="
-                          !session.proofs?.some((p) => p.uploaderRole === 'student') &&
-                          !session.isForceCompleted
-                        "
-                        v-tooltip="
-                          isNudgeOnCooldown(session.id)
-                            ? `Cooldown: ${nudgeCooldownLabel(session.id)}`
-                            : 'Nudge Student to upload proof'
-                        "
-                        class="p-1 rounded-lg transition-colors"
-                        :class="
-                          isNudgeOnCooldown(session.id)
-                            ? 'text-on-surface-variant cursor-not-allowed'
-                            : 'text-warning hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-warning'
-                        "
-                        :disabled="isNudgeOnCooldown(session.id)"
-                        @click="sendNudge(session.id)"
-                      >
-                        <span class="material-symbols-outlined text-[16px]"
-                          >notifications_active</span
-                        >
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="session.status === 'pending_verification'" class="alert-info">
-                <span class="material-symbols-outlined text-tertiary text-lg">hourglass_top</span>
-                <div>
-                  <p class="text-xs font-bold text-tertiary">Awaiting Admin Review</p>
-                  <p class="text-xs text-tertiary/70">
-                    Your proof has been submitted successfully.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div v-else class="space-y-3">
-              <p class="text-xs text-on-surface-variant uppercase font-semibold">
-                Activity History
-              </p>
-              <div v-if="isLoadingHistory" class="text-center py-4 text-xs text-on-surface-variant">
-                Loading history...
-              </div>
-              <div
-                v-else-if="!historyLogs || historyLogs.length === 0"
-                class="text-center py-4 text-xs text-on-surface-variant"
-              >
-                No activity logged yet.
-              </div>
-              <div v-else class="space-y-2">
-                <div
-                  v-for="log in historyLogs"
-                  :key="log.id"
-                  class="bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.04] dark:border-on-surface/5 rounded-2xl p-3 flex flex-col space-y-1"
-                >
-                  <div
-                    class="flex items-center justify-between text-xs text-on-surface-variant font-bold"
-                  >
-                    <span>{{ log.actorName || 'System' }}</span>
-                    <span>{{ formatDateLong(log.createdAt) }}</span>
-                  </div>
-                  <p class="text-xs text-on-surface">{{ log.description }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- ────────────────────────────────────────────────
-                 ACTION BUTTONS
-                 ──────────────────────────────────────────────── -->
-            <div class="flex flex-col gap-2 pt-1">
-              <!-- Conflict resolution for teacher or admin -->
-              <template
-                v-if="
-                  session.conflictSessionId &&
-                  session.status === 'scheduled' &&
-                  ((userRole === 'teacher' && session.teacherId === currentUserId) ||
-                    userRole === 'admin')
-                "
-              >
-                <div class="flex gap-2 mb-2">
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-primary hover:bg-primary-dim text-on-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse"
-                    @click="$emit('counter-teacher', session)"
-                  >
-                    <span class="material-symbols-outlined text-base">build</span> Propose New Time
-                    (Fix Conflict)
-                  </button>
-                </div>
-              </template>
-
-              <!-- Teacher: approve / counter / decline student proposal -->
-              <template
-                v-if="
-                  (userRole === 'teacher' &&
-                    session.status === 'pending_teacher' &&
-                    session.teacherId === currentUserId) ||
-                  (userRole === 'admin' && session.status === 'pending_teacher')
-                "
-              >
-                <div class="flex gap-2">
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('approve-teacher', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">check_circle</span> Approve
-                  </button>
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('counter-teacher', session)"
-                  >
-                    <span class="material-symbols-outlined text-base">swap_horiz</span> Counter
-                  </button>
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('reject-teacher', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">cancel</span> Decline
-                  </button>
-                </div>
-              </template>
-
-              <!-- Student: approve time / suggest other / decline -->
-              <template
-                v-if="
-                  (userRole === 'student' &&
-                    session.status === 'pending_student' &&
-                    session.studentId === currentUserId) ||
-                  (userRole === 'admin' && session.status === 'pending_student')
-                "
-              >
-                <div class="flex gap-2">
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('approve-student', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">check_circle</span> Accept
-                    Time
-                  </button>
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('counter-student', session)"
-                  >
-                    <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest
-                    Other
-                  </button>
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('reject-student', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">cancel</span> Decline
-                  </button>
-                </div>
-              </template>
-
-              <!-- Admin: approve / reject pending_admin -->
-              <template v-if="userRole === 'admin' && session.status === 'pending_admin'">
-                <div class="flex gap-2">
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('approve-admin', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">check_circle</span> Approve
-                  </button>
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('reject-admin', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">cancel</span> Reject
-                  </button>
-                </div>
-              </template>
-
-              <!-- Admin: approve proof / reject proof for pending_verification -->
-              <template v-if="userRole === 'admin' && session.status === 'pending_verification'">
-                <div class="flex gap-2">
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('complete-admin', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">verified</span> Approve Proof
-                  </button>
-                  <button
-                    class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                    @click="$emit('reject-proof-admin', session.id)"
-                  >
-                    <span class="material-symbols-outlined text-base">cancel</span> Reject Proof
-                  </button>
-                </div>
-              </template>
-
-              <!-- Admin: force complete (overdue/overdue_rejected/scheduled) -->
-              <template
-                v-if="
-                  userRole === 'admin' &&
-                  ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)
-                "
-              >
-                <button
-                  class="w-full py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                  :title="
-                    canForceComplete(session)
-                      ? 'Overrides proof requirements and finalizes session'
-                      : 'Only available 24h after session end time'
-                  "
-                  :disabled="!canForceComplete(session)"
-                  @click="$emit('complete-admin', session.id)"
-                >
-                  <span class="material-symbols-outlined text-base">workspace_premium</span>
-                  {{
-                    canForceComplete(session)
-                      ? 'Force Complete'
-                      : 'Force Complete (' + (forceCompleteCountdown || 'available in 24h') + ')'
-                  }}
-                </button>
-              </template>
-
-              <!-- Admin edit button (always visible for admin) -->
-              <button
-                v-if="
-                  userRole === 'admin' &&
-                  !['completed', 'cancelled', 'rejected'].includes(session.status)
-                "
-                class="w-full py-2 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 border border-on-surface/[0.06] dark:border-on-surface/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                @click="$emit('edit-admin', session)"
-              >
-                <span class="material-symbols-outlined text-base">edit</span> Edit Session
-              </button>
-
-              <!-- Upload Proof Button (visible to participant who hasn't uploaded) -->
-              <button
-                v-if="showUploadProofButton"
-                class="w-full py-2 rounded-2xl bg-tertiary/20 hover:bg-tertiary/30 border border-tertiary/30 text-tertiary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
-                @click="triggerUpload"
-              >
-                <span class="material-symbols-outlined text-base">upload</span> Upload My Proof
-              </button>
-              <input
-                ref="fileInput"
-                type="file"
-                class="hidden"
-                :accept="IMAGE_ACCEPT_ATTR"
-                @change="handleFileChange"
-              />
-
-              <!-- Cancel Session Button (visible to admin or participant) -->
-              <button
-                v-if="showCancelButton"
-                class="w-full py-2 rounded-2xl bg-error/10 hover:bg-error/20 border border-error/20 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                :disabled="!canCancel"
-                :title="
-                  !canCancel
-                    ? 'Non-admins cannot cancel sessions starting in less than 24 hours.'
-                    : 'Cancel this session'
-                "
-                @click="clickCancel"
-              >
-                <span class="material-symbols-outlined text-base">cancel</span> Cancel Session
-              </button>
-
-              <div
-                v-if="session.counterCount && session.counterCount > 0"
-                class="text-xs text-on-surface-variant text-center my-1"
-              >
-                Counter proposals used: {{ session.counterCount }} / 3
-              </div>
-            </div>
+            <button class="icon-btn" title="Copy session link" @click="copySessionLink">
+              <span class="material-symbols-outlined text-lg">link</span>
+            </button>
+            <button class="icon-btn" @click="emit('close')">
+              <span class="material-symbols-outlined text-lg">close</span>
+            </button>
           </div>
         </div>
       </div>
-    </Transition>
 
+      <div class="overflow-y-auto flex-1 p-4 space-y-4 custom-scrollbar">
+        <div
+          class="flex bg-on-surface/[0.04] dark:bg-on-surface/5 p-1 rounded-2xl border border-on-surface/[0.06] dark:border-on-surface/10"
+        >
+          <button
+            class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
+            :class="
+              activeTab === 'overview'
+                ? 'bg-primary text-on-primary shadow-md'
+                : 'text-on-surface-variant hover:text-on-surface'
+            "
+            @click="activeTab = 'overview'"
+          >
+            Overview
+          </button>
+          <button
+            class="flex-1 py-1.5 rounded-xl text-xs font-semibold uppercase transition-all"
+            :class="
+              activeTab === 'history'
+                ? 'bg-primary text-on-primary shadow-md'
+                : 'text-on-surface-variant hover:text-on-surface'
+            "
+            @click="activeTab = 'history'"
+          >
+            History
+          </button>
+        </div>
+
+        <div v-if="activeTab === 'overview'" class="space-y-4">
+          <div
+            v-if="statusContext"
+            class="flex items-start gap-2 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.04] border border-on-surface/[0.04] dark:border-on-surface/5"
+          >
+            <span
+              class="material-symbols-outlined text-lg mt-0.5 shrink-0"
+              :class="statusContext.color"
+              >{{ statusContext.icon }}</span
+            >
+            <p class="text-sm text-on-surface-variant">{{ statusContext.text }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
+              <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Teacher</p>
+              <p class="text-on-surface text-sm font-bold truncate">
+                {{ getUser(session.teacherId) }}
+              </p>
+            </div>
+            <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3">
+              <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Student</p>
+              <p class="text-on-surface text-sm font-bold truncate">
+                {{ getUser(session.studentId) }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="session.notes"
+            class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-3"
+          >
+            <p class="text-xs text-on-surface-variant uppercase font-semibold mb-1">Notes</p>
+            <p class="text-sm text-on-surface-variant italic">{{ session.notes }}</p>
+          </div>
+
+          <!-- ────────────────────────────────────────────────
+           STATUS SECTIONS
+           ──────────────────────────────────────────────── -->
+
+          <!-- COMPLETED: proof thumbnails -->
+          <div v-if="session.status === 'completed'" class="space-y-3">
+            <p class="text-xs text-on-surface-variant uppercase font-semibold">Session Proofs</p>
+            <div v-if="session.proofs && session.proofs.length > 0" class="flex gap-3">
+              <button
+                v-for="proof in session.proofs"
+                :key="proof.id"
+                class="size-16 rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10 hover:brightness-110 transition-all relative shrink-0"
+                @click="
+                  showProofViewer = proof.imageUrl?.startsWith('http')
+                    ? proof.imageUrl
+                    : `${API_URL}${proof.imageUrl}`
+                "
+              >
+                <img
+                  :src="
+                    proof.imageUrl?.startsWith('http')
+                      ? proof.imageUrl
+                      : `${API_URL}${proof.imageUrl}`
+                  "
+                  class="w-full h-full object-cover"
+                />
+                <div
+                  class="absolute bottom-0 inset-x-0 bg-on-surface/50 text-[8px] text-on-surface font-bold text-center py-0.5"
+                >
+                  {{ proof.uploaderRole === 'teacher' ? 'Teacher' : 'Student' }}
+                </div>
+              </button>
+            </div>
+            <p v-else class="text-xs text-on-surface-variant">No proofs attached</p>
+          </div>
+
+          <!-- OVERDUE / OVERDUE_REJECTED / PENDING_VERIFICATION: proof status -->
+          <div
+            v-if="['overdue', 'overdue_rejected', 'pending_verification'].includes(session.status)"
+            class="space-y-4"
+          >
+            <div class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-2xl p-4 space-y-3">
+              <p class="text-xs text-on-surface-variant uppercase font-semibold">Proof Status</p>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-on-surface-variant">Teacher</span>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="font-bold"
+                    :class="
+                      session.proofs?.some((p) => p.uploaderRole === 'teacher')
+                        ? 'text-success'
+                        : 'text-warning'
+                    "
+                  >
+                    {{
+                      session.proofs?.some((p) => p.uploaderRole === 'teacher')
+                        ? 'Uploaded ✓'
+                        : session.isForceCompleted
+                          ? 'Force completed'
+                          : 'Pending'
+                    }}
+                  </span>
+                  <button
+                    v-if="
+                      !session.proofs?.some((p) => p.uploaderRole === 'teacher') &&
+                      !session.isForceCompleted
+                    "
+                    v-tooltip="
+                      isNudgeOnCooldown(session.id)
+                        ? `Cooldown: ${nudgeCooldownLabel(session.id)}`
+                        : 'Nudge Teacher to upload proof'
+                    "
+                    class="p-1 rounded-lg transition-colors"
+                    :class="
+                      isNudgeOnCooldown(session.id)
+                        ? 'text-on-surface-variant cursor-not-allowed'
+                        : 'text-warning hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-warning'
+                    "
+                    :disabled="isNudgeOnCooldown(session.id)"
+                    @click="sendNudge(session.id)"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-on-surface-variant">Student</span>
+                <div class="flex items-center gap-2">
+                  <span
+                    class="font-bold"
+                    :class="
+                      session.proofs?.some((p) => p.uploaderRole === 'student')
+                        ? 'text-success'
+                        : 'text-warning'
+                    "
+                  >
+                    {{
+                      session.proofs?.some((p) => p.uploaderRole === 'student')
+                        ? 'Uploaded ✓'
+                        : session.isForceCompleted
+                          ? 'Force completed'
+                          : 'Pending'
+                    }}
+                  </span>
+                  <button
+                    v-if="
+                      !session.proofs?.some((p) => p.uploaderRole === 'student') &&
+                      !session.isForceCompleted
+                    "
+                    v-tooltip="
+                      isNudgeOnCooldown(session.id)
+                        ? `Cooldown: ${nudgeCooldownLabel(session.id)}`
+                        : 'Nudge Student to upload proof'
+                    "
+                    class="p-1 rounded-lg transition-colors"
+                    :class="
+                      isNudgeOnCooldown(session.id)
+                        ? 'text-on-surface-variant cursor-not-allowed'
+                        : 'text-warning hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:text-warning'
+                    "
+                    :disabled="isNudgeOnCooldown(session.id)"
+                    @click="sendNudge(session.id)"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="session.status === 'pending_verification'" class="alert-info">
+            <span class="material-symbols-outlined text-tertiary text-lg">hourglass_top</span>
+            <div>
+              <p class="text-xs font-bold text-tertiary">Awaiting Admin Review</p>
+              <p class="text-xs text-tertiary/70">Your proof has been submitted successfully.</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="space-y-3">
+          <p class="text-xs text-on-surface-variant uppercase font-semibold">Activity History</p>
+          <div v-if="isLoadingHistory" class="text-center py-4 text-xs text-on-surface-variant">
+            Loading history...
+          </div>
+          <div
+            v-else-if="!historyLogs || historyLogs.length === 0"
+            class="text-center py-4 text-xs text-on-surface-variant"
+          >
+            No activity logged yet.
+          </div>
+          <div v-else class="space-y-2">
+            <div
+              v-for="log in historyLogs"
+              :key="log.id"
+              class="bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.04] dark:border-on-surface/5 rounded-2xl p-3 flex flex-col space-y-1"
+            >
+              <div
+                class="flex items-center justify-between text-xs text-on-surface-variant font-bold"
+              >
+                <span>{{ log.actorName || 'System' }}</span>
+                <span>{{ formatDateLong(log.createdAt) }}</span>
+              </div>
+              <p class="text-xs text-on-surface">{{ log.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────
+         ACTION BUTTONS
+         ──────────────────────────────────────────────── -->
+        <div class="flex flex-col gap-2 pt-1">
+          <!-- Conflict resolution for teacher or admin -->
+          <template
+            v-if="
+              session.conflictSessionId &&
+              session.status === 'scheduled' &&
+              ((userRole === 'teacher' && session.teacherId === currentUserId) ||
+                userRole === 'admin')
+            "
+          >
+            <div class="flex gap-2 mb-2">
+              <button
+                class="flex-1 py-2 rounded-2xl bg-primary hover:bg-primary-dim text-on-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 animate-pulse"
+                @click="$emit('counter-teacher', session)"
+              >
+                <span class="material-symbols-outlined text-base">build</span> Propose New Time (Fix
+                Conflict)
+              </button>
+            </div>
+          </template>
+
+          <!-- Teacher: approve / counter / decline student proposal -->
+          <template
+            v-if="
+              (userRole === 'teacher' &&
+                session.status === 'pending_teacher' &&
+                session.teacherId === currentUserId) ||
+              (userRole === 'admin' && session.status === 'pending_teacher')
+            "
+          >
+            <div class="flex gap-2">
+              <button
+                class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('approve-teacher', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">check_circle</span> Approve
+              </button>
+              <button
+                class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('counter-teacher', session)"
+              >
+                <span class="material-symbols-outlined text-base">swap_horiz</span> Counter
+              </button>
+              <button
+                class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('reject-teacher', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">cancel</span> Decline
+              </button>
+            </div>
+          </template>
+
+          <!-- Student: approve time / suggest other / decline -->
+          <template
+            v-if="
+              (userRole === 'student' &&
+                session.status === 'pending_student' &&
+                session.studentId === currentUserId) ||
+              (userRole === 'admin' && session.status === 'pending_student')
+            "
+          >
+            <div class="flex gap-2">
+              <button
+                class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('approve-student', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">check_circle</span> Accept Time
+              </button>
+              <button
+                class="flex-1 py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('counter-student', session)"
+              >
+                <span class="material-symbols-outlined text-base">edit_calendar</span> Suggest Other
+              </button>
+              <button
+                class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('reject-student', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">cancel</span> Decline
+              </button>
+            </div>
+          </template>
+
+          <!-- Admin: approve / reject pending_admin -->
+          <template v-if="userRole === 'admin' && session.status === 'pending_admin'">
+            <div class="flex gap-2">
+              <button
+                class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('approve-admin', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">check_circle</span> Approve
+              </button>
+              <button
+                class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('reject-admin', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">cancel</span> Reject
+              </button>
+            </div>
+          </template>
+
+          <!-- Admin: approve proof / reject proof for pending_verification -->
+          <template v-if="userRole === 'admin' && session.status === 'pending_verification'">
+            <div class="flex gap-2">
+              <button
+                class="flex-1 py-2 rounded-2xl bg-success/20 hover:bg-success/30 border border-success/30 text-success text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('complete-admin', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">verified</span> Approve Proof
+              </button>
+              <button
+                class="flex-1 py-2 rounded-2xl bg-error/20 hover:bg-error/30 border border-error/30 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+                @click="$emit('reject-proof-admin', session.id)"
+              >
+                <span class="material-symbols-outlined text-base">cancel</span> Reject Proof
+              </button>
+            </div>
+          </template>
+
+          <!-- Admin: force complete (overdue/overdue_rejected/scheduled) -->
+          <template
+            v-if="
+              userRole === 'admin' &&
+              ['scheduled', 'overdue', 'overdue_rejected'].includes(session.status)
+            "
+          >
+            <button
+              class="w-full py-2 rounded-2xl bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+              :title="
+                canForceComplete(session)
+                  ? 'Overrides proof requirements and finalizes session'
+                  : 'Only available 24h after session end time'
+              "
+              :disabled="!canForceComplete(session)"
+              @click="$emit('complete-admin', session.id)"
+            >
+              <span class="material-symbols-outlined text-base">workspace_premium</span>
+              {{
+                canForceComplete(session)
+                  ? 'Force Complete'
+                  : 'Force Complete (' + (forceCompleteCountdown || 'available in 24h') + ')'
+              }}
+            </button>
+          </template>
+
+          <!-- Admin edit button (always visible for admin) -->
+          <button
+            v-if="
+              userRole === 'admin' &&
+              !['completed', 'cancelled', 'rejected'].includes(session.status)
+            "
+            class="w-full py-2 rounded-2xl bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10 border border-on-surface/[0.06] dark:border-on-surface/10 text-on-surface-variant text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+            @click="$emit('edit-admin', session)"
+          >
+            <span class="material-symbols-outlined text-base">edit</span> Edit Session
+          </button>
+
+          <!-- Upload Proof Button (visible to participant who hasn't uploaded) -->
+          <button
+            v-if="showUploadProofButton"
+            class="w-full py-2 rounded-2xl bg-tertiary/20 hover:bg-tertiary/30 border border-tertiary/30 text-tertiary text-sm font-bold transition-all flex items-center justify-center gap-1.5"
+            @click="triggerUpload"
+          >
+            <span class="material-symbols-outlined text-base">upload</span> Upload My Proof
+          </button>
+          <input
+            ref="fileInput"
+            type="file"
+            class="hidden"
+            :accept="IMAGE_ACCEPT_ATTR"
+            @change="handleFileChange"
+          />
+
+          <!-- Cancel Session Button (visible to admin or participant) -->
+          <button
+            v-if="showCancelButton"
+            class="w-full py-2 rounded-2xl bg-error/10 hover:bg-error/20 border border-error/20 text-error text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!canCancel"
+            :title="
+              !canCancel
+                ? 'Non-admins cannot cancel sessions starting in less than 24 hours.'
+                : 'Cancel this session'
+            "
+            @click="clickCancel"
+          >
+            <span class="material-symbols-outlined text-base">cancel</span> Cancel Session
+          </button>
+
+          <div
+            v-if="session.counterCount && session.counterCount > 0"
+            class="text-xs text-on-surface-variant text-center my-1"
+          >
+            Counter proposals used: {{ session.counterCount }} / 3
+          </div>
+        </div>
+      </div>
+    </template>
+  </BaseModal>
+
+  <Teleport to="body">
     <Transition
       enter-active-class="transition-all duration-150 ease-out"
       enter-from-class="opacity-0 scale-95"

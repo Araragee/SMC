@@ -16,6 +16,10 @@ const props = withDefaults(
     closeLabel?: string
     /** false for a modal the user must answer rather than dismiss. */
     dismissible?: boolean
+    /** Sit against the bottom edge below sm, centred from sm up. Reaching a
+     *  centred dialog's controls one-handed on a phone is awkward; a sheet
+     *  puts them under the thumb. */
+    sheet?: boolean
   }>(),
   {
     title: '',
@@ -24,6 +28,7 @@ const props = withDefaults(
     layer: 'default',
     closeLabel: 'Close',
     dismissible: true,
+    sheet: false,
   }
 )
 
@@ -79,8 +84,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     >
       <div
         v-if="isOpen"
-        class="fixed inset-0 flex items-center justify-center p-4"
-        :class="layerClass"
+        class="fixed inset-0 flex justify-center p-4"
+        :class="[layerClass, sheet ? 'items-end sm:items-center' : 'items-center']"
         role="dialog"
         aria-modal="true"
         :aria-label="title || undefined"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import { useRouter } from 'vue-router'
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@stores/auth'
@@ -610,290 +611,260 @@ const formatTime = (dt: string | undefined) => {
   />
 
   <!-- Session Detail Modal (Teacher) -->
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition opacity-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="expandedSession"
-        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="teacher-session-modal-title"
-        @click.self="closeSessionModal"
-      >
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
-        <div
-          class="relative w-full max-w-lg bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
+  <BaseModal
+    :is-open="!!expandedSession"
+    size="lg"
+    layer="default"
+    close-label="Close session detail"
+    @close="expandedSession = null"
+  >
+    <template #header><span class="sr-only">Session detail</span></template>
+    <template v-if="expandedSession">
+      <div class="flex items-start justify-between">
+        <div>
+          <h3
+            id="teacher-session-modal-title"
+            class="text-2xl font-semibold text-on-surface leading-tight"
+          >
+            Session #{{ expandedSession.id }}
+          </h3>
+          <p class="text-on-surface-variant text-sm mt-1">
+            {{ formatTime(expandedSession.startTime) }} -
+            {{ formatTime(expandedSession.endTime) }}
+          </p>
+          <p class="text-on-surface font-bold mt-1">
+            Student: {{ getStudentName(expandedSession.studentId) }}
+          </p>
+        </div>
+        <button
+          class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
+          aria-label="Close modal"
+          @click="closeSessionModal"
         >
-          <div class="flex items-start justify-between">
-            <div>
-              <h3
-                id="teacher-session-modal-title"
-                class="text-2xl font-semibold text-on-surface leading-tight"
-              >
-                Session #{{ expandedSession.id }}
-              </h3>
-              <p class="text-on-surface-variant text-sm mt-1">
-                {{ formatTime(expandedSession.startTime) }} -
-                {{ formatTime(expandedSession.endTime) }}
-              </p>
-              <p class="text-on-surface font-bold mt-1">
-                Student: {{ getStudentName(expandedSession.studentId) }}
-              </p>
-            </div>
-            <button
-              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.04] dark:border-on-surface/5"
-              aria-label="Close modal"
-              @click="closeSessionModal"
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold text-on-surface-variant uppercase"
+            >Visual Evidence</label
+          >
+        </div>
+
+        <div
+          class="space-y-2 mb-4 bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-xl border border-on-surface/[0.04] dark:border-on-surface/5"
+        >
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-on-surface-variant">Your Proof</span>
+            <span
+              class="font-bold"
+              :class="
+                expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                  ? 'text-success'
+                  : 'text-warning'
+              "
             >
-              <span class="material-symbols-outlined">close</span>
-            </button>
+              {{
+                expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                  ? 'Uploaded ✓'
+                  : 'Pending'
+              }}
+            </span>
           </div>
-
-          <div class="space-y-3">
-            <div class="flex items-center justify-between mb-2">
-              <label class="text-xs font-semibold text-on-surface-variant uppercase"
-                >Visual Evidence</label
-              >
-            </div>
-
-            <div
-              class="space-y-2 mb-4 bg-on-surface/[0.04] dark:bg-on-surface/5 p-3 rounded-xl border border-on-surface/[0.04] dark:border-on-surface/5"
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-on-surface-variant">Student's Proof</span>
+            <span
+              class="font-bold"
+              :class="
+                expandedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                  ? 'text-success'
+                  : 'text-warning'
+              "
             >
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-on-surface-variant">Your Proof</span>
-                <span
-                  class="font-bold"
-                  :class="
-                    expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
-                      ? 'text-success'
-                      : 'text-warning'
-                  "
-                >
-                  {{
-                    expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
-                      ? 'Uploaded ✓'
-                      : 'Pending'
-                  }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-on-surface-variant">Student's Proof</span>
-                <span
-                  class="font-bold"
-                  :class="
-                    expandedSession.proofs?.some((p) => p.uploaderRole === 'student')
-                      ? 'text-success'
-                      : 'text-warning'
-                  "
-                >
-                  {{
-                    expandedSession.proofs?.some((p) => p.uploaderRole === 'student')
-                      ? 'Uploaded ✓'
-                      : 'Pending'
-                  }}
-                </span>
-              </div>
-            </div>
+              {{
+                expandedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                  ? 'Uploaded ✓'
+                  : 'Pending'
+              }}
+            </span>
+          </div>
+        </div>
 
-            <div
-              v-if="expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')"
-              class="relative group rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10"
-            >
-              <img
-                :src="expandedSession.proofs.find((p) => p.uploaderRole === 'teacher')?.imageUrl"
-                class="w-full h-auto object-cover max-h-48"
-              />
-              <div
-                class="absolute inset-0 bg-black/40 dark:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-              >
-                <label
-                  class="px-4 py-2 bg-on-surface/20 hover:bg-on-surface/10 dark:hover:bg-on-surface/30 text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors"
-                >
-                  Replace Image
-                  <input
-                    type="file"
-                    :accept="IMAGE_ACCEPT_ATTR"
-                    class="hidden"
-                    @change="handleStagedProofUpload"
-                  />
-                </label>
-              </div>
-            </div>
-            <div
-              v-else-if="stagedProofUrl"
-              class="relative rounded-2xl overflow-hidden border border-primary/50"
-            >
-              <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
-              <div class="absolute top-2 right-2 flex gap-2">
-                <label
-                  class="px-3 py-1.5 bg-on-surface/30 dark:bg-on-surface/60 hover:bg-on-surface/80 text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors border border-on-surface/20"
-                >
-                  Change
-                  <input
-                    type="file"
-                    :accept="IMAGE_ACCEPT_ATTR"
-                    class="hidden"
-                    @change="handleStagedProofUpload"
-                  />
-                </label>
-              </div>
-            </div>
+        <div
+          v-if="expandedSession.proofs?.some((p) => p.uploaderRole === 'teacher')"
+          class="relative group rounded-2xl overflow-hidden border border-on-surface/[0.08] dark:border-on-surface/10"
+        >
+          <img
+            :src="expandedSession.proofs.find((p) => p.uploaderRole === 'teacher')?.imageUrl"
+            class="w-full h-auto object-cover max-h-48"
+          />
+          <div
+            class="absolute inset-0 bg-black/40 dark:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          >
             <label
-              v-else
-              class="aspect-video bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-3xl border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 flex flex-col items-center justify-center cursor-pointer hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.08] hover:border-primary/50 transition-all group overflow-hidden relative"
+              class="px-4 py-2 bg-on-surface/20 hover:bg-on-surface/10 dark:hover:bg-on-surface/30 text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors"
             >
-              <div class="text-center group-hover:scale-105 transition-transform">
-                <div
-                  class="size-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3"
-                >
-                  <span
-                    class="material-symbols-outlined text-3xl text-primary [font-variation-settings:'FILL'_1]"
-                    >add_a_photo</span
-                  >
-                </div>
-                <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">
-                  Take Photo or Upload
-                </p>
-              </div>
+              Replace Image
               <input
                 type="file"
                 :accept="IMAGE_ACCEPT_ATTR"
-                class="absolute inset-0 opacity-0 cursor-pointer"
-                aria-label="Upload session proof"
+                class="hidden"
                 @change="handleStagedProofUpload"
               />
             </label>
           </div>
-
-          <div
-            v-if="expandedSession.status === 'pending_teacher'"
-            class="p-4 bg-primary/5 border border-primary/20 rounded-3xl space-y-3"
-          >
-            <div class="flex items-center gap-2 mb-2">
-              <span class="material-symbols-outlined text-primary text-sm">schedule_send</span>
-              <span class="text-xs font-bold text-primary uppercase">Student Proposal</span>
-            </div>
-            <div class="flex gap-3">
-              <button
-                class="flex-1 py-3 bg-success/20 hover:bg-success/30 border border-success/30 text-success font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
-                @click="handleApprove(expandedSession.id)"
-              >
-                <span class="material-symbols-outlined text-sm">check_circle</span>
-                Approve Time
-              </button>
-              <button
-                class="flex-1 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
-                @click="openCounter"
-              >
-                <span class="material-symbols-outlined text-sm">edit_calendar</span>
-                Suggest Other
-              </button>
-            </div>
-            <button
-              class="w-full py-2 text-error/60 hover:text-error text-xs font-bold uppercase transition-colors"
-              @click="handleReject(expandedSession.id, 'Time does not work for me.')"
-            >
-              Decline Request
-            </button>
-          </div>
-
-          <div class="space-y-3">
-            <label class="text-xs font-semibold text-on-surface-variant uppercase"
-              >Practice Goals / Notes</label
-            >
-            <textarea
-              v-model="practiceGoalsText"
-              class="input h-32 resize-none"
-              placeholder="E.g. Focus on paradiddle transitions at 120bpm..."
-            ></textarea>
-          </div>
-
-          <div class="flex gap-3 pt-2">
-            <button
-              class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10"
-              @click="closeSessionModal"
-            >
-              Cancel
-            </button>
-            <button
-              class="flex-1 py-3 rounded-xl bg-primary hover:scale-[1.02] text-on-primary text-sm font-semibold transition-all active:scale-95 shadow-lg"
-              @click="saveSessionChanges"
-            >
-              Save Changes
-            </button>
-          </div>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
-
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition opacity-150 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition opacity-150 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="showCounterModal"
-        class="fixed inset-0 z-[250] flex items-center justify-center p-4"
-        @click.self="showCounterModal = false"
-      >
         <div
-          class="absolute inset-0 bg-black/40 dark:bg-black/70"
-          @click="showCounterModal = false"
-        />
-        <div
-          class="relative w-full max-w-sm liquid-glass border border-on-surface/10 rounded-3xl p-6 space-y-4 shadow-2xl"
+          v-else-if="stagedProofUrl"
+          class="relative rounded-2xl overflow-hidden border border-primary/50"
         >
-          <h3 class="text-lg font-semibold text-on-surface">Suggest New Time</h3>
-          <div class="space-y-4">
-            <div>
-              <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1"
-                >Start Time</label
-              >
+          <img :src="stagedProofUrl" class="w-full h-auto object-cover max-h-48" />
+          <div class="absolute top-2 right-2 flex gap-2">
+            <label
+              class="px-3 py-1.5 bg-on-surface/30 dark:bg-on-surface/60 hover:bg-on-surface/80 text-on-surface text-xs font-bold rounded-lg cursor-pointer transition-colors border border-on-surface/20"
+            >
+              Change
               <input
-                v-model="counterForm.startTime"
-                type="datetime-local"
-                class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]"
+                type="file"
+                :accept="IMAGE_ACCEPT_ATTR"
+                class="hidden"
+                @change="handleStagedProofUpload"
               />
-            </div>
-            <div>
-              <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1"
-                >Notes</label
-              >
-              <textarea
-                v-model="counterForm.notes"
-                rows="2"
-                class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm resize-none"
-              ></textarea>
-            </div>
-            <div class="flex gap-3">
-              <button
-                class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl text-sm"
-                @click="submitCounter"
-              >
-                Send Proposal
-              </button>
-              <button
-                class="px-4 py-3 bg-on-surface/5 text-on-surface-variant font-bold rounded-2xl text-sm"
-                @click="showCounterModal = false"
-              >
-                Cancel
-              </button>
-            </div>
+            </label>
           </div>
         </div>
+        <label
+          v-else
+          class="aspect-video bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-3xl border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 flex flex-col items-center justify-center cursor-pointer hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.08] hover:border-primary/50 transition-all group overflow-hidden relative"
+        >
+          <div class="text-center group-hover:scale-105 transition-transform">
+            <div
+              class="size-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3"
+            >
+              <span
+                class="material-symbols-outlined text-3xl text-primary [font-variation-settings:'FILL'_1]"
+                >add_a_photo</span
+              >
+            </div>
+            <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wide">
+              Take Photo or Upload
+            </p>
+          </div>
+          <input
+            type="file"
+            :accept="IMAGE_ACCEPT_ATTR"
+            class="absolute inset-0 opacity-0 cursor-pointer"
+            aria-label="Upload session proof"
+            @change="handleStagedProofUpload"
+          />
+        </label>
       </div>
-    </Transition>
-  </Teleport>
+
+      <div
+        v-if="expandedSession.status === 'pending_teacher'"
+        class="p-4 bg-primary/5 border border-primary/20 rounded-3xl space-y-3"
+      >
+        <div class="flex items-center gap-2 mb-2">
+          <span class="material-symbols-outlined text-primary text-sm">schedule_send</span>
+          <span class="text-xs font-bold text-primary uppercase">Student Proposal</span>
+        </div>
+        <div class="flex gap-3">
+          <button
+            class="flex-1 py-3 bg-success/20 hover:bg-success/30 border border-success/30 text-success font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+            @click="handleApprove(expandedSession.id)"
+          >
+            <span class="material-symbols-outlined text-sm">check_circle</span>
+            Approve Time
+          </button>
+          <button
+            class="flex-1 py-3 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2"
+            @click="openCounter"
+          >
+            <span class="material-symbols-outlined text-sm">edit_calendar</span>
+            Suggest Other
+          </button>
+        </div>
+        <button
+          class="w-full py-2 text-error/60 hover:text-error text-xs font-bold uppercase transition-colors"
+          @click="handleReject(expandedSession.id, 'Time does not work for me.')"
+        >
+          Decline Request
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <label class="text-xs font-semibold text-on-surface-variant uppercase"
+          >Practice Goals / Notes</label
+        >
+        <textarea
+          v-model="practiceGoalsText"
+          class="input h-32 resize-none"
+          placeholder="E.g. Focus on paradiddle transitions at 120bpm..."
+        ></textarea>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button
+          class="flex-1 py-3 rounded-xl border border-on-surface/[0.08] dark:border-on-surface/10 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface text-sm font-semibold transition-all bg-on-surface/[0.04] dark:bg-on-surface/5 hover:bg-on-surface/5 dark:hover:bg-on-surface/10"
+          @click="closeSessionModal"
+        >
+          Cancel
+        </button>
+        <button
+          class="flex-1 py-3 rounded-xl bg-primary hover:scale-[1.02] text-on-primary text-sm font-semibold transition-all active:scale-95 shadow-lg"
+          @click="saveSessionChanges"
+        >
+          Save Changes
+        </button>
+      </div>
+    </template>
+  </BaseModal>
+
+  <BaseModal
+    :is-open="showCounterModal"
+    size="sm"
+    layer="raised"
+    close-label="Close suggest time dialog"
+    @close="showCounterModal = false"
+  >
+    <template #header><span class="sr-only">Suggest New Time</span></template>
+    <h3 class="text-lg font-semibold text-on-surface">Suggest New Time</h3>
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1"
+          >Start Time</label
+        >
+        <input
+          v-model="counterForm.startTime"
+          type="datetime-local"
+          class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm [color-scheme:dark]"
+        />
+      </div>
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1"
+          >Notes</label
+        >
+        <textarea
+          v-model="counterForm.notes"
+          rows="2"
+          class="w-full bg-on-surface/20 border border-on-surface/10 rounded-xl px-4 py-3 text-sm resize-none"
+        ></textarea>
+      </div>
+      <div class="flex gap-3">
+        <button
+          class="flex-1 py-3 bg-primary text-on-primary font-bold rounded-2xl text-sm"
+          @click="submitCounter"
+        >
+          Send Proposal
+        </button>
+        <button
+          class="px-4 py-3 bg-on-surface/5 text-on-surface-variant font-bold rounded-2xl text-sm"
+          @click="showCounterModal = false"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </BaseModal>
 </template>

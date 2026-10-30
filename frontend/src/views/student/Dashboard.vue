@@ -838,350 +838,297 @@ const stopCountering = () => {
     </div>
   </div>
 
-  <Teleport to="body">
-    <Transition
-      enter-active-class="transition opacity-200 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition opacity-200 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="selectedSession"
-        class="fixed inset-0 z-[200] flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="session-modal-title"
-        @click.self="closeSessionModal"
-      >
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/70" @click="closeSessionModal" />
+  <BaseModal
+    :is-open="!!selectedSession"
+    size="md"
+    layer="default"
+    close-label="Close session detail"
+    @close="selectedSessionId = null"
+  >
+    <template v-if="selectedSession">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div
+            class="flex flex-col items-center justify-center size-14 rounded-2xl shadow-lg shrink-0"
+            :class="
+              selectedSession.status === 'completed'
+                ? 'bg-surface-container-high text-on-surface-variant'
+                : selectedSession.status === 'pending_teacher'
+                  ? 'bg-warning/20 border border-warning/40 text-warning'
+                  : selectedSession.status === 'pending_admin'
+                    ? 'bg-tertiary/20 border border-tertiary/40 text-tertiary'
+                    : selectedSession.status === 'rejected'
+                      ? 'bg-error-container text-error'
+                      : 'bg-primary text-on-primary'
+            "
+          >
+            <span class="text-xs uppercase font-semibold">{{
+              formatMonth(selectedSession.startTime)
+            }}</span>
+            <span class="text-xl font-semibold">{{ formatDay(selectedSession.startTime) }}</span>
+          </div>
+          <div>
+            <h3 id="session-modal-title" class="text-xl font-semibold text-on-surface">
+              Session #{{ selectedSession.id }}
+            </h3>
+            <span
+              class="px-2 py-0.5 text-xs font-bold rounded-full uppercase border inline-block mt-1"
+              :class="
+                selectedSession.status === 'pending_teacher'
+                  ? 'bg-warning/20 border-warning/30 text-warning'
+                  : selectedSession.status === 'pending_admin'
+                    ? 'bg-tertiary/20 border-tertiary/30 text-tertiary'
+                    : selectedSession.status === 'rejected'
+                      ? 'bg-error/20 border-error/30 text-error'
+                      : selectedSession.status === 'completed'
+                        ? 'bg-success/20 border-success/30 text-success'
+                        : 'bg-primary/20 border-primary/30 text-primary'
+              "
+            >
+              {{
+                selectedSession.status === 'pending_teacher'
+                  ? 'Awaiting Teacher'
+                  : selectedSession.status === 'pending_admin'
+                    ? 'Awaiting Admin'
+                    : selectedSession.status === 'rejected'
+                      ? 'Declined'
+                      : selectedSession.status === 'completed'
+                        ? 'Completed'
+                        : 'Confirmed'
+              }}
+            </span>
+          </div>
+        </div>
+        <button
+          class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1 self-start"
+          aria-label="Close modal"
+          @click="closeSessionModal"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-4">
         <div
-          class="relative w-full max-w-md bg-surface-container-high border border-outline-variant rounded-2xl p-6 shadow-2xl flex flex-col gap-6"
+          class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
+        >
+          <span class="text-xs text-on-surface-variant">Teacher</span>
+          <span class="text-sm font-bold text-on-surface"
+            >Teacher #{{ selectedSession.teacherId }}</span
+          >
+        </div>
+        <div
+          class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
+        >
+          <span class="text-xs text-on-surface-variant">Time</span>
+          <span class="text-sm font-bold text-on-surface">{{
+            formatTime(selectedSession.startTime)
+          }}</span>
+        </div>
+        <div
+          class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
+        >
+          <span class="text-xs text-on-surface-variant">Homework</span>
+          <span
+            class="text-sm font-bold"
+            :class="
+              selectedSession.homeworkCompleted
+                ? 'text-success'
+                : selectedSession.homeworkAssigned
+                  ? 'text-warning'
+                  : 'text-on-surface-variant'
+            "
+          >
+            {{
+              selectedSession.homeworkCompleted
+                ? 'Completed ✓'
+                : selectedSession.homeworkAssigned
+                  ? 'Pending'
+                  : 'None'
+            }}
+          </span>
+        </div>
+        <div v-if="selectedSession.notes" class="py-2">
+          <span class="text-xs text-on-surface-variant block mb-1">Notes</span>
+          <p class="text-sm text-on-surface-variant italic">{{ selectedSession.notes }}</p>
+        </div>
+      </div>
+
+      <div
+        v-if="
+          [
+            'scheduled',
+            'overdue',
+            'completed',
+            'pending_verification',
+            'overdue_rejected',
+          ].includes(selectedSession.status)
+        "
+        class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+      >
+        <h4 class="text-xs font-semibold text-on-surface-variant uppercase mb-3">Session Proofs</h4>
+
+        <div v-if="selectedSession.status === 'overdue_rejected'" class="alert-error mb-4">
+          <p class="text-xs font-semibold uppercase text-error mb-1">Proof Rejected</p>
+          <p class="text-xs text-error font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
+          <p class="text-xs text-on-surface-variant">
+            Please upload a valid proof and provide justification below.
+          </p>
+        </div>
+
+        <div class="space-y-3 mb-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-on-surface-variant">Your Proof</span>
+            <span
+              class="text-sm font-bold"
+              :class="
+                selectedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                  ? 'text-success'
+                  : 'text-warning'
+              "
+            >
+              {{
+                selectedSession.proofs?.some((p) => p.uploaderRole === 'student')
+                  ? 'Uploaded ✓'
+                  : 'Pending'
+              }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-on-surface-variant">Teacher's Proof</span>
+            <span
+              class="text-sm font-bold"
+              :class="
+                selectedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                  ? 'text-success'
+                  : 'text-warning'
+              "
+            >
+              {{
+                selectedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
+                  ? 'Uploaded ✓'
+                  : 'Pending'
+              }}
+            </span>
+          </div>
+        </div>
+
+        <div
+          v-if="selectedSession.proofs?.some((p) => p.uploaderRole === 'student')"
+          class="flex flex-col gap-3"
         >
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
               <div
-                class="flex flex-col items-center justify-center size-14 rounded-2xl shadow-lg shrink-0"
-                :class="
-                  selectedSession.status === 'completed'
-                    ? 'bg-surface-container-high text-on-surface-variant'
-                    : selectedSession.status === 'pending_teacher'
-                      ? 'bg-warning/20 border border-warning/40 text-warning'
-                      : selectedSession.status === 'pending_admin'
-                        ? 'bg-tertiary/20 border border-tertiary/40 text-tertiary'
-                        : selectedSession.status === 'rejected'
-                          ? 'bg-error-container text-error'
-                          : 'bg-primary text-on-primary'
-                "
+                class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant shrink-0"
               >
-                <span class="text-xs uppercase font-semibold">{{
-                  formatMonth(selectedSession.startTime)
-                }}</span>
-                <span class="text-xl font-semibold">{{
-                  formatDay(selectedSession.startTime)
-                }}</span>
+                <img
+                  :src="selectedSession.proofs?.find((p) => p.uploaderRole === 'student')?.imageUrl"
+                  class="w-full h-full object-cover"
+                />
               </div>
               <div>
-                <h3 id="session-modal-title" class="text-xl font-semibold text-on-surface">
-                  Session #{{ selectedSession.id }}
-                </h3>
-                <span
-                  class="px-2 py-0.5 text-xs font-bold rounded-full uppercase border inline-block mt-1"
-                  :class="
-                    selectedSession.status === 'pending_teacher'
-                      ? 'bg-warning/20 border-warning/30 text-warning'
-                      : selectedSession.status === 'pending_admin'
-                        ? 'bg-tertiary/20 border-tertiary/30 text-tertiary'
-                        : selectedSession.status === 'rejected'
-                          ? 'bg-error/20 border-error/30 text-error'
-                          : selectedSession.status === 'completed'
-                            ? 'bg-success/20 border-success/30 text-success'
-                            : 'bg-primary/20 border-primary/30 text-primary'
-                  "
-                >
-                  {{
-                    selectedSession.status === 'pending_teacher'
-                      ? 'Awaiting Teacher'
-                      : selectedSession.status === 'pending_admin'
-                        ? 'Awaiting Admin'
-                        : selectedSession.status === 'rejected'
-                          ? 'Declined'
-                          : selectedSession.status === 'completed'
-                            ? 'Completed'
-                            : 'Confirmed'
-                  }}
-                </span>
+                <p class="text-sm font-bold text-on-surface">Your Proof</p>
+                <p class="text-xs text-success">Recorded ✓</p>
               </div>
             </div>
             <button
-              class="text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors focus:outline-none focus:ring-2 focus:ring-outline-variant rounded-lg p-1 self-start"
-              aria-label="Close modal"
-              @click="closeSessionModal"
+              class="px-4 py-2 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface text-xs font-bold rounded-lg transition-all border border-on-surface/[0.08] dark:border-on-surface/10"
+              @click="viewStudentProof"
             >
-              <span class="material-symbols-outlined">close</span>
+              View
             </button>
           </div>
 
-          <div class="space-y-4">
-            <div
-              class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
-            >
-              <span class="text-xs text-on-surface-variant">Teacher</span>
-              <span class="text-sm font-bold text-on-surface"
-                >Teacher #{{ selectedSession.teacherId }}</span
-              >
-            </div>
-            <div
-              class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
-            >
-              <span class="text-xs text-on-surface-variant">Time</span>
-              <span class="text-sm font-bold text-on-surface">{{
-                formatTime(selectedSession.startTime)
-              }}</span>
-            </div>
-            <div
-              class="flex justify-between items-center py-2 border-b border-on-surface/[0.04] dark:border-on-surface/5"
-            >
-              <span class="text-xs text-on-surface-variant">Homework</span>
-              <span
-                class="text-sm font-bold"
-                :class="
-                  selectedSession.homeworkCompleted
-                    ? 'text-success'
-                    : selectedSession.homeworkAssigned
-                      ? 'text-warning'
-                      : 'text-on-surface-variant'
-                "
-              >
-                {{
-                  selectedSession.homeworkCompleted
-                    ? 'Completed ✓'
-                    : selectedSession.homeworkAssigned
-                      ? 'Pending'
-                      : 'None'
-                }}
-              </span>
-            </div>
-            <div v-if="selectedSession.notes" class="py-2">
-              <span class="text-xs text-on-surface-variant block mb-1">Notes</span>
-              <p class="text-sm text-on-surface-variant italic">{{ selectedSession.notes }}</p>
-            </div>
-          </div>
-
           <div
-            v-if="
-              [
-                'scheduled',
-                'overdue',
-                'completed',
-                'pending_verification',
-                'overdue_rejected',
-              ].includes(selectedSession.status)
-            "
-            class="bg-on-surface/[0.04] dark:bg-on-surface/5 rounded-xl p-4 border border-on-surface/[0.04] dark:border-on-surface/5"
+            v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)"
+            class="mt-2 pt-3 border-t border-outline/[0.04] dark:border-on-surface/5 space-y-3"
           >
-            <h4 class="text-xs font-semibold text-on-surface-variant uppercase mb-3">
-              Session Proofs
-            </h4>
-
-            <div v-if="selectedSession.status === 'overdue_rejected'" class="alert-error mb-4">
-              <p class="text-xs font-semibold uppercase text-error mb-1">Proof Rejected</p>
-              <p class="text-xs text-error font-bold mb-1">{{ selectedSession.rejectionReason }}</p>
-              <p class="text-xs text-on-surface-variant">
-                Please upload a valid proof and provide justification below.
-              </p>
-            </div>
-
-            <div class="space-y-3 mb-4">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-on-surface-variant">Your Proof</span>
-                <span
-                  class="text-sm font-bold"
-                  :class="
-                    selectedSession.proofs?.some((p) => p.uploaderRole === 'student')
-                      ? 'text-success'
-                      : 'text-warning'
-                  "
-                >
-                  {{
-                    selectedSession.proofs?.some((p) => p.uploaderRole === 'student')
-                      ? 'Uploaded ✓'
-                      : 'Pending'
-                  }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-on-surface-variant">Teacher's Proof</span>
-                <span
-                  class="text-sm font-bold"
-                  :class="
-                    selectedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
-                      ? 'text-success'
-                      : 'text-warning'
-                  "
-                >
-                  {{
-                    selectedSession.proofs?.some((p) => p.uploaderRole === 'teacher')
-                      ? 'Uploaded ✓'
-                      : 'Pending'
-                  }}
-                </span>
-              </div>
-            </div>
-
-            <div
-              v-if="selectedSession.proofs?.some((p) => p.uploaderRole === 'student')"
-              class="flex flex-col gap-3"
+            <label class="block text-xs text-on-surface-variant mb-1 font-bold"
+              >Add a note for the Admin (Optional)</label
             >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div
-                    class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant shrink-0"
-                  >
-                    <img
-                      :src="
-                        selectedSession.proofs?.find((p) => p.uploaderRole === 'student')?.imageUrl
-                      "
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p class="text-sm font-bold text-on-surface">Your Proof</p>
-                    <p class="text-xs text-success">Recorded ✓</p>
-                  </div>
-                </div>
-                <button
-                  class="px-4 py-2 bg-on-surface/[0.06] dark:bg-on-surface/10 hover:bg-on-surface/8 dark:hover:bg-on-surface/20 text-on-surface text-xs font-bold rounded-lg transition-all border border-on-surface/[0.08] dark:border-on-surface/10"
-                  @click="viewStudentProof"
-                >
-                  View
-                </button>
-              </div>
-
-              <div
-                v-if="['overdue', 'overdue_rejected'].includes(selectedSession.status)"
-                class="mt-2 pt-3 border-t border-outline/[0.04] dark:border-on-surface/5 space-y-3"
-              >
-                <label class="block text-xs text-on-surface-variant mb-1 font-bold"
-                  >Add a note for the Admin (Optional)</label
-                >
-                <textarea
-                  v-model="approvalJustification"
-                  rows="2"
-                  class="input resize-none"
-                  placeholder="E.g. Class was conducted successfully..."
-                ></textarea>
-                <button
-                  class="w-full py-2 bg-primary hover:scale-[1.02] active:scale-95 text-on-primary font-bold rounded-xl transition-all text-sm shadow-md"
-                  @click="submitApprovalRequest(selectedSession.id)"
-                >
-                  Submit Request for Approval
-                </button>
-              </div>
-            </div>
-
-            <div
-              v-else-if="selectedSession.status === 'pending_verification'"
-              class="alert-success mt-4"
+            <textarea
+              v-model="approvalJustification"
+              rows="2"
+              class="input resize-none"
+              placeholder="E.g. Class was conducted successfully..."
+            ></textarea>
+            <button
+              class="w-full py-2 bg-primary hover:scale-[1.02] active:scale-95 text-on-primary font-bold rounded-xl transition-all text-sm shadow-md"
+              @click="submitApprovalRequest(selectedSession.id)"
             >
-              <p class="text-xs font-bold text-success">Approval Request Pending</p>
-              <p class="text-xs text-success mt-1">An admin or teacher is reviewing your proof.</p>
-            </div>
+              Submit Request for Approval
+            </button>
+          </div>
+        </div>
 
-            <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
-              <div class="bg-primary/10 p-4 rounded-2xl border border-primary/20">
-                <p class="text-sm font-bold text-primary mb-2">Teacher proposed a new time</p>
-                <div v-if="!isCountering" class="flex gap-3">
-                  <button
-                    class="flex-1 py-2 bg-success/20 hover:bg-success/30 border border-success/30 text-success text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
-                    @click="approveCounter"
-                  >
-                    <span class="material-symbols-outlined text-sm">check_circle</span>
-                    Approve Time
-                  </button>
-                  <button
-                    class="flex-1 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
-                    @click="startCountering(selectedSession)"
-                  >
-                    <span class="material-symbols-outlined text-sm">edit_calendar</span>
-                    Suggest Other
-                  </button>
-                </div>
-                <div v-else class="space-y-3 mt-2">
-                  <input
-                    v-model="counterForm.startTime"
-                    type="datetime-local"
-                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface [color-scheme:dark]"
-                  />
-                  <input
-                    v-model="counterForm.endTime"
-                    type="datetime-local"
-                    class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface [color-scheme:dark]"
-                  />
-                  <div class="flex gap-2">
-                    <button
-                      class="flex-1 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl"
-                      @click="submitStudentCounter"
-                    >
-                      Send Proposal
-                    </button>
-                    <button
-                      class="px-4 py-2 bg-on-surface/5 text-xs font-bold rounded-xl"
-                      @click="stopCountering"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div
+          v-else-if="selectedSession.status === 'pending_verification'"
+          class="alert-success mt-4"
+        >
+          <p class="text-xs font-bold text-success">Approval Request Pending</p>
+          <p class="text-xs text-success mt-1">An admin or teacher is reviewing your proof.</p>
+        </div>
 
-            <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
-              <div class="flex items-center gap-3">
-                <div
-                  class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant shrink-0"
-                >
-                  <img :src="stagedProofUrl" class="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <p class="text-sm font-bold text-on-surface">Ready to save</p>
-                  <label class="text-xs text-primary cursor-pointer hover:underline">
-                    Replace
-                    <input
-                      type="file"
-                      :accept="IMAGE_ACCEPT_ATTR"
-                      class="hidden"
-                      @change="handleStagedProofUpload"
-                    />
-                  </label>
-                </div>
-              </div>
+        <div v-else-if="selectedSession.status === 'pending_student'" class="space-y-4">
+          <div class="bg-primary/10 p-4 rounded-2xl border border-primary/20">
+            <p class="text-sm font-bold text-primary mb-2">Teacher proposed a new time</p>
+            <div v-if="!isCountering" class="flex gap-3">
               <button
-                class="w-full py-2 bg-primary hover:scale-[1.02] text-on-primary text-xs font-semibold rounded-lg transition-all active:scale-95"
-                @click="saveStagedProof"
+                class="flex-1 py-2 bg-success/20 hover:bg-success/30 border border-success/30 text-success text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                @click="approveCounter"
               >
-                Save Proof
+                <span class="material-symbols-outlined text-sm">check_circle</span>
+                Approve Time
+              </button>
+              <button
+                class="flex-1 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+                @click="startCountering(selectedSession)"
+              >
+                <span class="material-symbols-outlined text-sm">edit_calendar</span>
+                Suggest Other
               </button>
             </div>
+            <div v-else class="space-y-3 mt-2">
+              <input
+                v-model="counterForm.startTime"
+                type="datetime-local"
+                class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface [color-scheme:dark]"
+              />
+              <input
+                v-model="counterForm.endTime"
+                type="datetime-local"
+                class="w-full bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl px-3 py-2 text-xs text-on-surface [color-scheme:dark]"
+              />
+              <div class="flex gap-2">
+                <button
+                  class="flex-1 py-2 bg-primary text-on-primary text-xs font-bold rounded-xl"
+                  @click="submitStudentCounter"
+                >
+                  Send Proposal
+                </button>
+                <button
+                  class="px-4 py-2 bg-on-surface/5 text-xs font-bold rounded-xl"
+                  @click="stopCountering"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div v-else-if="stagedProofUrl" class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
             <div
-              v-else-if="
-                ['scheduled', 'overdue', 'overdue_rejected'].includes(selectedSession.status)
-              "
+              class="size-12 rounded-lg overflow-hidden bg-surface-container-high border border-outline-variant shrink-0"
             >
-              <label
-                class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50 transition-all cursor-pointer group text-center"
-              >
-                <span
-                  class="material-symbols-outlined text-on-surface-variant group-hover:text-primary text-2xl mb-1"
-                  >upload</span
-                >
-                <span
-                  class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors"
-                  >Select Image</span
-                >
-                <span class="text-xs text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
+              <img :src="stagedProofUrl" class="w-full h-full object-cover" />
+            </div>
+            <div>
+              <p class="text-sm font-bold text-on-surface">Ready to save</p>
+              <label class="text-xs text-primary cursor-pointer hover:underline">
+                Replace
                 <input
                   type="file"
                   :accept="IMAGE_ACCEPT_ATTR"
@@ -1191,10 +1138,40 @@ const stopCountering = () => {
               </label>
             </div>
           </div>
+          <button
+            class="w-full py-2 bg-primary hover:scale-[1.02] text-on-primary text-xs font-semibold rounded-lg transition-all active:scale-95"
+            @click="saveStagedProof"
+          >
+            Save Proof
+          </button>
+        </div>
+
+        <div
+          v-else-if="['scheduled', 'overdue', 'overdue_rejected'].includes(selectedSession.status)"
+        >
+          <label
+            class="flex flex-col items-center justify-center p-4 border-2 border-dashed border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 hover:border-primary/50 transition-all cursor-pointer group text-center"
+          >
+            <span
+              class="material-symbols-outlined text-on-surface-variant group-hover:text-primary text-2xl mb-1"
+              >upload</span
+            >
+            <span
+              class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors"
+              >Select Image</span
+            >
+            <span class="text-xs text-on-surface-variant mt-1">PNG, JPG, or WEBP</span>
+            <input
+              type="file"
+              :accept="IMAGE_ACCEPT_ATTR"
+              class="hidden"
+              @change="handleStagedProofUpload"
+            />
+          </label>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+    </template>
+  </BaseModal>
 
   <Teleport to="body">
     <Transition

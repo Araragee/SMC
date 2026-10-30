@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseModal from '@components/BaseModal.vue'
 import BaseDropdown from '@/components/BaseDropdown.vue'
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
@@ -413,7 +414,26 @@ async function submitPayment() {
             <button
               class="tap-target p-2 rounded-xl hover:bg-error/10 text-on-surface-variant hover:text-error transition-colors"
               title="Delete payment"
-              @click="async () => { if (await dialog.confirm(`Delete payment of ${formatCurrency(pay.amount)} for ${pay.student_name || 'student'}? This cannot be undone.`, { title: 'Delete Payment', destructive: true })) { try { await paymentsStore.deletePayment(pay.id); toast.success('Deleted', 'Payment record removed.') } catch (e: any) { toast.error('Failed', (e as any)?.response?.data?.detail || (e as any).message) } } }"
+              @click="
+                async () => {
+                  if (
+                    await dialog.confirm(
+                      `Delete payment of ${formatCurrency(pay.amount)} for ${pay.student_name || 'student'}? This cannot be undone.`,
+                      { title: 'Delete Payment', destructive: true }
+                    )
+                  ) {
+                    try {
+                      await paymentsStore.deletePayment(pay.id)
+                      toast.success('Deleted', 'Payment record removed.')
+                    } catch (e: any) {
+                      toast.error(
+                        'Failed',
+                        (e as any)?.response?.data?.detail || (e as any).message
+                      )
+                    }
+                  }
+                }
+              "
             >
               <span class="material-symbols-outlined text-xl">delete</span>
             </button>
@@ -438,208 +458,180 @@ async function submitPayment() {
     </section>
   </div>
 
-  <Teleport to="body">
-    <div
-      v-if="showAddModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 dark:bg-black/70"
-      @click.self="showAddModal = false"
-    >
-      <div
-        class="w-full max-w-md glass-heavy rounded-3xl border border-outline-variant/30 shadow-2xl p-6 space-y-4"
-      >
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-on-surface">Record Payment</h2>
-          <button
-            class="size-8 rounded-full flex items-center justify-center hover:bg-on-surface/10 dark:hover:bg-on-surface/10"
-            @click="showAddModal = false"
-          >
-            <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
-          </button>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Student *</label
-            >
-            <BaseDropdown
-              v-model="newPayment.student_id"
-              placeholder="Select a student…"
-              :options="[...students.map((s) => ({ value: s.id, label: s.name }))]"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Amount (PHP) *</label
-            >
-            <input
-              v-model="newPayment.amount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 150.00"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Method</label
-            >
-            <BaseDropdown
-              v-model="newPayment.method"
-              :options="[
-                { value: 'cash', label: 'Cash' },
-                { value: 'bank_transfer', label: 'Bank Transfer' },
-                { value: 'card', label: 'Card' },
-                { value: 'gcash', label: 'GCash' },
-                { value: 'maya', label: 'Maya' },
-              ]"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Status</label
-            >
-            <BaseDropdown
-              v-model="newPayment.status"
-              :options="[
-                { value: 'completed', label: 'Completed' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'failed', label: 'Failed' },
-              ]"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Notes (optional)</label
-            >
-            <input
-              v-model="newPayment.notes"
-              type="text"
-              placeholder="e.g. January enrollment fee"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
-            />
-          </div>
-        </div>
-
-        <button
-          :disabled="isSaving"
-          class="w-full py-4 bg-success hover:bg-success disabled:opacity-50 text-on-success rounded-2xl font-semibold text-sm transition-all"
-          @click="submitPayment"
+  <BaseModal
+    :is-open="showAddModal"
+    size="md"
+    sheet
+    title="Record Payment"
+    close-label="Close record payment"
+    @close="showAddModal = false"
+  >
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Student *</label
         >
-          <span v-if="isSaving">Saving…</span>
-          <span v-else>Save Payment</span>
-        </button>
+        <BaseDropdown
+          v-model="newPayment.student_id"
+          placeholder="Select a student…"
+          :options="[...students.map((s) => ({ value: s.id, label: s.name }))]"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Amount (PHP) *</label
+        >
+        <input
+          v-model="newPayment.amount"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="e.g. 150.00"
+          class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Method</label
+        >
+        <BaseDropdown
+          v-model="newPayment.method"
+          :options="[
+            { value: 'cash', label: 'Cash' },
+            { value: 'bank_transfer', label: 'Bank Transfer' },
+            { value: 'card', label: 'Card' },
+            { value: 'gcash', label: 'GCash' },
+            { value: 'maya', label: 'Maya' },
+          ]"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Status</label
+        >
+        <BaseDropdown
+          v-model="newPayment.status"
+          :options="[
+            { value: 'completed', label: 'Completed' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'failed', label: 'Failed' },
+          ]"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Notes (optional)</label
+        >
+        <input
+          v-model="newPayment.notes"
+          type="text"
+          placeholder="e.g. January enrollment fee"
+          class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
+        />
       </div>
     </div>
-  </Teleport>
 
-  <Teleport to="body">
-    <div
-      v-if="showEditModal"
-      class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/40 dark:bg-black/70"
-      @click.self="showEditModal = false"
+    <button
+      :disabled="isSaving"
+      class="w-full py-4 bg-success hover:bg-success disabled:opacity-50 text-on-success rounded-2xl font-semibold text-sm transition-all"
+      @click="submitPayment"
     >
-      <div
-        class="w-full max-w-md glass-heavy rounded-3xl border border-outline-variant/30 shadow-2xl p-6 space-y-4"
-      >
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-on-surface">Edit Payment</h2>
-          <button
-            class="size-8 rounded-full flex items-center justify-center hover:bg-on-surface/10 dark:hover:bg-on-surface/10"
-            @click="showEditModal = false"
-          >
-            <span class="material-symbols-outlined text-lg text-on-surface-variant">close</span>
-          </button>
-        </div>
+      <span v-if="isSaving">Saving…</span>
+      <span v-else>Save Payment</span>
+    </button>
+  </BaseModal>
 
-        <div v-if="editingPayment" class="space-y-4">
-          <!-- Student (Read-only in edit) -->
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Student</label
-            >
-            <div
-              class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-on-surface/5"
-            >
-              {{
-                students.find((s) => s.id === editingPayment.student_id)?.name || 'Unknown Student'
-              }}
-            </div>
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Amount (PHP) *</label
-            >
-            <input
-              v-model="editingPayment.amount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 150.00"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Method</label
-            >
-            <BaseDropdown
-              v-model="editingPayment.method"
-              :options="[
-                { value: 'cash', label: 'Cash' },
-                { value: 'bank_transfer', label: 'Bank Transfer' },
-                { value: 'card', label: 'Card' },
-                { value: 'gcash', label: 'GCash' },
-                { value: 'maya', label: 'Maya' },
-              ]"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Status</label
-            >
-            <BaseDropdown
-              v-model="editingPayment.status"
-              :options="[
-                { value: 'completed', label: 'Completed' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'failed', label: 'Failed' },
-              ]"
-            />
-          </div>
-
-          <div>
-            <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
-              >Notes (optional)</label
-            >
-            <input
-              v-model="editingPayment.notes"
-              type="text"
-              placeholder="e.g. January enrollment fee"
-              class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
-            />
-          </div>
-        </div>
-
-        <button
-          :disabled="isUpdating"
-          class="w-full py-4 bg-success hover:bg-success disabled:opacity-50 text-on-success rounded-2xl font-semibold text-sm transition-all"
-          @click="submitUpdate"
+  <BaseModal
+    :is-open="showEditModal"
+    size="md"
+    sheet
+    title="Edit Payment"
+    close-label="Close payment editor"
+    @close="showEditModal = false"
+  >
+    <div v-if="editingPayment" class="space-y-4">
+      <!-- Student (Read-only in edit) -->
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Student</label
         >
-          <span v-if="isUpdating">Updating…</span>
-          <span v-else>Update Payment</span>
-        </button>
+        <div
+          class="w-full glass-medium border border-outline-variant/10 rounded-2xl px-4 py-3 text-sm font-bold text-on-surface/50 bg-on-surface/5"
+        >
+          {{ students.find((s) => s.id === editingPayment.student_id)?.name || 'Unknown Student' }}
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Amount (PHP) *</label
+        >
+        <input
+          v-model="editingPayment.amount"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="e.g. 150.00"
+          class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Method</label
+        >
+        <BaseDropdown
+          v-model="editingPayment.method"
+          :options="[
+            { value: 'cash', label: 'Cash' },
+            { value: 'bank_transfer', label: 'Bank Transfer' },
+            { value: 'card', label: 'Card' },
+            { value: 'gcash', label: 'GCash' },
+            { value: 'maya', label: 'Maya' },
+          ]"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Status</label
+        >
+        <BaseDropdown
+          v-model="editingPayment.status"
+          :options="[
+            { value: 'completed', label: 'Completed' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'failed', label: 'Failed' },
+          ]"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase text-on-surface-variant block mb-1.5"
+          >Notes (optional)</label
+        >
+        <input
+          v-model="editingPayment.notes"
+          type="text"
+          placeholder="e.g. January enrollment fee"
+          class="w-full glass-medium border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm font-medium text-on-surface outline-none bg-transparent"
+        />
       </div>
     </div>
-  </Teleport>
+
+    <button
+      :disabled="isUpdating"
+      class="w-full py-4 bg-success hover:bg-success disabled:opacity-50 text-on-success rounded-2xl font-semibold text-sm transition-all"
+      @click="submitUpdate"
+    >
+      <span v-if="isUpdating">Updating…</span>
+      <span v-else>Update Payment</span>
+    </button>
+  </BaseModal>
 </template>
 
 <style scoped>
