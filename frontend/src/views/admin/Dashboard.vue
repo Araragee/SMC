@@ -614,14 +614,14 @@ const openLiveAnalytics = function () {
 
               <div v-if="viewMode === 'daily'" class="flex gap-2">
                 <button
-                  class="p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="tap-target p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   :disabled="!canGoPrev"
                   @click="sessionPage--"
                 >
                   <span class="material-symbols-outlined text-sm">chevron_left</span>
                 </button>
                 <button
-                  class="p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  class="tap-target p-2 bg-on-surface/[0.04] dark:bg-on-surface/5 border border-on-surface/[0.08] dark:border-on-surface/10 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                   :disabled="!canGoNext"
                   @click="sessionPage++"
                 >
@@ -895,12 +895,12 @@ const openLiveAnalytics = function () {
                     <div class="flex w-full items-center justify-end gap-1">
                       <RouterLink
                         :to="`/admin/users?edit=${teacher.id}`"
-                        class="p-2 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
+                        class="tap-target p-2 text-on-surface-variant hover:text-on-surface dark:hover:text-on-surface transition-colors"
                       >
                         <span class="material-symbols-outlined text-lg">edit</span>
                       </RouterLink>
                       <button
-                        class="p-2 text-on-surface-variant hover:text-error transition-colors"
+                        class="tap-target p-2 text-on-surface-variant hover:text-error transition-colors"
                         title="Deactivate Member"
                         @click="handleDeleteTeacher(teacher)"
                       >

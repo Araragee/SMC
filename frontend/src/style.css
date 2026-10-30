@@ -632,6 +632,19 @@ p {
   }
   .icon-btn-danger { @apply icon-btn hover:bg-error/10 hover:text-error; }
 
+  /* Floors a control at 44x44 on touch devices.
+     Row-action icon buttons paint at 26-36px wide, which is painful to hit
+     one-handed. An absolutely-positioned transparent ::after was the
+     tempting trick here — it leaves layout alone — but it does not actually
+     take the hit: with no background and no stacking context it is painted
+     under the neighbouring button in the same flex row, so the extra area
+     is decorative. A real minimum size is duller and works. Coarse pointers
+     only: a mouse is precise, and widening these for everyone would blow
+     out the dense table rows they live in. */
+  @media (pointer: coarse) {
+    .tap-target { @apply inline-flex min-h-11 min-w-11 items-center justify-center; }
+  }
+
   /* — Tables ——————————————————————————————— */
   .data-table  { @apply w-full border-collapse text-left; }
   .data-table thead { @apply bg-surface-container-highest/20; }

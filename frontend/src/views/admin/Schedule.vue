@@ -508,7 +508,7 @@ const statusBadgeClass = function (status: string): string {
             type="checkbox"
             :value="session.id"
             v-model="selectedSessionIds"
-            class="size-4 rounded border-on-surface/20 text-primary focus:ring-primary/50 bg-on-surface/10 dark:bg-on-surface/5 cursor-pointer accent-primary shrink-0"
+            class="size-6 sm:size-4 rounded border-on-surface/20 text-primary focus:ring-primary/50 bg-on-surface/10 dark:bg-on-surface/5 cursor-pointer accent-primary shrink-0"
           />
           <div class="w-1 h-10 rounded-full shrink-0" :class="statusBarClass(session.status)"></div>
           <div class="flex-1 min-w-0">

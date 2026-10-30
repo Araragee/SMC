@@ -410,21 +410,21 @@ async function submitPayment() {
           <!-- Actions -->
           <div class="flex items-center gap-1 justify-end">
             <button
-              class="p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
+              class="tap-target p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
               title="Print receipt"
               @click="printReceipt(pay.id)"
             >
               <span class="material-symbols-outlined text-xl">receipt_long</span>
             </button>
             <button
-              class="p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
+              class="tap-target p-2 rounded-xl hover:bg-on-surface/5 dark:hover:bg-on-surface/5 text-on-surface-variant transition-colors"
               title="Edit payment"
               @click="openEditModal(pay)"
             >
               <span class="material-symbols-outlined text-xl">edit_note</span>
             </button>
             <button
-              class="p-2 rounded-xl hover:bg-error/10 text-on-surface-variant hover:text-error transition-colors"
+              class="tap-target p-2 rounded-xl hover:bg-error/10 text-on-surface-variant hover:text-error transition-colors"
               title="Delete payment"
               @click="async () => { if (await dialog.confirm(`Delete payment of ${formatCurrency(pay.amount)} for ${pay.student_name || 'student'}? This cannot be undone.`, { title: 'Delete Payment', destructive: true })) { try { await paymentsStore.deletePayment(pay.id); toast.success('Deleted', 'Payment record removed.') } catch (e: any) { toast.error('Failed', (e as any)?.response?.data?.detail || (e as any).message) } } }"
             >
