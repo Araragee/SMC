@@ -171,6 +171,12 @@ async def _ws_handle_typing(user_id: int, data: dict, db):
         "type": "typing", "conversation_id": conv_id, "user_id": user_id,
     }, exclude_user_id=user_id)
 
+# Application close code for "this socket is not authenticated". Distinct from
+# the 1000-range codes so the client can tell an auth failure from a transport
+# problem and renew its token instead of simply retrying.
+WS_UNAUTHORIZED = 4001
+
+
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(user_id: int, websocket: WebSocket, token: str | None = Query(default=None)):
     # Prefer the Sec-WebSocket-Protocol subprotocol header so the JWT
@@ -186,18 +192,36 @@ async def websocket_endpoint(user_id: int, websocket: WebSocket, token: str | No
             auth_token = parts[1]
             accepted_protocol = "jwt"
 
+    async def _reject_unauthorized() -> None:
+        """Complete the handshake, then close with 4001.
+
+        Closing *before* accept makes Starlette answer the upgrade with a bare
+        403, which a browser reports as an indistinguishable "connection
+        failed" — the same thing it says when the server is simply down. The
+        client could not tell "your token is dead, renew it" from "the backend
+        is unreachable, keep waiting", so an expired access token turned into a
+        silent permanent outage: the socket retried forever with a token the
+        server had already rejected. Accepting first costs one handshake and
+        gives the client a close code it can act on.
+        """
+        if accepted_protocol:
+            await websocket.accept(subprotocol=accepted_protocol)
+        else:
+            await websocket.accept()
+        await websocket.close(code=WS_UNAUTHORIZED)
+
     if not auth_token:
-        await websocket.close(code=4001)
+        await _reject_unauthorized()
         return
 
     try:
         payload = jwt.decode(auth_token, SECRET_KEY, algorithms=[ALGORITHM])
         token_user_id: int = payload.get("user_id")
         if token_user_id != user_id:
-            await websocket.close(code=4001)
+            await _reject_unauthorized()
             return
     except Exception:
-        await websocket.close(code=4001)
+        await _reject_unauthorized()
         return
 
     await ws_manager.connect(user_id, websocket, subprotocol=accepted_protocol)
