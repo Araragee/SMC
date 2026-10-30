@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseModal from '@components/BaseModal.vue'
+import StudentDetailModal from '@components/StudentDetailModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useUsersStore } from '@stores/users'
 import { useScheduleStore } from '@stores/schedule'
@@ -31,6 +31,13 @@ const search = ref('')
 const listFilter = ref('all')
 const sortBy = ref('name-asc')
 const sortOpen = ref(false)
+
+// Two statements, so not inline: Prettier splits a multi-statement handler
+// across lines and drops the separator, leaving markup Vue cannot parse.
+function applySort(key: typeof sortBy.value) {
+  sortBy.value = key
+  sortOpen.value = false
+}
 
 // ── detail modal state ────────────────────────────────────────────────────────
 const selectedStudent = ref<User | null>(null)
@@ -185,82 +192,6 @@ const stats = computed(() => {
   }
 })
 
-const filteredSessions = computed(() => {
-  const ss = studentSessions.value
-  switch (activeChip.value) {
-    case 'confirmed':
-      return ss.filter((s) => s.status === 'scheduled')
-    case 'pending':
-      return ss.filter((s) =>
-        ['pending_teacher', 'pending_student', 'pending_admin'].includes(s.status)
-      )
-    case 'completed':
-      return ss.filter((s) => s.status === 'completed')
-    case 'overdue':
-      return ss.filter((s) => ['overdue', 'overdue_rejected'].includes(s.status))
-    case 'review':
-      return ss.filter((s) => s.status === 'pending_verification')
-    case 'rejected':
-      return ss.filter((s) => ['rejected', 'cancelled'].includes(s.status))
-    default:
-      return ss
-  }
-})
-
-const chips = computed(() =>
-  [
-    {
-      key: 'total',
-      label: 'All',
-      count: stats.value.total,
-      color: 'bg-surface-container-high/20 border-outline-variant/30 text-on-surface-variant',
-      dot: 'bg-surface-container-high',
-    },
-    {
-      key: 'confirmed',
-      label: 'Confirmed',
-      count: stats.value.confirmed,
-      color: 'bg-success/20 border-success/30 text-success',
-      dot: 'bg-success',
-    },
-    {
-      key: 'pending',
-      label: 'Pending',
-      count: stats.value.pending,
-      color: 'bg-warning/20 border-warning/30 text-warning',
-      dot: 'bg-warning',
-    },
-    {
-      key: 'completed',
-      label: 'Done',
-      count: stats.value.completed,
-      color: 'bg-success/20 border-success/30 text-success',
-      dot: 'bg-success',
-    },
-    {
-      key: 'overdue',
-      label: 'Overdue',
-      count: stats.value.overdue,
-      color: 'bg-error/20 border-error/30 text-error',
-      dot: 'bg-error',
-    },
-    {
-      key: 'review',
-      label: 'In Review',
-      count: stats.value.review,
-      color: 'bg-tertiary/20 border-tertiary/30 text-tertiary',
-      dot: 'bg-tertiary',
-    },
-    {
-      key: 'rejected',
-      label: 'Declined',
-      count: stats.value.rejected,
-      color: 'bg-error/20 border-error/30 text-error',
-      dot: 'bg-error',
-    },
-  ].filter((c) => c.key === 'total' || c.count > 0)
-)
-
 function openStudent(student: User) {
   selectedStudent.value = student
   activeChip.value = null
@@ -271,55 +202,6 @@ function closeStudent() {
   activeChip.value = null
   selectedSession.value = null
 }
-function selectChip(key: string) {
-  activeChip.value = activeChip.value === key ? null : key
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-}
-
-function statusBadge(status: string) {
-  const map: Record<string, string> = {
-    scheduled: 'bg-success/20 border-success/30 text-success',
-    completed: 'bg-success/20 border-success/30 text-success',
-    pending_teacher: 'bg-warning/20 border-warning/30 text-warning',
-    pending_student: 'bg-primary/20 border-primary/30 text-primary',
-    pending_admin: 'bg-tertiary/20 border-tertiary/30 text-tertiary',
-    pending_verification: 'bg-tertiary/20 border-tertiary/30 text-tertiary',
-    overdue: 'bg-error/20 border-error/30 text-error',
-    overdue_rejected: 'bg-error/20 border-error/30 text-error',
-    rejected: 'bg-error/20 border-error/30 text-error',
-    cancelled: 'bg-surface-container-high/20 border-outline-variant/30 text-on-surface-variant',
-  }
-  return (
-    map[status] ?? 'bg-surface-container-high/20 border-outline-variant/30 text-on-surface-variant'
-  )
-}
-
-function statusLabel(status: string) {
-  const map: Record<string, string> = {
-    scheduled: 'Confirmed',
-    completed: 'Done',
-    pending_teacher: 'Aw. Teacher',
-    pending_student: 'Countered',
-    pending_admin: 'Aw. Admin',
-    pending_verification: 'In Review',
-    overdue: 'Overdue',
-    overdue_rejected: 'Proof Rej.',
-    rejected: 'Declined',
-    cancelled: 'Cancelled',
-  }
-  return map[status] ?? status
-}
-
 // ── teacher session actions ───────────────────────────────────────────────────
 async function handleApproveTeacher(sessionId: number) {
   try {
@@ -463,15 +345,11 @@ async function handleRejectStudent(sessionId: number) {
                     ? 'text-success'
                     : 'text-on-surface-variant hover:text-on-surface'
                 "
-                @click="sortBy = opt.key; sortOpen = false"
+                @click="applySort(opt.key)"
               >
-                <span class="material-symbols-outlined text-sm">{{
-                  opt.icon
-                }}</span>
+                <span class="material-symbols-outlined text-sm">{{ opt.icon }}</span>
                 {{ opt.label }}
-                <span
-                  v-if="sortBy === opt.key"
-                  class="material-symbols-outlined ml-auto text-sm"
+                <span v-if="sortBy === opt.key" class="material-symbols-outlined ml-auto text-sm"
                   >check</span
                 >
               </button>
@@ -583,133 +461,15 @@ async function handleRejectStudent(sessionId: number) {
     </section>
 
     <!-- ── Student Detail Modal ────────────────────────────────────────────── -->
-    <BaseModal
-      :is-open="!!selectedStudent"
-      size="xl"
-      close-label="Close student details"
+    <StudentDetailModal
+      :student="selectedStudent"
+      :sessions="studentSessions"
+      stat-label="Sessions Done"
+      :stat-value="stats.completed"
+      empty-text="No sessions with this student yet."
       @close="closeStudent"
-    >
-      <template v-if="selectedStudent" #header>
-      <div class="flex items-center gap-4 p-6 border-b border-on-surface/5">
-        <div
-          class="size-14 rounded-2xl bg-success/20 border border-success/20 flex items-center justify-center text-success font-semibold text-xl overflow-hidden shrink-0"
-        >
-          <img
-            v-if="selectedStudent.avatarUrl"
-            :src="selectedStudent.avatarUrl"
-            class="w-full h-full object-cover"
-          />
-          <span v-else>{{ selectedStudent.name.charAt(0).toUpperCase() }}</span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h2 class="font-semibold text-xl text-on-surface truncate">
-            {{ selectedStudent.name }}
-          </h2>
-          <p class="text-on-surface-variant text-sm">{{ selectedStudent.email }}</p>
-        </div>
-        <button class="icon-btn" @click="closeStudent">
-          <span class="material-symbols-outlined text-lg">close</span>
-        </button>
-      </div>
-
-      </template>
-
-      <template v-if="selectedStudent">
-        <div class="grid grid-cols-2 gap-3">
-          <div
-            v-if="selectedStudent.school"
-            class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
-          >
-            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">School</p>
-            <p class="text-sm font-bold text-on-surface">{{ selectedStudent.school }}</p>
-          </div>
-          <div
-            v-if="selectedStudent.contactNumber"
-            class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
-          >
-            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">
-              Contact
-            </p>
-            <p class="text-sm font-bold text-on-surface">
-              {{ selectedStudent.contactNumber }}
-            </p>
-          </div>
-          <div
-            v-if="selectedStudent.parentName"
-            class="bg-on-surface/[0.04] dark:bg-on-surface/[0.04] rounded-2xl p-3"
-          >
-            <p class="text-xs font-semibold text-on-surface-variant uppercase mb-1">Parent</p>
-            <p class="text-sm font-bold text-on-surface">{{ selectedStudent.parentName }}</p>
-          </div>
-          <div class="bg-success/10 border border-success/20 rounded-2xl p-3">
-            <p class="text-xs font-semibold text-success uppercase mb-1">Sessions Done</p>
-            <p class="text-2xl font-semibold text-success">{{ stats.completed }}</p>
-          </div>
-        </div>
-
-        <div>
-          <p class="text-xs font-semibold text-on-surface-variant uppercase mb-3">
-            Session Breakdown
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="chip in chips"
-              :key="chip.key"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold uppercase transition-all"
-              :class="[
-                chip.color,
-                activeChip === chip.key
-                  ? 'ring-2 ring-offset-1 ring-offset-transparent scale-105'
-                  : 'opacity-80 hover:opacity-100',
-              ]"
-              @click="selectChip(chip.key)"
-            >
-              <span class="size-1.5 rounded-full" :class="chip.dot"></span>
-              {{ chip.label }}
-              <span class="font-semibold ml-0.5">{{ chip.count }}</span>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="filteredSessions.length > 0" class="space-y-2">
-          <p class="text-xs font-semibold text-on-surface-variant uppercase">
-            {{ activeChip ? chips.find((c) => c.key === activeChip)?.label : 'All' }} Sessions
-          </p>
-          <button
-            v-for="session in filteredSessions"
-            :key="session.id"
-            class="w-full flex items-center gap-3 p-3 rounded-2xl bg-on-surface/[0.03] dark:bg-on-surface/[0.03] border border-on-surface/[0.05] dark:border-on-surface/5 hover:bg-on-surface/[0.06] dark:hover:bg-on-surface/[0.06] transition-all text-left group"
-            @click="selectedSession = session"
-          >
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-bold text-on-surface">
-                {{ formatTime(session.startTime) }}
-              </p>
-              <p class="text-xs text-on-surface-variant">{{ statusLabel(session.status) }}</p>
-            </div>
-            <span
-              class="text-xs font-semibold px-2 py-1 rounded-full border"
-              :class="statusBadge(session.status)"
-            >
-              {{ statusLabel(session.status) }}
-            </span>
-            <span
-              class="material-symbols-outlined text-sm text-on-surface-variant/40 group-hover:text-on-surface-variant transition-colors"
-              >chevron_right</span
-            >
-          </button>
-        </div>
-        <div v-else-if="activeChip" class="text-center py-6 text-on-surface-variant text-sm">
-          No sessions in this category.
-        </div>
-        <div
-          v-else-if="studentSessions.length === 0"
-          class="text-center py-6 text-on-surface-variant text-sm"
-        >
-          No sessions with this student yet.
-        </div>
-      </template>
-    </BaseModal>
+      @select-session="selectedSession = $event"
+    />
 
     <SessionDetailModal
       :session="selectedSession"
